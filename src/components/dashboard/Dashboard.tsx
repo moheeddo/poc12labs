@@ -109,31 +109,37 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
               title: "영상 업로드",
               desc: "평가 대상 영상을 시스템에 등록합니다.",
               icon: <UploadCloud className="w-6 h-6" />,
+              iconColor: "text-coral-400",
+              hoverBorder: "hover:border-coral-500/30",
             },
             {
               step: 2,
               title: "AI 분석",
               desc: "Twelve Labs AI가 영상을 자동으로 분석합니다.",
               icon: <ScanSearch className="w-6 h-6" />,
+              iconColor: "text-teal-400",
+              hoverBorder: "hover:border-teal-500/30",
             },
             {
               step: 3,
               title: "리포트 확인",
               desc: "역량 평가 리포트를 확인하고 공유합니다.",
               icon: <ClipboardCheck className="w-6 h-6" />,
+              iconColor: "text-amber-400",
+              hoverBorder: "hover:border-amber-500/30",
             },
           ].map((item, i) => (
             <div key={item.step} className="flex flex-col md:flex-row items-center md:flex-1">
               {/* 스텝 카드 */}
               <div
-                className="animate-fade-in-up w-full bg-gradient-to-br from-surface-800 to-surface-900 border border-surface-700 rounded-lg p-5 transition-all duration-200 hover:border-surface-600 hover:from-surface-800/80 hover:to-surface-900/80 cursor-default"
+                className={`animate-fade-in-up w-full bg-gradient-to-br from-surface-800 to-surface-900 border border-surface-700 rounded-lg p-5 transition-all duration-200 ${item.hoverBorder} hover:from-surface-800/80 hover:to-surface-900/80 cursor-default`}
                 style={{
                   animationDelay: `${450 + i * 120}ms`,
                   animationFillMode: "backwards",
                 }}
               >
                 <div className="flex items-center gap-3 mb-3">
-                  <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-surface-900 border border-surface-700 text-teal-400">
+                  <div className={`flex items-center justify-center w-10 h-10 rounded-lg bg-surface-900 border border-surface-700 ${item.iconColor}`}>
                     {item.icon}
                   </div>
                   <span className="text-xs font-mono text-slate-500 tracking-wider">
