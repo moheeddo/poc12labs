@@ -43,20 +43,25 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
         ))}
       </div>
 
-      {/* 서비스 카드 3개 */}
+      {/* 서비스 카드 3개 — 시차 입장 애니메이션 */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
-        {SERVICE_TABS.map((tab) => (
-          <ServiceCard
+        {SERVICE_TABS.map((tab, i) => (
+          <div
             key={tab.key}
-            tabKey={tab.key}
-            label={tab.label}
-            description={tab.description}
-            color={tab.color}
-            bgColor={tab.bgColor}
-            borderColor={tab.borderColor}
-            videoCount={0}
-            onClick={() => onNavigate(tab.key)}
-          />
+            className="animate-fade-in-up"
+            style={{ animationDelay: `${i * 100}ms`, animationFillMode: 'backwards' }}
+          >
+            <ServiceCard
+              tabKey={tab.key}
+              label={tab.label}
+              description={tab.description}
+              color={tab.color}
+              bgColor={tab.bgColor}
+              borderColor={tab.borderColor}
+              videoCount={0}
+              onClick={() => onNavigate(tab.key)}
+            />
+          </div>
         ))}
       </div>
     </div>
