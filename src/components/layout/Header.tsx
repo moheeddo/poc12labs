@@ -29,7 +29,7 @@ export default function Header({ activeTab, onTabChange }: HeaderProps) {
             </div>
           </button>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2" title="모든 서비스가 정상 운영 중입니다">
             <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
             <span className="text-xs text-slate-400 font-mono">SYSTEM ONLINE</span>
           </div>
