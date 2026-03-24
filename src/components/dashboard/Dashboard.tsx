@@ -29,7 +29,7 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
         ].map((stat) => (
           <div
             key={stat.label}
-            className="bg-surface-800 border border-surface-700 rounded-lg p-4 transition-all duration-200 hover:border-surface-600 hover:bg-surface-800/80"
+            className="bg-gradient-to-br from-surface-800 to-surface-900 border border-surface-700 rounded-lg p-4 transition-all duration-200 hover:border-surface-600 hover:from-surface-800/80 hover:to-surface-900/80"
           >
             <div className="flex items-center gap-2 text-slate-500 mb-2">
               {stat.icon}
