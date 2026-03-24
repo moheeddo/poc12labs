@@ -11,7 +11,7 @@ interface DashboardProps {
 
 export default function Dashboard({ onNavigate }: DashboardProps) {
   return (
-    <div className="max-w-[1440px] mx-auto px-6 py-8 animate-fade-in-up">
+    <div className="max-w-[1440px] mx-auto px-4 md:px-6 py-6 md:py-8 animate-fade-in-up">
       {/* 전체 현황 요약 */}
       <div className="mb-8">
         <h2 className="text-2xl font-bold text-white mb-1">통합 관제 대시보드</h2>
@@ -20,7 +20,7 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
       </div>
 
       {/* 상태 카드 */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4 mb-8">
         {[
           { icon: <Film className="w-4 h-4" />, label: "등록 영상", value: "0", unit: "건" },
           { icon: <BarChart3 className="w-4 h-4" />, label: "완료 분석", value: "0", unit: "건" },
@@ -44,7 +44,7 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
       </div>
 
       {/* 서비스 카드 3개 */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
         {SERVICE_TABS.map((tab) => (
           <ServiceCard
             key={tab.key}
