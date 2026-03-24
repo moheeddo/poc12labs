@@ -37,6 +37,17 @@ export default function Header({ activeTab, onTabChange }: HeaderProps) {
 
         {/* 탭 네비게이션 */}
         <nav className="flex gap-1 -mb-px">
+          <button
+            onClick={() => onTabChange(null)}
+            className={cn(
+              "px-4 py-3 text-sm font-medium border-b-2 transition-all duration-200",
+              activeTab === null
+                ? "text-white border-white"
+                : "text-slate-500 border-transparent hover:text-slate-300 hover:border-surface-600"
+            )}
+          >
+            대시보드
+          </button>
           {SERVICE_TABS.map((tab) => {
             const isActive = activeTab === tab.key;
             return (
