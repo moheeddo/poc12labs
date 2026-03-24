@@ -32,6 +32,7 @@ interface ServiceCardProps {
   borderColor: string;
   videoCount: number;
   lastAnalysis?: string;
+  shortcutKey?: string;
   onClick: () => void;
 }
 
@@ -44,6 +45,7 @@ export default function ServiceCard({
   borderColor,
   videoCount,
   lastAnalysis,
+  shortcutKey,
   onClick,
 }: ServiceCardProps) {
   return (
@@ -66,6 +68,22 @@ export default function ServiceCard({
           GRADIENT_LINE[tabKey]
         )}
       />
+
+      {/* 키보드 단축키 힌트 배지 */}
+      {shortcutKey && (
+        <kbd
+          className={cn(
+            "hidden md:flex items-center justify-center",
+            "absolute top-3 right-3 z-10",
+            "bg-surface-700 border border-surface-600 text-slate-500",
+            "font-mono text-[10px] px-1.5 py-0.5 rounded",
+            "transition-colors duration-200",
+            "group-hover:text-teal-400 group-hover:border-teal-400/40"
+          )}
+        >
+          {shortcutKey}
+        </kbd>
+      )}
 
       <div className="p-6">
         {/* 제목 및 설명 */}

@@ -10,6 +10,12 @@ interface DashboardProps {
   onNavigate: (tab: ServiceTab) => void;
 }
 
+const SHORTCUT_KEYS: Record<ServiceTab, string> = {
+  simulator: "1",
+  leadership: "2",
+  pov: "3",
+};
+
 export default function Dashboard({ onNavigate }: DashboardProps) {
   return (
     <div className="max-w-[1440px] mx-auto px-4 md:px-6 py-6 md:py-8 animate-fade-in-up">
@@ -66,6 +72,7 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
               bgColor={tab.bgColor}
               borderColor={tab.borderColor}
               videoCount={0}
+              shortcutKey={SHORTCUT_KEYS[tab.key] ?? String(i + 1)}
               onClick={() => onNavigate(tab.key)}
             />
           </div>
