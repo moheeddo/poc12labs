@@ -14,6 +14,7 @@ import {
   Cell,
 } from "recharts";
 import VideoUploader from "@/components/shared/VideoUploader";
+import ChartTooltip from "@/components/shared/ChartTooltip";
 import SearchBar from "@/components/shared/SearchBar";
 import VideoPlayer from "@/components/shared/VideoPlayer";
 import { useVideoSearch } from "@/hooks/useTwelveLabs";
@@ -215,12 +216,7 @@ export default function PovAnalysis() {
                     <YAxis dataKey="step" type="category" tick={{ fill: "#94a3b8", fontSize: 11 }} width={80} />
                     <Tooltip
                       cursor={{ fill: 'rgba(255,255,255,0.05)' }}
-                      contentStyle={{
-                        backgroundColor: "#111820",
-                        border: "1px solid #243044",
-                        borderRadius: "8px",
-                        fontSize: "12px",
-                      }}
+                      content={<ChartTooltip unit="%" />}
                     />
                     <Legend
                       verticalAlign="top"
