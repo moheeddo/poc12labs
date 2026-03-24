@@ -1,6 +1,6 @@
 "use client";
 
-import { Activity, BarChart3, ChevronRight, Clock, ClipboardCheck, Film, ScanSearch, TrendingUp, UploadCloud } from "lucide-react";
+import { Activity, ArrowDownRight, ArrowUpRight, BarChart3, ChevronRight, Clock, ClipboardCheck, Film, Minus, ScanSearch, TrendingUp, UploadCloud } from "lucide-react";
 import type { ServiceTab } from "@/lib/types";
 import { SERVICE_TABS } from "@/lib/constants";
 import ServiceCard from "./ServiceCard";
@@ -34,10 +34,10 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
       {/* 상태 카드 — 스태거 등장 */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4 mb-8">
         {[
-          { icon: <Film className="w-4 h-4" />, label: "등록 영상", value: "0", unit: "건", iconColor: "text-coral-500/60" },
-          { icon: <BarChart3 className="w-4 h-4" />, label: "완료 분석", value: "0", unit: "건", iconColor: "text-teal-500/60" },
-          { icon: <TrendingUp className="w-4 h-4" />, label: "평균 역량", value: "—", unit: "점", iconColor: "text-amber-500/60" },
-          { icon: <Clock className="w-4 h-4" />, label: "최근 분석", value: "—", unit: "", iconColor: "text-slate-400/60" },
+          { icon: <Film className="w-4 h-4" />, label: "등록 영상", value: "0", unit: "건", iconColor: "text-coral-500/60", trend: "neutral" as const, trendLabel: "" },
+          { icon: <BarChart3 className="w-4 h-4" />, label: "완료 분석", value: "0", unit: "건", iconColor: "text-teal-500/60", trend: "neutral" as const, trendLabel: "" },
+          { icon: <TrendingUp className="w-4 h-4" />, label: "평균 역량", value: "—", unit: "점", iconColor: "text-amber-500/60", trend: "up" as const, trendLabel: "전월 대비" },
+          { icon: <Clock className="w-4 h-4" />, label: "최근 분석", value: "—", unit: "", iconColor: "text-slate-400/60", trend: "neutral" as const, trendLabel: "" },
         ].map((stat, i) => (
           <div
             key={stat.label}
@@ -47,6 +47,14 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
             <div className="flex items-center gap-2 mb-2">
               <span className={stat.iconColor}>{stat.icon}</span>
               <span className="text-xs text-slate-500">{stat.label}</span>
+              {stat.trend !== "neutral" && (
+                <span className={`ml-auto flex items-center gap-0.5 text-[10px] font-mono ${
+                  stat.trend === "up" ? "text-teal-500" : "text-red-400"
+                }`}>
+                  {stat.trend === "up" ? <ArrowUpRight className="w-3 h-3" /> : <ArrowDownRight className="w-3 h-3" />}
+                  {stat.trendLabel}
+                </span>
+              )}
             </div>
             <div className="flex items-baseline gap-1">
               <span className="text-2xl font-bold font-mono text-white tabular-nums">{stat.value}</span>
