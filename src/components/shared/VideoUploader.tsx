@@ -58,7 +58,7 @@ export default function VideoUploader({ onUpload, progress, accentColor = "coral
         onClick={() => inputRef.current?.click()}
         className={cn(
           "border-2 border-dashed rounded-xl p-8 text-center cursor-pointer transition-all duration-200",
-          isDragging ? colorMap[accentColor] : "border-surface-600 hover:border-surface-500",
+          isDragging ? `${colorMap[accentColor]} scale-[1.01]` : "border-surface-600 hover:border-surface-500 hover:bg-surface-800/30",
         )}
       >
         <input
@@ -87,10 +87,11 @@ export default function VideoUploader({ onUpload, progress, accentColor = "coral
           <button
             onClick={handleUpload}
             className={cn(
-              "px-4 py-1.5 rounded-lg text-sm font-medium text-white transition-colors",
-              accentColor === "coral" && "bg-coral-600 hover:bg-coral-500",
-              accentColor === "teal" && "bg-teal-600 hover:bg-teal-500",
-              accentColor === "amber" && "bg-amber-600 hover:bg-amber-500",
+              "px-4 py-1.5 rounded-lg text-sm font-medium text-white transition-all duration-150",
+              "active:scale-95",
+              accentColor === "coral" && "bg-coral-600 hover:bg-coral-500 active:bg-coral-700",
+              accentColor === "teal" && "bg-teal-600 hover:bg-teal-500 active:bg-teal-700",
+              accentColor === "amber" && "bg-amber-600 hover:bg-amber-500 active:bg-amber-700",
             )}
           >
             업로드
