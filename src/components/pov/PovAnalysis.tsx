@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useCallback, useRef } from "react";
-import { Shield, GitCompare, Star, AlertTriangle } from "lucide-react";
+import { Shield, GitCompare, Star, AlertTriangle, Upload } from "lucide-react";
 import {
   BarChart,
   Bar,
@@ -228,9 +228,15 @@ export default function PovAnalysis() {
           <p className="text-xs text-slate-500 max-w-sm">
             숙련자 영상에서 핵심 조작 장면을 자동 추출합니다.
           </p>
-          <p className="text-xs text-slate-600 mt-1">
+          <p className="text-xs text-slate-600 mt-2">
             영상을 업로드하면 자동으로 생성됩니다
           </p>
+          <button
+            onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
+            className="mt-4 flex items-center gap-2 px-4 py-2 rounded-lg bg-amber-600/20 text-amber-400 text-xs font-medium hover:bg-amber-600/30 transition-colors duration-200"
+          >
+            <Upload className="w-3.5 h-3.5" /> 영상 업로드하기
+          </button>
         </div>
       )}
     </div>
