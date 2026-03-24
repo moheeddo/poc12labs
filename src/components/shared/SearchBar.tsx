@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useRef } from "react";
 import { Search, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -20,11 +20,29 @@ export default function SearchBar({
   suggestions = [],
 }: SearchBarProps) {
   const [query, setQuery] = useState("");
+  const inputRef = useRef<HTMLInputElement>(null);
 
   const handleSubmit = useCallback(
     (e: React.FormEvent) => {
       e.preventDefault();
       if (query.trim()) onSearch(query.trim());
+    },
+    [query, onSearch]
+  );
+
+  const handleKeyDown = useCallback(
+    (e: React.KeyboardEvent<HTMLInputElement>) => {
+      // Escape 키: 입력 내용 지우기
+      if (e.key === "Escape") {
+        setQuery("");
+        inputRef.current?.blur();
+        return;
+      }
+      // Ctrl+Enter: 검색 실행
+      if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) {
+        e.preventDefault();
+        if (query.trim()) onSearch(query.trim());
+      }
     },
     [query, onSearch]
   );
@@ -63,9 +81,11 @@ export default function SearchBar({
             <Search className="w-5 h-5 text-slate-500 shrink-0" />
           )}
           <input
+            ref={inputRef}
             type="text"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
+            onKeyDown={handleKeyDown}
             placeholder={placeholder}
             aria-label={placeholder}
             className="flex-1 bg-transparent text-sm text-white placeholder:text-slate-500 outline-none"
@@ -74,13 +94,20 @@ export default function SearchBar({
             type="submit"
             disabled={!query.trim() || loading}
             className={cn(
-              "px-4 py-2 rounded-lg text-xs font-medium transition-colors duration-200 disabled:opacity-30 disabled:cursor-not-allowed",
+              "px-4 py-2 rounded-lg text-xs font-medium transition-colors duration-200 disabled:opacity-30 disabled:cursor-not-allowed flex items-center gap-1.5",
               accentColor === "coral" && "bg-coral-600 hover:bg-coral-500 text-white",
               accentColor === "teal" && "bg-teal-600 hover:bg-teal-500 text-white",
               accentColor === "amber" && "bg-amber-600 hover:bg-amber-500 text-white",
             )}
           >
-            검색
+            {loading ? (
+              <>
+                <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                분석 중...
+              </>
+            ) : (
+              "검색"
+            )}
           </button>
         </div>
       </form>
