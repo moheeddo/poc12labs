@@ -9,6 +9,7 @@ import {
   YAxis,
   CartesianGrid,
   Tooltip,
+  Legend,
   ResponsiveContainer,
   Cell,
 } from "recharts";
@@ -211,6 +212,16 @@ export default function PovAnalysis() {
                         borderRadius: "8px",
                         fontSize: "12px",
                       }}
+                    />
+                    <Legend
+                      verticalAlign="top"
+                      align="right"
+                      iconType="circle"
+                      iconSize={8}
+                      wrapperStyle={{ fontSize: "12px", color: "#94a3b8", paddingBottom: "8px" }}
+                      formatter={(value: string) => (
+                        <span style={{ color: value === "숙련자" ? "#14b8a6" : "#f59e0b" }}>{value}</span>
+                      )}
                     />
                     <Bar dataKey="expert" name="숙련자" radius={[0, 4, 4, 0]}>
                       {COMPARISON_DATA.map((_, i) => (
