@@ -1,5 +1,6 @@
 "use client";
 
+import { useCallback, useRef } from "react";
 import { Activity } from "lucide-react";
 import type { ServiceTab } from "@/lib/types";
 import { SERVICE_TABS } from "@/lib/constants";
@@ -11,6 +12,21 @@ interface HeaderProps {
 }
 
 export default function Header({ activeTab, onTabChange }: HeaderProps) {
+  const navRef = useRef<HTMLElement>(null);
+  const allTabs: (ServiceTab | null)[] = [null, ...SERVICE_TABS.map(t => t.key)];
+  const activeIdx = allTabs.indexOf(activeTab);
+
+  const handleTabKeyDown = useCallback((e: React.KeyboardEvent) => {
+    let next = activeIdx;
+    if (e.key === "ArrowRight") next = (activeIdx + 1) % allTabs.length;
+    else if (e.key === "ArrowLeft") next = (activeIdx - 1 + allTabs.length) % allTabs.length;
+    else return;
+    e.preventDefault();
+    onTabChange(allTabs[next]);
+    const buttons = navRef.current?.querySelectorAll<HTMLButtonElement>('[role="tab"]');
+    buttons?.[next]?.focus();
+  }, [activeIdx, allTabs, onTabChange]);
+
   return (
     <header className="border-b border-surface-700 bg-surface-900 sticky top-0 z-50">
       <div className="max-w-[1440px] mx-auto px-6">
@@ -36,10 +52,11 @@ export default function Header({ activeTab, onTabChange }: HeaderProps) {
         </div>
 
         {/* 탭 네비게이션 */}
-        <nav className="flex gap-1 -mb-px" role="tablist" aria-label="서비스 탭">
+        <nav ref={navRef} className="flex gap-1 -mb-px" role="tablist" aria-label="서비스 탭" onKeyDown={handleTabKeyDown}>
           <button
             role="tab"
             aria-selected={activeTab === null}
+            tabIndex={activeTab === null ? 0 : -1}
             onClick={() => onTabChange(null)}
             className={cn(
               "relative px-4 py-3 text-sm font-medium transition-colors duration-200",
@@ -64,6 +81,7 @@ export default function Header({ activeTab, onTabChange }: HeaderProps) {
                 key={tab.key}
                 role="tab"
                 aria-selected={isActive}
+                tabIndex={isActive ? 0 : -1}
                 onClick={() => onTabChange(tab.key)}
                 className={cn(
                   "relative px-4 py-3 text-sm font-medium transition-colors duration-200",
