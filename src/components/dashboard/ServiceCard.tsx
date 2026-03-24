@@ -37,7 +37,7 @@ export default function ServiceCard({
     <button
       onClick={onClick}
       className={cn(
-        "text-left p-6 rounded-xl border transition-all duration-300",
+        "group text-left p-6 rounded-xl border transition-all duration-300",
         "hover:scale-[1.02] hover:shadow-lg hover:shadow-black/20",
         "active:scale-[0.98] active:shadow-none",
         "bg-surface-800",
@@ -60,6 +60,7 @@ export default function ServiceCard({
         {lastAnalysis && (
           <span className="font-mono">최근 분석: {lastAnalysis}</span>
         )}
+        <span className={cn("ml-auto opacity-0 group-hover:opacity-60 transition-opacity duration-300 text-sm", color)}>→</span>
       </div>
     </button>
   );
