@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useRef } from "react";
 import { Shield, GitCompare, Star, AlertTriangle } from "lucide-react";
 import {
   BarChart,
@@ -42,6 +42,20 @@ export default function PovAnalysis() {
   const [uploadProgress, setUploadProgress] = useState<UploadProgress | null>(null);
   const [activeView, setActiveView] = useState<"deviations" | "compare" | "highlights">("deviations");
   const { loading, search } = useVideoSearch();
+  const tabListRef = useRef<HTMLDivElement>(null);
+  const tabKeys = ["deviations", "compare", "highlights"] as const;
+
+  const handleTabKeyDown = useCallback((e: React.KeyboardEvent) => {
+    const idx = tabKeys.indexOf(activeView);
+    let next = idx;
+    if (e.key === "ArrowRight") next = (idx + 1) % tabKeys.length;
+    else if (e.key === "ArrowLeft") next = (idx - 1 + tabKeys.length) % tabKeys.length;
+    else return;
+    e.preventDefault();
+    setActiveView(tabKeys[next]);
+    const buttons = tabListRef.current?.querySelectorAll<HTMLButtonElement>('[role="tab"]');
+    buttons?.[next]?.focus();
+  }, [activeView]);
 
   const handleUpload = useCallback(async (file: File) => {
     setUploadProgress({ fileName: file.name, progress: 0, status: "uploading" });
@@ -96,7 +110,7 @@ export default function PovAnalysis() {
       </div>
 
       {/* 서브탭 */}
-      <div className="flex gap-1 border-b border-surface-700" role="tablist" aria-label="POV 분석 보기">
+      <div ref={tabListRef} className="flex gap-1 border-b border-surface-700" role="tablist" aria-label="POV 분석 보기" onKeyDown={handleTabKeyDown}>
         {[
           { key: "deviations" as const, icon: <AlertTriangle className="w-3.5 h-3.5" />, label: "SOP 이탈 탐지" },
           { key: "compare" as const, icon: <GitCompare className="w-3.5 h-3.5" />, label: "숙련도 비교" },
@@ -106,6 +120,8 @@ export default function PovAnalysis() {
             key={tab.key}
             role="tab"
             aria-selected={activeView === tab.key}
+            aria-controls={`pov-panel-${tab.key}`}
+            tabIndex={activeView === tab.key ? 0 : -1}
             onClick={() => setActiveView(tab.key)}
             className={cn(
               "flex items-center gap-1.5 px-4 py-2.5 text-sm font-medium border-b-2 transition-all duration-200",
@@ -121,7 +137,7 @@ export default function PovAnalysis() {
 
       {/* SOP 이탈 탐지 */}
       {activeView === "deviations" && (
-        <div className="bg-surface-800 border border-surface-700 rounded-xl p-4">
+        <div id="pov-panel-deviations" role="tabpanel" className="bg-surface-800 border border-surface-700 rounded-xl p-4">
           <div className="flex items-center justify-between mb-4">
             <h4 className="text-sm font-medium text-slate-300 flex items-center gap-2">
               <Shield className="w-4 h-4" /> SOP 절차 이탈 사항 ({DEMO_DEVIATIONS.length}건)
@@ -164,7 +180,7 @@ export default function PovAnalysis() {
 
       {/* 숙련도 비교 */}
       {activeView === "compare" && (
-        <div className="space-y-4">
+        <div id="pov-panel-compare" role="tabpanel" className="space-y-4">
           <div className="bg-surface-800 border border-amber-500/30 rounded-xl p-4 text-center">
             <p className="text-xs text-slate-500 mb-1">전체 유사도</p>
             <span className="text-3xl font-bold font-mono text-amber-400">{overallSimilarity}%</span>
@@ -203,7 +219,7 @@ export default function PovAnalysis() {
 
       {/* 베스트 프랙티스 */}
       {activeView === "highlights" && (
-        <div className="bg-surface-800 border border-surface-700 rounded-xl p-6 flex flex-col items-center justify-center text-center min-h-[200px]">
+        <div id="pov-panel-highlights" role="tabpanel" className="bg-surface-800 border border-surface-700 rounded-xl p-6 flex flex-col items-center justify-center text-center min-h-[200px]">
           <Star className="w-10 h-10 text-amber-500/40 mb-3" />
           <h4 className="text-sm font-medium text-slate-300 mb-1">
             베스트 프랙티스 하이라이트
