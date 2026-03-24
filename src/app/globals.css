@@ -46,10 +46,24 @@
   --font-mono: "JetBrains Mono", monospace;
 }
 
+html {
+  color-scheme: dark;
+}
+
 body {
   font-family: var(--font-sans);
   background-color: var(--color-surface-900);
   color: #e2e8f0;
+}
+
+/* 모든 버튼에 pointer cursor + focus-visible 링 */
+button, [role="button"], a {
+  cursor: pointer;
+}
+
+button:focus-visible, [role="button"]:focus-visible, a:focus-visible, input:focus-visible {
+  outline: 2px solid var(--color-teal-500);
+  outline-offset: 2px;
 }
 
 /* 스크롤바 스타일링 (원전 제어실 느낌) */
