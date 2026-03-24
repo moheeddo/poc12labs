@@ -10,12 +10,13 @@ interface ScoreCardProps {
 
 export default function ScoreCard({ speaker, rank }: ScoreCardProps) {
   const rankColors = ["text-amber-400", "text-slate-300", "text-amber-700"];
+  const rankBgColors = ["bg-amber-500/10", "bg-slate-500/10", "bg-amber-700/10"];
 
   return (
-    <div className="bg-surface-800 border border-surface-700 rounded-xl p-4 hover:border-teal-500/30 transition-colors">
+    <div className="bg-surface-800 border border-surface-700 rounded-xl p-4 hover:border-teal-500/30 hover:scale-[1.01] transition-all duration-200">
       <div className="flex items-center gap-3 mb-3">
         {/* 순위 배지 */}
-        <div className="w-8 h-8 rounded-full bg-surface-700 flex items-center justify-center">
+        <div className={`w-8 h-8 rounded-full flex items-center justify-center ${rankBgColors[rank - 1] || "bg-surface-700"}`}>
           <span className={`text-sm font-bold font-mono ${rankColors[rank - 1] || "text-slate-500"}`}>
             {rank}
           </span>
