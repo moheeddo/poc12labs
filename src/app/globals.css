@@ -98,6 +98,16 @@ button:focus-visible, [role="button"]:focus-visible, a:focus-visible, input:focu
   animation: fadeOut 0.25s ease-in forwards;
 }
 
+/* 토스트 자동 닫기 카운트다운 바 */
+@keyframes toastCountdown {
+  from {
+    width: 100%;
+  }
+  to {
+    width: 0%;
+  }
+}
+
 /* 스켈레톤 시머 애니메이션 */
 @keyframes shimmer {
   0% {
@@ -133,6 +143,20 @@ button:focus-visible, [role="button"]:focus-visible, a:focus-visible, input:focu
 
 .animate-gradient-pulse {
   animation: gradientPulse 3s ease-in-out infinite;
+}
+
+/* 시계 콜론 깜빡임 애니메이션 */
+@keyframes colonBlink {
+  0%, 49% {
+    opacity: 1;
+  }
+  50%, 100% {
+    opacity: 0.3;
+  }
+}
+
+.animate-colon-blink {
+  animation: colonBlink 1s step-end infinite;
 }
 
 /* 탭 전환 슬라이드 애니메이션 */
@@ -172,7 +196,8 @@ button:focus-visible, [role="button"]:focus-visible, a:focus-visible, input:focu
   .animate-fade-out,
   .animate-shimmer,
   .animate-gradient-pulse,
-  .animate-slide-in-right {
+  .animate-slide-in-right,
+  .animate-colon-blink {
     animation: none;
   }
 }

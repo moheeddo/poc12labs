@@ -18,6 +18,12 @@ function formatTime(d: Date): string {
     .join(":");
 }
 
+function formatTimeParts(d: Date): string[] {
+  return [d.getHours(), d.getMinutes(), d.getSeconds()].map((n) =>
+    String(n).padStart(2, "0"),
+  );
+}
+
 export default function LiveClock() {
   const [now, setNow] = useState<Date | null>(null);
 
@@ -39,6 +45,8 @@ export default function LiveClock() {
     );
   }
 
+  const [hh, mm, ss] = formatTimeParts(now);
+
   return (
     <time
       dateTime={now.toISOString()}
@@ -47,7 +55,11 @@ export default function LiveClock() {
     >
       <div className="text-xs text-slate-500 font-mono">{formatDate(now)}</div>
       <div className="text-lg text-white font-bold font-mono tabular-nums">
-        {formatTime(now)}
+        {hh}
+        <span className="animate-colon-blink" aria-hidden="true">:</span>
+        {mm}
+        <span className="animate-colon-blink" aria-hidden="true">:</span>
+        {ss}
       </div>
     </time>
   );
