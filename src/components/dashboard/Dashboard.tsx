@@ -19,7 +19,7 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
       </div>
 
       {/* 상태 카드 */}
-      <div className="grid grid-cols-4 gap-4 mb-8">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
         {[
           { icon: <Film className="w-4 h-4" />, label: "등록 영상", value: "0", unit: "건" },
           { icon: <BarChart3 className="w-4 h-4" />, label: "완료 분석", value: "0", unit: "건" },
@@ -43,7 +43,7 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
       </div>
 
       {/* 서비스 카드 3개 */}
-      <div className="grid grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {SERVICE_TABS.map((tab) => (
           <ServiceCard
             key={tab.key}
