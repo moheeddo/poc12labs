@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useCallback, useRef } from "react";
-import { Search, Loader2 } from "lucide-react";
+import { Search, Loader2, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface SearchBarProps {
@@ -90,7 +90,16 @@ export default function SearchBar({
             aria-label={placeholder}
             className="flex-1 bg-transparent text-sm text-white placeholder:text-slate-500 outline-none"
           />
-          {!query && (
+          {query ? (
+            <button
+              type="button"
+              onClick={() => { setQuery(""); inputRef.current?.focus(); }}
+              className="p-1 text-slate-500 hover:text-white transition-colors duration-150"
+              aria-label="검색어 지우기"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          ) : (
             <kbd className="hidden md:inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[10px] text-slate-600 bg-surface-700 border border-surface-600 font-mono select-none">
               Enter
             </kbd>
