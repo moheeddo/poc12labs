@@ -93,7 +93,7 @@ export default function SearchBar({
               key={s}
               onClick={() => { setQuery(s); onSearch(s); }}
               className={cn(
-                "px-3 py-1.5 rounded-full text-xs bg-surface-700 border border-transparent text-slate-400 transition-all duration-200",
+                "px-3 py-1.5 rounded-full text-xs bg-surface-700 border border-transparent text-slate-400 transition-all duration-200 active:scale-95",
                 suggestionHoverMap[accentColor]
               )}
             >
