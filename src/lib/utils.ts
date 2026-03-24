@@ -28,3 +28,16 @@ export function getGrade(score: number): { grade: string; color: string } {
   if (score >= 50) return { grade: "C", color: "text-amber-400" };
   return { grade: "D", color: "text-red-400" };
 }
+
+// 등급에 따른 한 줄 설명 반환
+export function getGradeDescription(grade: string): string {
+  switch (grade) {
+    case "A+": return "탁월한 수준";
+    case "A":  return "우수한 수준";
+    case "B+": return "양호한 수준";
+    case "B":  return "보통 수준";
+    case "C":  return "개선 필요";
+    case "D":  return "미흡";
+    default:   return "";
+  }
+}
