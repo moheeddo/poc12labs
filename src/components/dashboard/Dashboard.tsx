@@ -36,7 +36,7 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
               <span className="text-xs">{stat.label}</span>
             </div>
             <div className="flex items-baseline gap-1">
-              <span className="text-2xl font-bold font-mono text-white">{stat.value}</span>
+              <span className="text-2xl font-bold font-mono text-white tabular-nums">{stat.value}</span>
               <span className="text-xs text-slate-500">{stat.unit}</span>
             </div>
           </div>
