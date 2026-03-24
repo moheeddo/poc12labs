@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useCallback } from "react";
-import { FileText, Clock, Target } from "lucide-react";
+import { FileText, Clock, Target, SearchX } from "lucide-react";
 import VideoUploader from "@/components/shared/VideoUploader";
 import SearchBar from "@/components/shared/SearchBar";
 import VideoPlayer from "@/components/shared/VideoPlayer";
@@ -23,7 +23,7 @@ const DEFAULT_SCORES: CompetencyScore[] = (Object.entries(COMPETENCY_LABELS) as 
 export default function SimulatorEval() {
   const [uploadProgress, setUploadProgress] = useState<UploadProgress | null>(null);
   const [scores] = useState<CompetencyScore[]>(DEFAULT_SCORES);
-  const { results, loading, search } = useVideoSearch();
+  const { results, loading, hasSearched, search } = useVideoSearch();
   const overallScore = Math.round(scores.reduce((a, b) => a + b.score, 0) / scores.length);
   const { grade, color } = getGrade(overallScore);
 
@@ -72,7 +72,7 @@ export default function SimulatorEval() {
 
           {/* 검색 결과 */}
           {results.length > 0 && (
-            <div className="bg-surface-800 border border-surface-700 rounded-xl p-4">
+            <div className="bg-surface-800 border border-surface-700 rounded-xl p-4 animate-fade-in-up">
               <h4 className="text-sm font-medium text-slate-300 mb-3">
                 검색 결과 ({results.length}건)
               </h4>
@@ -93,6 +93,17 @@ export default function SimulatorEval() {
                   </div>
                 ))}
               </div>
+            </div>
+          )}
+
+          {/* 검색 결과 없음 */}
+          {hasSearched && !loading && results.length === 0 && (
+            <div className="bg-surface-800 border border-surface-700 rounded-xl p-8 text-center animate-fade-in-up">
+              <SearchX className="w-10 h-10 mx-auto mb-3 text-slate-600" />
+              <p className="text-sm text-slate-400 mb-1">검색 결과가 없습니다</p>
+              <p className="text-xs text-slate-600">
+                다른 키워드로 검색하거나, 영상을 먼저 업로드해 주세요
+              </p>
             </div>
           )}
         </div>

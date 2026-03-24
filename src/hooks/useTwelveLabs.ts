@@ -18,10 +18,12 @@ export function useVideoSearch() {
   const [results, setResults] = useState<SearchResult[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [hasSearched, setHasSearched] = useState(false);
 
   const search = useCallback(async (indexId: string, query: string) => {
     setLoading(true);
     setError(null);
+    setHasSearched(true);
     try {
       const data = await apiFetch<{ data: Array<{
         video_id: string;
@@ -52,7 +54,7 @@ export function useVideoSearch() {
     }
   }, []);
 
-  return { results, loading, error, search };
+  return { results, loading, error, hasSearched, search };
 }
 
 // 영상 업로드 훅
