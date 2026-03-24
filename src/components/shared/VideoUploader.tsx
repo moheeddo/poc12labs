@@ -15,8 +15,11 @@ export default function VideoUploader({ onUpload, progress, accentColor = "coral
   const [isDragging, setIsDragging] = useState(false);
   const [isRejected, setIsRejected] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [fileSizeError, setFileSizeError] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const rejectionTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const MAX_FILE_SIZE = 2 * 1024 * 1024 * 1024; // 2GB
 
   const colorMap: Record<string, string> = {
     coral: "border-coral-500/40 bg-coral-500/5",
@@ -30,15 +33,28 @@ export default function VideoUploader({ onUpload, progress, accentColor = "coral
     amber: "bg-amber-500",
   };
 
+  const iconAccentColorMap: Record<string, string> = {
+    coral: "text-coral-400",
+    teal: "text-teal-400",
+    amber: "text-amber-400",
+  };
+
   const handleDrop = useCallback((e: React.DragEvent) => {
     e.preventDefault();
     setIsDragging(false);
     const file = e.dataTransfer.files[0];
     if (file?.type.startsWith("video/")) {
+      if (file.size > MAX_FILE_SIZE) {
+        setFileSizeError(true);
+        setSelectedFile(null);
+        return;
+      }
+      setFileSizeError(false);
       setSelectedFile(file);
       setIsRejected(false);
     } else if (file) {
       // 비디오가 아닌 파일 — 빨간 테두리 플래시 + 에러 메시지
+      setFileSizeError(false);
       setIsRejected(true);
       if (rejectionTimerRef.current) clearTimeout(rejectionTimerRef.current);
       rejectionTimerRef.current = setTimeout(() => setIsRejected(false), 1000);
@@ -47,7 +63,15 @@ export default function VideoUploader({ onUpload, progress, accentColor = "coral
 
   const handleFileSelect = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file) setSelectedFile(file);
+    if (file) {
+      if (file.size > MAX_FILE_SIZE) {
+        setFileSizeError(true);
+        setSelectedFile(null);
+        return;
+      }
+      setFileSizeError(false);
+      setSelectedFile(file);
+    }
   }, []);
 
   const handleUpload = useCallback(async () => {
@@ -73,7 +97,7 @@ export default function VideoUploader({ onUpload, progress, accentColor = "coral
           isRejected
             ? "border-red-500/60 bg-red-500/5"
             : isDragging
-              ? `${colorMap[accentColor]} scale-[1.01]`
+              ? `${colorMap[accentColor]} scale-[1.01] animate-pulse`
               : "border-surface-600 hover:border-surface-500 hover:bg-surface-800/30",
         )}
       >
@@ -84,7 +108,7 @@ export default function VideoUploader({ onUpload, progress, accentColor = "coral
           className="hidden"
           onChange={handleFileSelect}
         />
-        <Upload className={cn("w-8 h-8 mx-auto mb-3", isRejected ? "text-red-400" : "text-slate-500")} />
+        <Upload className={cn("w-8 h-8 mx-auto mb-3", isRejected ? "text-red-400" : "text-slate-500", isDragging && "animate-bounce")} />
         <p className="text-sm text-slate-300 mb-1">영상 파일을 드래그하거나 클릭하여 선택</p>
         <p className="text-xs text-slate-500">MP4, AVI, MOV 지원 (최대 2GB)</p>
         {isRejected && (
@@ -92,12 +116,17 @@ export default function VideoUploader({ onUpload, progress, accentColor = "coral
             지원하지 않는 파일 형식입니다. 영상 파일만 업로드할 수 있습니다.
           </p>
         )}
+        {fileSizeError && (
+          <p className="text-xs text-red-500 mt-2">
+            파일 크기가 2GB를 초과합니다
+          </p>
+        )}
       </div>
 
       {/* 선택된 파일 */}
       {selectedFile && !progress && (
         <div className="flex items-center gap-3 bg-surface-800 rounded-lg p-3 border border-surface-700">
-          <FileVideo className="w-5 h-5 text-slate-400 shrink-0" />
+          <FileVideo className={cn("w-5 h-5 shrink-0", iconAccentColorMap[accentColor] || "text-slate-400")} />
           <div className="flex-1 min-w-0">
             <p className="text-sm text-white truncate">{selectedFile.name}</p>
             <p className="text-xs text-slate-500">{formatFileSize(selectedFile.size)}</p>
@@ -125,7 +154,7 @@ export default function VideoUploader({ onUpload, progress, accentColor = "coral
         <div className="bg-surface-800 rounded-lg p-3 border border-surface-700">
           <div className="flex items-center gap-3 mb-2">
             {progress.status === "complete" ? (
-              <CheckCircle className="w-5 h-5 text-emerald-400 shrink-0" />
+              <CheckCircle className="w-5 h-5 text-emerald-400 shrink-0 animate-bounce [animation-iteration-count:1]" />
             ) : progress.status === "error" ? (
               <AlertCircle className="w-5 h-5 text-red-400 shrink-0" />
             ) : (
