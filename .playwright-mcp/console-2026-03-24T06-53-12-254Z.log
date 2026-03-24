@@ -1,0 +1,4 @@
+[    2146ms] [ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) @ http://localhost:3003/favicon.ico:0
+[    3612ms] [ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) @ http://localhost:3003/_next/static/webpack/8dfff8fdbb96e0d7.webpack.hot-update.json:0
+[    5729ms] [ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) @ http://localhost:3003/_next/static/webpack/4bc9774bd8565769.webpack.hot-update.json:0
+[   10894ms] [ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) @ http://localhost:3003/_next/static/webpack/bd207bda47bb75c9.webpack.hot-update.json:0

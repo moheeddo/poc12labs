@@ -1,1 +1,173 @@
 [    7760ms] [ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) @ http://localhost:3001/favicon.ico:0
+[ 2594119ms] [WARNING] The resource http://localhost:3001/_next/static/css/app/layout.css?v=1774335328860 was preloaded using link preload but not used within a few seconds from the window's load event. Please make sure it has an appropriate `as` value and it is preloaded intentionally. @ http://localhost:3001/:0
+[ 2598105ms] [WARNING] The resource http://localhost:3001/_next/static/css/app/layout.css?v=1774335328860 was preloaded using link preload but not used within a few seconds from the window's load event. Please make sure it has an appropriate `as` value and it is preloaded intentionally. @ http://localhost:3001/:0
+[ 2604346ms] [WARNING] The resource http://localhost:3001/_next/static/css/app/layout.css?v=1774335328860 was preloaded using link preload but not used within a few seconds from the window's load event. Please make sure it has an appropriate `as` value and it is preloaded intentionally. @ http://localhost:3001/:0
+[ 2608162ms] [WARNING] The resource http://localhost:3001/_next/static/css/app/layout.css?v=1774335328860 was preloaded using link preload but not used within a few seconds from the window's load event. Please make sure it has an appropriate `as` value and it is preloaded intentionally. @ http://localhost:3001/:0
+[ 2612615ms] [WARNING] The resource http://localhost:3001/_next/static/css/app/layout.css?v=1774335328860 was preloaded using link preload but not used within a few seconds from the window's load event. Please make sure it has an appropriate `as` value and it is preloaded intentionally. @ http://localhost:3001/:0
+[ 2616297ms] [WARNING] The resource http://localhost:3001/_next/static/css/app/layout.css?v=1774335328860 was preloaded using link preload but not used within a few seconds from the window's load event. Please make sure it has an appropriate `as` value and it is preloaded intentionally. @ http://localhost:3001/:0
+[ 2620082ms] [WARNING] The resource http://localhost:3001/_next/static/css/app/layout.css?v=1774335328860 was preloaded using link preload but not used within a few seconds from the window's load event. Please make sure it has an appropriate `as` value and it is preloaded intentionally. @ http://localhost:3001/:0
+[ 2626620ms] [WARNING] The resource http://localhost:3001/_next/static/css/app/layout.css?v=1774335328860 was preloaded using link preload but not used within a few seconds from the window's load event. Please make sure it has an appropriate `as` value and it is preloaded intentionally. @ http://localhost:3001/:0
+[ 2631312ms] [WARNING] The resource http://localhost:3001/_next/static/css/app/layout.css?v=1774335328860 was preloaded using link preload but not used within a few seconds from the window's load event. Please make sure it has an appropriate `as` value and it is preloaded intentionally. @ http://localhost:3001/:0
+[ 2635045ms] [WARNING] The resource http://localhost:3001/_next/static/css/app/layout.css?v=1774335328860 was preloaded using link preload but not used within a few seconds from the window's load event. Please make sure it has an appropriate `as` value and it is preloaded intentionally. @ http://localhost:3001/:0
+[ 2638687ms] [WARNING] The resource http://localhost:3001/_next/static/css/app/layout.css?v=1774335328860 was preloaded using link preload but not used within a few seconds from the window's load event. Please make sure it has an appropriate `as` value and it is preloaded intentionally. @ http://localhost:3001/:0
+[ 2646249ms] [WARNING] The resource http://localhost:3001/_next/static/css/app/layout.css?v=1774335328860 was preloaded using link preload but not used within a few seconds from the window's load event. Please make sure it has an appropriate `as` value and it is preloaded intentionally. @ http://localhost:3001/:0
+[ 2649918ms] [WARNING] The resource http://localhost:3001/_next/static/css/app/layout.css?v=1774335328860 was preloaded using link preload but not used within a few seconds from the window's load event. Please make sure it has an appropriate `as` value and it is preloaded intentionally. @ http://localhost:3001/:0
+[ 2653650ms] [WARNING] The resource http://localhost:3001/_next/static/css/app/layout.css?v=1774335328860 was preloaded using link preload but not used within a few seconds from the window's load event. Please make sure it has an appropriate `as` value and it is preloaded intentionally. @ http://localhost:3001/:0
+[ 2657426ms] [WARNING] The resource http://localhost:3001/_next/static/css/app/layout.css?v=1774335328860 was preloaded using link preload but not used within a few seconds from the window's load event. Please make sure it has an appropriate `as` value and it is preloaded intentionally. @ http://localhost:3001/:0
+[ 2661020ms] [WARNING] The resource http://localhost:3001/_next/static/css/app/layout.css?v=1774335328860 was preloaded using link preload but not used within a few seconds from the window's load event. Please make sure it has an appropriate `as` value and it is preloaded intentionally. @ http://localhost:3001/:0
+[ 2667549ms] [WARNING] The resource http://localhost:3001/_next/static/css/app/layout.css?v=1774335328860 was preloaded using link preload but not used within a few seconds from the window's load event. Please make sure it has an appropriate `as` value and it is preloaded intentionally. @ http://localhost:3001/:0
+[ 2671120ms] [WARNING] The resource http://localhost:3001/_next/static/css/app/layout.css?v=1774335328860 was preloaded using link preload but not used within a few seconds from the window's load event. Please make sure it has an appropriate `as` value and it is preloaded intentionally. @ http://localhost:3001/:0
+[ 2679474ms] [WARNING] The resource http://localhost:3001/_next/static/css/app/layout.css?v=1774335328860 was preloaded using link preload but not used within a few seconds from the window's load event. Please make sure it has an appropriate `as` value and it is preloaded intentionally. @ http://localhost:3001/:0
+[ 2686402ms] [WARNING] The resource http://localhost:3001/_next/static/css/app/layout.css?v=1774335328860 was preloaded using link preload but not used within a few seconds from the window's load event. Please make sure it has an appropriate `as` value and it is preloaded intentionally. @ http://localhost:3001/:0
+[ 2692879ms] [WARNING] The resource http://localhost:3001/_next/static/css/app/layout.css?v=1774335328860 was preloaded using link preload but not used within a few seconds from the window's load event. Please make sure it has an appropriate `as` value and it is preloaded intentionally. @ http://localhost:3001/:0
+[ 2699360ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://localhost:3001/?_rsc=fsnpp:0
+[ 2711557ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://localhost:3001/?_rsc=fsnpp:0
+[ 2725382ms] [ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) @ http://localhost:3001/?_rsc=fsnpp:0
+[ 2750333ms] [ERROR] ./src/components/pov/PovAnalysis.tsx
+Error:   x Expected '</', got ')'
+     ,-[/Users/dohan/poc12labs/src/components/pov/PovAnalysis.tsx:157:1]
+ 154 |                     </p>
+ 155 |                   </div>
+ 156 |                 </div>
+ 157 |               );
+     :               ^
+ 158 |             })}
+ 159 |           </div>
+ 160 |         </div>
+     `----
+
+Caused by:
+    Syntax Error
+
+Import trace for requested module:
+./src/components/pov/PovAnalysis.tsx
+./src/app/page.tsx @ webpack-internal:///(app-pages-browser)/./node_modules/next/dist/next-devtools/userspace/app/errors/intercept-console-error.js:56
+[ 2756033ms] [ERROR] ./src/components/pov/PovAnalysis.tsx
+Error:   x Expected '</', got ')'
+     ,-[/Users/dohan/poc12labs/src/components/pov/PovAnalysis.tsx:157:1]
+ 154 |                     </p>
+ 155 |                   </div>
+ 156 |                 </div>
+ 157 |               );
+     :               ^
+ 158 |             })}
+ 159 |           </div>
+ 160 |         </div>
+     `----
+
+Caused by:
+    Syntax Error
+
+Import trace for requested module:
+./src/components/pov/PovAnalysis.tsx
+./src/app/page.tsx @ webpack-internal:///(app-pages-browser)/./node_modules/next/dist/next-devtools/userspace/app/errors/intercept-console-error.js:56
+[ 2758378ms] [ERROR] ./src/components/pov/PovAnalysis.tsx
+Error:   x Expected '</', got ')'
+     ,-[/Users/dohan/poc12labs/src/components/pov/PovAnalysis.tsx:157:1]
+ 154 |                     </p>
+ 155 |                   </div>
+ 156 |                 </div>
+ 157 |               );
+     :               ^
+ 158 |             })}
+ 159 |           </div>
+ 160 |         </div>
+     `----
+
+Caused by:
+    Syntax Error
+
+Import trace for requested module:
+./src/components/pov/PovAnalysis.tsx
+./src/app/page.tsx @ webpack-internal:///(app-pages-browser)/./node_modules/next/dist/next-devtools/userspace/app/errors/intercept-console-error.js:56
+[ 2766207ms] [ERROR] ./src/components/pov/PovAnalysis.tsx
+Error:   x Expected '</', got ')'
+     ,-[/Users/dohan/poc12labs/src/components/pov/PovAnalysis.tsx:157:1]
+ 154 |                     </p>
+ 155 |                   </div>
+ 156 |                 </div>
+ 157 |               );
+     :               ^
+ 158 |             })}
+ 159 |           </div>
+ 160 |         </div>
+     `----
+
+Caused by:
+    Syntax Error
+
+Import trace for requested module:
+./src/components/pov/PovAnalysis.tsx
+./src/app/page.tsx @ webpack-internal:///(app-pages-browser)/./node_modules/next/dist/next-devtools/userspace/app/errors/intercept-console-error.js:56
+[ 2790214ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://localhost:3001/?_rsc=fsnpp:0
+[ 2791622ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://localhost:3001/?_rsc=fsnpp:0
+[ 2793413ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://localhost:3001/?_rsc=fsnpp:0
+[ 2795030ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://localhost:3001/?_rsc=fsnpp:0
+[ 2798175ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://localhost:3001/?_rsc=fsnpp:0
+[ 2799456ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://localhost:3001/?_rsc=fsnpp:0
+[ 2800759ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://localhost:3001/?_rsc=fsnpp:0
+[ 2802163ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://localhost:3001/?_rsc=fsnpp:0
+[ 2803679ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://localhost:3001/?_rsc=fsnpp:0
+[ 2806035ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://localhost:3001/?_rsc=fsnpp:0
+[ 2808756ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://localhost:3001/?_rsc=fsnpp:0
+[ 2811004ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://localhost:3001/?_rsc=fsnpp:0
+[ 2814325ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://localhost:3001/?_rsc=fsnpp:0
+[ 2817758ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://localhost:3001/?_rsc=fsnpp:0
+[ 2821721ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://localhost:3001/?_rsc=fsnpp:0
+[ 2824195ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://localhost:3001/?_rsc=fsnpp:0
+[ 2827028ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://localhost:3001/?_rsc=fsnpp:0
+[ 2828751ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://localhost:3001/?_rsc=fsnpp:0
+[ 2830413ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://localhost:3001/?_rsc=fsnpp:0
+[ 2832310ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://localhost:3001/?_rsc=fsnpp:0
+[ 2833526ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://localhost:3001/?_rsc=fsnpp:0
+[ 2834720ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://localhost:3001/?_rsc=fsnpp:0
+[ 2835949ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://localhost:3001/?_rsc=fsnpp:0
+[ 2837113ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://localhost:3001/?_rsc=fsnpp:0
+[ 2838344ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://localhost:3001/?_rsc=fsnpp:0
+[ 2841145ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://localhost:3001/?_rsc=fsnpp:0
+[ 2842973ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://localhost:3001/?_rsc=fsnpp:0
+[ 2845126ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://localhost:3001/?_rsc=fsnpp:0
+[ 2846682ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://localhost:3001/?_rsc=fsnpp:0
+[ 2847894ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://localhost:3001/?_rsc=fsnpp:0
+[ 2849145ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://localhost:3001/?_rsc=fsnpp:0
+[ 2850346ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://localhost:3001/?_rsc=fsnpp:0
+[ 2851870ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://localhost:3001/?_rsc=fsnpp:0
+[ 2853152ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://localhost:3001/?_rsc=fsnpp:0
+[ 2855253ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://localhost:3001/?_rsc=fsnpp:0
+[ 2857897ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://localhost:3001/?_rsc=fsnpp:0
+[ 2860431ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://localhost:3001/?_rsc=fsnpp:0
+[ 2865096ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://localhost:3001/?_rsc=fsnpp:0
+[ 2867871ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://localhost:3001/?_rsc=fsnpp:0
+[ 2869889ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://localhost:3001/?_rsc=fsnpp:0
+[ 2871304ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://localhost:3001/?_rsc=fsnpp:0
+[ 2872616ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://localhost:3001/?_rsc=fsnpp:0
+[ 2873775ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://localhost:3001/?_rsc=fsnpp:0
+[ 2875003ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://localhost:3001/?_rsc=fsnpp:0
+[ 2876456ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://localhost:3001/?_rsc=fsnpp:0
+[ 2877824ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://localhost:3001/?_rsc=fsnpp:0
+[ 2879710ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://localhost:3001/?_rsc=fsnpp:0
+[ 2881488ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://localhost:3001/?_rsc=fsnpp:0
+[ 2882448ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://localhost:3001/?_rsc=fsnpp:0
+[ 2883875ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://localhost:3001/?_rsc=fsnpp:0
+[ 2885473ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://localhost:3001/?_rsc=fsnpp:0
+[ 2887343ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://localhost:3001/?_rsc=fsnpp:0
+[ 2888892ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://localhost:3001/?_rsc=fsnpp:0
+[ 2891261ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://localhost:3001/?_rsc=fsnpp:0
+[ 2895557ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://localhost:3001/?_rsc=fsnpp:0
+[ 2897391ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://localhost:3001/?_rsc=fsnpp:0
+[ 2900269ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://localhost:3001/?_rsc=fsnpp:0
+[ 2902970ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://localhost:3001/?_rsc=fsnpp:0
+[ 2906161ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://localhost:3001/?_rsc=fsnpp:0
+[ 2908945ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://localhost:3001/?_rsc=fsnpp:0
+[ 2912478ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://localhost:3001/?_rsc=fsnpp:0
+[ 2914674ms] [ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) @ http://localhost:3001/?_rsc=fsnpp:0
+[ 2914706ms] [ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) @ http://localhost:3001/?_rsc=fsnpp:0
+[ 2915919ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://localhost:3001/?_rsc=fsnpp:0
+[ 2917159ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://localhost:3001/?_rsc=fsnpp:0
+[ 2918147ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://localhost:3001/?_rsc=fsnpp:0
+[ 2919104ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://localhost:3001/?_rsc=fsnpp:0
+[ 2920841ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://localhost:3001/?_rsc=fsnpp:0
+[ 2921795ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://localhost:3001/?_rsc=fsnpp:0
+[ 2922636ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://localhost:3001/?_rsc=fsnpp:0
+[ 2924458ms] [ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) @ http://localhost:3001/_next/static/chunks/main-app.js?v=1774335662034:0
+[ 2924474ms] [ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) @ http://localhost:3001/_next/static/chunks/app-pages-internals.js:0
