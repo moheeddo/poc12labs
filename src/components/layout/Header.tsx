@@ -34,7 +34,7 @@ export default function Header({ activeTab, onTabChange }: HeaderProps) {
         <div className="flex items-center justify-between h-14">
           <button
             onClick={() => onTabChange(null)}
-            className="flex items-center gap-3 hover:opacity-80 transition-opacity duration-200"
+            className="flex items-center gap-3 hover:scale-105 active:scale-95 transition-transform duration-150"
           >
             <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-coral-500 via-teal-500 to-amber-500 flex items-center justify-center">
               <Activity className="w-5 h-5 text-white" />
