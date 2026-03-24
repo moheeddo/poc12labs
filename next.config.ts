@@ -7,6 +7,12 @@ const nextConfig: NextConfig = {
       bodySizeLimit: "100mb",
     },
   },
+  // 이미지 최적화 — 외부 소스 차단
+  images: {
+    remotePatterns: [],
+  },
+  // X-Powered-By 헤더 제거 (서버 정보 노출 방지)
+  poweredByHeader: false,
 };
 
 export default nextConfig;
