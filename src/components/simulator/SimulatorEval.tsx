@@ -23,6 +23,7 @@ const DEFAULT_SCORES: CompetencyScore[] = (Object.entries(COMPETENCY_LABELS) as 
 export default function SimulatorEval() {
   const [uploadProgress, setUploadProgress] = useState<UploadProgress | null>(null);
   const [scores] = useState<CompetencyScore[]>(DEFAULT_SCORES);
+  const [selectedChapter, setSelectedChapter] = useState<number | null>(null);
   const { results, loading, hasSearched, search } = useVideoSearch();
   const overallScore = Math.round(scores.reduce((a, b) => a + b.score, 0) / scores.length);
   const { grade, color } = getGrade(overallScore);
@@ -165,21 +166,69 @@ export default function SimulatorEval() {
             </div>
           </div>
 
-          {/* 챕터링 */}
+          {/* 챕터링 (타임라인 UI) */}
           <div className="bg-surface-800 border border-surface-700 rounded-xl p-4">
             <h4 className="text-sm font-medium text-slate-300 mb-3 flex items-center gap-2">
               <FileText className="w-4 h-4" /> 자동 챕터링
             </h4>
-            <div className="space-y-2">
-              {["초기 상태 확인", "비상 절차 진입", "냉각 계통 기동", "정상화 조치"].map((chapter, i) => (
-                <div key={chapter} className="flex items-center gap-2 text-xs text-slate-500 py-1.5 px-2 -mx-2 rounded-lg border-l-2 border-l-transparent hover:border-l-coral-500 hover:bg-surface-700/50 cursor-pointer transition-all duration-200 group">
-                  <span className="font-mono text-slate-600 w-6 group-hover:text-coral-400 transition-colors duration-200">{String(i + 1).padStart(2, '0')}</span>
-                  <span className="text-slate-400 group-hover:text-slate-300 transition-colors duration-200">{chapter}</span>
-                  <span className="ml-auto font-mono text-slate-600 group-hover:text-slate-500 transition-colors duration-200">--:--</span>
-                </div>
-              ))}
+            <div className="relative ml-1">
+              {/* 세로 연결선 */}
+              <div className="absolute left-3 top-3 bottom-3 w-px bg-surface-600" />
+              <div className="space-y-1">
+                {["초기 상태 확인", "비상 절차 진입", "냉각 계통 기동", "정상화 조치"].map((chapter, i) => {
+                  const isSelected = selectedChapter === i;
+                  return (
+                    <div
+                      key={chapter}
+                      onClick={() => setSelectedChapter(i)}
+                      className={`relative flex items-center gap-3 text-xs py-2 px-2 pl-9 rounded-lg cursor-pointer transition-all duration-200 group ${
+                        isSelected
+                          ? "bg-coral-500/10"
+                          : "hover:bg-surface-700/50"
+                      }`}
+                    >
+                      {/* 숫자 뱃지 (연결선 위) */}
+                      <span
+                        className={`absolute left-0 z-10 flex items-center justify-center w-6 h-6 rounded-full text-[10px] font-mono font-semibold border transition-all duration-200 ${
+                          isSelected
+                            ? "bg-coral-500 border-coral-500 text-white"
+                            : "bg-surface-800 border-surface-600 text-slate-500 group-hover:border-coral-500 group-hover:text-coral-400"
+                        }`}
+                      >
+                        {String(i + 1).padStart(2, "0")}
+                      </span>
+                      {/* hover 시 세로선 coral 강조 */}
+                      <span
+                        className={`absolute left-3 top-0 bottom-0 w-px transition-colors duration-200 ${
+                          isSelected
+                            ? "bg-coral-500"
+                            : "bg-transparent group-hover:bg-coral-500"
+                        }`}
+                      />
+                      <span
+                        className={`transition-colors duration-200 ${
+                          isSelected
+                            ? "text-coral-400 font-medium"
+                            : "text-slate-400 group-hover:text-slate-300"
+                        }`}
+                      >
+                        {chapter}
+                      </span>
+                      <span
+                        className={`ml-auto font-mono transition-colors duration-200 ${
+                          isSelected
+                            ? "text-coral-400/70"
+                            : "text-slate-600 group-hover:text-slate-500"
+                        }`}
+                      >
+                        --:--
+                      </span>
+                    </div>
+                  );
+                })}
+              </div>
             </div>
-            <p className="text-xs text-slate-600 mt-2">영상 업로드 시 타임스탬프가 자동 생성됩니다</p>
+            <p className="text-xs text-slate-600 mt-3">영상 업로드 시 타임스탬프가 자동 생성됩니다</p>
           </div>
         </div>
       </div>
