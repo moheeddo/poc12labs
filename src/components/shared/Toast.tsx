@@ -80,6 +80,18 @@ export default function Toast({ toast, onDismiss }: ToastProps) {
         exiting ? "animate-fade-out" : "animate-fade-in-up",
       )}
     >
+      {/* 하단 자동 닫기 카운트다운 바 */}
+      <span
+        className={cn(
+          "absolute bottom-0 left-0 h-[2px] rounded-b-lg",
+          style.accent,
+        )}
+        style={{
+          animation: `toastCountdown ${AUTO_DISMISS_MS}ms linear forwards`,
+        }}
+        aria-hidden="true"
+      />
+
       {/* 좌측 컬러 액센트 바 */}
       <span
         className={cn(
