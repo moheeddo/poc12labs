@@ -11,7 +11,7 @@ interface DashboardProps {
 
 export default function Dashboard({ onNavigate }: DashboardProps) {
   return (
-    <div className="max-w-[1440px] mx-auto px-6 py-8">
+    <div className="max-w-[1440px] mx-auto px-6 py-8 animate-fade-in-up">
       {/* 전체 현황 요약 */}
       <div className="mb-8">
         <h2 className="text-2xl font-bold text-white mb-1">통합 관제 대시보드</h2>

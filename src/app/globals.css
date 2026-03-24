@@ -66,6 +66,22 @@ button:focus-visible, [role="button"]:focus-visible, a:focus-visible, input:focu
   outline-offset: 2px;
 }
 
+/* 페이지 전환 애니메이션 */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in-up {
+  animation: fadeInUp 0.3s ease-out;
+}
+
 /* 스크롤바 스타일링 (원전 제어실 느낌) */
 ::-webkit-scrollbar {
   width: 6px;
