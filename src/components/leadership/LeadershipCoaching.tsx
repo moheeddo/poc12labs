@@ -73,7 +73,7 @@ export default function LeadershipCoaching() {
   );
 
   return (
-    <div className="max-w-[1440px] mx-auto px-6 py-6 space-y-6 animate-fade-in-up">
+    <div className="max-w-[1440px] mx-auto px-4 md:px-6 py-6 space-y-6 animate-fade-in-up">
       {/* 헤더 */}
       <div>
         <h2 className="text-xl font-bold text-teal-400">리더십코칭 역량진단</h2>
@@ -111,33 +111,37 @@ export default function LeadershipCoaching() {
         <h3 className="text-sm font-medium text-slate-300 mb-4 flex items-center gap-2">
           <TrendingUp className="w-4 h-4" /> 역량 성장 추이 (최근 5개월)
         </h3>
-        <ResponsiveContainer width="100%" height={280}>
-          <LineChart data={GROWTH_DATA}>
-            <CartesianGrid strokeDasharray="3 3" stroke="#243044" />
-            <XAxis dataKey="month" tick={{ fill: "#94a3b8", fontSize: 11 }} />
-            <YAxis domain={[0, 10]} tick={{ fill: "#94a3b8", fontSize: 11 }} />
-            <Tooltip
-              cursor={{ fill: 'rgba(255,255,255,0.05)' }}
-              contentStyle={{
-                backgroundColor: "#111820",
-                border: "1px solid #243044",
-                borderRadius: "8px",
-                fontSize: "12px",
-              }}
-            />
-            <Legend
-              wrapperStyle={{ fontSize: "11px" }}
-              formatter={(value, entry) => (
-                <span style={{ color: entry.color }}>{value}</span>
-              )}
-            />
-            <Line type="monotone" dataKey="의사소통" stroke="#14b8a6" strokeWidth={2} dot={{ r: 3 }} />
-            <Line type="monotone" dataKey="논리력" stroke="#f59e0b" strokeWidth={2} dot={{ r: 3 }} />
-            <Line type="monotone" dataKey="경청" stroke="#8b5cf6" strokeWidth={2} dot={{ r: 3 }} />
-            <Line type="monotone" dataKey="리더십" stroke="#ef4444" strokeWidth={2} dot={{ r: 3 }} />
-            <Line type="monotone" dataKey="협업" stroke="#3b82f6" strokeWidth={2} dot={{ r: 3 }} />
-          </LineChart>
-        </ResponsiveContainer>
+        <div className="overflow-x-auto -mx-4 px-4">
+          <div className="min-w-[400px]">
+            <ResponsiveContainer width="100%" height={280}>
+              <LineChart data={GROWTH_DATA}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#243044" />
+                <XAxis dataKey="month" tick={{ fill: "#94a3b8", fontSize: 11 }} />
+                <YAxis domain={[0, 10]} tick={{ fill: "#94a3b8", fontSize: 11 }} />
+                <Tooltip
+                  cursor={{ fill: 'rgba(255,255,255,0.05)' }}
+                  contentStyle={{
+                    backgroundColor: "#111820",
+                    border: "1px solid #243044",
+                    borderRadius: "8px",
+                    fontSize: "12px",
+                  }}
+                />
+                <Legend
+                  wrapperStyle={{ fontSize: "11px" }}
+                  formatter={(value, entry) => (
+                    <span style={{ color: entry.color }}>{value}</span>
+                  )}
+                />
+                <Line type="monotone" dataKey="의사소통" stroke="#14b8a6" strokeWidth={2} dot={{ r: 3 }} />
+                <Line type="monotone" dataKey="논리력" stroke="#f59e0b" strokeWidth={2} dot={{ r: 3 }} />
+                <Line type="monotone" dataKey="경청" stroke="#8b5cf6" strokeWidth={2} dot={{ r: 3 }} />
+                <Line type="monotone" dataKey="리더십" stroke="#ef4444" strokeWidth={2} dot={{ r: 3 }} />
+                <Line type="monotone" dataKey="협업" stroke="#3b82f6" strokeWidth={2} dot={{ r: 3 }} />
+              </LineChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
       </div>
     </div>
   );
