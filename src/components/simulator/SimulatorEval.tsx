@@ -11,6 +11,25 @@ import { COMPETENCY_LABELS } from "@/lib/constants";
 import type { CompetencyScore, CompetencyKey, UploadProgress } from "@/lib/types";
 import { formatTime, getGrade, getGradeDescription } from "@/lib/utils";
 
+// 역량 바 등급별 색상
+const scoreBarColorMap: Record<string, string> = {
+  high: "bg-teal-500",
+  mid: "bg-amber-500",
+  low: "bg-red-500",
+};
+function getBarColor(score: number) {
+  if (score >= 80) return scoreBarColorMap.high;
+  if (score >= 60) return scoreBarColorMap.mid;
+  return scoreBarColorMap.low;
+}
+
+// 종합 등급 뱃지 배경
+const gradeBgMap: Record<string, string> = {
+  "text-teal-400": "bg-teal-500/10",
+  "text-amber-400": "bg-amber-500/10",
+  "text-red-400": "bg-red-500/10",
+};
+
 // 데모용 기본 역량 점수
 const DEFAULT_SCORES: CompetencyScore[] = (Object.entries(COMPETENCY_LABELS) as [CompetencyKey, string][]).map(
   ([key, label]) => ({
@@ -142,7 +161,7 @@ export default function SimulatorEval() {
               <span className="text-4xl font-bold font-mono text-white tabular-nums">{displayScore}</span>
               <span className="text-sm text-slate-500">/ 100</span>
             </div>
-            <span className={`text-lg font-bold ${color}`}>{grade}</span>
+            <span className={`text-lg font-bold px-3 py-0.5 rounded-md ${color} ${gradeBgMap[color]}`}>{grade}</span>
             <p className="text-xs text-slate-500 mt-1">{getGradeDescription(grade)}</p>
           </div>
 
@@ -160,7 +179,7 @@ export default function SimulatorEval() {
                   <span className="text-xs text-slate-400 w-16 shrink-0 group-hover:text-slate-300 transition-colors duration-200">{s.label}</span>
                   <div className="flex-1 bg-surface-700 rounded-full h-1.5 group-hover:h-2 transition-all duration-200">
                     <div
-                      className="h-full rounded-full bg-coral-500 transition-all duration-500"
+                      className={`h-full rounded-full ${getBarColor(s.score)} transition-all duration-500`}
                       style={{ width: `${s.score}%` }}
                     />
                   </div>
