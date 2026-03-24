@@ -72,7 +72,7 @@ export default function PovAnalysis() {
       </div>
 
       {/* 업로드 + 검색 */}
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <VideoUploader onUpload={handleUpload} progress={uploadProgress} accentColor="amber" />
         <SearchBar
           placeholder="밸브 조작, 계기 판독, 비상 절차 등..."
@@ -84,7 +84,7 @@ export default function PovAnalysis() {
       </div>
 
       {/* 비교 뷰: 두 영상 나란히 */}
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
           <p className="text-xs text-amber-400 mb-2 font-medium">숙련자 POV</p>
           <VideoPlayer />
