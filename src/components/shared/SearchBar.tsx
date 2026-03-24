@@ -120,14 +120,18 @@ export default function SearchBar({
       {/* 추천 검색어 */}
       {suggestions.length > 0 && (
         <div className="flex flex-wrap gap-2">
-          {suggestions.map((s) => (
+          {suggestions.map((s, i) => (
             <button
               key={s}
               onClick={() => { setQuery(s); onSearch(s); }}
               className={cn(
-                "px-3 py-1.5 rounded-full text-xs bg-surface-700 border border-transparent text-slate-400 transition-all duration-200 active:scale-95",
+                "animate-fade-in-up px-3 py-1.5 rounded-full text-xs bg-surface-700 border border-transparent text-slate-400 transition-all duration-200 active:scale-95",
                 suggestionHoverMap[accentColor]
               )}
+              style={{
+                animationDelay: `${i * 60}ms`,
+                animationFillMode: "backwards",
+              }}
             >
               {s}
             </button>
