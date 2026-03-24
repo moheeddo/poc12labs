@@ -10,6 +10,7 @@ import {
   Legend,
   ResponsiveContainer,
 } from "recharts";
+import ChartTooltip from "@/components/shared/ChartTooltip";
 import type { CompetencyScore } from "@/lib/types";
 
 interface CompetencyRadarProps {
@@ -45,19 +46,7 @@ export default function CompetencyRadar({ scores, targetScore = 80 }: Competency
             tick={{ fill: "#475569", fontSize: 10 }}
             axisLine={false}
           />
-          <Tooltip
-            contentStyle={{
-              backgroundColor: "#111820",
-              border: "1px solid #243044",
-              borderRadius: "8px",
-              fontSize: "12px",
-            }}
-            formatter={(value: number, name: string) => [
-              `${value}점`,
-              name === "목표" ? "목표 기준" : "역량 점수",
-            ]}
-            labelStyle={{ color: "#94a3b8", fontWeight: 500 }}
-          />
+          <Tooltip content={<ChartTooltip unit="점" />} />
           <Legend
             verticalAlign="top"
             align="right"
