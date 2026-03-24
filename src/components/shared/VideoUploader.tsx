@@ -121,7 +121,14 @@ export default function VideoUploader({ onUpload, progress, accentColor = "coral
             </div>
           </div>
           {(progress.status === "uploading" || progress.status === "processing") && (
-            <div className="w-full bg-surface-700 rounded-full h-1.5">
+            <div
+              className="w-full bg-surface-700 rounded-full h-1.5"
+              role="progressbar"
+              aria-valuenow={progress.progress}
+              aria-valuemin={0}
+              aria-valuemax={100}
+              aria-label={`${progress.fileName} 업로드 진행률`}
+            >
               <div
                 className={cn(
                   "h-1.5 rounded-full transition-all duration-300",
