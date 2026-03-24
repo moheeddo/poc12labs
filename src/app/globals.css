@@ -105,6 +105,21 @@ button:focus-visible, [role="button"]:focus-visible, a:focus-visible, input:focu
   animation: shimmer 2s ease-in-out infinite;
 }
 
+/* 텍스트 선택 색상 */
+::selection {
+  background: var(--color-teal-500);
+  color: white;
+}
+
+/* 스크롤바 숨김 유틸리티 */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
 /* 스크롤바 스타일링 (원전 제어실 느낌) */
 ::-webkit-scrollbar {
   width: 6px;
