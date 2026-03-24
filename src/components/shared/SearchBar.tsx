@@ -108,7 +108,7 @@ export default function SearchBar({
             type="submit"
             disabled={!query.trim() || loading}
             className={cn(
-              "px-4 py-2 rounded-lg text-xs font-medium transition-colors duration-200 disabled:opacity-30 disabled:cursor-not-allowed flex items-center gap-1.5",
+              "px-4 py-2 rounded-lg text-xs font-medium transition-all duration-200 disabled:opacity-30 disabled:cursor-not-allowed flex items-center gap-1.5 hover:scale-105 active:scale-95 hover:shadow-md",
               accentColor === "coral" && "bg-coral-600 hover:bg-coral-500 text-white",
               accentColor === "teal" && "bg-teal-600 hover:bg-teal-500 text-white",
               accentColor === "amber" && "bg-amber-600 hover:bg-amber-500 text-white",

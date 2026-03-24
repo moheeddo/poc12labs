@@ -28,7 +28,7 @@ export default function CompetencyRadar({ scores, targetScore = 80 }: Competency
   }));
 
   return (
-    <div className="bg-surface-800 border border-surface-700 rounded-xl p-4" role="img" aria-label="8대 핵심역량 레이더 차트">
+    <div className="bg-surface-800 border border-surface-700 rounded-xl p-4 hover:border-coral-500/30 hover:shadow-lg hover:shadow-coral-500/5 transition-all duration-300" role="img" aria-label="8대 핵심역량 레이더 차트">
       <div className="flex items-center justify-between mb-3">
         <h4 className="text-sm font-medium text-slate-300">8대 핵심역량 평가</h4>
         <span className="text-xs text-slate-600 font-mono">목표 {targetScore}점</span>
