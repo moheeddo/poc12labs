@@ -28,7 +28,7 @@ export default function Header({ activeTab, onTabChange }: HeaderProps) {
   }, [activeIdx, allTabs, onTabChange]);
 
   return (
-    <header className="border-b border-surface-700 bg-surface-900 sticky top-0 z-50">
+    <header className="border-b border-surface-700 bg-surface-900/95 backdrop-blur-sm sticky top-0 z-50">
       <div className="max-w-[1440px] mx-auto px-4 md:px-6">
         {/* 상단 로고 영역 */}
         <div className="flex items-center justify-between h-14">
@@ -46,8 +46,11 @@ export default function Header({ activeTab, onTabChange }: HeaderProps) {
           </button>
 
           <div className="flex items-center gap-2" title="모든 서비스가 정상 운영 중입니다">
-            <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-            <span className="text-xs text-slate-400 font-mono">SYSTEM ONLINE</span>
+            <div className="relative">
+              <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+              <div className="absolute inset-0 w-2 h-2 rounded-full bg-emerald-400 animate-ping opacity-30" />
+            </div>
+            <span className="text-xs text-slate-400 font-mono tracking-wider">SYSTEM ONLINE</span>
           </div>
         </div>
 
