@@ -80,7 +80,7 @@ export default function SimulatorEval() {
                 {results.map((r, i) => (
                   <div
                     key={i}
-                    className="flex items-center gap-3 p-2 rounded-lg hover:bg-surface-700 cursor-pointer transition-colors"
+                    className="flex items-center gap-3 p-3 rounded-lg hover:bg-surface-700 hover:pl-4 cursor-pointer transition-all duration-200"
                   >
                     <Clock className="w-4 h-4 text-slate-500" />
                     <span className="font-mono text-xs text-coral-400">
