@@ -105,6 +105,20 @@ button:focus-visible, [role="button"]:focus-visible, a:focus-visible, input:focu
   animation: shimmer 2s ease-in-out infinite;
 }
 
+/* 대시보드 그라데이션 라인 펄스 애니메이션 */
+@keyframes gradientPulse {
+  0%, 100% {
+    opacity: 0.6;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+.animate-gradient-pulse {
+  animation: gradientPulse 3s ease-in-out infinite;
+}
+
 /* 텍스트 선택 색상 */
 ::selection {
   background: var(--color-teal-500);
@@ -118,6 +132,15 @@ button:focus-visible, [role="button"]:focus-visible, a:focus-visible, input:focu
 }
 .scrollbar-hide::-webkit-scrollbar {
   display: none;
+}
+
+/* 모션 감소 선호 사용자 지원 */
+@media (prefers-reduced-motion: reduce) {
+  .animate-fade-in-up,
+  .animate-shimmer,
+  .animate-gradient-pulse {
+    animation: none;
+  }
 }
 
 /* 스크롤바 스타일링 (원전 제어실 느낌) */

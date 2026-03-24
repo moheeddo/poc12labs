@@ -16,7 +16,7 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
       <div className="mb-8">
         <h2 className="text-2xl font-bold text-white mb-1">통합 관제 대시보드</h2>
         <p className="text-sm text-slate-400">KHNP Video AI Platform — 영상 기반 역량 평가 시스템</p>
-        <div className="mt-3 h-px bg-gradient-to-r from-coral-500/60 via-teal-500/60 to-amber-500/60" />
+        <div className="mt-3 h-px bg-gradient-to-r from-coral-500/60 via-teal-500/60 to-amber-500/60 animate-gradient-pulse" />
       </div>
 
       {/* 상태 카드 */}
