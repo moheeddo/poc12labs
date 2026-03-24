@@ -43,13 +43,11 @@ export default function ServiceCard({
         borderColor
       )}
     >
-      {/* 아이콘 */}
-      <div className={cn("w-12 h-12 rounded-lg flex items-center justify-center mb-4", bgColor, color)}>
-        {ICONS[tabKey]}
-      </div>
-
       {/* 제목 및 설명 */}
-      <h3 className={cn("text-lg font-bold mb-2", color)}>{label}</h3>
+      <div className="flex items-center gap-2 mb-3">
+        <span className={cn("opacity-60", color)}>{ICONS[tabKey]}</span>
+        <h3 className={cn("text-lg font-bold", color)}>{label}</h3>
+      </div>
       <p className="text-sm text-slate-400 leading-relaxed mb-4">{description}</p>
 
       {/* 통계 */}
