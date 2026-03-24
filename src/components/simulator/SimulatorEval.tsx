@@ -155,7 +155,7 @@ export default function SimulatorEval() {
         {/* 우측: 평가 리포트 */}
         <div className="space-y-4">
           {/* 종합 점수 */}
-          <div className="bg-surface-800 border border-coral-500/30 rounded-xl p-4 text-center hover:border-coral-500/50 transition-colors duration-200">
+          <div className="bg-surface-800 border border-coral-500/30 rounded-xl p-4 text-center hover:border-coral-500/50 hover:shadow-lg hover:shadow-coral-500/10 transition-all duration-300">
             <p className="text-xs text-slate-500 mb-1">종합 평가</p>
             <div className="flex items-baseline justify-center gap-2">
               <span className="text-4xl font-bold font-mono text-white tabular-nums">{displayScore}</span>
