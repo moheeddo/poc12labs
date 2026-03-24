@@ -34,8 +34,22 @@ export default function Header({ activeTab, onTabChange }: HeaderProps) {
     buttons?.[next]?.focus();
   }, [activeIdx, allTabs, onTabChange]);
 
+  /* 활성 탭에 따른 상단 글로우 색상 (Tailwind v4 동적 불가 → 정적 맵) */
+  const glowColorMap: Record<string, string> = {
+    simulator: "from-coral-500/60 via-coral-500/20 to-transparent",
+    leadership: "from-teal-500/60 via-teal-500/20 to-transparent",
+    pov: "from-amber-500/60 via-amber-500/20 to-transparent",
+  };
+  const activeGlow = activeTab ? glowColorMap[activeTab] : null;
+
   return (
     <header className="border-b border-surface-700 bg-surface-900/95 backdrop-blur-sm sticky top-0 z-50">
+      {/* 활성 서비스 상단 글로우 라인 */}
+      {activeGlow && (
+        <div
+          className={`h-[2px] bg-gradient-to-r ${activeGlow} transition-all duration-500`}
+        />
+      )}
       <div className="max-w-[1440px] mx-auto px-4 md:px-6">
         {/* 상단 로고 영역 */}
         <div className="flex items-center justify-between h-14">
