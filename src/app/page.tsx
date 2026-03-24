@@ -14,7 +14,7 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-surface-900">
       <Header activeTab={activeTab} onTabChange={setActiveTab} />
-      <main>
+      <main aria-live="polite">
         {activeTab === null && <Dashboard onNavigate={setActiveTab} />}
         {activeTab === "simulator" && <SimulatorEval />}
         {activeTab === "leadership" && <LeadershipCoaching />}
