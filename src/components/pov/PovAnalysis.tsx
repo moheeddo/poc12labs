@@ -149,6 +149,7 @@ export default function PovAnalysis() {
               return (
                 <button
                   key={i}
+                  aria-label={`${d.step} — ${sev.label} 등급 이탈: ${d.actual}`}
                   className="w-full text-left flex items-start gap-3 p-3 rounded-lg bg-surface-900 border border-surface-700 hover:border-amber-500/20 hover:bg-surface-800 transition-all duration-200"
                 >
                   <div className="mt-0.5">
