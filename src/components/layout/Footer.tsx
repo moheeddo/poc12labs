@@ -1,4 +1,16 @@
-export default function Footer() {
+import type { ServiceTab } from "@/lib/types";
+
+interface FooterProps {
+  onNavigate?: (tab: ServiceTab) => void;
+}
+
+const FOOTER_LINKS: { key: ServiceTab; label: string; color: string }[] = [
+  { key: "simulator", label: "시뮬레이터 평가", color: "hover:text-coral-400" },
+  { key: "leadership", label: "리더십코칭", color: "hover:text-teal-400" },
+  { key: "pov", label: "POV 분석", color: "hover:text-amber-400" },
+];
+
+export default function Footer({ onNavigate }: FooterProps) {
   return (
     <footer className="border-t border-surface-700 bg-surface-900">
       {/* 그라데이션 구분선 */}
@@ -16,17 +28,21 @@ export default function Footer() {
             </span>
           </div>
 
-          {/* 중앙: 빠른 링크 */}
-          <nav className="flex items-center gap-4">
-            <span className="text-xs text-slate-600">시뮬레이터 평가</span>
-            <span className="text-xs text-slate-600" aria-hidden="true">
-              ·
-            </span>
-            <span className="text-xs text-slate-600">리더십코칭</span>
-            <span className="text-xs text-slate-600" aria-hidden="true">
-              ·
-            </span>
-            <span className="text-xs text-slate-600">POV 분석</span>
+          {/* 중앙: 빠른 링크 — 클릭 시 탭 전환 */}
+          <nav className="flex items-center gap-4" aria-label="서비스 바로가기">
+            {FOOTER_LINKS.map((link, i) => (
+              <span key={link.key} className="flex items-center gap-4">
+                {i > 0 && (
+                  <span className="text-xs text-slate-700" aria-hidden="true">·</span>
+                )}
+                <button
+                  onClick={() => onNavigate?.(link.key)}
+                  className={`text-xs text-slate-600 ${link.color} transition-colors duration-200`}
+                >
+                  {link.label}
+                </button>
+              </span>
+            ))}
           </nav>
 
           {/* 우측: 키보드 단축키 힌트 */}

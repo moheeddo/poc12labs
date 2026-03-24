@@ -53,7 +53,7 @@ export default function Home() {
           </Suspense>
         </ErrorBoundary>
       </main>
-      <Footer />
+      <Footer onNavigate={setActiveTab} />
       <KeyboardHelp isOpen={helpOpen} onClose={closeHelp} />
       <ToastContainer toasts={toasts} onDismiss={removeToast} />
     </div>
