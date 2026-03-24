@@ -92,6 +92,14 @@ export default function PovAnalysis() {
 
   const overallSimilarity = 67;
 
+  // 유사도 점수 구간별 색상
+  const similarityColor = overallSimilarity >= 80 ? "text-teal-400" : overallSimilarity >= 60 ? "text-amber-400" : "text-red-400";
+  const similarityBorderClass = overallSimilarity >= 80
+    ? "border-teal-500/30 hover:border-teal-500/50 hover:shadow-teal-500/10"
+    : overallSimilarity >= 60
+      ? "border-amber-500/30 hover:border-amber-500/50 hover:shadow-amber-500/10"
+      : "border-red-500/30 hover:border-red-500/50 hover:shadow-red-500/10";
+
   return (
     <div className="max-w-[1440px] mx-auto px-4 md:px-6 py-6 space-y-6 animate-slide-in-right">
       {/* 헤더 */}
@@ -205,9 +213,9 @@ export default function PovAnalysis() {
       {/* 숙련도 비교 */}
       {activeView === "compare" && (
         <div id="pov-panel-compare" role="tabpanel" className="space-y-4 animate-fade-in-up">
-          <div className="bg-surface-800 border border-amber-500/30 rounded-xl p-4 text-center hover:border-amber-500/50 transition-colors duration-200">
+          <div className={`bg-surface-800 border rounded-xl p-4 text-center hover:shadow-lg transition-all duration-300 ${similarityBorderClass}`}>
             <p className="text-xs text-slate-500 mb-1">전체 유사도</p>
-            <span className="text-3xl font-bold font-mono text-amber-400 tabular-nums">{overallSimilarity}%</span>
+            <span className={`text-3xl font-bold font-mono tabular-nums ${similarityColor}`}>{overallSimilarity}%</span>
             <p className="text-xs text-slate-500 mt-1">
               {overallSimilarity >= 80 ? "양호 — 숙련자와 유사한 수행" : overallSimilarity >= 60 ? "개선 필요 — 주요 절차 차이 존재" : "미흡 — 집중 교육 권장"}
             </p>
