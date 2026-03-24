@@ -36,6 +36,7 @@ export default function ServiceCard({
   return (
     <button
       onClick={onClick}
+      aria-label={`${label} 서비스로 이동 — ${description}`}
       className={cn(
         "group text-left p-6 rounded-xl border transition-all duration-300",
         "hover:scale-[1.02] hover:shadow-lg hover:shadow-black/20",
