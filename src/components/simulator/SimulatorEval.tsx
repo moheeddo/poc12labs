@@ -155,7 +155,7 @@ export default function SimulatorEval() {
         {/* 우측: 평가 리포트 */}
         <div className="space-y-4">
           {/* 종합 점수 */}
-          <div className="bg-surface-800 border border-coral-500/30 rounded-xl p-4 text-center hover:border-coral-500/50 hover:shadow-lg hover:shadow-coral-500/10 transition-all duration-300">
+          <div className="animate-fade-in-up bg-surface-800 border border-coral-500/30 rounded-xl p-4 text-center hover:border-coral-500/50 hover:shadow-lg hover:shadow-coral-500/10 transition-all duration-300" style={{ animationDelay: "100ms", animationFillMode: "backwards" }}>
             <p className="text-xs text-slate-500 mb-1">종합 평가</p>
             <div className="flex items-baseline justify-center gap-2">
               <span className="text-4xl font-bold font-mono text-white tabular-nums">{displayScore}</span>
@@ -166,10 +166,12 @@ export default function SimulatorEval() {
           </div>
 
           {/* 레이더 차트 */}
-          <CompetencyRadar scores={scores} />
+          <div className="animate-fade-in-up" style={{ animationDelay: "200ms", animationFillMode: "backwards" }}>
+            <CompetencyRadar scores={scores} />
+          </div>
 
           {/* 역량별 상세 */}
-          <div className="bg-surface-800 border border-surface-700 rounded-xl p-4">
+          <div className="animate-fade-in-up bg-surface-800 border border-surface-700 rounded-xl p-4" style={{ animationDelay: "300ms", animationFillMode: "backwards" }}>
             <h4 className="text-sm font-medium text-slate-300 mb-3 flex items-center gap-2">
               <Target className="w-4 h-4" /> 역량별 상세
             </h4>
@@ -195,7 +197,7 @@ export default function SimulatorEval() {
           </div>
 
           {/* 챕터링 (타임라인 UI) */}
-          <div className="bg-surface-800 border border-surface-700 rounded-xl p-4">
+          <div className="animate-fade-in-up bg-surface-800 border border-surface-700 rounded-xl p-4" style={{ animationDelay: "400ms", animationFillMode: "backwards" }}>
             <h4 className="text-sm font-medium text-slate-300 mb-3 flex items-center gap-2">
               <FileText className="w-4 h-4" /> 자동 챕터링
             </h4>
