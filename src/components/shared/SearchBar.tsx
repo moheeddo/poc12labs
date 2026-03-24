@@ -35,6 +35,12 @@ export default function SearchBar({
     amber: "focus-within:border-amber-500/50",
   };
 
+  const ringColorMap: Record<string, string> = {
+    coral: "focus-within:ring-1 focus-within:ring-coral-500/50",
+    teal: "focus-within:ring-1 focus-within:ring-teal-500/50",
+    amber: "focus-within:ring-1 focus-within:ring-amber-500/50",
+  };
+
   const suggestionHoverMap: Record<string, string> = {
     coral: "hover:bg-coral-500/10 hover:text-coral-300 hover:border-coral-500/20",
     teal: "hover:bg-teal-500/10 hover:text-teal-300 hover:border-teal-500/20",
@@ -46,8 +52,9 @@ export default function SearchBar({
       <form onSubmit={handleSubmit} className="relative">
         <div
           className={cn(
-            "flex items-center gap-3 bg-surface-800 border border-surface-600 rounded-xl px-4 py-3 transition-colors",
-            borderColorMap[accentColor]
+            "flex items-center gap-3 bg-surface-800 border border-surface-600 rounded-xl px-4 py-3 transition-all duration-200",
+            borderColorMap[accentColor],
+            ringColorMap[accentColor]
           )}
         >
           {loading ? (
