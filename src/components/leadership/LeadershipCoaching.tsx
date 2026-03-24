@@ -54,7 +54,14 @@ export default function LeadershipCoaching() {
   const [speakers] = useState<SpeakerScore[]>(
     [...DEMO_SPEAKERS].sort((a, b) => b.totalScore - a.totalScore)
   );
+  const [periodFilter, setPeriodFilter] = useState<"3개월" | "6개월" | "1년">("6개월");
   const { loading, search } = useVideoSearch();
+
+  // 요약 통계 계산
+  const avgScore = speakers.length
+    ? (speakers.reduce((sum, s) => sum + s.totalScore, 0) / speakers.length).toFixed(1)
+    : "0.0";
+  const topScorer = speakers.length ? speakers[0].speakerName : "-";
 
   const handleUpload = useCallback(async (file: File) => {
     setUploadProgress({ fileName: file.name, progress: 0, status: "uploading" });
@@ -99,6 +106,9 @@ export default function LeadershipCoaching() {
         <h3 className="text-sm font-medium text-slate-300 mb-3 flex items-center gap-2">
           <Users className="w-4 h-4" /> 발표자별 역량 스코어 ({speakers.length}명)
         </h3>
+        <p className="text-xs text-slate-500 font-mono mb-3">
+          평균 점수: {avgScore}점 | 최고 점수자: {topScorer}
+        </p>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {speakers.map((speaker, i) => (
             <ScoreCard key={speaker.speakerId} speaker={speaker} rank={i + 1} />
@@ -108,9 +118,26 @@ export default function LeadershipCoaching() {
 
       {/* 역량 성장 추이 */}
       <div className="bg-surface-800 border border-surface-700 rounded-xl p-4" role="img" aria-label="최근 5개월 역량 성장 추이 라인 차트">
-        <h3 className="text-sm font-medium text-slate-300 mb-4 flex items-center gap-2">
-          <TrendingUp className="w-4 h-4" /> 역량 성장 추이 (최근 5개월)
-        </h3>
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="text-sm font-medium text-slate-300 flex items-center gap-2">
+            <TrendingUp className="w-4 h-4" /> 역량 성장 추이 (최근 5개월)
+          </h3>
+          <div className="flex items-center gap-1.5">
+            {(["3개월", "6개월", "1년"] as const).map((period) => (
+              <button
+                key={period}
+                onClick={() => setPeriodFilter(period)}
+                className={`rounded-lg px-3 py-1 text-xs font-medium transition-colors ${
+                  periodFilter === period
+                    ? "bg-teal-500/20 text-teal-400 border border-teal-500/30"
+                    : "bg-surface-700 text-slate-400 border border-transparent hover:border-surface-600"
+                }`}
+              >
+                {period}
+              </button>
+            ))}
+          </div>
+        </div>
         <div className="overflow-x-auto -mx-4 px-4">
           <div className="min-w-[400px]">
             <ResponsiveContainer width="100%" height={280}>
