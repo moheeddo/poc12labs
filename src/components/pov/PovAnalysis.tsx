@@ -146,7 +146,7 @@ export default function PovAnalysis() {
 
       {/* SOP 이탈 탐지 */}
       {activeView === "deviations" && (
-        <div id="pov-panel-deviations" role="tabpanel" className="bg-surface-800 border border-surface-700 rounded-xl p-4">
+        <div id="pov-panel-deviations" role="tabpanel" className="bg-surface-800 border border-surface-700 rounded-xl p-4 animate-fade-in-up">
           <div className="flex items-center justify-between mb-4">
             <h4 className="text-sm font-medium text-slate-300 flex items-center gap-2">
               <Shield className="w-4 h-4" /> SOP 절차 이탈 사항 ({DEMO_DEVIATIONS.length}건)
@@ -190,7 +190,7 @@ export default function PovAnalysis() {
 
       {/* 숙련도 비교 */}
       {activeView === "compare" && (
-        <div id="pov-panel-compare" role="tabpanel" className="space-y-4">
+        <div id="pov-panel-compare" role="tabpanel" className="space-y-4 animate-fade-in-up">
           <div className="bg-surface-800 border border-amber-500/30 rounded-xl p-4 text-center hover:border-amber-500/50 transition-colors duration-200">
             <p className="text-xs text-slate-500 mb-1">전체 유사도</p>
             <span className="text-3xl font-bold font-mono text-amber-400 tabular-nums">{overallSimilarity}%</span>
@@ -243,7 +243,7 @@ export default function PovAnalysis() {
 
       {/* 베스트 프랙티스 */}
       {activeView === "highlights" && (
-        <div id="pov-panel-highlights" role="tabpanel" className="bg-surface-800 border border-surface-700 rounded-xl p-6 flex flex-col items-center justify-center text-center min-h-[200px]">
+        <div id="pov-panel-highlights" role="tabpanel" className="bg-surface-800 border border-surface-700 rounded-xl p-6 flex flex-col items-center justify-center text-center min-h-[200px] animate-fade-in-up">
           <Star className="w-10 h-10 text-amber-500/40 mb-3" />
           <h4 className="text-sm font-medium text-slate-300 mb-1">
             베스트 프랙티스 하이라이트
