@@ -278,7 +278,7 @@ export default function PovAnalysis() {
             </p>
             <button
               onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
-              className="mt-4 flex items-center gap-2 px-4 py-2 rounded-lg bg-amber-600/20 text-amber-400 text-xs font-medium hover:bg-amber-600/30 transition-colors duration-200"
+              className="mt-4 flex items-center gap-2 px-4 py-2 rounded-lg bg-amber-600/20 text-amber-400 text-xs font-medium hover:bg-amber-600/30 hover:shadow-md hover:shadow-amber-500/10 hover:scale-105 active:scale-95 transition-all duration-200"
             >
               <Upload className="w-3.5 h-3.5" /> 영상 업로드하기
             </button>
