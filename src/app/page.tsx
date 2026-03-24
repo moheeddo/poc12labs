@@ -32,8 +32,9 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-surface-900">
+      <a href="#main-content" className="skip-to-content">본문으로 건너뛰기</a>
       <Header activeTab={activeTab} onTabChange={setActiveTab} />
-      <main aria-live="polite">
+      <main id="main-content" aria-live="polite">
         <ErrorBoundary fallbackTitle="서비스 로드 중 오류가 발생했습니다">
           {activeTab === null && <Dashboard onNavigate={setActiveTab} />}
           <Suspense fallback={
