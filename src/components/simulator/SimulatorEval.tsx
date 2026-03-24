@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 import { FileText, Clock, Target, SearchX } from "lucide-react";
 import VideoUploader from "@/components/shared/VideoUploader";
 import SearchBar from "@/components/shared/SearchBar";
@@ -26,6 +26,27 @@ export default function SimulatorEval() {
   const { results, loading, hasSearched, search } = useVideoSearch();
   const overallScore = Math.round(scores.reduce((a, b) => a + b.score, 0) / scores.length);
   const { grade, color } = getGrade(overallScore);
+
+  // 종합 점수 카운트업 애니메이션 (0 → overallScore, ~800ms)
+  const [displayScore, setDisplayScore] = useState(0);
+  const animFrameRef = useRef<number>(0);
+  useEffect(() => {
+    const duration = 800; // ms
+    let start: number | null = null;
+    const animate = (ts: number) => {
+      if (!start) start = ts;
+      const elapsed = ts - start;
+      const progress = Math.min(elapsed / duration, 1);
+      // ease-out 곡선
+      const eased = 1 - Math.pow(1 - progress, 3);
+      setDisplayScore(Math.round(eased * overallScore));
+      if (progress < 1) {
+        animFrameRef.current = requestAnimationFrame(animate);
+      }
+    };
+    animFrameRef.current = requestAnimationFrame(animate);
+    return () => cancelAnimationFrame(animFrameRef.current);
+  }, [overallScore]);
 
   const handleUpload = useCallback(async (file: File) => {
     setUploadProgress({ fileName: file.name, progress: 0, status: "uploading" });
@@ -114,7 +135,7 @@ export default function SimulatorEval() {
           <div className="bg-surface-800 border border-coral-500/30 rounded-xl p-4 text-center hover:border-coral-500/50 transition-colors duration-200">
             <p className="text-xs text-slate-500 mb-1">종합 평가</p>
             <div className="flex items-baseline justify-center gap-2">
-              <span className="text-4xl font-bold font-mono text-white tabular-nums">{overallScore}</span>
+              <span className="text-4xl font-bold font-mono text-white tabular-nums">{displayScore}</span>
               <span className="text-sm text-slate-500">/ 100</span>
             </div>
             <span className={`text-lg font-bold ${color}`}>{grade}</span>
