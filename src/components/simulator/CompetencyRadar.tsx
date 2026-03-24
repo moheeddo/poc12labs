@@ -55,6 +55,8 @@ export default function CompetencyRadar({ scores }: CompetencyRadarProps) {
             fill="#ff6b47"
             fillOpacity={0.2}
             strokeWidth={2}
+            animationBegin={200}
+            animationDuration={800}
           />
         </RadarChart>
       </ResponsiveContainer>
