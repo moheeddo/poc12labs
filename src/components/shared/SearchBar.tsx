@@ -35,6 +35,12 @@ export default function SearchBar({
     amber: "focus-within:border-amber-500/50",
   };
 
+  const suggestionHoverMap: Record<string, string> = {
+    coral: "hover:bg-coral-500/10 hover:text-coral-300 hover:border-coral-500/20",
+    teal: "hover:bg-teal-500/10 hover:text-teal-300 hover:border-teal-500/20",
+    amber: "hover:bg-amber-500/10 hover:text-amber-300 hover:border-amber-500/20",
+  };
+
   return (
     <div className="space-y-2">
       <form onSubmit={handleSubmit} className="relative">
@@ -78,7 +84,10 @@ export default function SearchBar({
             <button
               key={s}
               onClick={() => { setQuery(s); onSearch(s); }}
-              className="px-2.5 py-1 rounded-full text-xs bg-surface-700 text-slate-400 hover:text-white hover:bg-surface-600 transition-colors"
+              className={cn(
+                "px-2.5 py-1 rounded-full text-xs bg-surface-700 border border-transparent text-slate-400 transition-all duration-200",
+                suggestionHoverMap[accentColor]
+              )}
             >
               {s}
             </button>
