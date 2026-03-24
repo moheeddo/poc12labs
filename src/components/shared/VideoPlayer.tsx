@@ -38,6 +38,7 @@ export default function VideoPlayer({ src, startTime, className = "" }: VideoPla
       ref={videoRef}
       src={src}
       controls
+      aria-label="영상 플레이어"
       className={`w-full rounded-xl bg-black border border-surface-600 ${className}`}
     />
   );
