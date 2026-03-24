@@ -4,6 +4,7 @@ import { BarChart3, Clock, Film, TrendingUp } from "lucide-react";
 import type { ServiceTab } from "@/lib/types";
 import { SERVICE_TABS } from "@/lib/constants";
 import ServiceCard from "./ServiceCard";
+import LiveClock from "./LiveClock";
 
 interface DashboardProps {
   onNavigate: (tab: ServiceTab) => void;
@@ -14,8 +15,13 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
     <div className="max-w-[1440px] mx-auto px-4 md:px-6 py-6 md:py-8 animate-fade-in-up">
       {/* 전체 현황 요약 */}
       <div className="mb-8">
-        <h2 className="text-2xl font-bold text-white mb-1">통합 관제 대시보드</h2>
-        <p className="text-sm text-slate-400">KHNP Video AI Platform — 영상 기반 역량 평가 시스템</p>
+        <div className="flex items-start justify-between">
+          <div>
+            <h2 className="text-2xl font-bold text-white mb-1">통합 관제 대시보드</h2>
+            <p className="text-sm text-slate-400">KHNP Video AI Platform — 영상 기반 역량 평가 시스템</p>
+          </div>
+          <LiveClock />
+        </div>
         <div className="mt-3 h-px bg-gradient-to-r from-coral-500/60 via-teal-500/60 to-amber-500/60 animate-gradient-pulse" />
       </div>
 
