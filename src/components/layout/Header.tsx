@@ -24,8 +24,8 @@ export default function Header({ activeTab, onTabChange }: HeaderProps) {
               <Activity className="w-5 h-5 text-white" />
             </div>
             <div>
-              <h1 className="text-sm font-bold tracking-tight text-white">KHNP Video AI</h1>
-              <p className="text-[10px] text-slate-500 -mt-0.5 tracking-widest">PLATFORM</p>
+              <span className="text-sm font-bold tracking-tight text-white block">KHNP Video AI</span>
+              <span className="text-[11px] text-slate-500 -mt-0.5 tracking-widest block">PLATFORM</span>
             </div>
           </button>
 
@@ -44,7 +44,7 @@ export default function Header({ activeTab, onTabChange }: HeaderProps) {
                 key={tab.key}
                 onClick={() => onTabChange(tab.key)}
                 className={cn(
-                  "px-4 py-2.5 text-sm font-medium border-b-2 transition-all duration-200",
+                  "px-4 py-3 text-sm font-medium border-b-2 transition-all duration-200",
                   isActive
                     ? `${tab.color} border-current`
                     : "text-slate-500 border-transparent hover:text-slate-300 hover:border-surface-600"
