@@ -43,12 +43,22 @@ export default function VideoPlayer({ src, startTime, className = "" }: VideoPla
   }
 
   return (
-    <video
-      ref={videoRef}
-      src={src}
-      controls
-      aria-label="영상 플레이어"
-      className={`w-full rounded-xl bg-black border border-surface-600 ${className}`}
-    />
+    <div className={`relative rounded-xl overflow-hidden border border-surface-600 ${className}`}>
+      <video
+        ref={videoRef}
+        src={src}
+        controls
+        aria-label="영상 플레이어"
+        className="w-full bg-black"
+      />
+      {/* 스캔라인 오버레이 — 원전 제어실 모니터 느낌 */}
+      <div
+        className="absolute inset-0 pointer-events-none opacity-[0.03]"
+        style={{
+          backgroundImage: "repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(255,255,255,0.1) 2px, rgba(255,255,255,0.1) 4px)",
+        }}
+        aria-hidden="true"
+      />
+    </div>
   );
 }
