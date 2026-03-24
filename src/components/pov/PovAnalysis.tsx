@@ -275,17 +275,22 @@ export default function PovAnalysis() {
               { title: "정확한 밸브 조작 순서", time: "02:15", tag: "필수 절차" },
               { title: "계기판 교차 확인", time: "04:32", tag: "안전 확인" },
               { title: "비상 절차 신속 대응", time: "08:47", tag: "비상 대응" },
-            ].map((item) => (
+            ].map((item, i) => (
               <div
                 key={item.title}
-                className="bg-surface-800 border border-surface-700 rounded-lg p-4 opacity-50"
+                className="animate-fade-in-up bg-surface-800 border border-surface-700 rounded-lg p-4 opacity-60 hover:opacity-100 hover:border-amber-500/30 hover:scale-[1.02] cursor-pointer transition-all duration-300 group"
+                style={{ animationDelay: `${i * 100}ms`, animationFillMode: "backwards" }}
               >
                 <div className="flex items-center gap-2 mb-2">
-                  <span className="text-xs px-1.5 py-0.5 rounded bg-amber-500/10 text-amber-500/60">{item.tag}</span>
-                  <span className="text-xs font-mono text-slate-600 ml-auto">{item.time}</span>
+                  <span className="text-xs px-1.5 py-0.5 rounded bg-amber-500/10 text-amber-500/60 group-hover:text-amber-400 group-hover:bg-amber-500/20 transition-colors duration-200">{item.tag}</span>
+                  <span className="text-xs font-mono text-slate-600 ml-auto group-hover:text-amber-400/70 transition-colors duration-200">▶ {item.time}</span>
                 </div>
-                <p className="text-xs text-slate-500">{item.title}</p>
-                <div className="mt-2 h-16 rounded bg-surface-700 animate-shimmer" />
+                <p className="text-xs text-slate-500 group-hover:text-slate-300 transition-colors duration-200">{item.title}</p>
+                <div className="mt-2 h-16 rounded bg-surface-700 animate-shimmer relative overflow-hidden">
+                  <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                    <Star className="w-5 h-5 text-amber-500/40" />
+                  </div>
+                </div>
               </div>
             ))}
           </div>
