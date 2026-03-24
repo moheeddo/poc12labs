@@ -28,19 +28,19 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
       {/* 상태 카드 — 스태거 등장 */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4 mb-8">
         {[
-          { icon: <Film className="w-4 h-4" />, label: "등록 영상", value: "0", unit: "건" },
-          { icon: <BarChart3 className="w-4 h-4" />, label: "완료 분석", value: "0", unit: "건" },
-          { icon: <TrendingUp className="w-4 h-4" />, label: "평균 역량", value: "—", unit: "점" },
-          { icon: <Clock className="w-4 h-4" />, label: "최근 분석", value: "—", unit: "" },
+          { icon: <Film className="w-4 h-4" />, label: "등록 영상", value: "0", unit: "건", iconColor: "text-coral-500/60" },
+          { icon: <BarChart3 className="w-4 h-4" />, label: "완료 분석", value: "0", unit: "건", iconColor: "text-teal-500/60" },
+          { icon: <TrendingUp className="w-4 h-4" />, label: "평균 역량", value: "—", unit: "점", iconColor: "text-amber-500/60" },
+          { icon: <Clock className="w-4 h-4" />, label: "최근 분석", value: "—", unit: "", iconColor: "text-slate-400/60" },
         ].map((stat, i) => (
           <div
             key={stat.label}
             className="animate-fade-in-up bg-gradient-to-br from-surface-800 to-surface-900 border border-surface-700 rounded-lg p-4 transition-all duration-200 hover:border-surface-600 hover:from-surface-800/80 hover:to-surface-900/80"
             style={{ animationDelay: `${i * 60}ms`, animationFillMode: 'backwards' }}
           >
-            <div className="flex items-center gap-2 text-slate-500 mb-2">
-              {stat.icon}
-              <span className="text-xs">{stat.label}</span>
+            <div className="flex items-center gap-2 mb-2">
+              <span className={stat.iconColor}>{stat.icon}</span>
+              <span className="text-xs text-slate-500">{stat.label}</span>
             </div>
             <div className="flex items-baseline gap-1">
               <span className="text-2xl font-bold font-mono text-white tabular-nums">{stat.value}</span>
