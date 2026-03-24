@@ -140,10 +140,10 @@ export default function SimulatorEval() {
             </h4>
             <div className="space-y-2">
               {["초기 상태 확인", "비상 절차 진입", "냉각 계통 기동", "정상화 조치"].map((chapter, i) => (
-                <div key={chapter} className="flex items-center gap-2 text-xs text-slate-500 py-1.5 border-b border-surface-700 last:border-0">
-                  <span className="font-mono text-slate-600 w-6">{String(i + 1).padStart(2, '0')}</span>
-                  <span className="text-slate-400">{chapter}</span>
-                  <span className="ml-auto font-mono text-slate-600">--:--</span>
+                <div key={chapter} className="flex items-center gap-2 text-xs text-slate-500 py-1.5 px-2 -mx-2 rounded-lg border-l-2 border-l-transparent hover:border-l-coral-500 hover:bg-surface-700/50 cursor-pointer transition-all duration-200 group">
+                  <span className="font-mono text-slate-600 w-6 group-hover:text-coral-400 transition-colors duration-200">{String(i + 1).padStart(2, '0')}</span>
+                  <span className="text-slate-400 group-hover:text-slate-300 transition-colors duration-200">{chapter}</span>
+                  <span className="ml-auto font-mono text-slate-600 group-hover:text-slate-500 transition-colors duration-200">--:--</span>
                 </div>
               ))}
             </div>
