@@ -129,9 +129,9 @@ export default function PovAnalysis() {
             {DEMO_DEVIATIONS.map((d, i) => {
               const sev = SEVERITY_LABELS[d.severity];
               return (
-                <div
+                <button
                   key={i}
-                  className="flex items-start gap-3 p-3 rounded-lg bg-surface-900 border border-surface-700 hover:border-amber-500/20 transition-colors"
+                  className="w-full text-left flex items-start gap-3 p-3 rounded-lg bg-surface-900 border border-surface-700 hover:border-amber-500/20 hover:bg-surface-800 transition-all duration-200"
                 >
                   <div className="mt-0.5">
                     <AlertTriangle className={`w-4 h-4 ${sev.color}`} />
@@ -142,8 +142,8 @@ export default function PovAnalysis() {
                       <span className={`text-[10px] px-1.5 py-0.5 rounded ${sev.color} bg-surface-700`}>
                         {sev.label}
                       </span>
-                      <span className="text-[10px] font-mono text-slate-600 ml-auto">
-                        {formatTime(d.timestamp)}
+                      <span className="text-[10px] font-mono text-amber-500/60 ml-auto hover:text-amber-400 transition-colors">
+                        ▶ {formatTime(d.timestamp)}
                       </span>
                     </div>
                     <p className="text-xs text-slate-400">
@@ -153,7 +153,7 @@ export default function PovAnalysis() {
                       <span className="text-slate-500">실제:</span> {d.actual}
                     </p>
                   </div>
-                </div>
+                </button>
               );
             })}
           </div>
