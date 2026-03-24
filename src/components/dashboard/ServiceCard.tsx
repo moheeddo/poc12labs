@@ -23,6 +23,12 @@ const ICON_BG: Record<ServiceTab, string> = {
   pov: "bg-amber-500/10 group-hover:bg-amber-500/20",
 };
 
+const HOVER_BORDER_L: Record<ServiceTab, string> = {
+  simulator: "hover:border-l-coral-500",
+  leadership: "hover:border-l-teal-500",
+  pov: "hover:border-l-amber-500",
+};
+
 interface ServiceCardProps {
   tabKey: ServiceTab;
   label: string;
@@ -57,8 +63,9 @@ export default function ServiceCard({
         "transition-all duration-300 ease-out",
         "hover:-translate-y-1 hover:shadow-lg hover:shadow-black/30",
         "active:scale-[0.98] active:shadow-none active:translate-y-0",
-        "bg-surface-800",
-        borderColor
+        "bg-surface-800 border-l-2 border-l-transparent",
+        borderColor,
+        HOVER_BORDER_L[tabKey]
       )}
     >
       {/* 상단 그라데이션 라인 — hover 시 두께 확대 */}
@@ -105,7 +112,7 @@ export default function ServiceCard({
         {/* 통계 */}
         <div className="flex items-center gap-4 text-xs text-slate-500">
           <div className="flex items-center gap-1.5">
-            <div className={cn("w-1.5 h-1.5 rounded-full", bgColor.replace("/10", ""))} />
+            <div className={cn("w-1.5 h-1.5 rounded-full transition-transform duration-300 group-hover:scale-110", bgColor.replace("/10", ""))} />
             <span className="font-mono">{videoCount}개 영상</span>
           </div>
           {lastAnalysis && (
@@ -115,7 +122,7 @@ export default function ServiceCard({
             className={cn(
               "ml-auto opacity-0 group-hover:opacity-60",
               "transition-all duration-300",
-              "translate-x-0 group-hover:translate-x-0.5",
+              "translate-x-0 group-hover:translate-x-1",
               "text-sm",
               color
             )}
