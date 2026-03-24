@@ -22,6 +22,12 @@ export default function VideoUploader({ onUpload, progress, accentColor = "coral
     amber: "border-amber-500/40 bg-amber-500/5",
   };
 
+  const progressColorMap: Record<string, string> = {
+    coral: "bg-coral-500",
+    teal: "bg-teal-500",
+    amber: "bg-amber-500",
+  };
+
   const handleDrop = useCallback((e: React.DragEvent) => {
     e.preventDefault();
     setIsDragging(false);
@@ -118,7 +124,7 @@ export default function VideoUploader({ onUpload, progress, accentColor = "coral
               <div
                 className={cn(
                   "h-1.5 rounded-full transition-all duration-300",
-                  progress.status === "processing" ? "animate-pulse bg-blue-500" : `bg-${accentColor}-500`,
+                  progress.status === "processing" ? "animate-pulse bg-blue-500" : progressColorMap[accentColor],
                 )}
                 style={{ width: `${progress.progress}%` }}
               />
