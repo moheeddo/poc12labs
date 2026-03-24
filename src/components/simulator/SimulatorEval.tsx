@@ -55,9 +55,9 @@ export default function SimulatorEval() {
         </p>
       </div>
 
-      <div className="grid grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* 좌측: 업로드 + 검색 + 결과 */}
-        <div className="col-span-2 space-y-4">
+        <div className="lg:col-span-2 space-y-4">
           <VideoUploader onUpload={handleUpload} progress={uploadProgress} accentColor="coral" />
 
           <SearchBar
