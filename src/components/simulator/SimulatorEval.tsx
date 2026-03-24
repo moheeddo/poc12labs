@@ -120,14 +120,14 @@ export default function SimulatorEval() {
             <div className="space-y-2">
               {scores.map((s) => (
                 <div key={s.key} className="flex items-center gap-3 group py-1 -mx-2 px-2 rounded hover:bg-surface-700/50 transition-colors duration-150">
-                  <span className="text-xs text-slate-400 w-16 shrink-0 group-hover:text-slate-300 transition-colors">{s.label}</span>
+                  <span className="text-xs text-slate-400 w-16 shrink-0 group-hover:text-slate-300 transition-colors duration-200">{s.label}</span>
                   <div className="flex-1 bg-surface-700 rounded-full h-1.5 group-hover:h-2 transition-all duration-200">
                     <div
                       className="h-full rounded-full bg-coral-500 transition-all duration-500"
                       style={{ width: `${s.score}%` }}
                     />
                   </div>
-                  <span className="text-xs font-mono text-slate-300 w-8 text-right group-hover:text-white transition-colors">{s.score}</span>
+                  <span className="text-xs font-mono text-slate-300 w-8 text-right group-hover:text-white transition-colors duration-200">{s.score}</span>
                 </div>
               ))}
             </div>

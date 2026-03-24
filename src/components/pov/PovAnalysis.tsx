@@ -161,7 +161,7 @@ export default function PovAnalysis() {
                       <span className={`text-[10px] px-1.5 py-0.5 rounded ${sev.color} bg-surface-700`}>
                         {sev.label}
                       </span>
-                      <span className="text-[10px] font-mono text-amber-500/60 ml-auto hover:text-amber-400 transition-colors">
+                      <span className="text-[10px] font-mono text-amber-500/60 ml-auto hover:text-amber-400 transition-colors duration-200">
                         ▶ {formatTime(d.timestamp)}
                       </span>
                     </div>
