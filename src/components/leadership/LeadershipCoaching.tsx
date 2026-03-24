@@ -125,7 +125,12 @@ export default function LeadershipCoaching() {
                 fontSize: "12px",
               }}
             />
-            <Legend wrapperStyle={{ fontSize: "11px" }} />
+            <Legend
+              wrapperStyle={{ fontSize: "11px" }}
+              formatter={(value, entry) => (
+                <span style={{ color: entry.color }}>{value}</span>
+              )}
+            />
             <Line type="monotone" dataKey="의사소통" stroke="#14b8a6" strokeWidth={2} dot={{ r: 3 }} />
             <Line type="monotone" dataKey="논리력" stroke="#f59e0b" strokeWidth={2} dot={{ r: 3 }} />
             <Line type="monotone" dataKey="경청" stroke="#8b5cf6" strokeWidth={2} dot={{ r: 3 }} />
