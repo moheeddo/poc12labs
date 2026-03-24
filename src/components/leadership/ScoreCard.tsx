@@ -22,6 +22,19 @@ function getScoreTier(score: number) {
   return scoreBadgeMap.low;
 }
 
+/** 역량 바 색상 (점수 구간별) */
+const barColorMap: Record<string, string> = {
+  high: "bg-teal-500",
+  mid: "bg-amber-500",
+  low: "bg-red-500",
+};
+
+function getBarColor(score: number) {
+  if (score >= 8) return barColorMap.high;
+  if (score >= 6) return barColorMap.mid;
+  return barColorMap.low;
+}
+
 export default function ScoreCard({ speaker, rank }: ScoreCardProps) {
   const rankColors = ["text-amber-400", "text-slate-300", "text-amber-700"];
   const rankBgColors = ["bg-amber-500/10", "bg-slate-500/10", "bg-amber-700/10"];
@@ -56,7 +69,7 @@ export default function ScoreCard({ speaker, rank }: ScoreCardProps) {
               <span className="text-xs text-slate-500 w-14 shrink-0 group-hover:text-slate-400 transition-colors duration-200">{label}</span>
               <div className="flex-1 bg-surface-700 rounded-full h-1 group-hover:h-1.5 transition-all duration-200">
                 <div
-                  className="h-full rounded-full bg-teal-500 transition-all duration-500"
+                  className={`h-full rounded-full transition-all duration-500 ${getBarColor(score)}`}
                   style={{ width: `${score * 10}%` }}
                 />
               </div>
