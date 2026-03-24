@@ -100,10 +100,10 @@ export default function SimulatorEval() {
         {/* 우측: 평가 리포트 */}
         <div className="space-y-4">
           {/* 종합 점수 */}
-          <div className="bg-surface-800 border border-coral-500/30 rounded-xl p-4 text-center">
+          <div className="bg-surface-800 border border-coral-500/30 rounded-xl p-4 text-center hover:border-coral-500/50 transition-colors duration-200">
             <p className="text-xs text-slate-500 mb-1">종합 평가</p>
             <div className="flex items-baseline justify-center gap-2">
-              <span className="text-4xl font-bold font-mono text-white">{overallScore}</span>
+              <span className="text-4xl font-bold font-mono text-white tabular-nums">{overallScore}</span>
               <span className="text-sm text-slate-500">/ 100</span>
             </div>
             <span className={`text-lg font-bold ${color}`}>{grade}</span>
