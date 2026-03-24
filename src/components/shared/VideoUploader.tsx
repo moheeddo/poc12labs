@@ -13,8 +13,10 @@ interface VideoUploaderProps {
 
 export default function VideoUploader({ onUpload, progress, accentColor = "coral" }: VideoUploaderProps) {
   const [isDragging, setIsDragging] = useState(false);
+  const [isRejected, setIsRejected] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const rejectionTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const colorMap: Record<string, string> = {
     coral: "border-coral-500/40 bg-coral-500/5",
@@ -34,6 +36,12 @@ export default function VideoUploader({ onUpload, progress, accentColor = "coral
     const file = e.dataTransfer.files[0];
     if (file?.type.startsWith("video/")) {
       setSelectedFile(file);
+      setIsRejected(false);
+    } else if (file) {
+      // 비디오가 아닌 파일 — 빨간 테두리 플래시 + 에러 메시지
+      setIsRejected(true);
+      if (rejectionTimerRef.current) clearTimeout(rejectionTimerRef.current);
+      rejectionTimerRef.current = setTimeout(() => setIsRejected(false), 2000);
     }
   }, []);
 
@@ -58,7 +66,11 @@ export default function VideoUploader({ onUpload, progress, accentColor = "coral
         onClick={() => inputRef.current?.click()}
         className={cn(
           "border-2 border-dashed rounded-xl p-6 md:p-8 text-center cursor-pointer transition-all duration-200",
-          isDragging ? `${colorMap[accentColor]} scale-[1.01]` : "border-surface-600 hover:border-surface-500 hover:bg-surface-800/30",
+          isRejected
+            ? "border-red-500/60 bg-red-500/5"
+            : isDragging
+              ? `${colorMap[accentColor]} scale-[1.01]`
+              : "border-surface-600 hover:border-surface-500 hover:bg-surface-800/30",
         )}
       >
         <input
@@ -68,9 +80,14 @@ export default function VideoUploader({ onUpload, progress, accentColor = "coral
           className="hidden"
           onChange={handleFileSelect}
         />
-        <Upload className="w-8 h-8 mx-auto mb-3 text-slate-500" />
+        <Upload className={cn("w-8 h-8 mx-auto mb-3", isRejected ? "text-red-400" : "text-slate-500")} />
         <p className="text-sm text-slate-300 mb-1">영상 파일을 드래그하거나 클릭하여 선택</p>
         <p className="text-xs text-slate-500">MP4, AVI, MOV 지원 (최대 2GB)</p>
+        {isRejected && (
+          <p className="text-xs text-red-400 mt-2 animate-fade-in-up">
+            지원하지 않는 파일 형식입니다. 영상 파일만 업로드할 수 있습니다.
+          </p>
+        )}
       </div>
 
       {/* 선택된 파일 */}
