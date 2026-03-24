@@ -96,7 +96,7 @@ export default function PovAnalysis() {
       </div>
 
       {/* 서브탭 */}
-      <div className="flex gap-1 border-b border-surface-700">
+      <div className="flex gap-1 border-b border-surface-700" role="tablist" aria-label="POV 분석 보기">
         {[
           { key: "deviations" as const, icon: <AlertTriangle className="w-3.5 h-3.5" />, label: "SOP 이탈 탐지" },
           { key: "compare" as const, icon: <GitCompare className="w-3.5 h-3.5" />, label: "숙련도 비교" },
@@ -104,9 +104,11 @@ export default function PovAnalysis() {
         ].map((tab) => (
           <button
             key={tab.key}
+            role="tab"
+            aria-selected={activeView === tab.key}
             onClick={() => setActiveView(tab.key)}
             className={cn(
-              "flex items-center gap-1.5 px-4 py-2 text-sm font-medium border-b-2 transition-all",
+              "flex items-center gap-1.5 px-4 py-2.5 text-sm font-medium border-b-2 transition-all duration-200",
               activeView === tab.key
                 ? "text-amber-400 border-amber-400"
                 : "text-slate-500 border-transparent hover:text-slate-300"

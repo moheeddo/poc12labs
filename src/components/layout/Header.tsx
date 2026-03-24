@@ -36,8 +36,10 @@ export default function Header({ activeTab, onTabChange }: HeaderProps) {
         </div>
 
         {/* 탭 네비게이션 */}
-        <nav className="flex gap-1 -mb-px">
+        <nav className="flex gap-1 -mb-px" role="tablist" aria-label="서비스 탭">
           <button
+            role="tab"
+            aria-selected={activeTab === null}
             onClick={() => onTabChange(null)}
             className={cn(
               "px-4 py-3 text-sm font-medium border-b-2 transition-all duration-200",
@@ -53,6 +55,8 @@ export default function Header({ activeTab, onTabChange }: HeaderProps) {
             return (
               <button
                 key={tab.key}
+                role="tab"
+                aria-selected={isActive}
                 onClick={() => onTabChange(tab.key)}
                 className={cn(
                   "px-4 py-3 text-sm font-medium border-b-2 transition-all duration-200",
