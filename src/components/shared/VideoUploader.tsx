@@ -41,7 +41,7 @@ export default function VideoUploader({ onUpload, progress, accentColor = "coral
       // 비디오가 아닌 파일 — 빨간 테두리 플래시 + 에러 메시지
       setIsRejected(true);
       if (rejectionTimerRef.current) clearTimeout(rejectionTimerRef.current);
-      rejectionTimerRef.current = setTimeout(() => setIsRejected(false), 2000);
+      rejectionTimerRef.current = setTimeout(() => setIsRejected(false), 1000);
     }
   }, []);
 
