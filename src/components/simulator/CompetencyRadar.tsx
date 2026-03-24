@@ -6,6 +6,7 @@ import {
   PolarAngleAxis,
   PolarRadiusAxis,
   Radar,
+  Tooltip,
   ResponsiveContainer,
 } from "recharts";
 import type { CompetencyScore } from "@/lib/types";
@@ -36,6 +37,16 @@ export default function CompetencyRadar({ scores }: CompetencyRadarProps) {
             domain={[0, 100]}
             tick={{ fill: "#475569", fontSize: 10 }}
             axisLine={false}
+          />
+          <Tooltip
+            contentStyle={{
+              backgroundColor: "#111820",
+              border: "1px solid #243044",
+              borderRadius: "8px",
+              fontSize: "12px",
+            }}
+            formatter={(value: number) => [`${value}점`, "역량 점수"]}
+            labelStyle={{ color: "#94a3b8", fontWeight: 500 }}
           />
           <Radar
             name="역량 점수"
