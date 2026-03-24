@@ -200,12 +200,16 @@ export default function PovAnalysis() {
 
       {/* 베스트 프랙티스 */}
       {activeView === "highlights" && (
-        <div className="bg-surface-800 border border-surface-700 rounded-xl p-4">
-          <h4 className="text-sm font-medium text-slate-300 mb-3 flex items-center gap-2">
-            <Star className="w-4 h-4 text-amber-400" /> 베스트 프랙티스 하이라이트
+        <div className="bg-surface-800 border border-surface-700 rounded-xl p-6 flex flex-col items-center justify-center text-center min-h-[200px]">
+          <Star className="w-10 h-10 text-amber-500/40 mb-3" />
+          <h4 className="text-sm font-medium text-slate-300 mb-1">
+            베스트 프랙티스 하이라이트
           </h4>
-          <p className="text-xs text-slate-500">
-            숙련자 영상에서 핵심 조작 장면을 자동 추출합니다. 영상을 업로드하면 생성됩니다.
+          <p className="text-xs text-slate-500 max-w-sm">
+            숙련자 영상에서 핵심 조작 장면을 자동 추출합니다.
+          </p>
+          <p className="text-xs text-slate-600 mt-1">
+            영상을 업로드하면 자동으로 생성됩니다
           </p>
         </div>
       )}

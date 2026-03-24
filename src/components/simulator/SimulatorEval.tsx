@@ -138,7 +138,16 @@ export default function SimulatorEval() {
             <h4 className="text-sm font-medium text-slate-300 mb-3 flex items-center gap-2">
               <FileText className="w-4 h-4" /> 자동 챕터링
             </h4>
-            <p className="text-xs text-slate-500">영상 업로드 후 자동 생성됩니다</p>
+            <div className="space-y-2">
+              {["초기 상태 확인", "비상 절차 진입", "냉각 계통 기동", "정상화 조치"].map((chapter, i) => (
+                <div key={chapter} className="flex items-center gap-2 text-xs text-slate-500 py-1.5 border-b border-surface-700 last:border-0">
+                  <span className="font-mono text-slate-600 w-6">{String(i + 1).padStart(2, '0')}</span>
+                  <span className="text-slate-400">{chapter}</span>
+                  <span className="ml-auto font-mono text-slate-600">--:--</span>
+                </div>
+              ))}
+            </div>
+            <p className="text-[10px] text-slate-600 mt-2">영상 업로드 시 타임스탬프가 자동 생성됩니다</p>
           </div>
         </div>
       </div>
