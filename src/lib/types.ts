@@ -115,6 +115,25 @@ export interface LeadershipSession {
   segments: SpeakerSegment[];
 }
 
+export interface SegmentFeedback {
+  segmentIndex: number;
+  title: string;
+  start: number;
+  end: number;
+  feedback: string;
+  rating?: number; // 1-5
+}
+
+export interface FeedbackSession {
+  videoId: string;
+  videoTitle: string;
+  videoUrl?: string;
+  chapters: Chapter[];
+  highlights: Highlight[];
+  summary: string;
+  feedbacks: SegmentFeedback[];
+}
+
 // =============================================
 // POV 분석 (Tab 3) 관련 타입
 // =============================================

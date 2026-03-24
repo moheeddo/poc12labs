@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useCallback } from "react";
-import { Users, TrendingUp } from "lucide-react";
+import { Users, TrendingUp, PlayCircle, Video } from "lucide-react";
 import {
   LineChart,
   Line,
@@ -16,9 +16,10 @@ import VideoUploader from "@/components/shared/VideoUploader";
 import ChartTooltip from "@/components/shared/ChartTooltip";
 import SearchBar from "@/components/shared/SearchBar";
 import ScoreCard from "./ScoreCard";
-import { useVideoSearch } from "@/hooks/useTwelveLabs";
-import { LEADERSHIP_COMPETENCY_CONFIG } from "@/lib/constants";
-import type { SpeakerScore, LeadershipCompetencyKey, UploadProgress } from "@/lib/types";
+import LeadershipFeedback from "./LeadershipFeedback";
+import { useVideoSearch, useVideoUpload } from "@/hooks/useTwelveLabs";
+import { LEADERSHIP_COMPETENCY_CONFIG, TWELVELABS_INDEXES } from "@/lib/constants";
+import type { SpeakerScore, LeadershipCompetencyKey } from "@/lib/types";
 
 // 데모 데이터: 6명 발표자
 const DEMO_SPEAKERS: SpeakerScore[] = [
@@ -50,35 +51,71 @@ const GROWTH_DATA = ["1월", "2월", "3월", "4월", "5월"].map((month) => ({
   협업: Math.floor(Math.random() * 3) + 6,
 }));
 
+// 데모: 분석 완료된 영상 목록
+const DEMO_VIDEOS = [
+  { videoId: "demo-video-001", title: "3월 리더십 토론 세션 #1", date: "2026-03-10" },
+  { videoId: "demo-video-002", title: "3월 리더십 토론 세션 #2", date: "2026-03-17" },
+];
+
 export default function LeadershipCoaching() {
-  const [uploadProgress, setUploadProgress] = useState<UploadProgress | null>(null);
+  // 뷰 상태: overview(기본) / feedback(리뷰 화면)
+  const [view, setView] = useState<"overview" | "feedback">("overview");
+  const [feedbackVideoId, setFeedbackVideoId] = useState("");
+  const [feedbackVideoTitle, setFeedbackVideoTitle] = useState("");
+
+  // 업로드 — 실제 TwelveLabs API 연동
+  const { progress: uploadProgress, upload } = useVideoUpload();
+  const [uploadedVideoId, setUploadedVideoId] = useState<string | null>(null);
+  const [uploadedFileName, setUploadedFileName] = useState("");
+
   const [speakers] = useState<SpeakerScore[]>(
     [...DEMO_SPEAKERS].sort((a, b) => b.totalScore - a.totalScore)
   );
   const [periodFilter, setPeriodFilter] = useState<"3개월" | "6개월" | "1년">("6개월");
   const { loading, search } = useVideoSearch();
 
-  // 요약 통계 계산
+  // 요약 통계
   const avgScore = speakers.length
     ? (speakers.reduce((sum, s) => sum + s.totalScore, 0) / speakers.length).toFixed(1)
     : "0.0";
   const topScorer = speakers.length ? speakers[0].speakerName : "-";
 
+  // 실제 업로드 핸들러
   const handleUpload = useCallback(async (file: File) => {
-    setUploadProgress({ fileName: file.name, progress: 0, status: "uploading" });
-    for (let i = 0; i <= 100; i += 10) {
-      await new Promise((r) => setTimeout(r, 200));
-      setUploadProgress({ fileName: file.name, progress: i, status: "uploading" });
+    setUploadedFileName(file.name);
+    try {
+      const taskId = await upload(TWELVELABS_INDEXES.leadership, file);
+      // taskId를 videoId로 사용 (실제 구현에서는 task 완료 후 video_id 획득)
+      setUploadedVideoId(taskId);
+    } catch {
+      // 업로드 실패 시 에러는 useVideoUpload 내부에서 처리됨
     }
-    setUploadProgress({ fileName: file.name, progress: 100, status: "complete" });
-  }, []);
+  }, [upload]);
 
   const handleSearch = useCallback(
     (query: string) => {
-      search("placeholder-index-id", query);
+      search(TWELVELABS_INDEXES.leadership, query);
     },
     [search]
   );
+
+  // 피드백 페이지로 전환
+  const openFeedback = useCallback((videoId: string, title: string) => {
+    setFeedbackVideoId(videoId);
+    setFeedbackVideoTitle(title);
+    setView("feedback");
+  }, []);
+
+  // 피드백 뷰인 경우
+  if (view === "feedback" && feedbackVideoId) {
+    return (
+      <LeadershipFeedback
+        videoId={feedbackVideoId}
+        videoTitle={feedbackVideoTitle}
+        onBack={() => setView("overview")}
+      />
+    );
+  }
 
   return (
     <div className="max-w-[1440px] mx-auto px-4 md:px-6 py-6 space-y-6 animate-slide-in-right">
@@ -100,6 +137,54 @@ export default function LeadershipCoaching() {
           accentColor="teal"
           suggestions={["반박 발언", "동의 표현", "질문 제기", "요약 발언"]}
         />
+      </div>
+
+      {/* 업로드 완료 시 리뷰 진입 버튼 */}
+      {uploadedVideoId && (
+        <div className="animate-fade-in-up bg-surface-800 border border-teal-500/30 rounded-xl p-4 flex items-center gap-4">
+          <div className="w-10 h-10 rounded-lg bg-teal-500/10 flex items-center justify-center shrink-0">
+            <Video className="w-5 h-5 text-teal-400" />
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="text-sm text-white font-medium truncate">{uploadedFileName}</p>
+            <p className="text-xs text-slate-500">업로드 완료 — AI 분석 후 구간별 피드백을 작성할 수 있습니다</p>
+          </div>
+          <button
+            onClick={() => openFeedback(uploadedVideoId, uploadedFileName)}
+            className="flex items-center gap-2 px-4 py-2.5 rounded-lg bg-teal-600 hover:bg-teal-500 text-white text-sm font-medium hover:scale-105 active:scale-95 transition-all duration-200 shrink-0"
+          >
+            <PlayCircle className="w-4 h-4" />
+            영상 리뷰 & 피드백
+          </button>
+        </div>
+      )}
+
+      {/* 분석 완료 영상 목록 */}
+      <div>
+        <h3 className="text-sm font-medium text-slate-300 mb-3 flex items-center gap-2">
+          <Video className="w-4 h-4" /> 분석 완료 영상
+        </h3>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          {DEMO_VIDEOS.map((video, i) => (
+            <button
+              key={video.videoId}
+              onClick={() => openFeedback(video.videoId, video.title)}
+              className="animate-fade-in-up bg-surface-800 border border-surface-700 rounded-xl p-4 text-left hover:border-teal-500/30 hover:bg-surface-800/80 hover:scale-[1.01] transition-all duration-200 group"
+              style={{ animationDelay: `${i * 80}ms`, animationFillMode: "backwards" }}
+            >
+              <div className="flex items-center gap-3">
+                <div className="w-12 h-8 rounded bg-surface-700 flex items-center justify-center shrink-0">
+                  <PlayCircle className="w-5 h-5 text-slate-600 group-hover:text-teal-400 transition-colors duration-200" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm text-white truncate group-hover:text-teal-400 transition-colors duration-200">{video.title}</p>
+                  <p className="text-xs text-slate-600 font-mono">{video.date}</p>
+                </div>
+                <span className="text-xs text-slate-600 group-hover:text-teal-400 transition-colors duration-200">→</span>
+              </div>
+            </button>
+          ))}
+        </div>
       </div>
 
       {/* 발표자 스코어카드 */}
