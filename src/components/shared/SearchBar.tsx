@@ -67,6 +67,7 @@ export default function SearchBar({
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder={placeholder}
+            aria-label={placeholder}
             className="flex-1 bg-transparent text-sm text-white placeholder:text-slate-500 outline-none"
           />
           <button
