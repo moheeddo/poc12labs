@@ -46,7 +46,7 @@ export default function SimulatorEval() {
   );
 
   return (
-    <div className="max-w-[1440px] mx-auto px-6 py-6 space-y-6 animate-fade-in-up">
+    <div className="max-w-[1440px] mx-auto px-4 md:px-6 py-6 space-y-6 animate-fade-in-up">
       {/* 헤더 */}
       <div>
         <h2 className="text-xl font-bold text-coral-400">N-HPAI 시뮬레이터 평가</h2>
@@ -147,7 +147,7 @@ export default function SimulatorEval() {
                 </div>
               ))}
             </div>
-            <p className="text-[10px] text-slate-600 mt-2">영상 업로드 시 타임스탬프가 자동 생성됩니다</p>
+            <p className="text-xs text-slate-600 mt-2">영상 업로드 시 타임스탬프가 자동 생성됩니다</p>
           </div>
         </div>
       </div>
