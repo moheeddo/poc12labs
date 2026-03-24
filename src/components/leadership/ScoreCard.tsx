@@ -23,7 +23,7 @@ export default function ScoreCard({ speaker, rank }: ScoreCardProps) {
         </div>
         <div className="flex-1">
           <p className="text-sm font-medium text-white">{speaker.speakerName}</p>
-          <p className="text-xs text-slate-500 font-mono">
+          <p className="text-xs text-slate-500 font-mono tabular-nums">
             종합 {speaker.totalScore.toFixed(1)}점
           </p>
         </div>
