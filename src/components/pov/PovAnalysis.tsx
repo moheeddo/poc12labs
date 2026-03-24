@@ -243,23 +243,47 @@ export default function PovAnalysis() {
 
       {/* 베스트 프랙티스 */}
       {activeView === "highlights" && (
-        <div id="pov-panel-highlights" role="tabpanel" className="bg-surface-800 border border-surface-700 rounded-xl p-6 flex flex-col items-center justify-center text-center min-h-[200px] animate-fade-in-up">
-          <Star className="w-10 h-10 text-amber-500/40 mb-3" />
-          <h4 className="text-sm font-medium text-slate-300 mb-1">
-            베스트 프랙티스 하이라이트
-          </h4>
-          <p className="text-xs text-slate-500 max-w-sm">
-            숙련자 영상에서 핵심 조작 장면을 자동 추출합니다.
-          </p>
-          <p className="text-xs text-slate-600 mt-2">
-            영상을 업로드하면 자동으로 생성됩니다
-          </p>
-          <button
-            onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
-            className="mt-4 flex items-center gap-2 px-4 py-2 rounded-lg bg-amber-600/20 text-amber-400 text-xs font-medium hover:bg-amber-600/30 transition-colors duration-200"
-          >
-            <Upload className="w-3.5 h-3.5" /> 영상 업로드하기
-          </button>
+        <div id="pov-panel-highlights" role="tabpanel" className="space-y-4 animate-fade-in-up">
+          {/* 빈 상태 안내 */}
+          <div className="bg-surface-800 border border-surface-700 rounded-xl p-6 flex flex-col items-center justify-center text-center min-h-[200px]">
+            <Star className="w-10 h-10 text-amber-500/40 mb-3" />
+            <h4 className="text-sm font-medium text-slate-300 mb-1">
+              베스트 프랙티스 하이라이트
+            </h4>
+            <p className="text-xs text-slate-500 max-w-sm">
+              숙련자 영상에서 핵심 조작 장면을 자동 추출합니다.
+            </p>
+            <p className="text-xs text-slate-600 mt-2">
+              영상을 업로드하면 자동으로 생성됩니다
+            </p>
+            <button
+              onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
+              className="mt-4 flex items-center gap-2 px-4 py-2 rounded-lg bg-amber-600/20 text-amber-400 text-xs font-medium hover:bg-amber-600/30 transition-colors duration-200"
+            >
+              <Upload className="w-3.5 h-3.5" /> 영상 업로드하기
+            </button>
+          </div>
+
+          {/* 추출 예시 미리보기 카드 */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+            {[
+              { title: "정확한 밸브 조작 순서", time: "02:15", tag: "필수 절차" },
+              { title: "계기판 교차 확인", time: "04:32", tag: "안전 확인" },
+              { title: "비상 절차 신속 대응", time: "08:47", tag: "비상 대응" },
+            ].map((item) => (
+              <div
+                key={item.title}
+                className="bg-surface-800 border border-surface-700 rounded-lg p-4 opacity-50"
+              >
+                <div className="flex items-center gap-2 mb-2">
+                  <span className="text-xs px-1.5 py-0.5 rounded bg-amber-500/10 text-amber-500/60">{item.tag}</span>
+                  <span className="text-xs font-mono text-slate-600 ml-auto">{item.time}</span>
+                </div>
+                <p className="text-xs text-slate-500">{item.title}</p>
+                <div className="mt-2 h-16 rounded bg-surface-700 animate-shimmer" />
+              </div>
+            ))}
+          </div>
         </div>
       )}
     </div>

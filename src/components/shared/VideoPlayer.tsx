@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef, useEffect } from "react";
-import { PlayCircle } from "lucide-react";
+import { PlayCircle, Upload, Search } from "lucide-react";
 
 interface VideoPlayerProps {
   src?: string;
@@ -25,9 +25,18 @@ export default function VideoPlayer({ src, startTime, className = "" }: VideoPla
         <div className="absolute inset-0 animate-shimmer" />
         {/* 콘텐츠 오버레이 */}
         <div className="relative z-10 flex flex-col items-center justify-center gap-3 h-full">
-          <PlayCircle className="w-10 h-10 text-slate-600" />
-          <p className="text-sm text-slate-500">영상을 선택하세요</p>
-          <p className="text-xs text-slate-600">파일을 업로드하거나 검색 결과에서 선택</p>
+          <div className="relative">
+            <PlayCircle className="w-12 h-12 text-slate-600" />
+            <div className="absolute -bottom-0.5 -right-0.5 w-4 h-4 rounded-full bg-surface-800 flex items-center justify-center">
+              <div className="w-2.5 h-2.5 rounded-full bg-slate-700" />
+            </div>
+          </div>
+          <p className="text-sm text-slate-400 font-medium">영상을 선택하세요</p>
+          <div className="flex items-center gap-4 text-xs text-slate-600">
+            <span className="flex items-center gap-1"><Upload className="w-3 h-3" /> 업로드</span>
+            <span className="text-surface-600">|</span>
+            <span className="flex items-center gap-1"><Search className="w-3 h-3" /> 검색</span>
+          </div>
         </div>
       </div>
     );
