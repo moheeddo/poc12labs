@@ -73,7 +73,7 @@ export default function LeadershipCoaching() {
   );
 
   return (
-    <div className="max-w-[1440px] mx-auto px-4 md:px-6 py-6 space-y-6 animate-fade-in-up">
+    <div className="max-w-[1440px] mx-auto px-4 md:px-6 py-6 space-y-6 animate-slide-in-right">
       {/* 헤더 */}
       <div>
         <h2 className="text-xl font-bold text-teal-400">리더십코칭 역량진단</h2>

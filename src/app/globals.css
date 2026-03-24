@@ -135,6 +135,22 @@ button:focus-visible, [role="button"]:focus-visible, a:focus-visible, input:focu
   animation: gradientPulse 3s ease-in-out infinite;
 }
 
+/* 탭 전환 슬라이드 애니메이션 */
+@keyframes slideInFromRight {
+  from {
+    opacity: 0;
+    transform: translateX(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.animate-slide-in-right {
+  animation: slideInFromRight 0.25s ease-out;
+}
+
 /* 텍스트 선택 색상 */
 ::selection {
   background: var(--color-teal-500);
@@ -155,7 +171,8 @@ button:focus-visible, [role="button"]:focus-visible, a:focus-visible, input:focu
   .animate-fade-in-up,
   .animate-fade-out,
   .animate-shimmer,
-  .animate-gradient-pulse {
+  .animate-gradient-pulse,
+  .animate-slide-in-right {
     animation: none;
   }
 }

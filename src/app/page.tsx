@@ -37,7 +37,7 @@ export default function Home() {
       <main id="main-content" aria-live="polite">
         <ErrorBoundary fallbackTitle="서비스 로드 중 오류가 발생했습니다">
           {activeTab === null && <Dashboard onNavigate={setActiveTab} />}
-          <Suspense fallback={
+          <Suspense key={activeTab} fallback={
             <div className="max-w-[1440px] mx-auto px-4 md:px-6 py-8 space-y-4">
               <Skeleton variant="text" width="200px" height="28px" />
               <Skeleton variant="rectangular" height="200px" />
