@@ -34,14 +34,14 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
       {/* 상태 카드 — 스태거 등장 */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4 mb-8">
         {[
-          { icon: <Film className="w-4 h-4" />, label: "등록 영상", value: "0", unit: "건", iconColor: "text-coral-500/60", trend: "neutral" as const, trendLabel: "" },
-          { icon: <BarChart3 className="w-4 h-4" />, label: "완료 분석", value: "0", unit: "건", iconColor: "text-teal-500/60", trend: "neutral" as const, trendLabel: "" },
-          { icon: <TrendingUp className="w-4 h-4" />, label: "평균 역량", value: "—", unit: "점", iconColor: "text-amber-500/60", trend: "up" as const, trendLabel: "전월 대비" },
-          { icon: <Clock className="w-4 h-4" />, label: "최근 분석", value: "—", unit: "", iconColor: "text-slate-400/60", trend: "neutral" as const, trendLabel: "" },
+          { icon: <Film className="w-4 h-4" />, label: "등록 영상", value: "0", unit: "건", iconColor: "text-coral-500/60", hoverBorder: "hover:border-coral-500/20", trend: "neutral" as const, trendLabel: "" },
+          { icon: <BarChart3 className="w-4 h-4" />, label: "완료 분석", value: "0", unit: "건", iconColor: "text-teal-500/60", hoverBorder: "hover:border-teal-500/20", trend: "neutral" as const, trendLabel: "" },
+          { icon: <TrendingUp className="w-4 h-4" />, label: "평균 역량", value: "—", unit: "점", iconColor: "text-amber-500/60", hoverBorder: "hover:border-amber-500/20", trend: "up" as const, trendLabel: "전월 대비" },
+          { icon: <Clock className="w-4 h-4" />, label: "최근 분석", value: "—", unit: "", iconColor: "text-slate-400/60", hoverBorder: "hover:border-surface-600", trend: "neutral" as const, trendLabel: "" },
         ].map((stat, i) => (
           <div
             key={stat.label}
-            className="animate-fade-in-up bg-gradient-to-br from-surface-800 to-surface-900 border border-surface-700 rounded-lg p-4 transition-all duration-200 hover:border-surface-600 hover:from-surface-800/80 hover:to-surface-900/80"
+            className={`animate-fade-in-up bg-gradient-to-br from-surface-800 to-surface-900 border border-surface-700 rounded-lg p-4 transition-all duration-200 ${stat.hoverBorder} hover:from-surface-800/80 hover:to-surface-900/80`}
             style={{ animationDelay: `${i * 60}ms`, animationFillMode: 'backwards' }}
           >
             <div className="flex items-center gap-2 mb-2">
