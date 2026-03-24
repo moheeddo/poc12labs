@@ -185,7 +185,7 @@ export default function PovAnalysis() {
             <p className="text-xs text-slate-500 mb-1">전체 유사도</p>
             <span className="text-3xl font-bold font-mono text-amber-400">{overallSimilarity}%</span>
           </div>
-          <div className="bg-surface-800 border border-surface-700 rounded-xl p-4">
+          <div className="bg-surface-800 border border-surface-700 rounded-xl p-4" role="img" aria-label="절차별 숙련도 비교 막대 그래프">
             <h4 className="text-sm font-medium text-slate-300 mb-4">절차별 숙련도 비교</h4>
             <ResponsiveContainer width="100%" height={280}>
               <BarChart data={COMPARISON_DATA} layout="vertical">

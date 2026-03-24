@@ -23,7 +23,7 @@ export default function CompetencyRadar({ scores }: CompetencyRadarProps) {
   }));
 
   return (
-    <div className="bg-surface-800 border border-surface-700 rounded-xl p-4">
+    <div className="bg-surface-800 border border-surface-700 rounded-xl p-4" role="img" aria-label="8대 핵심역량 레이더 차트">
       <h4 className="text-sm font-medium text-slate-300 mb-3">8대 핵심역량 평가</h4>
       <ResponsiveContainer width="100%" height={320}>
         <RadarChart data={data} cx="50%" cy="50%" outerRadius="72%">
