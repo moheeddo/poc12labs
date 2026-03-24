@@ -48,6 +48,14 @@
 
 html {
   color-scheme: dark;
+  scroll-behavior: smooth;
+}
+
+/* 모션 감소 선호 시 부드러운 스크롤 비활성화 */
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
 }
 
 body {
