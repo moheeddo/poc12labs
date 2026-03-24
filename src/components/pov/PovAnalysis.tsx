@@ -151,6 +151,12 @@ export default function PovAnalysis() {
             <h4 className="text-sm font-medium text-slate-300 flex items-center gap-2">
               <Shield className="w-4 h-4" /> SOP 절차 이탈 사항 ({DEMO_DEVIATIONS.length}건)
             </h4>
+            <div className="flex items-center gap-3 text-xs">
+              <span className="text-red-400 font-mono">{DEMO_DEVIATIONS.filter(d => d.severity === "critical").length} 위험</span>
+              <span className="text-orange-400 font-mono">{DEMO_DEVIATIONS.filter(d => d.severity === "high").length} 심각</span>
+              <span className="text-amber-400 font-mono">{DEMO_DEVIATIONS.filter(d => d.severity === "medium").length} 보통</span>
+              <span className="text-slate-500 font-mono">{DEMO_DEVIATIONS.filter(d => d.severity === "low").length} 경미</span>
+            </div>
           </div>
           <div className="space-y-2">
             {DEMO_DEVIATIONS.map((d, i) => {
@@ -194,6 +200,9 @@ export default function PovAnalysis() {
           <div className="bg-surface-800 border border-amber-500/30 rounded-xl p-4 text-center hover:border-amber-500/50 transition-colors duration-200">
             <p className="text-xs text-slate-500 mb-1">전체 유사도</p>
             <span className="text-3xl font-bold font-mono text-amber-400 tabular-nums">{overallSimilarity}%</span>
+            <p className="text-xs text-slate-500 mt-1">
+              {overallSimilarity >= 80 ? "양호 — 숙련자와 유사한 수행" : overallSimilarity >= 60 ? "개선 필요 — 주요 절차 차이 존재" : "미흡 — 집중 교육 권장"}
+            </p>
           </div>
           <div className="bg-surface-800 border border-surface-700 rounded-xl p-4" role="img" aria-label="절차별 숙련도 비교 막대 그래프">
             <h4 className="text-sm font-medium text-slate-300 mb-4">절차별 숙련도 비교</h4>
