@@ -49,7 +49,7 @@ export default function SearchBar({
 
   return (
     <div className="space-y-2">
-      <form onSubmit={handleSubmit} className="relative">
+      <form onSubmit={handleSubmit} className="relative" role="search" aria-busy={loading}>
         <div
           className={cn(
             "flex items-center gap-3 bg-surface-800 border border-surface-600 rounded-xl px-4 py-3 transition-all duration-200",
