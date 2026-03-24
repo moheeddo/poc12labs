@@ -57,7 +57,7 @@ export default function VideoUploader({ onUpload, progress, accentColor = "coral
         onDrop={handleDrop}
         onClick={() => inputRef.current?.click()}
         className={cn(
-          "border-2 border-dashed rounded-xl p-8 text-center cursor-pointer transition-all duration-200",
+          "border-2 border-dashed rounded-xl p-6 md:p-8 text-center cursor-pointer transition-all duration-200",
           isDragging ? `${colorMap[accentColor]} scale-[1.01]` : "border-surface-600 hover:border-surface-500 hover:bg-surface-800/30",
         )}
       >
@@ -81,13 +81,13 @@ export default function VideoUploader({ onUpload, progress, accentColor = "coral
             <p className="text-sm text-white truncate">{selectedFile.name}</p>
             <p className="text-xs text-slate-500">{formatFileSize(selectedFile.size)}</p>
           </div>
-          <button onClick={() => setSelectedFile(null)} className="text-slate-500 hover:text-white">
+          <button onClick={() => setSelectedFile(null)} className="p-2 text-slate-500 hover:text-white transition-colors duration-200" aria-label="파일 선택 취소">
             <X className="w-4 h-4" />
           </button>
           <button
             onClick={handleUpload}
             className={cn(
-              "px-4 py-1.5 rounded-lg text-sm font-medium text-white transition-all duration-150",
+              "px-4 py-2 rounded-lg text-sm font-medium text-white transition-all duration-150",
               "active:scale-95",
               accentColor === "coral" && "bg-coral-600 hover:bg-coral-500 active:bg-coral-700",
               accentColor === "teal" && "bg-teal-600 hover:bg-teal-500 active:bg-teal-700",
