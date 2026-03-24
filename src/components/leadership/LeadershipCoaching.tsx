@@ -112,7 +112,13 @@ export default function LeadershipCoaching() {
         </p>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {speakers.map((speaker, i) => (
-            <ScoreCard key={speaker.speakerId} speaker={speaker} rank={i + 1} />
+            <div
+              key={speaker.speakerId}
+              className="animate-fade-in-up"
+              style={{ animationDelay: `${i * 80}ms`, animationFillMode: "backwards" }}
+            >
+              <ScoreCard speaker={speaker} rank={i + 1} />
+            </div>
           ))}
         </div>
       </div>
