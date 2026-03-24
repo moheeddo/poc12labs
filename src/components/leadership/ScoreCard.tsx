@@ -82,9 +82,9 @@ export default function ScoreCard({ speaker, rank }: ScoreCardProps) {
 
       {/* 피드백 */}
       {speaker.feedback && (
-        <div className="mt-3 flex items-start gap-2 border-t border-surface-700 pt-3">
-          <Lightbulb className="w-3.5 h-3.5 text-teal-500 shrink-0 mt-0.5" />
-          <p className="text-xs text-slate-400 leading-relaxed">
+        <div className="mt-3 flex items-start gap-2 border-t border-surface-700 pt-3 group/feedback rounded-b-lg -mx-1 px-1 hover:bg-teal-500/5 transition-colors duration-200">
+          <Lightbulb className="w-3.5 h-3.5 text-teal-500 shrink-0 mt-0.5 group-hover/feedback:drop-shadow-[0_0_4px_rgba(20,184,166,0.5)] transition-all duration-300" />
+          <p className="text-xs text-slate-400 leading-relaxed group-hover/feedback:text-slate-300 transition-colors duration-200">
             {speaker.feedback}
           </p>
         </div>
