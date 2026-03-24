@@ -128,10 +128,10 @@ export default function LeadershipCoaching() {
               <button
                 key={period}
                 onClick={() => setPeriodFilter(period)}
-                className={`rounded-lg px-3 py-1 text-xs font-medium transition-colors ${
+                className={`rounded-lg px-3 py-1 text-xs font-medium transition-all duration-200 ${
                   periodFilter === period
-                    ? "bg-teal-500/20 text-teal-400 border border-teal-500/30"
-                    : "bg-surface-700 text-slate-400 border border-transparent hover:border-surface-600"
+                    ? "bg-teal-500/20 text-teal-400 border border-teal-500/30 shadow-sm shadow-teal-500/10"
+                    : "bg-surface-700 text-slate-400 border border-transparent hover:border-surface-600 hover:text-slate-300"
                 }`}
               >
                 {period}
