@@ -133,11 +133,11 @@ export default function LeadershipCoaching() {
                     <span style={{ color: entry.color }}>{value}</span>
                   )}
                 />
-                <Line type="monotone" dataKey="의사소통" stroke="#14b8a6" strokeWidth={2} dot={{ r: 3 }} />
-                <Line type="monotone" dataKey="논리력" stroke="#f59e0b" strokeWidth={2} dot={{ r: 3 }} />
-                <Line type="monotone" dataKey="경청" stroke="#8b5cf6" strokeWidth={2} dot={{ r: 3 }} />
-                <Line type="monotone" dataKey="리더십" stroke="#ef4444" strokeWidth={2} dot={{ r: 3 }} />
-                <Line type="monotone" dataKey="협업" stroke="#3b82f6" strokeWidth={2} dot={{ r: 3 }} />
+                <Line type="monotone" dataKey="의사소통" stroke="#14b8a6" strokeWidth={2} dot={{ r: 3 }} animationBegin={100} animationDuration={600} />
+                <Line type="monotone" dataKey="논리력" stroke="#f59e0b" strokeWidth={2} dot={{ r: 3 }} animationBegin={200} animationDuration={600} />
+                <Line type="monotone" dataKey="경청" stroke="#8b5cf6" strokeWidth={2} dot={{ r: 3 }} animationBegin={300} animationDuration={600} />
+                <Line type="monotone" dataKey="리더십" stroke="#ef4444" strokeWidth={2} dot={{ r: 3 }} animationBegin={400} animationDuration={600} />
+                <Line type="monotone" dataKey="협업" stroke="#3b82f6" strokeWidth={2} dot={{ r: 3 }} animationBegin={500} animationDuration={600} />
               </LineChart>
             </ResponsiveContainer>
           </div>
