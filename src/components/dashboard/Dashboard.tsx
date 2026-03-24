@@ -283,21 +283,21 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
               <button
                 type="button"
                 onClick={() => onNavigate("simulator")}
-                className="text-xs px-3 py-1.5 rounded-md border border-coral-500/30 text-coral-400 hover:bg-coral-500/10 transition-colors"
+                className="text-xs px-3 py-1.5 rounded-md border border-coral-500/30 text-coral-400 hover:bg-coral-500/10 hover:shadow-sm hover:shadow-coral-500/10 hover:scale-105 active:scale-95 transition-all duration-200"
               >
                 시뮬레이터
               </button>
               <button
                 type="button"
                 onClick={() => onNavigate("leadership")}
-                className="text-xs px-3 py-1.5 rounded-md border border-teal-500/30 text-teal-400 hover:bg-teal-500/10 transition-colors"
+                className="text-xs px-3 py-1.5 rounded-md border border-teal-500/30 text-teal-400 hover:bg-teal-500/10 hover:shadow-sm hover:shadow-teal-500/10 hover:scale-105 active:scale-95 transition-all duration-200"
               >
                 리더십
               </button>
               <button
                 type="button"
                 onClick={() => onNavigate("pov")}
-                className="text-xs px-3 py-1.5 rounded-md border border-amber-500/30 text-amber-400 hover:bg-amber-500/10 transition-colors"
+                className="text-xs px-3 py-1.5 rounded-md border border-amber-500/30 text-amber-400 hover:bg-amber-500/10 hover:shadow-sm hover:shadow-amber-500/10 hover:scale-105 active:scale-95 transition-all duration-200"
               >
                 POV
               </button>
