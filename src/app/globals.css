@@ -64,6 +64,11 @@ body {
   color: #e2e8f0;
 }
 
+/* font-mono 요소에 tabular-nums 기본 적용 — 숫자 정렬 일관성 */
+.font-mono {
+  font-variant-numeric: tabular-nums;
+}
+
 /* 모든 버튼에 pointer cursor + focus-visible 링 */
 button, [role="button"], a {
   cursor: pointer;
