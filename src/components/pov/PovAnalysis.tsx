@@ -83,6 +83,13 @@ export default function PovAnalysis() {
     low: "bg-slate-500/15",
   };
 
+  const severityBorderMap: Record<string, string> = {
+    critical: "border-l-red-500",
+    high: "border-l-orange-500",
+    medium: "border-l-amber-500",
+    low: "border-l-slate-500",
+  };
+
   const overallSimilarity = 67;
 
   return (
@@ -166,7 +173,7 @@ export default function PovAnalysis() {
                 <button
                   key={i}
                   aria-label={`${d.step} — ${sev.label} 등급 이탈: ${d.actual}`}
-                  className="w-full text-left flex items-start gap-3 p-3 rounded-lg bg-surface-900 border border-surface-700 hover:border-amber-500/20 hover:bg-surface-800 transition-all duration-200"
+                  className={`w-full text-left flex items-start gap-3 p-3 rounded-lg bg-surface-900 border border-surface-700 border-l-2 ${severityBorderMap[d.severity] || "border-l-slate-500"} hover:border-amber-500/20 hover:bg-surface-800 transition-all duration-200`}
                 >
                   <div className="mt-0.5">
                     <AlertTriangle className={`w-4 h-4 ${sev.color}`} />
