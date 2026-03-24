@@ -41,7 +41,7 @@ export default function ScoreCard({ speaker, rank }: ScoreCardProps) {
   const badge = getScoreTier(speaker.totalScore);
 
   return (
-    <div className="bg-surface-800 border border-surface-700 rounded-xl p-4 border-l-2 border-l-transparent hover:border-l-teal-500 hover:border-surface-700 hover:scale-[1.01] transition-all duration-200">
+    <div className="bg-surface-800 border border-surface-700 rounded-xl p-4 border-l-2 border-l-transparent hover:border-l-teal-500 hover:border-surface-700 hover:scale-[1.01] hover:shadow-lg hover:shadow-teal-500/5 transition-all duration-200">
       <div className="flex items-center gap-3 mb-3">
         {/* 순위 배지 */}
         <div className={`w-8 h-8 rounded-full flex items-center justify-center ${rankBgColors[rank - 1] || "bg-surface-700"}`}>
@@ -62,15 +62,15 @@ export default function ScoreCard({ speaker, rank }: ScoreCardProps) {
 
       {/* 역량별 바 차트 */}
       <div className="space-y-1.5">
-        {LEADERSHIP_COMPETENCY_CONFIG.map(({ key, label, weight }) => {
+        {LEADERSHIP_COMPETENCY_CONFIG.map(({ key, label, weight }, idx) => {
           const score = speaker.scores[key] || 0;
           return (
             <div key={key} className="flex items-center gap-2 group py-0.5 rounded hover:bg-surface-700/30 transition-colors duration-150" aria-label={`${label} ${score}점`}>
               <span className="text-xs text-slate-500 w-14 shrink-0 group-hover:text-slate-400 transition-colors duration-200">{label}</span>
               <div className="flex-1 bg-surface-700 rounded-full h-1 group-hover:h-1.5 transition-all duration-200">
                 <div
-                  className={`h-full rounded-full transition-all duration-500 ${getBarColor(score)}`}
-                  style={{ width: `${score * 10}%` }}
+                  className={`h-full rounded-full transition-all duration-700 ${getBarColor(score)}`}
+                  style={{ width: `${score * 10}%`, transitionDelay: `${200 + idx * 60}ms` }}
                 />
               </div>
               <span className="text-xs font-mono text-slate-400 w-6 text-right group-hover:text-white transition-colors duration-200">{score}</span>
