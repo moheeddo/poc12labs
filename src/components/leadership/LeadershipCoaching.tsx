@@ -83,7 +83,7 @@ export default function LeadershipCoaching() {
       </div>
 
       {/* 업로드 + 검색 */}
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <VideoUploader onUpload={handleUpload} progress={uploadProgress} accentColor="teal" />
         <SearchBar
           placeholder="반박 발언, 동의 표현, 리더십 발휘 등..."
@@ -99,7 +99,7 @@ export default function LeadershipCoaching() {
         <h3 className="text-sm font-medium text-slate-300 mb-3 flex items-center gap-2">
           <Users className="w-4 h-4" /> 발표자별 역량 스코어 ({speakers.length}명)
         </h3>
-        <div className="grid grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {speakers.map((speaker, i) => (
             <ScoreCard key={speaker.speakerId} speaker={speaker} rank={i + 1} />
           ))}
