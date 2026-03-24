@@ -29,7 +29,7 @@ export default function Header({ activeTab, onTabChange }: HeaderProps) {
 
   return (
     <header className="border-b border-surface-700 bg-surface-900 sticky top-0 z-50">
-      <div className="max-w-[1440px] mx-auto px-6">
+      <div className="max-w-[1440px] mx-auto px-4 md:px-6">
         {/* 상단 로고 영역 */}
         <div className="flex items-center justify-between h-14">
           <button
