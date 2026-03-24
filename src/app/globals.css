@@ -82,6 +82,29 @@ button:focus-visible, [role="button"]:focus-visible, a:focus-visible, input:focu
   animation: fadeInUp 0.3s ease-out;
 }
 
+/* 스켈레톤 시머 애니메이션 */
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+.animate-shimmer {
+  background: linear-gradient(
+    90deg,
+    var(--color-surface-800) 0%,
+    var(--color-surface-700) 40%,
+    var(--color-surface-600) 50%,
+    var(--color-surface-700) 60%,
+    var(--color-surface-800) 100%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 2s ease-in-out infinite;
+}
+
 /* 스크롤바 스타일링 (원전 제어실 느낌) */
 ::-webkit-scrollbar {
   width: 6px;
