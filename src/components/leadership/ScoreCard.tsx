@@ -52,7 +52,7 @@ export default function ScoreCard({ speaker, rank }: ScoreCardProps) {
         {LEADERSHIP_COMPETENCY_CONFIG.map(({ key, label, weight }) => {
           const score = speaker.scores[key] || 0;
           return (
-            <div key={key} className="flex items-center gap-2 group py-0.5 rounded hover:bg-surface-700/30 transition-colors duration-150">
+            <div key={key} className="flex items-center gap-2 group py-0.5 rounded hover:bg-surface-700/30 transition-colors duration-150" aria-label={`${label} ${score}점`}>
               <span className="text-xs text-slate-500 w-14 shrink-0 group-hover:text-slate-400 transition-colors duration-200">{label}</span>
               <div className="flex-1 bg-surface-700 rounded-full h-1 group-hover:h-1.5 transition-all duration-200">
                 <div

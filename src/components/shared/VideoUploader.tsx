@@ -60,6 +60,10 @@ export default function VideoUploader({ onUpload, progress, accentColor = "coral
     <div className="space-y-3">
       {/* 드래그 앤 드롭 영역 */}
       <div
+        role="button"
+        aria-label="영상 파일 업로드 영역"
+        tabIndex={0}
+        onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); inputRef.current?.click(); } }}
         onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
         onDragLeave={() => setIsDragging(false)}
         onDrop={handleDrop}

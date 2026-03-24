@@ -9,7 +9,7 @@ import CompetencyRadar from "./CompetencyRadar";
 import { useVideoSearch } from "@/hooks/useTwelveLabs";
 import { COMPETENCY_LABELS } from "@/lib/constants";
 import type { CompetencyScore, CompetencyKey, UploadProgress } from "@/lib/types";
-import { formatTime, getGrade } from "@/lib/utils";
+import { formatTime, getGrade, getGradeDescription } from "@/lib/utils";
 
 // 데모용 기본 역량 점수
 const DEFAULT_SCORES: CompetencyScore[] = (Object.entries(COMPETENCY_LABELS) as [CompetencyKey, string][]).map(
@@ -102,7 +102,7 @@ export default function SimulatorEval() {
                 {results.map((r, i) => (
                   <div
                     key={i}
-                    className="flex items-center gap-3 p-3 rounded-lg hover:bg-surface-700 hover:pl-4 cursor-pointer transition-all duration-200"
+                    className="flex items-center gap-3 p-3 rounded-lg hover:bg-surface-700 hover:pl-5 hover:border-l-2 hover:border-l-coral-500 cursor-pointer transition-all duration-200"
                   >
                     <Clock className="w-4 h-4 text-slate-500" />
                     <span className="font-mono text-xs text-coral-400">
@@ -126,6 +126,9 @@ export default function SimulatorEval() {
               <p className="text-xs text-slate-600">
                 다른 키워드로 검색하거나, 영상을 먼저 업로드해 주세요
               </p>
+              <p className="text-xs text-slate-600 mt-3">
+                추천: &lsquo;비상냉각&rsquo;, &lsquo;ECCS 기동&rsquo;, &lsquo;제어봉 삽입&rsquo;
+              </p>
             </div>
           )}
         </div>
@@ -140,6 +143,7 @@ export default function SimulatorEval() {
               <span className="text-sm text-slate-500">/ 100</span>
             </div>
             <span className={`text-lg font-bold ${color}`}>{grade}</span>
+            <p className="text-xs text-slate-500 mt-1">{getGradeDescription(grade)}</p>
           </div>
 
           {/* 레이더 차트 */}
@@ -152,7 +156,7 @@ export default function SimulatorEval() {
             </h4>
             <div className="space-y-2">
               {scores.map((s) => (
-                <div key={s.key} className="flex items-center gap-3 group py-1 -mx-2 px-2 rounded hover:bg-surface-700/50 transition-colors duration-150">
+                <div key={s.key} className="flex items-center gap-3 group py-1 -mx-2 px-2 rounded hover:bg-surface-700/50 transition-colors duration-150" aria-label={`${s.label} ${s.score}점`}>
                   <span className="text-xs text-slate-400 w-16 shrink-0 group-hover:text-slate-300 transition-colors duration-200">{s.label}</span>
                   <div className="flex-1 bg-surface-700 rounded-full h-1.5 group-hover:h-2 transition-all duration-200">
                     <div
@@ -171,7 +175,7 @@ export default function SimulatorEval() {
             <h4 className="text-sm font-medium text-slate-300 mb-3 flex items-center gap-2">
               <FileText className="w-4 h-4" /> 자동 챕터링
             </h4>
-            <div className="relative ml-1">
+            <div className="relative ml-1" role="listbox" aria-label="자동 챕터링 목록">
               {/* 세로 연결선 */}
               <div className="absolute left-3 top-3 bottom-3 w-px bg-surface-600" />
               <div className="space-y-1">
@@ -180,6 +184,10 @@ export default function SimulatorEval() {
                   return (
                     <div
                       key={chapter}
+                      role="option"
+                      aria-selected={isSelected}
+                      tabIndex={0}
+                      onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setSelectedChapter(i); } }}
                       onClick={() => setSelectedChapter(i)}
                       className={`relative flex items-center gap-3 text-xs py-2 px-2 pl-9 rounded-lg cursor-pointer transition-all duration-200 group ${
                         isSelected

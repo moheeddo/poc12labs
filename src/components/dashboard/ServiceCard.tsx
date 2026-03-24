@@ -71,6 +71,7 @@ export default function ServiceCard({
         {/* 제목 및 설명 */}
         <div className="flex items-center gap-3 mb-3">
           <span
+            aria-hidden="true"
             className={cn(
               "flex items-center justify-center w-9 h-9 rounded-lg transition-colors duration-300",
               ICON_BG[tabKey],
