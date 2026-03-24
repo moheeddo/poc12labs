@@ -117,6 +117,7 @@ export default function LeadershipCoaching() {
             <XAxis dataKey="month" tick={{ fill: "#94a3b8", fontSize: 11 }} />
             <YAxis domain={[0, 10]} tick={{ fill: "#94a3b8", fontSize: 11 }} />
             <Tooltip
+              cursor={{ fill: 'rgba(255,255,255,0.05)' }}
               contentStyle={{
                 backgroundColor: "#111820",
                 border: "1px solid #243044",
