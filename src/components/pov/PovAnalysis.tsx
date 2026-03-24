@@ -181,7 +181,8 @@ export default function PovAnalysis() {
                 <button
                   key={i}
                   aria-label={`${d.step} — ${sev.label} 등급 이탈: ${d.actual}`}
-                  className={`w-full text-left flex items-start gap-3 p-3 rounded-lg bg-surface-900 border border-surface-700 border-l-2 ${severityBorderMap[d.severity] || "border-l-slate-500"} hover:border-amber-500/20 hover:bg-surface-800 transition-all duration-200`}
+                  className={`animate-fade-in-up w-full text-left flex items-start gap-3 p-3 rounded-lg bg-surface-900 border border-surface-700 border-l-2 ${severityBorderMap[d.severity] || "border-l-slate-500"} hover:border-amber-500/20 hover:bg-surface-800 transition-all duration-200`}
+                  style={{ animationDelay: `${i * 80}ms`, animationFillMode: "backwards" }}
                 >
                   <div className="mt-0.5">
                     <AlertTriangle className={`w-4 h-4 ${sev.color}`} />
@@ -220,7 +221,7 @@ export default function PovAnalysis() {
               {overallSimilarity >= 80 ? "양호 — 숙련자와 유사한 수행" : overallSimilarity >= 60 ? "개선 필요 — 주요 절차 차이 존재" : "미흡 — 집중 교육 권장"}
             </p>
           </div>
-          <div className="bg-surface-800 border border-surface-700 rounded-xl p-4" role="img" aria-label="절차별 숙련도 비교 막대 그래프">
+          <div className="bg-surface-800 border border-surface-700 rounded-xl p-4 hover:border-amber-500/20 hover:shadow-lg hover:shadow-amber-500/5 transition-all duration-300" role="img" aria-label="절차별 숙련도 비교 막대 그래프">
             <h4 className="text-sm font-medium text-slate-300 mb-4">절차별 숙련도 비교</h4>
             <div className="overflow-x-auto -mx-4 px-4">
               <div className="min-w-[400px]">

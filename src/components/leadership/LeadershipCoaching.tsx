@@ -124,7 +124,7 @@ export default function LeadershipCoaching() {
       </div>
 
       {/* 역량 성장 추이 */}
-      <div className="bg-surface-800 border border-surface-700 rounded-xl p-4" role="img" aria-label="최근 5개월 역량 성장 추이 라인 차트">
+      <div className="bg-surface-800 border border-surface-700 rounded-xl p-4 hover:border-teal-500/20 hover:shadow-lg hover:shadow-teal-500/5 transition-all duration-300" role="img" aria-label="최근 5개월 역량 성장 추이 라인 차트">
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-sm font-medium text-slate-300 flex items-center gap-2">
             <TrendingUp className="w-4 h-4" /> 역량 성장 추이 (최근 5개월)
