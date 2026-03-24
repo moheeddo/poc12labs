@@ -85,9 +85,10 @@ export function useVideoUpload() {
             setProgress({ fileName: file.name, progress: 100, status: "complete" });
             resolve(data._id);
           } else {
-            const err = JSON.parse(xhr.responseText);
-            setProgress({ fileName: file.name, progress: 0, status: "error", error: err.message });
-            reject(new Error(err.message));
+            let errMsg = "업로드 실패";
+            try { errMsg = JSON.parse(xhr.responseText).error || errMsg; } catch { /* 무시 */ }
+            setProgress({ fileName: file.name, progress: 0, status: "error", error: errMsg });
+            reject(new Error(errMsg));
           }
         });
 
@@ -96,8 +97,8 @@ export function useVideoUpload() {
           reject(new Error("네트워크 오류"));
         });
 
-        xhr.open("POST", `${process.env.NEXT_PUBLIC_TWELVELABS_API_URL || "https://api.twelvelabs.io/v1.3"}/tasks`);
-        xhr.setRequestHeader("x-api-key", ""); // 클라이언트에서 직접 사용 불가 — 프록시 API 경유 필요
+        // 서버사이드 프록시 API 경유 — API 키 노출 방지
+        xhr.open("POST", "/api/twelvelabs/upload");
         xhr.send(formData);
       });
     } catch (e) {

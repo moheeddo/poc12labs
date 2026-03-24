@@ -102,3 +102,23 @@ export async function getEmbeddings(taskId: string) {
     `/embed/tasks/${taskId}`
   );
 }
+
+// 영상 업로드 (multipart/form-data — Content-Type 자동 설정)
+export async function uploadVideo(indexId: string, fileBuffer: ArrayBuffer, fileName: string) {
+  const formData = new FormData();
+  formData.append("index_id", indexId);
+  formData.append("video_file", new Blob([new Uint8Array(fileBuffer)]), fileName);
+
+  const res = await fetch(`${API_URL}/tasks`, {
+    method: "POST",
+    headers: { "x-api-key": API_KEY },
+    body: formData,
+  });
+
+  if (!res.ok) {
+    const error = await res.text();
+    throw new Error(`TwelveLabs 업로드 오류 (${res.status}): ${error}`);
+  }
+
+  return res.json() as Promise<{ _id: string }>;
+}
