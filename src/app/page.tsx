@@ -3,6 +3,7 @@
 import { useState, useCallback } from "react";
 import type { ServiceTab } from "@/lib/types";
 import Header from "@/components/layout/Header";
+import Footer from "@/components/layout/Footer";
 import Dashboard from "@/components/dashboard/Dashboard";
 import SimulatorEval from "@/components/simulator/SimulatorEval";
 import LeadershipCoaching from "@/components/leadership/LeadershipCoaching";
@@ -37,6 +38,7 @@ export default function Home() {
           {activeTab === "pov" && <PovAnalysis />}
         </ErrorBoundary>
       </main>
+      <Footer />
       <KeyboardHelp isOpen={helpOpen} onClose={closeHelp} />
       <ToastContainer toasts={toasts} onDismiss={removeToast} />
     </div>
