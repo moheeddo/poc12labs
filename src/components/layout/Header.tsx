@@ -52,14 +52,14 @@ export default function Header({ activeTab, onTabChange }: HeaderProps) {
         </div>
 
         {/* 탭 네비게이션 */}
-        <nav ref={navRef} className="flex gap-1 -mb-px" role="tablist" aria-label="서비스 탭" onKeyDown={handleTabKeyDown}>
+        <nav ref={navRef} className="flex gap-1 -mb-px overflow-x-auto scrollbar-hide" role="tablist" aria-label="서비스 탭" onKeyDown={handleTabKeyDown}>
           <button
             role="tab"
             aria-selected={activeTab === null}
             tabIndex={activeTab === null ? 0 : -1}
             onClick={() => onTabChange(null)}
             className={cn(
-              "relative px-4 py-3 text-sm font-medium transition-colors duration-200",
+              "relative px-4 py-3.5 text-sm font-medium transition-colors duration-200 whitespace-nowrap",
               "after:absolute after:bottom-0 after:left-0 after:w-full after:h-0.5 after:transition-transform after:duration-300 after:ease-out",
               activeTab === null
                 ? "text-white after:bg-white after:scale-x-100"
@@ -84,7 +84,7 @@ export default function Header({ activeTab, onTabChange }: HeaderProps) {
                 tabIndex={isActive ? 0 : -1}
                 onClick={() => onTabChange(tab.key)}
                 className={cn(
-                  "relative px-4 py-3 text-sm font-medium transition-colors duration-200",
+                  "relative px-4 py-3.5 text-sm font-medium transition-colors duration-200 whitespace-nowrap",
                   "after:absolute after:bottom-0 after:left-0 after:w-full after:h-0.5 after:transition-transform after:duration-300 after:ease-out",
                   isActive
                     ? `${tab.color} ${underlineColorMap[tab.color] || "after:bg-current"} after:scale-x-100`
