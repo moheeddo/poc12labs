@@ -76,7 +76,7 @@ export default function PovAnalysis() {
   const overallSimilarity = 67;
 
   return (
-    <div className="max-w-[1440px] mx-auto px-6 py-6 space-y-6 animate-fade-in-up">
+    <div className="max-w-[1440px] mx-auto px-4 md:px-6 py-6 space-y-6 animate-fade-in-up">
       {/* 헤더 */}
       <div>
         <h2 className="text-xl font-bold text-amber-400">훈련영상 POV 분석</h2>
@@ -110,7 +110,7 @@ export default function PovAnalysis() {
       </div>
 
       {/* 서브탭 */}
-      <div ref={tabListRef} className="flex gap-1 border-b border-surface-700" role="tablist" aria-label="POV 분석 보기" onKeyDown={handleTabKeyDown}>
+      <div ref={tabListRef} className="flex gap-1 border-b border-surface-700 overflow-x-auto scrollbar-hide" role="tablist" aria-label="POV 분석 보기" onKeyDown={handleTabKeyDown}>
         {[
           { key: "deviations" as const, icon: <AlertTriangle className="w-3.5 h-3.5" />, label: "SOP 이탈 탐지" },
           { key: "compare" as const, icon: <GitCompare className="w-3.5 h-3.5" />, label: "숙련도 비교" },
@@ -124,7 +124,7 @@ export default function PovAnalysis() {
             tabIndex={activeView === tab.key ? 0 : -1}
             onClick={() => setActiveView(tab.key)}
             className={cn(
-              "flex items-center gap-1.5 px-4 py-2.5 text-sm font-medium border-b-2 transition-all duration-200",
+              "flex items-center gap-1.5 px-4 py-3 text-sm font-medium border-b-2 transition-all duration-200 whitespace-nowrap",
               activeView === tab.key
                 ? "text-amber-400 border-amber-400"
                 : "text-slate-500 border-transparent hover:text-slate-300"
@@ -158,10 +158,10 @@ export default function PovAnalysis() {
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-1">
                       <span className="text-xs font-mono text-amber-400">{d.step}</span>
-                      <span className={`text-[10px] px-1.5 py-0.5 rounded ${sev.color} bg-surface-700`}>
+                      <span className={`text-xs px-1.5 py-0.5 rounded ${sev.color} bg-surface-700`}>
                         {sev.label}
                       </span>
-                      <span className="text-[10px] font-mono text-amber-500/60 ml-auto hover:text-amber-400 transition-colors duration-200">
+                      <span className="text-xs font-mono text-amber-500/60 ml-auto hover:text-amber-400 transition-colors duration-200">
                         ▶ {formatTime(d.timestamp)}
                       </span>
                     </div>
@@ -188,32 +188,36 @@ export default function PovAnalysis() {
           </div>
           <div className="bg-surface-800 border border-surface-700 rounded-xl p-4" role="img" aria-label="절차별 숙련도 비교 막대 그래프">
             <h4 className="text-sm font-medium text-slate-300 mb-4">절차별 숙련도 비교</h4>
-            <ResponsiveContainer width="100%" height={280}>
-              <BarChart data={COMPARISON_DATA} layout="vertical">
-                <CartesianGrid strokeDasharray="3 3" stroke="#243044" />
-                <XAxis type="number" domain={[0, 100]} tick={{ fill: "#94a3b8", fontSize: 11 }} />
-                <YAxis dataKey="step" type="category" tick={{ fill: "#94a3b8", fontSize: 11 }} width={80} />
-                <Tooltip
-                  cursor={{ fill: 'rgba(255,255,255,0.05)' }}
-                  contentStyle={{
-                    backgroundColor: "#111820",
-                    border: "1px solid #243044",
-                    borderRadius: "8px",
-                    fontSize: "12px",
-                  }}
-                />
-                <Bar dataKey="expert" name="숙련자" radius={[0, 4, 4, 0]}>
-                  {COMPARISON_DATA.map((_, i) => (
-                    <Cell key={i} fill="#14b8a6" />
-                  ))}
-                </Bar>
-                <Bar dataKey="novice" name="비숙련자" radius={[0, 4, 4, 0]}>
-                  {COMPARISON_DATA.map((_, i) => (
-                    <Cell key={i} fill="#f59e0b" fillOpacity={0.6} />
-                  ))}
-                </Bar>
-              </BarChart>
-            </ResponsiveContainer>
+            <div className="overflow-x-auto -mx-4 px-4">
+              <div className="min-w-[400px]">
+                <ResponsiveContainer width="100%" height={280}>
+                  <BarChart data={COMPARISON_DATA} layout="vertical">
+                    <CartesianGrid strokeDasharray="3 3" stroke="#243044" />
+                    <XAxis type="number" domain={[0, 100]} tick={{ fill: "#94a3b8", fontSize: 11 }} />
+                    <YAxis dataKey="step" type="category" tick={{ fill: "#94a3b8", fontSize: 11 }} width={80} />
+                    <Tooltip
+                      cursor={{ fill: 'rgba(255,255,255,0.05)' }}
+                      contentStyle={{
+                        backgroundColor: "#111820",
+                        border: "1px solid #243044",
+                        borderRadius: "8px",
+                        fontSize: "12px",
+                      }}
+                    />
+                    <Bar dataKey="expert" name="숙련자" radius={[0, 4, 4, 0]}>
+                      {COMPARISON_DATA.map((_, i) => (
+                        <Cell key={i} fill="#14b8a6" />
+                      ))}
+                    </Bar>
+                    <Bar dataKey="novice" name="비숙련자" radius={[0, 4, 4, 0]}>
+                      {COMPARISON_DATA.map((_, i) => (
+                        <Cell key={i} fill="#f59e0b" fillOpacity={0.6} />
+                      ))}
+                    </Bar>
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            </div>
           </div>
         </div>
       )}
