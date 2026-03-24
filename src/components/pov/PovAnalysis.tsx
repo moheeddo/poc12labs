@@ -73,6 +73,14 @@ export default function PovAnalysis() {
     [search]
   );
 
+  // 심각도별 배지 배경색 (정적 클래스맵)
+  const severityBgMap: Record<string, string> = {
+    critical: "bg-red-500/15",
+    high: "bg-orange-500/15",
+    medium: "bg-amber-500/15",
+    low: "bg-slate-500/15",
+  };
+
   const overallSimilarity = 67;
 
   return (
@@ -158,7 +166,7 @@ export default function PovAnalysis() {
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-1">
                       <span className="text-xs font-mono text-amber-400">{d.step}</span>
-                      <span className={`text-xs px-1.5 py-0.5 rounded ${sev.color} bg-surface-700`}>
+                      <span className={`text-xs px-1.5 py-0.5 rounded ${sev.color} ${severityBgMap[d.severity] || "bg-surface-700"}`}>
                         {sev.label}
                       </span>
                       <span className="text-xs font-mono text-amber-500/60 ml-auto hover:text-amber-400 transition-colors duration-200">
