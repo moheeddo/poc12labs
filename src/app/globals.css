@@ -82,6 +82,22 @@ button:focus-visible, [role="button"]:focus-visible, a:focus-visible, input:focu
   animation: fadeInUp 0.3s ease-out;
 }
 
+/* 토스트 퇴장 애니메이션 */
+@keyframes fadeOut {
+  from {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(8px) scale(0.95);
+  }
+}
+
+.animate-fade-out {
+  animation: fadeOut 0.25s ease-in forwards;
+}
+
 /* 스켈레톤 시머 애니메이션 */
 @keyframes shimmer {
   0% {
@@ -137,6 +153,7 @@ button:focus-visible, [role="button"]:focus-visible, a:focus-visible, input:focu
 /* 모션 감소 선호 사용자 지원 */
 @media (prefers-reduced-motion: reduce) {
   .animate-fade-in-up,
+  .animate-fade-out,
   .animate-shimmer,
   .animate-gradient-pulse {
     animation: none;
