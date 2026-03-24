@@ -42,16 +42,23 @@ export default function Header({ activeTab, onTabChange }: HeaderProps) {
             aria-selected={activeTab === null}
             onClick={() => onTabChange(null)}
             className={cn(
-              "px-4 py-3 text-sm font-medium border-b-2 transition-all duration-200",
+              "relative px-4 py-3 text-sm font-medium transition-colors duration-200",
+              "after:absolute after:bottom-0 after:left-0 after:w-full after:h-0.5 after:transition-transform after:duration-300 after:ease-out",
               activeTab === null
-                ? "text-white border-white"
-                : "text-slate-500 border-transparent hover:text-slate-300 hover:border-surface-600"
+                ? "text-white after:bg-white after:scale-x-100"
+                : "text-slate-500 after:bg-surface-600 after:scale-x-0 hover:text-slate-300 hover:after:scale-x-100"
             )}
           >
             대시보드
           </button>
           {SERVICE_TABS.map((tab) => {
             const isActive = activeTab === tab.key;
+            /* 탭별 언더라인 색상 정적 매핑 */
+            const underlineColorMap: Record<string, string> = {
+              "text-coral-400": "after:bg-coral-400",
+              "text-teal-400": "after:bg-teal-400",
+              "text-amber-400": "after:bg-amber-400",
+            };
             return (
               <button
                 key={tab.key}
@@ -59,10 +66,11 @@ export default function Header({ activeTab, onTabChange }: HeaderProps) {
                 aria-selected={isActive}
                 onClick={() => onTabChange(tab.key)}
                 className={cn(
-                  "px-4 py-3 text-sm font-medium border-b-2 transition-all duration-200",
+                  "relative px-4 py-3 text-sm font-medium transition-colors duration-200",
+                  "after:absolute after:bottom-0 after:left-0 after:w-full after:h-0.5 after:transition-transform after:duration-300 after:ease-out",
                   isActive
-                    ? `${tab.color} border-current`
-                    : "text-slate-500 border-transparent hover:text-slate-300 hover:border-surface-600"
+                    ? `${tab.color} ${underlineColorMap[tab.color] || "after:bg-current"} after:scale-x-100`
+                    : "text-slate-500 after:bg-surface-600 after:scale-x-0 hover:text-slate-300 hover:after:scale-x-100"
                 )}
               >
                 {tab.label}
