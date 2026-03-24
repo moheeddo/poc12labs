@@ -76,6 +76,7 @@ export default function CompetencyRadar({ scores, targetScore = 80 }: Competency
             fill="#ff6b47"
             fillOpacity={0.2}
             strokeWidth={2}
+            dot={{ r: 3, fill: "#ff6b47", stroke: "#0a0e14", strokeWidth: 2 }}
             animationBegin={200}
             animationDuration={800}
           />
