@@ -200,23 +200,28 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
                 service: "시뮬레이터 평가",
                 desc: "운전원A 훈련 영상 분석 완료",
                 color: "coral",
+                tab: "simulator" as ServiceTab,
               },
               {
                 time: "2시간 전",
                 service: "리더십코칭",
                 desc: "3월 토론 세션 역량 진단",
                 color: "teal",
+                tab: "leadership" as ServiceTab,
               },
               {
                 time: "어제",
                 service: "POV 분석",
                 desc: "비상절차 SOP 이탈 2건 탐지",
                 color: "amber",
+                tab: "pov" as ServiceTab,
               },
             ].map((item, i) => (
-              <div
+              <button
                 key={i}
-                className="animate-fade-in-up flex items-start gap-4 relative"
+                type="button"
+                onClick={() => onNavigate(item.tab)}
+                className="animate-fade-in-up flex items-start gap-4 relative w-full text-left rounded-lg -mx-2 px-2 hover:bg-surface-700/30 transition-all duration-200 group cursor-pointer"
                 style={{
                   animationDelay: `${920 + i * 100}ms`,
                   animationFillMode: "backwards",
@@ -225,7 +230,7 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
                 {/* 타임라인 라인 + dot */}
                 <div className="flex flex-col items-center pt-1">
                   <div
-                    className={`w-2.5 h-2.5 rounded-full shrink-0 ${
+                    className={`w-2.5 h-2.5 rounded-full shrink-0 transition-transform duration-200 group-hover:scale-125 ${
                       item.color === "coral"
                         ? "bg-coral-500"
                         : item.color === "teal"
@@ -252,9 +257,12 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
                   >
                     {item.service}
                   </span>
-                  <p className="text-sm text-slate-300 mt-0.5">{item.desc}</p>
+                  <p className="text-sm text-slate-300 mt-0.5 group-hover:text-white transition-colors duration-200">{item.desc}</p>
                 </div>
-              </div>
+                <span className={`ml-auto mt-1 opacity-0 group-hover:opacity-60 transition-all duration-200 text-xs ${
+                  item.color === "coral" ? "text-coral-400" : item.color === "teal" ? "text-teal-400" : "text-amber-400"
+                }`}>→</span>
+              </button>
             ))}
           </div>
 
