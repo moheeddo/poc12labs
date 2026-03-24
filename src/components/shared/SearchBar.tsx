@@ -90,6 +90,11 @@ export default function SearchBar({
             aria-label={placeholder}
             className="flex-1 bg-transparent text-sm text-white placeholder:text-slate-500 outline-none"
           />
+          {!query && (
+            <kbd className="hidden md:inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[10px] text-slate-600 bg-surface-700 border border-surface-600 font-mono select-none">
+              Enter
+            </kbd>
+          )}
           <button
             type="submit"
             disabled={!query.trim() || loading}
