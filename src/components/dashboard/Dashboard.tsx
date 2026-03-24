@@ -1,6 +1,6 @@
 "use client";
 
-import { BarChart3, ChevronRight, Clock, ClipboardCheck, Film, ScanSearch, TrendingUp, UploadCloud } from "lucide-react";
+import { Activity, BarChart3, ChevronRight, Clock, ClipboardCheck, Film, ScanSearch, TrendingUp, UploadCloud } from "lucide-react";
 import type { ServiceTab } from "@/lib/types";
 import { SERVICE_TABS } from "@/lib/constants";
 import ServiceCard from "./ServiceCard";
@@ -161,6 +161,126 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
               )}
             </div>
           ))}
+        </div>
+      </div>
+
+      {/* 최근 활동 타임라인 */}
+      <div className="mt-8">
+        <h3
+          className="flex items-center gap-2 text-lg font-semibold text-white mb-4 animate-fade-in-up"
+          style={{ animationDelay: "800ms", animationFillMode: "backwards" }}
+        >
+          <Clock className="w-5 h-5 text-slate-400" />
+          최근 활동
+        </h3>
+
+        <div
+          className="animate-fade-in-up bg-surface-800 border border-surface-700 rounded-xl p-6"
+          style={{ animationDelay: "860ms", animationFillMode: "backwards" }}
+        >
+          {/* 데모 활동 항목 */}
+          <div className="space-y-0">
+            {[
+              {
+                time: "10분 전",
+                service: "시뮬레이터 평가",
+                desc: "운전원A 훈련 영상 분석 완료",
+                color: "coral",
+              },
+              {
+                time: "2시간 전",
+                service: "리더십코칭",
+                desc: "3월 토론 세션 역량 진단",
+                color: "teal",
+              },
+              {
+                time: "어제",
+                service: "POV 분석",
+                desc: "비상절차 SOP 이탈 2건 탐지",
+                color: "amber",
+              },
+            ].map((item, i) => (
+              <div
+                key={i}
+                className="animate-fade-in-up flex items-start gap-4 relative"
+                style={{
+                  animationDelay: `${920 + i * 100}ms`,
+                  animationFillMode: "backwards",
+                }}
+              >
+                {/* 타임라인 라인 + dot */}
+                <div className="flex flex-col items-center pt-1">
+                  <div
+                    className={`w-2.5 h-2.5 rounded-full shrink-0 ${
+                      item.color === "coral"
+                        ? "bg-coral-500"
+                        : item.color === "teal"
+                          ? "bg-teal-500"
+                          : "bg-amber-500"
+                    }`}
+                  />
+                  {i < 2 && (
+                    <div className="w-px h-10 border-l border-dashed border-surface-600 mt-1" />
+                  )}
+                </div>
+
+                {/* 내용 */}
+                <div className={`pb-5 ${i === 2 ? "pb-0" : ""}`}>
+                  <span className="font-mono text-xs text-slate-500">{item.time}</span>
+                  <span
+                    className={`ml-2 text-xs font-medium ${
+                      item.color === "coral"
+                        ? "text-coral-400"
+                        : item.color === "teal"
+                          ? "text-teal-400"
+                          : "text-amber-400"
+                    }`}
+                  >
+                    {item.service}
+                  </span>
+                  <p className="text-sm text-slate-300 mt-0.5">{item.desc}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* 구분선 */}
+          <div className="h-px bg-surface-700 my-5" />
+
+          {/* 빈 상태 안내 */}
+          <div
+            className="animate-fade-in-up flex flex-col items-center text-center py-4"
+            style={{ animationDelay: "1220ms", animationFillMode: "backwards" }}
+          >
+            <Activity className="w-8 h-8 text-slate-600 mb-3" />
+            <p className="text-sm text-slate-400 mb-1">아직 활동 내역이 없습니다</p>
+            <p className="text-xs text-slate-500 mb-4">
+              영상을 업로드하면 분석 활동이 여기에 표시됩니다
+            </p>
+            <div className="flex items-center gap-3">
+              <button
+                type="button"
+                onClick={() => onNavigate("simulator")}
+                className="text-xs px-3 py-1.5 rounded-md border border-coral-500/30 text-coral-400 hover:bg-coral-500/10 transition-colors"
+              >
+                시뮬레이터
+              </button>
+              <button
+                type="button"
+                onClick={() => onNavigate("leadership")}
+                className="text-xs px-3 py-1.5 rounded-md border border-teal-500/30 text-teal-400 hover:bg-teal-500/10 transition-colors"
+              >
+                리더십
+              </button>
+              <button
+                type="button"
+                onClick={() => onNavigate("pov")}
+                className="text-xs px-3 py-1.5 rounded-md border border-amber-500/30 text-amber-400 hover:bg-amber-500/10 transition-colors"
+              >
+                POV
+              </button>
+            </div>
+          </div>
         </div>
       </div>
     </div>
