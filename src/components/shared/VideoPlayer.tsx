@@ -33,7 +33,7 @@ export default function VideoPlayer({ src, startTime, className = "" }: VideoPla
       ref={videoRef}
       src={src}
       controls
-      className={`w-full rounded-xl bg-black ${className}`}
+      className={`w-full rounded-xl bg-black border border-surface-600 ${className}`}
     />
   );
 }
