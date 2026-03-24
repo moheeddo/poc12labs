@@ -35,15 +35,15 @@ export default function ScoreCard({ speaker, rank }: ScoreCardProps) {
           const score = speaker.scores[key] || 0;
           return (
             <div key={key} className="flex items-center gap-2 group py-0.5 rounded hover:bg-surface-700/30 transition-colors duration-150">
-              <span className="text-[10px] text-slate-500 w-12 shrink-0 group-hover:text-slate-400 transition-colors duration-200">{label}</span>
+              <span className="text-xs text-slate-500 w-14 shrink-0 group-hover:text-slate-400 transition-colors duration-200">{label}</span>
               <div className="flex-1 bg-surface-700 rounded-full h-1 group-hover:h-1.5 transition-all duration-200">
                 <div
                   className="h-full rounded-full bg-teal-500 transition-all duration-500"
                   style={{ width: `${score * 10}%` }}
                 />
               </div>
-              <span className="text-[10px] font-mono text-slate-400 w-6 text-right group-hover:text-white transition-colors duration-200">{score}</span>
-              <span className="text-[10px] text-slate-600 w-8">({(weight * 100).toFixed(0)}%)</span>
+              <span className="text-xs font-mono text-slate-400 w-6 text-right group-hover:text-white transition-colors duration-200">{score}</span>
+              <span className="text-xs text-slate-600 w-8">({(weight * 100).toFixed(0)}%)</span>
             </div>
           );
         })}
