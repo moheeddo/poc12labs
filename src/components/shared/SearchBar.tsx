@@ -74,7 +74,7 @@ export default function SearchBar({
             type="submit"
             disabled={!query.trim() || loading}
             className={cn(
-              "px-3 py-1 rounded-lg text-xs font-medium transition-colors duration-200 disabled:opacity-30 disabled:cursor-not-allowed",
+              "px-4 py-2 rounded-lg text-xs font-medium transition-colors duration-200 disabled:opacity-30 disabled:cursor-not-allowed",
               accentColor === "coral" && "bg-coral-600 hover:bg-coral-500 text-white",
               accentColor === "teal" && "bg-teal-600 hover:bg-teal-500 text-white",
               accentColor === "amber" && "bg-amber-600 hover:bg-amber-500 text-white",
@@ -87,13 +87,13 @@ export default function SearchBar({
 
       {/* 추천 검색어 */}
       {suggestions.length > 0 && (
-        <div className="flex flex-wrap gap-1.5">
+        <div className="flex flex-wrap gap-2">
           {suggestions.map((s) => (
             <button
               key={s}
               onClick={() => { setQuery(s); onSearch(s); }}
               className={cn(
-                "px-2.5 py-1 rounded-full text-xs bg-surface-700 border border-transparent text-slate-400 transition-all duration-200",
+                "px-3 py-1.5 rounded-full text-xs bg-surface-700 border border-transparent text-slate-400 transition-all duration-200",
                 suggestionHoverMap[accentColor]
               )}
             >
