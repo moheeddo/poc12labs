@@ -58,17 +58,27 @@ export function useVideoSearch() {
 }
 
 // 영상 업로드 훅
+// Vercel 서버리스 함수 body 제한(4.5MB) 때문에
+// 서버에서 업로드 설정을 받아 클라이언트가 TwelveLabs API로 직접 업로드
 export function useVideoUpload() {
   const [progress, setProgress] = useState<UploadProgress | null>(null);
 
   const upload = useCallback(async (indexId: string, file: File) => {
     setProgress({ fileName: file.name, progress: 0, status: "uploading" });
 
-    const formData = new FormData();
-    formData.append("index_id", indexId);
-    formData.append("video_file", file);
-
     try {
+      // 1단계: 서버에서 업로드 설정(URL + API 키) 획득
+      const configRes = await fetch("/api/twelvelabs/upload");
+      if (!configRes.ok) {
+        throw new Error("업로드 설정을 가져올 수 없습니다");
+      }
+      const { uploadUrl, apiKey } = await configRes.json();
+
+      // 2단계: TwelveLabs API로 직접 업로드 (XHR로 프로그레스 추적)
+      const formData = new FormData();
+      formData.append("index_id", indexId);
+      formData.append("video_file", file);
+
       const xhr = new XMLHttpRequest();
       return await new Promise<string>((resolve, reject) => {
         xhr.upload.addEventListener("progress", (e) => {
@@ -86,7 +96,7 @@ export function useVideoUpload() {
             resolve(data._id);
           } else {
             let errMsg = "업로드 실패";
-            try { errMsg = JSON.parse(xhr.responseText).error || errMsg; } catch { /* 무시 */ }
+            try { errMsg = JSON.parse(xhr.responseText).message || errMsg; } catch { /* 무시 */ }
             setProgress({ fileName: file.name, progress: 0, status: "error", error: errMsg });
             reject(new Error(errMsg));
           }
@@ -97,8 +107,9 @@ export function useVideoUpload() {
           reject(new Error("네트워크 오류"));
         });
 
-        // 서버사이드 프록시 API 경유 — API 키 노출 방지
-        xhr.open("POST", "/api/twelvelabs/upload");
+        // TwelveLabs API로 직접 업로드
+        xhr.open("POST", uploadUrl);
+        xhr.setRequestHeader("x-api-key", apiKey);
         xhr.send(formData);
       });
     } catch (e) {
