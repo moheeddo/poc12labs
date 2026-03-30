@@ -82,14 +82,51 @@ export interface SimulatorEvaluation {
 
 // =============================================
 // 리더십 코칭 (Tab 2) 관련 타입
+// — KHNP 전직급 리더십 역량 정의 및 행동지표 기준
 // =============================================
 
+// 8대 리더십 역량 (KHNP 표준)
 export type LeadershipCompetencyKey =
-  | "communication"
-  | "logic"
-  | "listening"
-  | "leadership"
-  | "collaboration";
+  | "visionPresentation"   // 비전제시
+  | "visionPractice"       // 비전실천 (4직급)
+  | "trustBuilding"        // 신뢰형성
+  | "communication"        // 의사소통 (4직급)
+  | "memberDevelopment"    // 구성원육성
+  | "selfDevelopment"      // 자기개발 (4직급)
+  | "rationalDecision"     // 합리적의사결정
+  | "problemSolving";      // 문제해결 (4직급)
+
+// 직급 (1직급=임원, 2직급=부장, 3직급=차장/과장, 4직급=대리/사원)
+export type JobLevel = 1 | 2 | 3 | 4;
+
+// 하위요소 및 행동지표
+export interface SubElement {
+  name: string;
+  behaviorIndicator: string;
+}
+
+// 평가 루브릭 항목 (9점 척도 기반)
+export interface RubricItem {
+  criteria: string;
+  description: string;
+}
+
+// 역량 정의 (표준 문서 기반)
+export interface LeadershipCompetencyDef {
+  key: LeadershipCompetencyKey;
+  label: string;
+  definition: string;
+  color: string;           // 차트/UI 색상
+  subElements: Partial<Record<JobLevel, SubElement[]>>;
+  rubric?: RubricItem[];   // 신임부장 평가 루브릭 (PPTX 기준)
+}
+
+// 개별 역량 루브릭 점수 (9점 척도)
+export interface RubricScore {
+  criteriaIndex: number;
+  score: number;  // 1-9
+  note?: string;  // 평가자 메모
+}
 
 export interface SpeakerSegment {
   speakerId: string;
@@ -102,15 +139,20 @@ export interface SpeakerSegment {
 export interface SpeakerScore {
   speakerId: string;
   speakerName: string;
-  scores: Record<LeadershipCompetencyKey, number>; // 1-10
+  jobLevel: JobLevel;
+  scores: Partial<Record<LeadershipCompetencyKey, number>>; // 1-9 (직급별 4개 역량만)
+  rubricScores?: Partial<Record<LeadershipCompetencyKey, RubricScore[]>>; // 세부 루브릭
   totalScore: number;
   feedback: string;
+  strengths?: string[];  // 강점 피드백
+  improvements?: string[]; // 개선점 피드백
 }
 
 export interface LeadershipSession {
   sessionId: string;
   date: string;
   videoId: string;
+  jobLevel: JobLevel;
   speakers: SpeakerScore[];
   segments: SpeakerSegment[];
 }
@@ -121,7 +163,7 @@ export interface SegmentFeedback {
   start: number;
   end: number;
   feedback: string;
-  rating?: number; // 1-5
+  rating?: number; // 1-9 (9점 척도)
 }
 
 export interface FeedbackSession {
