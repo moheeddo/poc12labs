@@ -58,45 +58,51 @@ export function useVideoSearch() {
 }
 
 // 영상 업로드 훅
-// Vercel 서버리스 함수 body 제한(4.5MB) 때문에
-// 서버에서 업로드 설정을 받아 클라이언트가 TwelveLabs API로 직접 업로드
+// 서버 프록시 방식: 클라이언트 → 자체 API 라우트 → TwelveLabs
+// - CORS 문제 회피 (브라우저에서 외부 API 직접 호출 불가)
+// - API 키 서버 사이드 보호
+// - Vercel Hobby 플랜 body 제한: 4.5MB
+const MAX_UPLOAD_SIZE = 4.5 * 1024 * 1024;
+
 export function useVideoUpload() {
   const [progress, setProgress] = useState<UploadProgress | null>(null);
 
   const upload = useCallback(async (indexId: string, file: File) => {
+    // 클라이언트 사전 검증
+    if (file.size > MAX_UPLOAD_SIZE) {
+      const sizeMB = (file.size / 1024 / 1024).toFixed(1);
+      const errMsg = `파일 크기(${sizeMB}MB)가 제한(4.5MB)을 초과합니다. 더 짧은 영상을 사용해주세요.`;
+      setProgress({ fileName: file.name, progress: 0, status: "error", error: errMsg });
+      throw new Error(errMsg);
+    }
+
     setProgress({ fileName: file.name, progress: 0, status: "uploading" });
 
     try {
-      // 1단계: 서버에서 업로드 설정(URL + API 키) 획득
-      const configRes = await fetch("/api/twelvelabs/upload");
-      if (!configRes.ok) {
-        throw new Error("업로드 설정을 가져올 수 없습니다");
-      }
-      const { uploadUrl, apiKey } = await configRes.json();
-
-      // 2단계: TwelveLabs API로 직접 업로드 (XHR로 프로그레스 추적)
       const formData = new FormData();
       formData.append("index_id", indexId);
       formData.append("video_file", file);
 
+      // XHR로 프로그레스 추적 + 자체 API 라우트로 프록시 업로드
       const xhr = new XMLHttpRequest();
       return await new Promise<string>((resolve, reject) => {
         xhr.upload.addEventListener("progress", (e) => {
           if (e.lengthComputable) {
-            const pct = Math.round((e.loaded / e.total) * 100);
+            // 0-90%: 서버로 업로드, 90-100%: 서버→TwelveLabs 프록시 처리
+            const pct = Math.round((e.loaded / e.total) * 90);
             setProgress({ fileName: file.name, progress: pct, status: "uploading" });
           }
         });
 
         xhr.addEventListener("load", () => {
           if (xhr.status >= 200 && xhr.status < 300) {
-            setProgress({ fileName: file.name, progress: 100, status: "processing" });
+            setProgress({ fileName: file.name, progress: 95, status: "processing" });
             const data = JSON.parse(xhr.responseText);
             setProgress({ fileName: file.name, progress: 100, status: "complete" });
             resolve(data._id);
           } else {
             let errMsg = "업로드 실패";
-            try { errMsg = JSON.parse(xhr.responseText).message || errMsg; } catch { /* 무시 */ }
+            try { errMsg = JSON.parse(xhr.responseText).error || errMsg; } catch { /* 무시 */ }
             setProgress({ fileName: file.name, progress: 0, status: "error", error: errMsg });
             reject(new Error(errMsg));
           }
@@ -107,9 +113,8 @@ export function useVideoUpload() {
           reject(new Error("네트워크 오류"));
         });
 
-        // TwelveLabs API로 직접 업로드
-        xhr.open("POST", uploadUrl);
-        xhr.setRequestHeader("x-api-key", apiKey);
+        // 자체 API 라우트로 업로드 (서버가 TwelveLabs로 프록시)
+        xhr.open("POST", "/api/twelvelabs/upload");
         xhr.send(formData);
       });
     } catch (e) {
