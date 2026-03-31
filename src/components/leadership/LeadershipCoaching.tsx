@@ -189,17 +189,17 @@ export default function LeadershipCoaching() {
   }
 
   return (
-    <div className="max-w-[1440px] mx-auto px-4 md:px-6 py-6 space-y-6 animate-slide-in-right">
+    <div className="max-w-[1440px] mx-auto px-4 md:px-6 py-8 space-y-8 animate-slide-in-right">
       {/* 헤더 */}
       <div>
         <h2 className="text-xl font-bold text-teal-400">리더십코칭 역량진단</h2>
-        <p className="text-sm text-slate-400 mt-1">
+        <p className="text-sm text-slate-500 mt-1">
           KHNP 전직급 리더십 역량 정의 및 행동지표 기준 · 9점 척도 평가
         </p>
       </div>
 
       {/* 직급 선택 + 평가 역량 안내 */}
-      <div className="bg-surface-800 border border-surface-700 rounded-xl p-4">
+      <div className="bg-surface-800/60 border border-surface-700/40 rounded-xl p-5">
         <div className="flex items-center gap-2 mb-3">
           <Shield className="w-4 h-4 text-teal-400" />
           <h3 className="text-sm font-medium text-slate-300">평가 대상 직급</h3>
@@ -249,7 +249,7 @@ export default function LeadershipCoaching() {
       </div>
 
       {/* 업로드 + 검색 */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
         <VideoUploader onUpload={handleUpload} progress={uploadProgress} accentColor="teal" />
         <SearchBar
           placeholder="비전 발표, 갈등 조율, 면담 코칭, 의사결정 등..."
@@ -262,7 +262,7 @@ export default function LeadershipCoaching() {
 
       {/* 업로드 완료 시 리뷰 진입 버튼 */}
       {uploadedVideoId && (
-        <div className="animate-fade-in-up bg-surface-800 border border-teal-500/30 rounded-xl p-4 flex items-center gap-4">
+        <div className="animate-fade-in-up bg-surface-800/70 border border-teal-500/20 rounded-xl p-5 flex items-center gap-4">
           <div className="w-10 h-10 rounded-lg bg-teal-500/10 flex items-center justify-center shrink-0">
             <Video className="w-5 h-5 text-teal-400" />
           </div>
@@ -290,7 +290,7 @@ export default function LeadershipCoaching() {
             <button
               key={video.videoId}
               onClick={() => openFeedback(video.videoId, video.title)}
-              className="animate-fade-in-up bg-surface-800 border border-surface-700 rounded-xl p-4 text-left hover:border-teal-500/30 hover:bg-surface-800/80 hover:scale-[1.01] transition-all duration-200 group"
+              className="animate-fade-in-up bg-surface-800/50 border border-surface-700/40 rounded-xl p-4 text-left hover:border-teal-500/20 hover:bg-surface-800/80 transition-all duration-200 group"
               style={{ animationDelay: `${i * 80}ms`, animationFillMode: "backwards" }}
             >
               <div className="flex items-center gap-3">
@@ -316,7 +316,7 @@ export default function LeadershipCoaching() {
         <p className="text-xs text-slate-500 font-mono mb-3">
           평균 점수: {avgScore}점 (9점 만점) | 최고 점수자: {topScorer} | 척도: KHNP 9점 척도
         </p>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
           {speakers.map((speaker, i) => (
             <div
               key={speaker.speakerId}
@@ -330,7 +330,7 @@ export default function LeadershipCoaching() {
       </div>
 
       {/* 역량 성장 추이 */}
-      <div className="bg-surface-800 border border-surface-700 rounded-xl p-4 hover:border-teal-500/20 hover:shadow-lg hover:shadow-teal-500/5 transition-all duration-300" role="img" aria-label="최근 5개월 역량 성장 추이 라인 차트">
+      <div className="bg-surface-800/60 border border-surface-700/40 rounded-xl p-5 transition-all duration-300" role="img" aria-label="최근 5개월 역량 성장 추이 라인 차트">
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-sm font-medium text-slate-300 flex items-center gap-2">
             <TrendingUp className="w-4 h-4" /> 역량 성장 추이 (최근 5개월 · 9점 척도)
@@ -388,7 +388,7 @@ export default function LeadershipCoaching() {
       </div>
 
       {/* 평가 기준 안내 */}
-      <div className="bg-surface-800/50 border border-surface-700 rounded-xl p-4">
+      <div className="bg-surface-800/40 border border-surface-700/30 rounded-xl p-5">
         <h3 className="text-sm font-medium text-slate-400 mb-3 flex items-center gap-2">
           <BookOpen className="w-4 h-4" /> 9점 척도 평가 기준
         </h3>

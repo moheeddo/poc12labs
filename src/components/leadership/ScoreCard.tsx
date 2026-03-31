@@ -47,41 +47,42 @@ export default function ScoreCard({ speaker, rank }: ScoreCardProps) {
   const competencies = getCompetenciesForLevel(speaker.jobLevel);
 
   return (
-    <div className="bg-surface-800 border border-surface-700 rounded-xl p-4 border-l-2 border-l-transparent hover:border-l-teal-500 hover:border-surface-700 hover:scale-[1.01] hover:shadow-lg hover:shadow-teal-500/5 transition-all duration-200">
-      <div className="flex items-center gap-3 mb-3">
+    <div className="bg-surface-800/70 border border-surface-700/50 rounded-xl p-5 border-l-[3px] border-l-transparent hover:border-l-teal-500/60 hover:bg-surface-800 hover:shadow-lg hover:shadow-black/20 transition-all duration-200">
+      <div className="flex items-center gap-3 mb-4">
         {/* 순위 배지 */}
-        <div className={`w-8 h-8 rounded-full flex items-center justify-center ${rankBgColors[rank - 1] || "bg-surface-700"}`}>
+        <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${rankBgColors[rank - 1] || "bg-surface-700"}`}>
           <span className={`text-sm font-bold font-mono ${rankColors[rank - 1] || "text-slate-500"}`}>
             {rank}
           </span>
         </div>
         <div className="flex-1">
           <p className="text-sm font-medium text-white">{speaker.speakerName}</p>
-          <p className="text-xs text-slate-600 font-mono">9점 척도 · {getGradeLabel(speaker.totalScore)}</p>
+          <p className="text-[10px] text-slate-500 font-mono mt-0.5">{getGradeLabel(speaker.totalScore)}</p>
         </div>
         {/* 종합 점수 뱃지 */}
-        <div className={`px-2.5 py-1 rounded-md ${badge.bg}`}>
-          <span className={`text-xs font-bold font-mono tabular-nums ${badge.text}`}>
-            {speaker.totalScore.toFixed(1)}점
+        <div className={`px-3 py-1.5 rounded-lg ${badge.bg}`}>
+          <span className={`text-sm font-bold font-mono tabular-nums ${badge.text}`}>
+            {speaker.totalScore.toFixed(1)}
           </span>
         </div>
       </div>
 
       {/* 역량별 바 차트 (직급별 4개 역량) */}
-      <div className="space-y-1.5">
+      <div className="space-y-2.5">
         {competencies.map((comp, idx) => {
           const score = speaker.scores[comp.key] || 0;
           return (
-            <div key={comp.key} className="flex items-center gap-2 group py-0.5 rounded hover:bg-surface-700/30 transition-colors duration-150" aria-label={`${comp.label} ${score}점`}>
-              <span className="text-xs text-slate-500 w-20 shrink-0 group-hover:text-slate-400 transition-colors duration-200">{comp.label}</span>
-              <div className="flex-1 bg-surface-700 rounded-full h-1 group-hover:h-1.5 transition-all duration-200">
+            <div key={comp.key} className="group" aria-label={`${comp.label} ${score}점`}>
+              <div className="flex items-center justify-between mb-1">
+                <span className="text-xs text-slate-400 group-hover:text-slate-300 transition-colors">{comp.label}</span>
+                <span className={`text-xs font-mono tabular-nums ${score >= 7 ? "text-teal-400" : score >= 5 ? "text-slate-400" : "text-amber-400"}`}>{score}/9</span>
+              </div>
+              <div className="h-1.5 bg-surface-700/60 rounded-full overflow-hidden">
                 <div
                   className={`h-full rounded-full transition-all duration-700 ${getBarColor(score)}`}
                   style={{ width: `${(score / 9) * 100}%`, transitionDelay: `${200 + idx * 60}ms` }}
                 />
               </div>
-              <span className="text-xs font-mono text-slate-400 w-6 text-right group-hover:text-white transition-colors duration-200">{score}</span>
-              <span className="text-xs text-slate-600 w-6">/9</span>
             </div>
           );
         })}
@@ -90,7 +91,7 @@ export default function ScoreCard({ speaker, rank }: ScoreCardProps) {
       {/* 하위요소 확장 토글 */}
       <button
         onClick={() => setExpanded(!expanded)}
-        className="mt-3 flex items-center gap-1.5 text-xs text-slate-500 hover:text-teal-400 transition-colors duration-200 w-full"
+        className="mt-4 flex items-center gap-1.5 text-[11px] text-slate-500 hover:text-teal-400 transition-colors duration-200 w-full pt-3 border-t border-surface-700/40"
       >
         {expanded ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
         {expanded ? "접기" : "하위요소 · 행동지표 보기"}
