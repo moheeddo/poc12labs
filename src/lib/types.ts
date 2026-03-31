@@ -205,8 +205,33 @@ export type ServiceTab = "simulator" | "leadership" | "pov";
 export interface UploadProgress {
   fileName: string;
   progress: number; // 0-100
-  status: "uploading" | "processing" | "complete" | "error";
+  status: "uploading" | "processing" | "indexing" | "complete" | "error";
   error?: string;
+  taskId?: string; // TwelveLabs 인덱싱 태스크 ID
+  videoId?: string; // 인덱싱 완료 후 영상 ID
+}
+
+// 멀티파트 업로드 — 서버 응답 타입
+export interface MultipartUploadInit {
+  taskId: string;
+  parts: MultipartPart[];
+}
+
+export interface MultipartPart {
+  partIndex: number;
+  startByte: number;
+  endByte: number;
+  presignedUrl: string;
+}
+
+// 인덱싱 태스크 상태
+export type IndexingStatus = "pending" | "indexing" | "ready" | "failed";
+
+export interface TaskStatusResponse {
+  taskId: string;
+  status: IndexingStatus;
+  videoId?: string;
+  estimatedTime?: string;
 }
 
 export interface Toast {

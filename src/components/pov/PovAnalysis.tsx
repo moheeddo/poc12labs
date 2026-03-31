@@ -17,9 +17,9 @@ import VideoUploader from "@/components/shared/VideoUploader";
 import ChartTooltip from "@/components/shared/ChartTooltip";
 import SearchBar from "@/components/shared/SearchBar";
 import VideoPlayer from "@/components/shared/VideoPlayer";
-import { useVideoSearch } from "@/hooks/useTwelveLabs";
-import { SEVERITY_LABELS } from "@/lib/constants";
-import type { SopDeviation, UploadProgress } from "@/lib/types";
+import { useVideoSearch, useVideoUpload } from "@/hooks/useTwelveLabs";
+import { SEVERITY_LABELS, TWELVELABS_INDEXES } from "@/lib/constants";
+import type { SopDeviation } from "@/lib/types";
 import { formatTime, cn } from "@/lib/utils";
 
 // 데모: SOP 이탈 데이터
@@ -41,7 +41,7 @@ const COMPARISON_DATA = [
 ];
 
 export default function PovAnalysis() {
-  const [uploadProgress, setUploadProgress] = useState<UploadProgress | null>(null);
+  const { progress: uploadProgress, upload } = useVideoUpload();
   const [activeView, setActiveView] = useState<"deviations" | "compare" | "highlights">("deviations");
   const { loading, search } = useVideoSearch();
   const tabListRef = useRef<HTMLDivElement>(null);
@@ -60,17 +60,16 @@ export default function PovAnalysis() {
   }, [activeView]);
 
   const handleUpload = useCallback(async (file: File) => {
-    setUploadProgress({ fileName: file.name, progress: 0, status: "uploading" });
-    for (let i = 0; i <= 100; i += 10) {
-      await new Promise((r) => setTimeout(r, 200));
-      setUploadProgress({ fileName: file.name, progress: i, status: "uploading" });
+    try {
+      await upload(TWELVELABS_INDEXES.pov, file);
+    } catch {
+      // 에러는 useVideoUpload 내부에서 처리
     }
-    setUploadProgress({ fileName: file.name, progress: 100, status: "complete" });
-  }, []);
+  }, [upload]);
 
   const handleSearch = useCallback(
     (query: string) => {
-      search("placeholder-index-id", query);
+      search(TWELVELABS_INDEXES.pov, query);
     },
     [search]
   );

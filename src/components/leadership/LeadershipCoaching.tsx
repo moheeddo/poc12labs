@@ -156,8 +156,8 @@ export default function LeadershipCoaching() {
   const handleUpload = useCallback(async (file: File) => {
     setUploadedFileName(file.name);
     try {
-      const taskId = await upload(TWELVELABS_INDEXES.leadership, file);
-      setUploadedVideoId(taskId);
+      const videoId = await upload(TWELVELABS_INDEXES.leadership, file);
+      setUploadedVideoId(videoId);
     } catch {
       // 업로드 실패 시 에러는 useVideoUpload 내부에서 처리됨
     }

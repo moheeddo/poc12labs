@@ -6,9 +6,9 @@ import VideoUploader from "@/components/shared/VideoUploader";
 import SearchBar from "@/components/shared/SearchBar";
 import VideoPlayer from "@/components/shared/VideoPlayer";
 import CompetencyRadar from "./CompetencyRadar";
-import { useVideoSearch } from "@/hooks/useTwelveLabs";
-import { COMPETENCY_LABELS } from "@/lib/constants";
-import type { CompetencyScore, CompetencyKey, UploadProgress } from "@/lib/types";
+import { useVideoSearch, useVideoUpload } from "@/hooks/useTwelveLabs";
+import { COMPETENCY_LABELS, TWELVELABS_INDEXES } from "@/lib/constants";
+import type { CompetencyScore, CompetencyKey } from "@/lib/types";
 import { formatTime, getGrade, getGradeDescription } from "@/lib/utils";
 
 // 역량 바 등급별 색상
@@ -40,7 +40,7 @@ const DEFAULT_SCORES: CompetencyScore[] = (Object.entries(COMPETENCY_LABELS) as 
 );
 
 export default function SimulatorEval() {
-  const [uploadProgress, setUploadProgress] = useState<UploadProgress | null>(null);
+  const { progress: uploadProgress, upload } = useVideoUpload();
   const [scores] = useState<CompetencyScore[]>(DEFAULT_SCORES);
   const [selectedChapter, setSelectedChapter] = useState<number | null>(null);
   const { results, loading, hasSearched, search } = useVideoSearch();
@@ -69,19 +69,16 @@ export default function SimulatorEval() {
   }, [overallScore]);
 
   const handleUpload = useCallback(async (file: File) => {
-    setUploadProgress({ fileName: file.name, progress: 0, status: "uploading" });
-    // 시뮬레이션 — 실제 구현 시 TwelveLabs 업로드 API 호출
-    for (let i = 0; i <= 100; i += 10) {
-      await new Promise((r) => setTimeout(r, 200));
-      setUploadProgress({ fileName: file.name, progress: i, status: "uploading" });
+    try {
+      await upload(TWELVELABS_INDEXES.simulator, file);
+    } catch {
+      // 에러는 useVideoUpload 내부에서 처리
     }
-    setUploadProgress({ fileName: file.name, progress: 100, status: "complete" });
-  }, []);
+  }, [upload]);
 
   const handleSearch = useCallback(
     (query: string) => {
-      // indexId는 실제 인덱스 ID로 교체 필요
-      search("placeholder-index-id", query);
+      search(TWELVELABS_INDEXES.simulator, query);
     },
     [search]
   );

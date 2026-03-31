@@ -1,9 +1,16 @@
 // TwelveLabs API 서버사이드 클라이언트
 
+import { createLogger } from "./logger";
+
+const log = createLogger("TwelveLabs");
+
 const API_KEY = process.env.TWELVELABS_API_KEY!;
 const API_URL = process.env.TWELVELABS_API_URL || "https://api.twelvelabs.io/v1.3";
 
 async function tlFetch<T>(path: string, options: RequestInit = {}): Promise<T> {
+  const method = options.method || "GET";
+  log.debug(`${method} ${path} 요청`);
+
   const res = await fetch(`${API_URL}${path}`, {
     ...options,
     headers: {
@@ -15,9 +22,11 @@ async function tlFetch<T>(path: string, options: RequestInit = {}): Promise<T> {
 
   if (!res.ok) {
     const error = await res.text();
+    log.error(`${method} ${path} 실패`, { status: res.status, error });
     throw new Error(`TwelveLabs API 오류 (${res.status}): ${error}`);
   }
 
+  log.info(`${method} ${path} 성공`, { status: res.status });
   return res.json();
 }
 
@@ -103,8 +112,98 @@ export async function getEmbeddings(taskId: string) {
   );
 }
 
-// 영상 업로드 (multipart/form-data — Content-Type 자동 설정)
+// =============================================
+// 멀티파트 직접 업로드 (presigned URL 방식)
+// 플로우: initUpload → 클라이언트가 presigned URL로 직접 전송 → completeUpload
+// =============================================
+
+// 1단계: 멀티파트 업로드 태스크 생성 → presigned URL 목록 반환
+export async function initMultipartUpload(indexId: string, fileName: string, fileSize: number) {
+  log.info("멀티파트 업로드 초기화", { indexId, fileName, fileSize: `${(fileSize / 1024 / 1024).toFixed(1)}MB` });
+
+  const res = await fetch(`${API_URL}/tasks/transfers`, {
+    method: "POST",
+    headers: {
+      "x-api-key": API_KEY,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      index_id: indexId,
+      file_name: fileName,
+      file_size: fileSize,
+    }),
+  });
+
+  if (!res.ok) {
+    const error = await res.text();
+    log.error("멀티파트 업로드 초기화 실패", { status: res.status, error });
+    throw new Error(`업로드 초기화 실패 (${res.status}): ${error}`);
+  }
+
+  const data = await res.json();
+  const partCount = data.parts?.length ?? 0;
+  log.info("멀티파트 업로드 초기화 완료", { taskId: data._id, partCount });
+
+  return {
+    taskId: data._id as string,
+    parts: (data.parts as Array<{ presigned_url: string; start_byte: number; end_byte: number }>).map(
+      (p, i) => ({
+        partIndex: i,
+        startByte: p.start_byte,
+        endByte: p.end_byte,
+        presignedUrl: p.presigned_url,
+      })
+    ),
+  };
+}
+
+// 2단계: 업로드 완료 통보
+export async function completeMultipartUpload(taskId: string) {
+  log.info("멀티파트 업로드 완료 통보", { taskId });
+
+  const res = await fetch(`${API_URL}/tasks/transfers/${taskId}`, {
+    method: "PUT",
+    headers: {
+      "x-api-key": API_KEY,
+      "Content-Type": "application/json",
+    },
+  });
+
+  if (!res.ok) {
+    const error = await res.text();
+    log.error("업로드 완료 통보 실패", { taskId, status: res.status, error });
+    throw new Error(`업로드 완료 실패 (${res.status}): ${error}`);
+  }
+
+  const data = await res.json();
+  log.info("업로드 완료 — 인덱싱 시작", { taskId, status: data.status });
+  return data;
+}
+
+// 3단계: 인덱싱 태스크 상태 조회
+export async function getTaskStatus(taskId: string) {
+  log.debug("태스크 상태 조회", { taskId });
+
+  const data = await tlFetch<{
+    _id: string;
+    status: string;
+    video_id?: string;
+    estimated_time?: string;
+  }>(`/tasks/${taskId}`);
+
+  log.info("태스크 상태", { taskId, status: data.status, videoId: data.video_id });
+  return {
+    taskId: data._id,
+    status: data.status as "pending" | "indexing" | "ready" | "failed",
+    videoId: data.video_id,
+    estimatedTime: data.estimated_time,
+  };
+}
+
+// (하위호환) 단일 파일 프록시 업로드 — 소형 파일용 (200MB 이하)
 export async function uploadVideo(indexId: string, fileBuffer: ArrayBuffer, fileName: string) {
+  log.info("단일 파일 업로드 (프록시)", { indexId, fileName, size: `${(fileBuffer.byteLength / 1024 / 1024).toFixed(1)}MB` });
+
   const formData = new FormData();
   formData.append("index_id", indexId);
   formData.append("video_file", new Blob([new Uint8Array(fileBuffer)]), fileName);
@@ -117,8 +216,11 @@ export async function uploadVideo(indexId: string, fileBuffer: ArrayBuffer, file
 
   if (!res.ok) {
     const error = await res.text();
+    log.error("단일 파일 업로드 실패", { status: res.status, error });
     throw new Error(`TwelveLabs 업로드 오류 (${res.status}): ${error}`);
   }
 
-  return res.json() as Promise<{ _id: string }>;
+  const data = await res.json() as { _id: string };
+  log.info("단일 파일 업로드 완료", { taskId: data._id });
+  return data;
 }

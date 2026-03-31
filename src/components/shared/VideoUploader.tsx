@@ -163,14 +163,15 @@ export default function VideoUploader({ onUpload, progress, accentColor = "coral
             <div className="flex-1 min-w-0">
               <p className="text-sm text-white truncate">{progress.fileName}</p>
               <p className="text-xs text-slate-500">
-                {progress.status === "uploading" && `업로드 중... ${progress.progress}%`}
-                {progress.status === "processing" && "인덱싱 처리 중..."}
-                {progress.status === "complete" && "업로드 완료"}
+                {progress.status === "uploading" && `TwelveLabs로 직접 전송 중... ${progress.progress}%`}
+                {progress.status === "processing" && "업로드 완료 처리 중..."}
+                {progress.status === "indexing" && `인덱싱 중... ${progress.progress}%`}
+                {progress.status === "complete" && "업로드 + 인덱싱 완료"}
                 {progress.status === "error" && (progress.error || "오류 발생")}
               </p>
             </div>
           </div>
-          {(progress.status === "uploading" || progress.status === "processing") && (
+          {(progress.status === "uploading" || progress.status === "processing" || progress.status === "indexing") && (
             <div
               className="w-full bg-surface-700 rounded-full h-1.5"
               role="progressbar"
@@ -182,7 +183,9 @@ export default function VideoUploader({ onUpload, progress, accentColor = "coral
               <div
                 className={cn(
                   "h-1.5 rounded-full transition-all duration-300",
-                  progress.status === "processing" ? "animate-pulse bg-blue-500" : progressColorMap[accentColor],
+                  progress.status === "indexing" ? "animate-pulse bg-violet-500"
+                    : progress.status === "processing" ? "animate-pulse bg-blue-500"
+                    : progressColorMap[accentColor],
                 )}
                 style={{ width: `${progress.progress}%` }}
               />
