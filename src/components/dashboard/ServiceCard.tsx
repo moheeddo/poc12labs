@@ -136,7 +136,7 @@ export default function ServiceCard({
               <span className="font-mono">{videoCount}건</span>
             </div>
             {lastAnalysis && (
-              <span className="font-mono text-slate-600">· {lastAnalysis}</span>
+              <span className="font-mono text-slate-500">· {lastAnalysis}</span>
             )}
           </div>
 

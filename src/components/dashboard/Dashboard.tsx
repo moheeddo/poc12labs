@@ -102,9 +102,9 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
           >
             <div className="flex items-center gap-2 mb-4">
               <span className={stat.accentColor}>{stat.icon}</span>
-              <span className="text-[13px] text-slate-500 font-medium">{stat.label}</span>
+              <span className="text-[13px] text-slate-400 font-medium">{stat.label}</span>
               {stat.trend && (
-                <span className="ml-auto flex items-center gap-0.5 text-[11px] font-mono text-emerald-500/70">
+                <span className="ml-auto flex items-center gap-0.5 text-[11px] font-mono text-emerald-400/80">
                   <ArrowUpRight className="w-3 h-3" />
                   {stat.trend.label}
                 </span>
@@ -193,7 +193,7 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
                   <div className={cn("flex items-center justify-center w-10 h-10 rounded-lg bg-white/[0.03] border border-white/[0.05]", item.iconColor)}>
                     {item.icon}
                   </div>
-                  <span className="text-[11px] font-mono text-slate-600 tracking-wider">
+                  <span className="text-[11px] font-mono text-slate-500 tracking-wider">
                     STEP {item.step}
                   </span>
                 </div>
@@ -222,7 +222,7 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
           className="animate-fade-in-up flex items-center gap-2.5 text-[13px] font-mono text-slate-500 tracking-[0.1em] uppercase mb-5"
           style={{ animationDelay: "1200ms", animationFillMode: "backwards" }}
         >
-          <Clock className="w-4 h-4 text-slate-600" />
+          <Clock className="w-4 h-4 text-slate-500" />
           Recent Activity
         </h3>
 
@@ -253,7 +253,7 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
                 </div>
 
                 <div className={cn("pb-5", i === 2 && "pb-0")}>
-                  <span className="font-mono text-[12px] text-slate-600">{item.time}</span>
+                  <span className="font-mono text-xs text-slate-500">{item.time}</span>
                   <span className={cn(
                     "ml-2 text-[13px] font-semibold",
                     item.color === "coral" ? "text-coral-400" : item.color === "teal" ? "text-teal-400" : "text-amber-400",
@@ -272,10 +272,10 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
             style={{ animationDelay: "1500ms", animationFillMode: "backwards" }}
           >
             <div className="w-14 h-14 rounded-2xl bg-white/[0.02] border border-white/[0.04] flex items-center justify-center mb-5">
-              <UploadCloud className="w-6 h-6 text-slate-600" />
+              <UploadCloud className="w-6 h-6 text-slate-500" />
             </div>
             <p className="text-[15px] text-slate-400 mb-1 font-medium">아직 활동 내역이 없습니다</p>
-            <p className="text-[13px] text-slate-500/70 mb-6">
+            <p className="text-sm text-slate-400/80 mb-6 leading-relaxed">
               영상을 업로드하면 분석 활동이 여기에 표시됩니다
             </p>
             <div className="flex items-center gap-2.5">

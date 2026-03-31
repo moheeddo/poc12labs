@@ -23,7 +23,7 @@ export default function Footer({ onNavigate }: FooterProps) {
             <span className="text-[13px] font-semibold text-slate-500 tracking-[-0.01em]">
               KHNP HRDI
             </span>
-            <span className="text-[11px] text-slate-600 font-mono">
+            <span className="text-[11px] text-slate-500 font-mono">
               &copy; 2024 한국수력원자력 인재개발원
             </span>
           </div>
@@ -37,7 +37,7 @@ export default function Footer({ onNavigate }: FooterProps) {
                 )}
                 <button
                   onClick={() => onNavigate?.(link.key)}
-                  className={`text-[13px] text-slate-500/70 ${link.color} transition-colors duration-300`}
+                  className={`text-[13px] text-slate-400/80 ${link.color} transition-colors duration-300`}
                 >
                   {link.label}
                 </button>
@@ -50,7 +50,7 @@ export default function Footer({ onNavigate }: FooterProps) {
             <kbd className="px-1.5 py-0.5 rounded bg-white/[0.03] border border-white/[0.05] text-slate-500 font-mono text-[10px]">
               ?
             </kbd>
-            <span className="text-slate-600">단축키</span>
+            <span className="text-slate-500">단축키</span>
           </span>
         </div>
       </div>

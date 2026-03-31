@@ -1,4 +1,4 @@
-/* Pretendard 한국어 폰트 */
+/* Pretendard 한국어 폰트 (display=swap으로 FOIT 방지) */
 @import url("https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css");
 
 /* JetBrains Mono 데이터/코드 폰트 */
@@ -118,9 +118,10 @@ button:focus-visible, [role="button"]:focus-visible, a:focus-visible, input:focu
     rgba(15, 21, 32, 0.8) 0%,
     rgba(10, 14, 23, 0.9) 100%
   );
-  backdrop-filter: blur(20px) saturate(1.2);
-  -webkit-backdrop-filter: blur(20px) saturate(1.2);
+  backdrop-filter: blur(16px) saturate(1.2);
+  -webkit-backdrop-filter: blur(16px) saturate(1.2);
   border: 1px solid rgba(255, 255, 255, 0.04);
+  will-change: transform;
 }
 
 .glass-subtle {
@@ -129,8 +130,8 @@ button:focus-visible, [role="button"]:focus-visible, a:focus-visible, input:focu
     rgba(15, 21, 32, 0.5) 0%,
     rgba(10, 14, 23, 0.7) 100%
   );
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
   border: 1px solid rgba(255, 255, 255, 0.03);
 }
 
@@ -253,30 +254,6 @@ button:focus-visible, [role="button"]:focus-visible, a:focus-visible, input:focu
   animation: slideInFromRight 0.3s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-/* 로고 궤도 회전 */
-@keyframes orbitSpin {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
-}
-
-.animate-orbit {
-  animation: orbitSpin 20s linear infinite;
-}
-
-/* 프리미엄 글로우 펄스 */
-@keyframes glowPulse {
-  0%, 100% {
-    box-shadow: 0 0 20px -5px var(--glow-color, rgba(0, 160, 64, 0.2));
-  }
-  50% {
-    box-shadow: 0 0 30px -3px var(--glow-color, rgba(0, 160, 64, 0.35));
-  }
-}
-
-.animate-glow {
-  animation: glowPulse 3s ease-in-out infinite;
-}
-
 /* 스캔라인 오버레이 (원전 제어실 CRT 감성) */
 @keyframes scanline {
   0% { transform: translateY(-100%); }
@@ -294,6 +271,7 @@ button:focus-visible, [role="button"]:focus-visible, a:focus-visible, input:focu
   z-index: 9999;
   pointer-events: none;
   animation: scanline 8s linear infinite;
+  will-change: transform;
 }
 
 /* 텍스트 선택 색상 */
@@ -318,9 +296,7 @@ button:focus-visible, [role="button"]:focus-visible, a:focus-visible, input:focu
   .animate-shimmer,
   .animate-gradient-pulse,
   .animate-slide-in-right,
-  .animate-colon-blink,
-  .animate-orbit,
-  .animate-glow {
+  .animate-colon-blink {
     animation: none;
   }
   .scanline-overlay::after {
