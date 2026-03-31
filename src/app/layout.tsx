@@ -8,14 +8,14 @@ export const viewport: Viewport = {
 };
 
 export const metadata: Metadata = {
-  title: "KHNP Video AI Platform — 영상 기반 역량 평가 시스템",
+  title: "KHNP HRDI 영상분석 PoC3",
   description:
-    "한국수력원자력 원전 시뮬레이터 평가·리더십 코칭·POV 분석을 위한 AI 영상 역량 평가 플랫폼",
-  keywords: ["한국수력원자력", "영상분석", "AI", "역량평가", "시뮬레이터"],
+    "한국수력원자력 인재개발원 — 시뮬레이터 훈련 멀티모달 분석·리더십 코칭·POV 분석을 위한 AI 영상 역량 평가 플랫폼",
+  keywords: ["한국수력원자력", "HRDI", "영상분석", "AI", "역량평가", "시뮬레이터"],
   openGraph: {
-    title: "KHNP Video AI Platform — 영상 기반 역량 평가 시스템",
+    title: "KHNP HRDI 영상분석 PoC3",
     description:
-      "한국수력원자력 원전 시뮬레이터 평가·리더십 코칭·POV 분석을 위한 AI 영상 역량 평가 플랫폼",
+      "한국수력원자력 인재개발원 — 시뮬레이터 훈련 멀티모달 분석·리더십 코칭·POV 분석을 위한 AI 영상 역량 평가 플랫폼",
     type: "website",
     locale: "ko_KR",
   },
@@ -31,7 +31,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="ko" className="dark">
-      <body className="min-h-screen antialiased">{children}</body>
+      <body className="min-h-screen antialiased scanline-overlay">{children}</body>
     </html>
   );
 }

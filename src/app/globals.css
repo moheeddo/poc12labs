@@ -7,7 +7,13 @@
 @import "tailwindcss";
 
 @theme {
-  /* 서비스별 컬러 코딩 */
+  /* KHNP 공식 브랜드 색상 */
+  --color-khnp-green: #00A040;
+  --color-khnp-green-light: #34d399;
+  --color-khnp-green-dark: #065f46;
+  --color-khnp-blue: #014099;
+
+  /* 서비스별 컬러 코딩 — 정제된 팔레트 */
   --color-coral-50: #fff5f2;
   --color-coral-100: #ffe8e0;
   --color-coral-200: #ffc9b8;
@@ -35,14 +41,15 @@
   --color-amber-600: #d97706;
   --color-amber-700: #b45309;
 
-  /* 다크 테마 배경색 */
-  --color-surface-900: #0a0e14;
-  --color-surface-800: #111820;
-  --color-surface-700: #1a2332;
-  --color-surface-600: #243044;
-  --color-surface-500: #2e3d56;
+  /* 프리미엄 다크 테마 — 더 깊은 레이어 */
+  --color-surface-950: #060810;
+  --color-surface-900: #0a0e17;
+  --color-surface-800: #0f1520;
+  --color-surface-700: #171f2e;
+  --color-surface-600: #1f293c;
+  --color-surface-500: #2a3650;
 
-  --font-sans: "Pretendard", -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+  --font-sans: "Pretendard Variable", "Pretendard", -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
   --font-mono: "JetBrains Mono", monospace;
 }
 
@@ -51,7 +58,6 @@ html {
   scroll-behavior: smooth;
 }
 
-/* 모션 감소 선호 시 부드러운 스크롤 비활성화 */
 @media (prefers-reduced-motion: reduce) {
   html {
     scroll-behavior: auto;
@@ -60,30 +66,105 @@ html {
 
 body {
   font-family: var(--font-sans);
-  background-color: var(--color-surface-900);
+  background-color: var(--color-surface-950);
   color: #e2e8f0;
+  font-size: 15px;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  font-feature-settings: "ss01", "ss02";
 }
 
-/* font-mono 요소에 tabular-nums 기본 적용 — 숫자 정렬 일관성 */
+/* 미세한 노이즈 텍스처 배경 — 깊이감 */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  opacity: 0.015;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+  pointer-events: none;
+}
+
+/* 본문 가독성 향상 */
+h1, h2, h3, h4, h5, h6 {
+  letter-spacing: -0.02em;
+  font-weight: 700;
+}
+
+p {
+  letter-spacing: 0.005em;
+}
+
 .font-mono {
   font-variant-numeric: tabular-nums;
 }
 
-/* 모든 버튼에 pointer cursor + focus-visible 링 */
 button, [role="button"], a {
   cursor: pointer;
 }
 
 button:focus-visible, [role="button"]:focus-visible, a:focus-visible, input:focus-visible {
-  outline: 2px solid var(--color-teal-500);
+  outline: 2px solid var(--color-khnp-green-light);
   outline-offset: 2px;
 }
 
-/* 페이지 전환 애니메이션 */
+/* ═══════════════════════════════
+   프리미엄 글래스모피즘 유틸리티
+   ═══════════════════════════════ */
+.glass {
+  background: linear-gradient(
+    135deg,
+    rgba(15, 21, 32, 0.8) 0%,
+    rgba(10, 14, 23, 0.9) 100%
+  );
+  backdrop-filter: blur(20px) saturate(1.2);
+  -webkit-backdrop-filter: blur(20px) saturate(1.2);
+  border: 1px solid rgba(255, 255, 255, 0.04);
+}
+
+.glass-subtle {
+  background: linear-gradient(
+    135deg,
+    rgba(15, 21, 32, 0.5) 0%,
+    rgba(10, 14, 23, 0.7) 100%
+  );
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.03);
+}
+
+/* 카드 내부 미세 하이라이트 */
+.glass-shine {
+  position: relative;
+  overflow: hidden;
+}
+.glass-shine::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.06) 30%,
+    rgba(255, 255, 255, 0.1) 50%,
+    rgba(255, 255, 255, 0.06) 70%,
+    transparent 100%
+  );
+}
+
+/* ═══════════════════════════════
+   애니메이션
+   ═══════════════════════════════ */
+
+/* 페이지 전환 */
 @keyframes fadeInUp {
   from {
     opacity: 0;
-    transform: translateY(8px);
+    transform: translateY(12px);
   }
   to {
     opacity: 1;
@@ -92,10 +173,10 @@ button:focus-visible, [role="button"]:focus-visible, a:focus-visible, input:focu
 }
 
 .animate-fade-in-up {
-  animation: fadeInUp 0.3s ease-out;
+  animation: fadeInUp 0.4s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-/* 토스트 퇴장 애니메이션 */
+/* 토스트 퇴장 */
 @keyframes fadeOut {
   from {
     opacity: 1;
@@ -111,24 +192,16 @@ button:focus-visible, [role="button"]:focus-visible, a:focus-visible, input:focu
   animation: fadeOut 0.25s ease-in forwards;
 }
 
-/* 토스트 자동 닫기 카운트다운 바 */
+/* 토스트 카운트다운 바 */
 @keyframes toastCountdown {
-  from {
-    width: 100%;
-  }
-  to {
-    width: 0%;
-  }
+  from { width: 100%; }
+  to { width: 0%; }
 }
 
-/* 스켈레톤 시머 애니메이션 */
+/* 스켈레톤 시머 */
 @keyframes shimmer {
-  0% {
-    background-position: -200% 0;
-  }
-  100% {
-    background-position: 200% 0;
-  }
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
 }
 
 .animate-shimmer {
@@ -144,35 +217,27 @@ button:focus-visible, [role="button"]:focus-visible, a:focus-visible, input:focu
   animation: shimmer 2s ease-in-out infinite;
 }
 
-/* 대시보드 그라데이션 라인 펄스 애니메이션 */
+/* 그라데이션 라인 펄스 */
 @keyframes gradientPulse {
-  0%, 100% {
-    opacity: 0.6;
-  }
-  50% {
-    opacity: 1;
-  }
+  0%, 100% { opacity: 0.5; }
+  50% { opacity: 1; }
 }
 
 .animate-gradient-pulse {
-  animation: gradientPulse 3s ease-in-out infinite;
+  animation: gradientPulse 4s ease-in-out infinite;
 }
 
-/* 시계 콜론 깜빡임 애니메이션 */
+/* 시계 콜론 깜빡임 */
 @keyframes colonBlink {
-  0%, 49% {
-    opacity: 1;
-  }
-  50%, 100% {
-    opacity: 0.3;
-  }
+  0%, 49% { opacity: 1; }
+  50%, 100% { opacity: 0.3; }
 }
 
 .animate-colon-blink {
   animation: colonBlink 1s step-end infinite;
 }
 
-/* 탭 전환 슬라이드 애니메이션 */
+/* 탭 전환 슬라이드 */
 @keyframes slideInFromRight {
   from {
     opacity: 0;
@@ -185,12 +250,55 @@ button:focus-visible, [role="button"]:focus-visible, a:focus-visible, input:focu
 }
 
 .animate-slide-in-right {
-  animation: slideInFromRight 0.25s ease-out;
+  animation: slideInFromRight 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* 로고 궤도 회전 */
+@keyframes orbitSpin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.animate-orbit {
+  animation: orbitSpin 20s linear infinite;
+}
+
+/* 프리미엄 글로우 펄스 */
+@keyframes glowPulse {
+  0%, 100% {
+    box-shadow: 0 0 20px -5px var(--glow-color, rgba(0, 160, 64, 0.2));
+  }
+  50% {
+    box-shadow: 0 0 30px -3px var(--glow-color, rgba(0, 160, 64, 0.35));
+  }
+}
+
+.animate-glow {
+  animation: glowPulse 3s ease-in-out infinite;
+}
+
+/* 스캔라인 오버레이 (원전 제어실 CRT 감성) */
+@keyframes scanline {
+  0% { transform: translateY(-100%); }
+  100% { transform: translateY(100vh); }
+}
+
+.scanline-overlay::after {
+  content: "";
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, rgba(52, 211, 153, 0.03), transparent);
+  z-index: 9999;
+  pointer-events: none;
+  animation: scanline 8s linear infinite;
 }
 
 /* 텍스트 선택 색상 */
 ::selection {
-  background: var(--color-teal-500);
+  background: rgba(0, 160, 64, 0.3);
   color: white;
 }
 
@@ -210,19 +318,25 @@ button:focus-visible, [role="button"]:focus-visible, a:focus-visible, input:focu
   .animate-shimmer,
   .animate-gradient-pulse,
   .animate-slide-in-right,
-  .animate-colon-blink {
+  .animate-colon-blink,
+  .animate-orbit,
+  .animate-glow {
     animation: none;
+  }
+  .scanline-overlay::after {
+    animation: none;
+    display: none;
   }
 }
 
-/* Skip to content 접근성 링크 */
+/* Skip to content */
 .skip-to-content {
   position: absolute;
   left: -9999px;
   top: 0;
   z-index: 100;
   padding: 8px 16px;
-  background: var(--color-teal-500);
+  background: var(--color-khnp-green);
   color: white;
   font-size: 14px;
   font-weight: 500;
@@ -232,17 +346,17 @@ button:focus-visible, [role="button"]:focus-visible, a:focus-visible, input:focu
   left: 0;
 }
 
-/* 스크롤바 스타일링 (원전 제어실 느낌) */
+/* 프리미엄 스크롤바 */
 ::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+  width: 5px;
+  height: 5px;
 }
 ::-webkit-scrollbar-track {
-  background: var(--color-surface-800);
+  background: transparent;
 }
 ::-webkit-scrollbar-thumb {
   background: var(--color-surface-600);
-  border-radius: 3px;
+  border-radius: 4px;
 }
 ::-webkit-scrollbar-thumb:hover {
   background: var(--color-surface-500);

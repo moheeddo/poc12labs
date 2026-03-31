@@ -12,7 +12,7 @@ const shortcutGroups = [
   {
     title: "서비스 전환",
     items: [
-      { key: "1", description: "시뮬레이터 평가" },
+      { key: "1", description: "시뮬레이터 훈련 멀티모달 분석" },
       { key: "2", description: "리더십 코칭" },
       { key: "3", description: "POV 분석" },
     ],

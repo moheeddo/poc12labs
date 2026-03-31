@@ -10,7 +10,7 @@ interface UseKeyboardShortcutsOptions {
 
 /**
  * 키보드 단축키 훅
- * - 1: 시뮬레이터 평가
+ * - 1: 시뮬레이터 훈련 멀티모달 분석
  * - 2: 리더십 코칭
  * - 3: POV 분석
  * - 0 / Escape: 대시보드 복귀

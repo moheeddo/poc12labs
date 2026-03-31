@@ -1,316 +1,851 @@
 "use client";
 
-import { useState, useCallback, useRef } from "react";
-import { Shield, GitCompare, Star, AlertTriangle, Upload } from "lucide-react";
+import { useState, useCallback, useMemo, useEffect } from "react";
 import {
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  Legend,
-  ResponsiveContainer,
-  Cell,
+  Shield, GitCompare, Star, AlertTriangle, Upload, ChevronRight,
+  FileText, CheckCircle2, XCircle, Clock, Activity, BookOpen, Eye,
+  Users, Brain, Zap, ClipboardCheck, BarChart3, ArrowLeft, Loader2,
+  ChevronDown, ChevronUp, Sparkles, MessageSquare,
+} from "lucide-react";
+import {
+  RadarChart, Radar, PolarGrid, PolarAngleAxis, PolarRadiusAxis,
+  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend,
+  ResponsiveContainer, Cell,
 } from "recharts";
 import VideoUploader from "@/components/shared/VideoUploader";
 import ChartTooltip from "@/components/shared/ChartTooltip";
-import SearchBar from "@/components/shared/SearchBar";
-import VideoPlayer from "@/components/shared/VideoPlayer";
-import { useVideoSearch, useVideoUpload } from "@/hooks/useTwelveLabs";
-import { SEVERITY_LABELS, TWELVELABS_INDEXES } from "@/lib/constants";
-import type { SopDeviation } from "@/lib/types";
+import PovReviewSession from "@/components/pov/PovReviewSession";
+import { useVideoUpload } from "@/hooks/useTwelveLabs";
+import { TWELVELABS_INDEXES } from "@/lib/constants";
+import {
+  HPO_PROCEDURES, OPERATOR_FUNDAMENTALS, HPO_TOOLS,
+  POV_GRADES, getGradeForScore, SYSTEM_COLORS, getCriticalSteps,
+  type Procedure, type ProcedureSection,
+} from "@/lib/pov-standards";
+import type { PovEvaluationReport, StepEvaluation, HpoToolEvaluation, FundamentalScore, SopDeviation } from "@/lib/types";
 import { formatTime, cn } from "@/lib/utils";
 
-// 데모: SOP 이탈 데이터
-const DEMO_DEVIATIONS: SopDeviation[] = [
-  { step: "Step 3.2", expected: "밸브 A 확인 후 B 개방", actual: "B 밸브 먼저 개방", timestamp: 125, severity: "high" },
-  { step: "Step 4.1", expected: "압력 확인 후 조작", actual: "압력 미확인 상태 조작", timestamp: 240, severity: "critical" },
-  { step: "Step 5.3", expected: "2인 확인 절차 수행", actual: "단독 확인 후 진행", timestamp: 380, severity: "medium" },
-  { step: "Step 7.1", expected: "로그 기록 후 다음 단계", actual: "로그 미기록", timestamp: 520, severity: "low" },
-];
+// ── 데모 리포트 생성 (실제 구현 시 TwelveLabs API 호출 결과로 대체) ──
 
-// 데모: 유사도 비교 데이터
-const COMPARISON_DATA = [
-  { step: "초기 점검", expert: 95, novice: 72 },
-  { step: "밸브 조작", expert: 98, novice: 55 },
-  { step: "압력 확인", expert: 92, novice: 68 },
-  { step: "계기 판독", expert: 88, novice: 78 },
-  { step: "비상 절차", expert: 96, novice: 45 },
-  { step: "로그 기록", expert: 90, novice: 82 },
-];
+function generateDemoReport(procedure: Procedure): PovEvaluationReport {
+  const allSteps = procedure.sections.flatMap((s) => s.steps);
+  const stepEvals: StepEvaluation[] = allSteps.map((step, i) => {
+    const rand = Math.random();
+    const status = rand > 0.75 ? "pass" : rand > 0.5 ? "pass" : rand > 0.2 ? "partial" : "fail";
+    return {
+      stepId: step.id,
+      description: step.description,
+      status: status as StepEvaluation["status"],
+      confidence: Math.round(60 + Math.random() * 38),
+      timestamp: 30 + i * 25 + Math.round(Math.random() * 15),
+      note: status === "fail" ? `${step.equipment} 상태 확인 누락` : status === "partial" ? "확인은 했으나 절차서 미참조" : undefined,
+    };
+  });
+
+  const hpoEvals: HpoToolEvaluation[] = HPO_TOOLS.map((tool) => ({
+    toolKey: tool.key,
+    label: tool.label,
+    applied: Math.random() > 0.3,
+    score: Math.round(40 + Math.random() * 58),
+    evidence: Math.random() > 0.4 ? `${tool.label} 적용 장면 탐지됨` : undefined,
+    timestamp: Math.round(Math.random() * 600),
+  }));
+
+  const fundScores: FundamentalScore[] = OPERATOR_FUNDAMENTALS.map((f) => ({
+    key: f.key,
+    label: f.label,
+    score: Math.round(50 + Math.random() * 45),
+    feedback: f.evaluationPoints[Math.floor(Math.random() * f.evaluationPoints.length)],
+  }));
+
+  const passCount = stepEvals.filter((s) => s.status === "pass").length;
+  const procedureScore = Math.round((passCount / stepEvals.length) * 100);
+  const hpoScore = Math.round(hpoEvals.reduce((sum, h) => sum + h.score, 0) / hpoEvals.length);
+  const fundAvg = Math.round(fundScores.reduce((sum, f) => sum + f.score, 0) / fundScores.length);
+  const overall = Math.round(procedureScore * 0.5 + hpoScore * 0.3 + fundAvg * 0.2);
+
+  const deviations: SopDeviation[] = stepEvals
+    .filter((s) => s.status === "fail")
+    .map((s) => {
+      const origStep = allSteps.find((st) => st.id === s.stepId);
+      return {
+        step: s.stepId,
+        expected: origStep?.description || "",
+        actual: s.note || "수행 미확인",
+        timestamp: s.timestamp || 0,
+        severity: (origStep?.isCritical ? "critical" : "high") as SopDeviation["severity"],
+      };
+    });
+
+  return {
+    id: `report-${Date.now()}`,
+    procedureId: procedure.id,
+    procedureTitle: `붙임${procedure.appendixNo}. ${procedure.title}`,
+    videoId: "demo-video-id",
+    date: new Date().toISOString().split("T")[0],
+    stepEvaluations: stepEvals,
+    procedureComplianceScore: procedureScore,
+    hpoEvaluations: hpoEvals,
+    hpoOverallScore: hpoScore,
+    fundamentalScores: fundScores,
+    overallScore: overall,
+    grade: getGradeForScore(overall).grade,
+    deviations,
+    strengths: [
+      "압축공기계통 확인 절차를 정확하게 수행함",
+      "밸브 조작 시 자기진단(STAR) 기법 적용 확인",
+      "절차서를 지참하고 단계별 참조 수행",
+    ],
+    improvements: [
+      "일부 밸브 상태 확인 시 교차 확인 미수행",
+      "제어실 확인이 필요한 단계에서 현장 단독 확인",
+      "작업후 평가 미실시 — 완료 후 피드백 절차 필요",
+    ],
+    summary: `${procedure.title} 절차를 전반적으로 수행했으나, 일부 중요 단계에서 확인 절차가 미흡했습니다. HPO 기법 중 자기진단은 양호하나, 동시확인 및 작업후 평가 적용이 부족합니다. 표준지침 7.1.2(제어) 및 7.1.3(보수적 판단) 역량 향상이 필요합니다.`,
+  };
+}
+
+// ── 계통별 아이콘 ────────────────────────
+
+const systemIcons: Record<string, React.ReactNode> = {
+  냉각수: <Activity className="w-4 h-4" />,
+  순환수: <GitCompare className="w-4 h-4" />,
+  온수: <Zap className="w-4 h-4" />,
+  공정수: <Shield className="w-4 h-4" />,
+};
+
+// ── 메인 컴포넌트 ────────────────────────
+
+type ViewPhase = "select" | "upload" | "analyzing" | "report" | "review";
 
 export default function PovAnalysis() {
+  const [phase, setPhase] = useState<ViewPhase>("select");
+  const [selectedProcedure, setSelectedProcedure] = useState<Procedure | null>(null);
+  const [report, setReport] = useState<PovEvaluationReport | null>(null);
+  const [expandedSections, setExpandedSections] = useState<Set<string>>(new Set());
+  const [reportTab, setReportTab] = useState<"overview" | "steps" | "hpo" | "fundamentals">("overview");
+  const [videoUrl, setVideoUrl] = useState<string | null>(null); // 브라우저 내 재생용 로컬 URL
   const { progress: uploadProgress, upload } = useVideoUpload();
-  const [activeView, setActiveView] = useState<"deviations" | "compare" | "highlights">("deviations");
-  const { loading, search } = useVideoSearch();
-  const tabListRef = useRef<HTMLDivElement>(null);
-  const tabKeys = ["deviations", "compare", "highlights"] as const;
 
-  const handleTabKeyDown = useCallback((e: React.KeyboardEvent) => {
-    const idx = tabKeys.indexOf(activeView);
-    let next = idx;
-    if (e.key === "ArrowRight") next = (idx + 1) % tabKeys.length;
-    else if (e.key === "ArrowLeft") next = (idx - 1 + tabKeys.length) % tabKeys.length;
-    else return;
-    e.preventDefault();
-    setActiveView(tabKeys[next]);
-    const buttons = tabListRef.current?.querySelectorAll<HTMLButtonElement>('[role="tab"]');
-    buttons?.[next]?.focus();
-  }, [activeView]);
+  // 컴포넌트 언마운트 시 blob URL 해제
+  useEffect(() => {
+    return () => { if (videoUrl) URL.revokeObjectURL(videoUrl); };
+  }, [videoUrl]);
 
+  // 절차 선택
+  const handleSelectProcedure = useCallback((proc: Procedure) => {
+    setSelectedProcedure(proc);
+    setPhase("upload");
+    setReport(null);
+  }, []);
+
+  // 영상 업로드 + 분석 시작
   const handleUpload = useCallback(async (file: File) => {
+    if (!selectedProcedure) return;
+    // 브라우저 내 재생을 위한 로컬 blob URL 생성
+    if (videoUrl) URL.revokeObjectURL(videoUrl);
+    const localUrl = URL.createObjectURL(file);
+    setVideoUrl(localUrl);
+    setPhase("analyzing");
     try {
       await upload(TWELVELABS_INDEXES.pov, file);
+      // 실제로는 여기서 /api/twelvelabs/pov-analyze 호출
+      // 데모: 2초 후 리포트 생성
+      await new Promise((r) => setTimeout(r, 2000));
+      const demoReport = generateDemoReport(selectedProcedure);
+      setReport(demoReport);
+      setPhase("report");
     } catch {
-      // 에러는 useVideoUpload 내부에서 처리
+      // 에러 발생 시에도 데모 리포트 생성 (POC)
+      await new Promise((r) => setTimeout(r, 1500));
+      const demoReport = generateDemoReport(selectedProcedure);
+      setReport(demoReport);
+      setPhase("report");
     }
-  }, [upload]);
+  }, [selectedProcedure, upload, videoUrl]);
 
-  const handleSearch = useCallback(
-    (query: string) => {
-      search(TWELVELABS_INDEXES.pov, query);
-    },
-    [search]
-  );
+  // 뒤로가기
+  const handleBack = useCallback(() => {
+    if (phase === "upload") { setPhase("select"); setSelectedProcedure(null); }
+    else if (phase === "report") { setPhase("upload"); setReport(null); }
+    else if (phase === "review") { setPhase("report"); }
+  }, [phase]);
 
-  // 심각도별 배지 배경색 (정적 클래스맵)
-  const severityBgMap: Record<string, string> = {
-    critical: "bg-red-500/15",
-    high: "bg-orange-500/15",
-    medium: "bg-amber-500/15",
-    low: "bg-slate-500/15",
-  };
+  // 섹션 접기/펼치기
+  const toggleSection = useCallback((id: string) => {
+    setExpandedSections((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id); else next.add(id);
+      return next;
+    });
+  }, []);
 
-  const severityBorderMap: Record<string, string> = {
-    critical: "border-l-red-500",
-    high: "border-l-orange-500",
-    medium: "border-l-amber-500",
-    low: "border-l-slate-500",
-  };
-
-  const overallSimilarity = 67;
-
-  // 유사도 점수 구간별 색상
-  const similarityColor = overallSimilarity >= 80 ? "text-teal-400" : overallSimilarity >= 60 ? "text-amber-400" : "text-red-400";
-  const similarityBorderClass = overallSimilarity >= 80
-    ? "border-teal-500/30 hover:border-teal-500/50 hover:shadow-teal-500/10"
-    : overallSimilarity >= 60
-      ? "border-amber-500/30 hover:border-amber-500/50 hover:shadow-amber-500/10"
-      : "border-red-500/30 hover:border-red-500/50 hover:shadow-red-500/10";
+  // 계통별 그룹핑
+  const proceduresBySystem = useMemo(() => {
+    const map = new Map<string, Procedure[]>();
+    HPO_PROCEDURES.forEach((p) => {
+      const list = map.get(p.system) || [];
+      list.push(p);
+      map.set(p.system, list);
+    });
+    return map;
+  }, []);
 
   return (
     <div className="max-w-[1440px] mx-auto px-4 md:px-6 py-6 space-y-6 animate-slide-in-right">
       {/* 헤더 */}
-      <div>
-        <h2 className="text-xl font-bold text-amber-400">훈련영상 POV 분석</h2>
-        <p className="text-sm text-slate-400 mt-1">
-          1인칭 시점 영상 기반 SOP 절차 이탈 탐지 및 숙련도 비교 분석
-        </p>
-      </div>
-
-      {/* 업로드 + 검색 */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <VideoUploader onUpload={handleUpload} progress={uploadProgress} accentColor="amber" />
-        <SearchBar
-          placeholder="밸브 조작, 계기 판독, 비상 절차 등..."
-          onSearch={handleSearch}
-          loading={loading}
-          accentColor="amber"
-          suggestions={["밸브 조작 순서", "계기판 확인", "비상 절차 수행", "안전 점검"]}
-        />
-      </div>
-
-      {/* 비교 뷰: 두 영상 나란히 */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div>
-          <p className="text-xs text-amber-400 mb-2 font-medium">숙련자 POV</p>
-          <VideoPlayer />
-        </div>
-        <div>
-          <p className="text-xs text-slate-400 mb-2 font-medium">비숙련자 POV</p>
-          <VideoPlayer />
-        </div>
-      </div>
-
-      {/* 서브탭 */}
-      <div ref={tabListRef} className="flex gap-1 border-b border-surface-700 overflow-x-auto scrollbar-hide" role="tablist" aria-label="POV 분석 보기" onKeyDown={handleTabKeyDown}>
-        {[
-          { key: "deviations" as const, icon: <AlertTriangle className="w-3.5 h-3.5" />, label: "SOP 이탈 탐지" },
-          { key: "compare" as const, icon: <GitCompare className="w-3.5 h-3.5" />, label: "숙련도 비교" },
-          { key: "highlights" as const, icon: <Star className="w-3.5 h-3.5" />, label: "베스트 프랙티스" },
-        ].map((tab) => (
-          <button
-            key={tab.key}
-            role="tab"
-            aria-selected={activeView === tab.key}
-            aria-controls={`pov-panel-${tab.key}`}
-            tabIndex={activeView === tab.key ? 0 : -1}
-            onClick={() => setActiveView(tab.key)}
-            className={cn(
-              "flex items-center gap-1.5 px-4 py-3 text-sm font-medium border-b-2 transition-all duration-200 whitespace-nowrap",
-              activeView === tab.key
-                ? "text-amber-400 border-amber-400"
-                : "text-slate-500 border-transparent hover:text-slate-300"
-            )}
-          >
-            {tab.icon} {tab.label}
+      <div className="flex items-center gap-3">
+        {phase !== "select" && (
+          <button onClick={handleBack} className="p-1.5 rounded-lg hover:bg-surface-700 transition-colors" aria-label="뒤로">
+            <ArrowLeft className="w-4 h-4 text-slate-400" />
           </button>
-        ))}
+        )}
+        <div>
+          <h2 className="text-2xl font-bold text-amber-400 tracking-tight flex items-center gap-2">
+            <Shield className="w-6 h-6" /> HPO 훈련영상 POV 분석
+          </h2>
+          <p className="text-base text-slate-400 mt-1">
+            {phase === "select" && "운전행위 표준지침반 실습가이드 기반 — 실습 절차를 선택하세요"}
+            {phase === "upload" && selectedProcedure && `붙임${selectedProcedure.appendixNo}. ${selectedProcedure.title} — POV 영상을 업로드하세요`}
+            {phase === "analyzing" && "AI가 영상을 분석하고 있습니다..."}
+            {phase === "report" && "평가 리포트가 생성되었습니다 — 강평 세션을 시작할 수 있습니다"}
+            {phase === "review" && "조별 강평 세션 진행 중"}
+          </p>
+        </div>
       </div>
 
-      {/* SOP 이탈 탐지 */}
-      {activeView === "deviations" && (
-        <div id="pov-panel-deviations" role="tabpanel" className="bg-surface-800 border border-surface-700 rounded-xl p-4 animate-fade-in-up">
-          <div className="flex items-center justify-between mb-4">
-            <h4 className="text-sm font-medium text-slate-300 flex items-center gap-2">
-              <Shield className="w-4 h-4" /> SOP 절차 이탈 사항 ({DEMO_DEVIATIONS.length}건)
-            </h4>
-            <div className="flex items-center gap-3 text-xs">
-              <span className="text-red-400 font-mono">{DEMO_DEVIATIONS.filter(d => d.severity === "critical").length} 위험</span>
-              <span className="text-orange-400 font-mono">{DEMO_DEVIATIONS.filter(d => d.severity === "high").length} 심각</span>
-              <span className="text-amber-400 font-mono">{DEMO_DEVIATIONS.filter(d => d.severity === "medium").length} 보통</span>
-              <span className="text-slate-500 font-mono">{DEMO_DEVIATIONS.filter(d => d.severity === "low").length} 경미</span>
-            </div>
-          </div>
-          <div className="space-y-2">
-            {DEMO_DEVIATIONS.map((d, i) => {
-              const sev = SEVERITY_LABELS[d.severity];
-              return (
-                <button
-                  key={i}
-                  aria-label={`${d.step} — ${sev.label} 등급 이탈: ${d.actual}`}
-                  className={`animate-fade-in-up w-full text-left flex items-start gap-3 p-3 rounded-lg bg-surface-900 border border-surface-700 border-l-2 ${severityBorderMap[d.severity] || "border-l-slate-500"} hover:border-amber-500/20 hover:bg-surface-800 transition-all duration-200`}
-                  style={{ animationDelay: `${i * 80}ms`, animationFillMode: "backwards" }}
-                >
-                  <div className="mt-0.5">
-                    <AlertTriangle className={`w-4 h-4 ${sev.color}`} />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 mb-1">
-                      <span className="text-xs font-mono text-amber-400">{d.step}</span>
-                      <span className={`text-xs px-1.5 py-0.5 rounded ${sev.color} ${severityBgMap[d.severity] || "bg-surface-700"}`}>
-                        {sev.label}
-                      </span>
-                      <span className="text-xs font-mono text-amber-500/60 ml-auto hover:text-amber-400 transition-colors duration-200">
-                        ▶ {formatTime(d.timestamp)}
-                      </span>
-                    </div>
-                    <p className="text-xs text-slate-400">
-                      <span className="text-slate-500">예상:</span> {d.expected}
-                    </p>
-                    <p className="text-xs text-red-400/80">
-                      <span className="text-slate-500">실제:</span> {d.actual}
-                    </p>
-                  </div>
-                </button>
-              );
-            })}
-          </div>
-        </div>
-      )}
-
-      {/* 숙련도 비교 */}
-      {activeView === "compare" && (
-        <div id="pov-panel-compare" role="tabpanel" className="space-y-4 animate-fade-in-up">
-          <div className={`bg-surface-800 border rounded-xl p-4 text-center hover:shadow-lg transition-all duration-300 ${similarityBorderClass}`}>
-            <p className="text-xs text-slate-500 mb-1">전체 유사도</p>
-            <span className={`text-3xl font-bold font-mono tabular-nums ${similarityColor}`}>{overallSimilarity}%</span>
-            <p className="text-xs text-slate-500 mt-1">
-              {overallSimilarity >= 80 ? "양호 — 숙련자와 유사한 수행" : overallSimilarity >= 60 ? "개선 필요 — 주요 절차 차이 존재" : "미흡 — 집중 교육 권장"}
-            </p>
-          </div>
-          <div className="bg-surface-800 border border-surface-700 rounded-xl p-4 hover:border-amber-500/20 hover:shadow-lg hover:shadow-amber-500/5 transition-all duration-300" role="img" aria-label="절차별 숙련도 비교 막대 그래프">
-            <h4 className="text-sm font-medium text-slate-300 mb-4">절차별 숙련도 비교</h4>
-            <div className="overflow-x-auto -mx-4 px-4">
-              <div className="min-w-[400px]">
-                <ResponsiveContainer width="100%" height={280}>
-                  <BarChart data={COMPARISON_DATA} layout="vertical">
-                    <CartesianGrid strokeDasharray="3 3" stroke="#243044" />
-                    <XAxis type="number" domain={[0, 100]} tick={{ fill: "#94a3b8", fontSize: 11 }} />
-                    <YAxis dataKey="step" type="category" tick={{ fill: "#94a3b8", fontSize: 11 }} width={80} />
-                    <Tooltip
-                      cursor={{ fill: 'rgba(255,255,255,0.05)' }}
-                      content={<ChartTooltip unit="%" />}
-                    />
-                    <Legend
-                      verticalAlign="top"
-                      align="right"
-                      iconType="circle"
-                      iconSize={8}
-                      wrapperStyle={{ fontSize: "12px", color: "#94a3b8", paddingBottom: "8px" }}
-                      formatter={(value: string) => (
-                        <span style={{ color: value === "숙련자" ? "#14b8a6" : "#f59e0b" }}>{value}</span>
-                      )}
-                    />
-                    <Bar dataKey="expert" name="숙련자" radius={[0, 4, 4, 0]}>
-                      {COMPARISON_DATA.map((_, i) => (
-                        <Cell key={i} fill="#14b8a6" />
-                      ))}
-                    </Bar>
-                    <Bar dataKey="novice" name="비숙련자" radius={[0, 4, 4, 0]}>
-                      {COMPARISON_DATA.map((_, i) => (
-                        <Cell key={i} fill="#f59e0b" fillOpacity={0.6} />
-                      ))}
-                    </Bar>
-                  </BarChart>
-                </ResponsiveContainer>
+      {/* ════════ Phase 1: 실습 절차 선택 ════════ */}
+      {phase === "select" && (
+        <div className="space-y-6 animate-fade-in-up">
+          {/* 과정 안내 */}
+          <div className="bg-surface-800 border border-surface-700 rounded-xl p-5">
+            <div className="flex items-start gap-3">
+              <BookOpen className="w-5 h-5 text-amber-400 mt-0.5 shrink-0" />
+              <div>
+                <h3 className="text-sm font-semibold text-slate-200">운전행위 표준지침반 실습가이드</h3>
+                <p className="text-xs text-slate-400 mt-1 leading-relaxed">
+                  HPO 센터 종합실습설비를 활용한 운전원 기본수칙 및 인적오류예방기법 체화 훈련입니다.
+                  4개 계통(냉각수, 순환수, 온수, 공정수)의 기동/정지/교체운전 밸브라인업 절차를 POV(1인칭 시점) 영상으로 촬영 후 AI가 자동 분석합니다.
+                </p>
+                <div className="flex items-center gap-4 mt-3 text-xs text-slate-500">
+                  <span className="flex items-center gap-1"><FileText className="w-3.5 h-3.5" /> 표준지침-3035-01 기반</span>
+                  <span className="flex items-center gap-1"><Users className="w-3.5 h-3.5" /> 표준운영-2035A HPO 기법</span>
+                  <span className="flex items-center gap-1"><Eye className="w-3.5 h-3.5" /> 1인칭 POV 분석</span>
+                </div>
               </div>
             </div>
           </div>
+
+          {/* 계통별 절차 카드 */}
+          {Array.from(proceduresBySystem.entries()).map(([system, procs]) => {
+            const sc = SYSTEM_COLORS[system] || SYSTEM_COLORS["냉각수"];
+            return (
+              <div key={system}>
+                <div className="flex items-center gap-2 mb-3">
+                  <span className={cn("flex items-center gap-1.5 text-sm font-semibold", sc.primary)}>
+                    {systemIcons[system]} {system}계통
+                  </span>
+                  <span className="text-xs text-slate-500">({procs.length}개 절차)</span>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  {procs.map((proc, i) => {
+                    const criticalCount = getCriticalSteps(proc).length;
+                    return (
+                      <button
+                        key={proc.id}
+                        onClick={() => handleSelectProcedure(proc)}
+                        className={cn(
+                          "animate-fade-in-up group text-left p-4 rounded-xl border transition-all duration-300",
+                          "bg-surface-800 border-surface-700",
+                          "hover:border-amber-500/40 hover:shadow-lg hover:shadow-amber-500/5 hover:scale-[1.01]",
+                          "active:scale-[0.99]"
+                        )}
+                        style={{ animationDelay: `${i * 60}ms`, animationFillMode: "backwards" }}
+                      >
+                        <div className="flex items-start justify-between gap-2">
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2 mb-1.5">
+                              <span className="text-xs font-mono px-1.5 py-0.5 rounded bg-amber-500/10 text-amber-500">
+                                붙임{proc.appendixNo}
+                              </span>
+                              <span className="text-xs text-slate-500">{proc.group}</span>
+                            </div>
+                            <h4 className="text-sm font-medium text-slate-200 group-hover:text-amber-300 transition-colors truncate">
+                              {proc.title}
+                            </h4>
+                            <p className="text-xs text-slate-500 mt-1">{proc.operation} | {proc.target}</p>
+                          </div>
+                          <ChevronRight className="w-4 h-4 text-slate-600 group-hover:text-amber-400 transition-colors shrink-0 mt-1" />
+                        </div>
+                        <div className="flex items-center gap-3 mt-3 text-xs text-slate-500">
+                          <span className="flex items-center gap-1"><ClipboardCheck className="w-3 h-3" /> {proc.totalSteps}단계</span>
+                          <span className="flex items-center gap-1"><Clock className="w-3 h-3" /> ~{proc.estimatedMinutes}분</span>
+                          {criticalCount > 0 && (
+                            <span className="flex items-center gap-1 text-red-400/70">
+                              <AlertTriangle className="w-3 h-3" /> 중요단계 {criticalCount}개
+                            </span>
+                          )}
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            );
+          })}
         </div>
       )}
 
-      {/* 베스트 프랙티스 */}
-      {activeView === "highlights" && (
-        <div id="pov-panel-highlights" role="tabpanel" className="space-y-4 animate-fade-in-up">
-          {/* 빈 상태 안내 */}
-          <div className="bg-surface-800 border border-surface-700 rounded-xl p-6 flex flex-col items-center justify-center text-center min-h-[200px]">
-            <Star className="w-10 h-10 text-amber-500/40 mb-3" />
-            <h4 className="text-sm font-medium text-slate-300 mb-1">
-              베스트 프랙티스 하이라이트
-            </h4>
-            <p className="text-xs text-slate-500 max-w-sm">
-              숙련자 영상에서 핵심 조작 장면을 자동 추출합니다.
-            </p>
-            <p className="text-xs text-slate-600 mt-2">
-              영상을 업로드하면 자동으로 생성됩니다
-            </p>
-            <button
-              onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
-              className="mt-4 flex items-center gap-2 px-4 py-2 rounded-lg bg-amber-600/20 text-amber-400 text-xs font-medium hover:bg-amber-600/30 hover:shadow-md hover:shadow-amber-500/10 hover:scale-105 active:scale-95 transition-all duration-200"
-            >
-              <Upload className="w-3.5 h-3.5" /> 영상 업로드하기
-            </button>
+      {/* ════════ Phase 2: 영상 업로드 ════════ */}
+      {phase === "upload" && selectedProcedure && (
+        <div className="space-y-4 animate-fade-in-up">
+          {/* 선택된 절차 요약 */}
+          <div className="bg-surface-800 border border-amber-500/20 rounded-xl p-4">
+            <div className="flex items-center gap-2 mb-2">
+              <span className="text-xs font-mono px-1.5 py-0.5 rounded bg-amber-500/10 text-amber-500">
+                붙임{selectedProcedure.appendixNo}
+              </span>
+              <h3 className="text-sm font-semibold text-slate-200">{selectedProcedure.title}</h3>
+            </div>
+            {/* 절차 스텝 미리보기 */}
+            <div className="space-y-1.5 mt-3 max-h-[300px] overflow-y-auto scrollbar-hide">
+              {selectedProcedure.sections.map((section) => (
+                <div key={section.id}>
+                  <button
+                    onClick={() => toggleSection(section.id)}
+                    className="flex items-center gap-2 w-full text-left py-1 text-xs text-slate-400 hover:text-slate-200 transition-colors"
+                  >
+                    {expandedSections.has(section.id) ? <ChevronDown className="w-3 h-3" /> : <ChevronRight className="w-3 h-3" />}
+                    <span className="font-mono text-amber-500/60">{section.id}</span>
+                    <span>{section.title}</span>
+                    <span className="text-slate-600 ml-auto">{section.steps.length}단계</span>
+                  </button>
+                  {expandedSections.has(section.id) && (
+                    <div className="ml-5 space-y-0.5 animate-fade-in-up">
+                      {section.steps.map((step) => (
+                        <div key={step.id} className={cn("flex items-start gap-2 py-0.5 text-xs", step.isCritical ? "text-red-400/80" : "text-slate-500")}>
+                          <span className="font-mono shrink-0 w-10 text-right">{step.id}</span>
+                          <span className="truncate">{step.description}</span>
+                          {step.expectedState && (
+                            <span className={cn("shrink-0 px-1 rounded text-[10px]", step.expectedState.includes("열림") || step.expectedState.includes("기동") ? "bg-teal-500/10 text-teal-500" : "bg-red-500/10 text-red-400")}>
+                              {step.expectedState}
+                            </span>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
           </div>
 
-          {/* 추출 예시 미리보기 카드 */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-            {[
-              { title: "정확한 밸브 조작 순서", time: "02:15", tag: "필수 절차" },
-              { title: "계기판 교차 확인", time: "04:32", tag: "안전 확인" },
-              { title: "비상 절차 신속 대응", time: "08:47", tag: "비상 대응" },
-            ].map((item, i) => (
-              <div
-                key={item.title}
-                className="animate-fade-in-up bg-surface-800 border border-surface-700 rounded-lg p-4 opacity-60 hover:opacity-100 hover:border-amber-500/30 hover:scale-[1.02] cursor-pointer transition-all duration-300 group"
-                style={{ animationDelay: `${i * 100}ms`, animationFillMode: "backwards" }}
-              >
-                <div className="flex items-center gap-2 mb-2">
-                  <span className="text-xs px-1.5 py-0.5 rounded bg-amber-500/10 text-amber-500/60 group-hover:text-amber-400 group-hover:bg-amber-500/20 transition-colors duration-200">{item.tag}</span>
-                  <span className="text-xs font-mono text-slate-600 ml-auto group-hover:text-amber-400/70 transition-colors duration-200">▶ {item.time}</span>
-                </div>
-                <p className="text-xs text-slate-500 group-hover:text-slate-300 transition-colors duration-200">{item.title}</p>
-                <div className="mt-2 h-16 rounded bg-surface-700 animate-shimmer relative overflow-hidden">
-                  <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                    <Star className="w-5 h-5 text-amber-500/40" />
+          {/* 평가 기준 안내 */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <div className="bg-surface-800 border border-surface-700 rounded-xl p-4">
+              <h4 className="text-xs font-semibold text-slate-300 flex items-center gap-1.5 mb-2">
+                <Brain className="w-3.5 h-3.5 text-blue-400" /> 운전원 기본수칙 5대 역량 평가
+              </h4>
+              <div className="space-y-1">
+                {OPERATOR_FUNDAMENTALS.map((f) => (
+                  <div key={f.key} className="flex items-center gap-2 text-xs text-slate-500">
+                    <div className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: f.color }} />
+                    <span>{f.label}</span>
+                    <span className="text-slate-600 text-[10px] ml-auto">{f.section}</span>
                   </div>
-                </div>
+                ))}
+              </div>
+            </div>
+            <div className="bg-surface-800 border border-surface-700 rounded-xl p-4">
+              <h4 className="text-xs font-semibold text-slate-300 flex items-center gap-1.5 mb-2">
+                <Shield className="w-3.5 h-3.5 text-teal-400" /> HPO 인적오류 예방기법 평가
+              </h4>
+              <div className="space-y-1">
+                {HPO_TOOLS.slice(0, 6).map((t) => (
+                  <div key={t.key} className="flex items-center gap-2 text-xs text-slate-500">
+                    <div className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: t.color }} />
+                    <span>{t.label}</span>
+                    <span className="text-slate-600 text-[10px] ml-auto">{t.category === "fundamental" ? "기본" : "조건부"}</span>
+                  </div>
+                ))}
+                <p className="text-[10px] text-slate-600 mt-1">외 {HPO_TOOLS.length - 6}개 기법...</p>
+              </div>
+            </div>
+          </div>
+
+          {/* 영상 업로드 */}
+          <VideoUploader onUpload={handleUpload} progress={uploadProgress} accentColor="amber" />
+        </div>
+      )}
+
+      {/* ════════ Phase 3: AI 분석 중 ════════ */}
+      {phase === "analyzing" && (
+        <div className="flex flex-col items-center justify-center min-h-[400px] animate-fade-in-up">
+          <div className="relative">
+            <div className="w-20 h-20 rounded-full border-2 border-amber-500/20 flex items-center justify-center">
+              <Loader2 className="w-10 h-10 text-amber-400 animate-spin" />
+            </div>
+            <div className="absolute -top-1 -right-1 w-6 h-6 rounded-full bg-amber-500/20 flex items-center justify-center">
+              <Sparkles className="w-3.5 h-3.5 text-amber-400" />
+            </div>
+          </div>
+          <h3 className="text-lg font-semibold text-slate-200 mt-6">AI 평가 분석 진행 중</h3>
+          <p className="text-sm text-slate-400 mt-2 text-center max-w-md">
+            TwelveLabs Video AI가 POV 영상을 분석하여<br />
+            표준지침-3035-01 및 표준운영-2035A 기준으로 평가합니다
+          </p>
+          <div className="flex items-center gap-6 mt-8 text-xs text-slate-500">
+            {["절차 수행 분석", "HPO 기법 탐지", "역량 평가 산출"].map((label, i) => (
+              <div key={label} className="flex items-center gap-1.5 animate-pulse" style={{ animationDelay: `${i * 500}ms` }}>
+                <div className="w-2 h-2 rounded-full bg-amber-500/40" />
+                {label}
               </div>
             ))}
           </div>
         </div>
       )}
+
+      {/* ════════ Phase 4: 평가 리포트 ════════ */}
+      {phase === "report" && report && (
+        <div className="space-y-4 animate-fade-in-up">
+          {/* 강평 세션 CTA — 리포트 상단 */}
+          <div className="bg-gradient-to-r from-amber-500/10 via-amber-500/5 to-transparent border border-amber-500/20 rounded-xl p-4 flex flex-col sm:flex-row items-start sm:items-center gap-3">
+            <div className="flex-1 min-w-0">
+              <h3 className="text-sm font-semibold text-amber-400 flex items-center gap-2">
+                <MessageSquare className="w-4 h-4" /> 조별 강평 세션 시작
+              </h3>
+              <p className="text-xs text-slate-400 mt-0.5">
+                분석 결과를 기반으로 영상을 돌려보며 미흡사항을 피드백하고 종합 강평을 진행합니다
+              </p>
+            </div>
+            <button
+              onClick={() => setPhase("review")}
+              className="shrink-0 flex items-center gap-2 px-5 py-2.5 rounded-lg bg-amber-500/15 hover:bg-amber-500/25 text-amber-400 text-sm font-semibold border border-amber-500/30 transition-all hover:scale-[1.02] active:scale-[0.98]"
+            >
+              <MessageSquare className="w-4 h-4" /> 강평 세션 열기
+            </button>
+          </div>
+
+          {/* 종합 스코어 헤더 */}
+          <ReportHeader report={report} />
+
+          {/* 리포트 서브탭 */}
+          <div className="flex gap-1 border-b border-surface-700 overflow-x-auto scrollbar-hide">
+            {[
+              { key: "overview" as const, label: "종합 개요", icon: <BarChart3 className="w-3.5 h-3.5" /> },
+              { key: "steps" as const, label: "절차 수행", icon: <ClipboardCheck className="w-3.5 h-3.5" /> },
+              { key: "hpo" as const, label: "HPO 기법", icon: <Shield className="w-3.5 h-3.5" /> },
+              { key: "fundamentals" as const, label: "기본수칙 역량", icon: <Brain className="w-3.5 h-3.5" /> },
+            ].map((tab) => (
+              <button
+                key={tab.key}
+                onClick={() => setReportTab(tab.key)}
+                className={cn(
+                  "flex items-center gap-1.5 px-4 py-3 text-sm font-medium border-b-2 transition-all whitespace-nowrap",
+                  reportTab === tab.key ? "text-amber-400 border-amber-400" : "text-slate-500 border-transparent hover:text-slate-300"
+                )}
+              >
+                {tab.icon} {tab.label}
+              </button>
+            ))}
+          </div>
+
+          {/* 종합 개요 */}
+          {reportTab === "overview" && (
+            <OverviewTab report={report} procedure={selectedProcedure!} />
+          )}
+
+          {/* 절차 수행 상세 */}
+          {reportTab === "steps" && (
+            <StepsTab report={report} procedure={selectedProcedure!} />
+          )}
+
+          {/* HPO 기법 적용도 */}
+          {reportTab === "hpo" && (
+            <HpoTab report={report} />
+          )}
+
+          {/* 기본수칙 역량 */}
+          {reportTab === "fundamentals" && (
+            <FundamentalsTab report={report} />
+          )}
+        </div>
+      )}
+
+      {/* ════════ Phase 5: 강평 세션 (디브리핑) ════════ */}
+      {phase === "review" && report && selectedProcedure && (
+        <PovReviewSession
+          report={report}
+          procedure={selectedProcedure}
+          videoUrl={videoUrl}
+          onBack={() => setPhase("report")}
+          onViewReport={() => setPhase("report")}
+        />
+      )}
+    </div>
+  );
+}
+
+// ══════════════════════════════════════════
+// 리포트 서브 컴포넌트들
+// ══════════════════════════════════════════
+
+function ReportHeader({ report }: { report: PovEvaluationReport }) {
+  const gradeInfo = getGradeForScore(report.overallScore);
+  return (
+    <div className={cn("bg-surface-800 border rounded-xl p-5", `border-${gradeInfo.grade === "S" || gradeInfo.grade === "A" ? "teal" : gradeInfo.grade === "B" ? "blue" : "amber"}-500/30`)}>
+      <div className="flex flex-col md:flex-row items-start md:items-center gap-4">
+        {/* 종합 등급 */}
+        <div className="flex items-center gap-4">
+          <div className={cn("w-16 h-16 rounded-2xl flex items-center justify-center text-2xl font-black", gradeInfo.bgColor, gradeInfo.color)}>
+            {gradeInfo.grade}
+          </div>
+          <div>
+            <div className="flex items-center gap-2">
+              <span className={cn("text-3xl font-bold font-mono tabular-nums", gradeInfo.color)}>{report.overallScore}</span>
+              <span className="text-sm text-slate-500">/ 100</span>
+            </div>
+            <p className="text-xs text-slate-400">{gradeInfo.label} — {gradeInfo.description}</p>
+          </div>
+        </div>
+
+        {/* 세부 점수 */}
+        <div className="flex gap-4 md:ml-auto">
+          {[
+            { label: "절차 준수", score: report.procedureComplianceScore, color: "text-blue-400" },
+            { label: "HPO 적용", score: report.hpoOverallScore, color: "text-teal-400" },
+            { label: "기본수칙", score: Math.round(report.fundamentalScores.reduce((s, f) => s + f.score, 0) / report.fundamentalScores.length), color: "text-amber-400" },
+          ].map((item) => (
+            <div key={item.label} className="text-center">
+              <span className={cn("text-lg font-bold font-mono tabular-nums", item.color)}>{item.score}</span>
+              <p className="text-[10px] text-slate-500">{item.label}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* 제목/날짜 */}
+      <div className="mt-4 pt-3 border-t border-surface-700 flex items-center gap-4 text-xs text-slate-500">
+        <span className="flex items-center gap-1"><FileText className="w-3 h-3" /> {report.procedureTitle}</span>
+        <span className="flex items-center gap-1"><Clock className="w-3 h-3" /> {report.date}</span>
+        <span className="flex items-center gap-1"><Eye className="w-3 h-3" /> POV 1인칭 분석</span>
+      </div>
+    </div>
+  );
+}
+
+function OverviewTab({ report, procedure }: { report: PovEvaluationReport; procedure: Procedure }) {
+  // 레이더 차트 데이터
+  const radarData = report.fundamentalScores.map((f) => ({
+    subject: f.label.replace(/\s*\(.*\)/, ""),
+    score: f.score,
+    fullMark: 100,
+  }));
+
+  const passCount = report.stepEvaluations.filter((s) => s.status === "pass").length;
+  const failCount = report.stepEvaluations.filter((s) => s.status === "fail").length;
+  const partialCount = report.stepEvaluations.filter((s) => s.status === "partial").length;
+
+  return (
+    <div className="space-y-4 animate-fade-in-up">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {/* 기본수칙 레이더 */}
+        <div className="bg-surface-800 border border-surface-700 rounded-xl p-4">
+          <h4 className="text-sm font-medium text-slate-300 mb-2 flex items-center gap-1.5">
+            <Brain className="w-4 h-4 text-amber-400" /> 5대 기본수칙 역량
+          </h4>
+          <ResponsiveContainer width="100%" height={260}>
+            <RadarChart data={radarData}>
+              <PolarGrid stroke="#1e293b" />
+              <PolarAngleAxis dataKey="subject" tick={{ fill: "#94a3b8", fontSize: 11 }} />
+              <PolarRadiusAxis angle={90} domain={[0, 100]} tick={{ fill: "#475569", fontSize: 9 }} />
+              <Radar name="점수" dataKey="score" stroke="#f59e0b" fill="#f59e0b" fillOpacity={0.2} strokeWidth={2} />
+            </RadarChart>
+          </ResponsiveContainer>
+        </div>
+
+        {/* 절차 수행 요약 */}
+        <div className="bg-surface-800 border border-surface-700 rounded-xl p-4">
+          <h4 className="text-sm font-medium text-slate-300 mb-4 flex items-center gap-1.5">
+            <ClipboardCheck className="w-4 h-4 text-blue-400" /> 절차 수행 현황
+          </h4>
+          <div className="grid grid-cols-3 gap-3 mb-4">
+            <div className="text-center p-3 rounded-lg bg-teal-500/5 border border-teal-500/10">
+              <CheckCircle2 className="w-5 h-5 text-teal-400 mx-auto" />
+              <span className="text-lg font-bold font-mono text-teal-400">{passCount}</span>
+              <p className="text-[10px] text-slate-500">적합</p>
+            </div>
+            <div className="text-center p-3 rounded-lg bg-amber-500/5 border border-amber-500/10">
+              <AlertTriangle className="w-5 h-5 text-amber-400 mx-auto" />
+              <span className="text-lg font-bold font-mono text-amber-400">{partialCount}</span>
+              <p className="text-[10px] text-slate-500">부분적합</p>
+            </div>
+            <div className="text-center p-3 rounded-lg bg-red-500/5 border border-red-500/10">
+              <XCircle className="w-5 h-5 text-red-400 mx-auto" />
+              <span className="text-lg font-bold font-mono text-red-400">{failCount}</span>
+              <p className="text-[10px] text-slate-500">부적합</p>
+            </div>
+          </div>
+          {/* 프로그레스 바 */}
+          <div className="h-3 rounded-full bg-surface-900 overflow-hidden flex">
+            <div className="bg-teal-500 transition-all duration-1000" style={{ width: `${(passCount / report.stepEvaluations.length) * 100}%` }} />
+            <div className="bg-amber-500 transition-all duration-1000" style={{ width: `${(partialCount / report.stepEvaluations.length) * 100}%` }} />
+            <div className="bg-red-500 transition-all duration-1000" style={{ width: `${(failCount / report.stepEvaluations.length) * 100}%` }} />
+          </div>
+        </div>
+      </div>
+
+      {/* 강점 / 개선점 */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="bg-surface-800 border border-teal-500/10 rounded-xl p-4">
+          <h4 className="text-sm font-medium text-teal-400 mb-3 flex items-center gap-1.5">
+            <Star className="w-4 h-4" /> 강점
+          </h4>
+          <ul className="space-y-2">
+            {report.strengths.map((s, i) => (
+              <li key={i} className="flex items-start gap-2 text-xs text-slate-400">
+                <CheckCircle2 className="w-3.5 h-3.5 text-teal-500 shrink-0 mt-0.5" />
+                {s}
+              </li>
+            ))}
+          </ul>
+        </div>
+        <div className="bg-surface-800 border border-amber-500/10 rounded-xl p-4">
+          <h4 className="text-sm font-medium text-amber-400 mb-3 flex items-center gap-1.5">
+            <AlertTriangle className="w-4 h-4" /> 개선 필요 사항
+          </h4>
+          <ul className="space-y-2">
+            {report.improvements.map((s, i) => (
+              <li key={i} className="flex items-start gap-2 text-xs text-slate-400">
+                <XCircle className="w-3.5 h-3.5 text-amber-500 shrink-0 mt-0.5" />
+                {s}
+              </li>
+            ))}
+          </ul>
+        </div>
+      </div>
+
+      {/* AI 종합 소견 */}
+      <div className="bg-surface-800 border border-surface-700 rounded-xl p-4">
+        <h4 className="text-sm font-medium text-slate-300 mb-2 flex items-center gap-1.5">
+          <Sparkles className="w-4 h-4 text-amber-400" /> AI 종합 소견
+        </h4>
+        <p className="text-xs text-slate-400 leading-relaxed">{report.summary}</p>
+      </div>
+    </div>
+  );
+}
+
+function StepsTab({ report, procedure }: { report: PovEvaluationReport; procedure: Procedure }) {
+  const statusConfig = {
+    pass: { icon: <CheckCircle2 className="w-3.5 h-3.5" />, color: "text-teal-400", bg: "bg-teal-500/10", label: "적합" },
+    partial: { icon: <AlertTriangle className="w-3.5 h-3.5" />, color: "text-amber-400", bg: "bg-amber-500/10", label: "부분적합" },
+    fail: { icon: <XCircle className="w-3.5 h-3.5" />, color: "text-red-400", bg: "bg-red-500/10", label: "부적합" },
+    skipped: { icon: <Clock className="w-3.5 h-3.5" />, color: "text-slate-500", bg: "bg-slate-500/10", label: "미수행" },
+  };
+
+  return (
+    <div className="space-y-3 animate-fade-in-up">
+      {procedure.sections.map((section) => {
+        const sectionEvals = report.stepEvaluations.filter((e) =>
+          section.steps.some((s) => s.id === e.stepId)
+        );
+        const sectionPassRate = sectionEvals.length > 0
+          ? Math.round((sectionEvals.filter((e) => e.status === "pass").length / sectionEvals.length) * 100)
+          : 0;
+
+        return (
+          <div key={section.id} className="bg-surface-800 border border-surface-700 rounded-xl p-4">
+            <div className="flex items-center justify-between mb-3">
+              <h4 className="text-sm font-medium text-slate-300">
+                <span className="font-mono text-amber-500/60 mr-2">{section.id}</span>
+                {section.title}
+              </h4>
+              <div className="flex items-center gap-2">
+                <div className="w-16 h-1.5 rounded-full bg-surface-900 overflow-hidden">
+                  <div className="h-full bg-teal-500 transition-all duration-1000" style={{ width: `${sectionPassRate}%` }} />
+                </div>
+                <span className="text-xs font-mono text-slate-500">{sectionPassRate}%</span>
+              </div>
+            </div>
+            <div className="space-y-1.5">
+              {sectionEvals.map((evalItem, i) => {
+                const cfg = statusConfig[evalItem.status];
+                return (
+                  <div
+                    key={evalItem.stepId}
+                    className="animate-fade-in-up flex items-start gap-3 p-2.5 rounded-lg bg-surface-900/50 hover:bg-surface-900 transition-colors"
+                    style={{ animationDelay: `${i * 40}ms`, animationFillMode: "backwards" }}
+                  >
+                    <div className={cn("mt-0.5 shrink-0", cfg.color)}>{cfg.icon}</div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 mb-0.5">
+                        <span className="font-mono text-xs text-amber-500/60">{evalItem.stepId}</span>
+                        <span className={cn("text-[10px] px-1.5 py-0.5 rounded", cfg.bg, cfg.color)}>{cfg.label}</span>
+                        {evalItem.timestamp && (
+                          <span className="text-[10px] font-mono text-slate-600 ml-auto">▶ {formatTime(evalItem.timestamp)}</span>
+                        )}
+                      </div>
+                      <p className="text-xs text-slate-400 truncate">{evalItem.description}</p>
+                      {evalItem.note && (
+                        <p className="text-[10px] text-red-400/70 mt-0.5">{evalItem.note}</p>
+                      )}
+                    </div>
+                    <div className="shrink-0 text-right">
+                      <span className="text-[10px] font-mono text-slate-600">신뢰도</span>
+                      <p className="text-xs font-mono text-slate-400">{evalItem.confidence}%</p>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+function HpoTab({ report }: { report: PovEvaluationReport }) {
+  const fundamentalTools = report.hpoEvaluations.filter((e) =>
+    HPO_TOOLS.find((t) => t.key === e.toolKey)?.category === "fundamental"
+  );
+  const conditionalTools = report.hpoEvaluations.filter((e) =>
+    HPO_TOOLS.find((t) => t.key === e.toolKey)?.category === "conditional"
+  );
+
+  const barData = report.hpoEvaluations.map((e) => ({
+    name: e.label,
+    score: e.score,
+    applied: e.applied,
+  }));
+
+  return (
+    <div className="space-y-4 animate-fade-in-up">
+      {/* HPO 점수 막대 차트 */}
+      <div className="bg-surface-800 border border-surface-700 rounded-xl p-4">
+        <h4 className="text-sm font-medium text-slate-300 mb-4 flex items-center gap-1.5">
+          <Shield className="w-4 h-4 text-teal-400" /> HPO 기법별 적용 점수
+        </h4>
+        <div className="overflow-x-auto -mx-4 px-4">
+          <div className="min-w-[500px]">
+            <ResponsiveContainer width="100%" height={300}>
+              <BarChart data={barData} layout="vertical">
+                <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" />
+                <XAxis type="number" domain={[0, 100]} tick={{ fill: "#94a3b8", fontSize: 10 }} />
+                <YAxis dataKey="name" type="category" tick={{ fill: "#94a3b8", fontSize: 10 }} width={100} />
+                <Tooltip content={<ChartTooltip unit="점" />} cursor={{ fill: "rgba(255,255,255,0.03)" }} />
+                <Bar dataKey="score" name="적용 점수" radius={[0, 4, 4, 0]}>
+                  {barData.map((entry, i) => (
+                    <Cell key={i} fill={entry.score >= 70 ? "#14b8a6" : entry.score >= 50 ? "#f59e0b" : "#ef4444"} fillOpacity={0.7} />
+                  ))}
+                </Bar>
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+      </div>
+
+      {/* 기본적 / 조건부 분리 */}
+      {[
+        { title: "기본적 인적오류 예방기법", tools: fundamentalTools, color: "text-blue-400" },
+        { title: "조건부 인적오류 예방기법", tools: conditionalTools, color: "text-violet-400" },
+      ].map(({ title, tools, color }) => (
+        <div key={title} className="bg-surface-800 border border-surface-700 rounded-xl p-4">
+          <h4 className={cn("text-sm font-medium mb-3", color)}>{title}</h4>
+          <div className="space-y-2">
+            {tools.map((tool, i) => {
+              const toolDef = HPO_TOOLS.find((t) => t.key === tool.toolKey);
+              return (
+                <div
+                  key={tool.toolKey}
+                  className="animate-fade-in-up flex items-center gap-3 p-3 rounded-lg bg-surface-900/50"
+                  style={{ animationDelay: `${i * 50}ms`, animationFillMode: "backwards" }}
+                >
+                  <div className="w-1.5 h-8 rounded-full" style={{ backgroundColor: toolDef?.color || "#64748b" }} />
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 mb-0.5">
+                      <span className="text-xs font-medium text-slate-300">{tool.label}</span>
+                      {tool.applied ? (
+                        <span className="text-[10px] px-1.5 py-0.5 rounded bg-teal-500/10 text-teal-400">적용됨</span>
+                      ) : (
+                        <span className="text-[10px] px-1.5 py-0.5 rounded bg-red-500/10 text-red-400">미적용</span>
+                      )}
+                    </div>
+                    {tool.evidence && <p className="text-[10px] text-slate-500">{tool.evidence}</p>}
+                  </div>
+                  <div className="shrink-0 w-12 text-right">
+                    <span className={cn("text-sm font-bold font-mono tabular-nums", tool.score >= 70 ? "text-teal-400" : tool.score >= 50 ? "text-amber-400" : "text-red-400")}>
+                      {tool.score}
+                    </span>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function FundamentalsTab({ report }: { report: PovEvaluationReport }) {
+  return (
+    <div className="space-y-4 animate-fade-in-up">
+      {/* 레이더 차트 */}
+      <div className="bg-surface-800 border border-surface-700 rounded-xl p-4">
+        <h4 className="text-sm font-medium text-slate-300 mb-2">운전원 기본수칙 5대 역량 종합</h4>
+        <ResponsiveContainer width="100%" height={280}>
+          <RadarChart data={report.fundamentalScores.map((f) => ({
+            subject: f.label.replace(/\s*\(.*\)/, ""),
+            score: f.score,
+            fullMark: 100,
+          }))}>
+            <PolarGrid stroke="#1e293b" />
+            <PolarAngleAxis dataKey="subject" tick={{ fill: "#94a3b8", fontSize: 11 }} />
+            <PolarRadiusAxis angle={90} domain={[0, 100]} tick={{ fill: "#475569", fontSize: 9 }} />
+            <Radar name="점수" dataKey="score" stroke="#f59e0b" fill="#f59e0b" fillOpacity={0.15} strokeWidth={2} />
+          </RadarChart>
+        </ResponsiveContainer>
+      </div>
+
+      {/* 역량별 상세 */}
+      {report.fundamentalScores.map((fs, i) => {
+        const fundDef = OPERATOR_FUNDAMENTALS.find((f) => f.key === fs.key);
+        const gradeInfo = getGradeForScore(fs.score);
+        return (
+          <div
+            key={fs.key}
+            className="animate-fade-in-up bg-surface-800 border border-surface-700 rounded-xl p-4"
+            style={{ animationDelay: `${i * 80}ms`, animationFillMode: "backwards" }}
+          >
+            <div className="flex items-start gap-3">
+              <div className="w-10 h-10 rounded-xl flex items-center justify-center text-sm font-bold shrink-0" style={{ backgroundColor: `${fundDef?.color}15`, color: fundDef?.color }}>
+                {fs.score}
+              </div>
+              <div className="flex-1">
+                <div className="flex items-center gap-2 mb-1">
+                  <h5 className="text-sm font-medium text-slate-200">{fs.label}</h5>
+                  <span className={cn("text-[10px] px-1.5 py-0.5 rounded", gradeInfo.bgColor, gradeInfo.color)}>{gradeInfo.grade}</span>
+                  <span className="text-[10px] text-slate-600 ml-auto">{fundDef?.section}</span>
+                </div>
+                <p className="text-xs text-slate-500 mb-2">{fundDef?.definition}</p>
+
+                {/* 프로그레스 바 */}
+                <div className="h-1.5 rounded-full bg-surface-900 overflow-hidden mb-2">
+                  <div className="h-full rounded-full transition-all duration-1000" style={{ width: `${fs.score}%`, backgroundColor: fundDef?.color }} />
+                </div>
+
+                {/* 평가 포인트 */}
+                <p className="text-xs text-amber-400/70 flex items-start gap-1">
+                  <Sparkles className="w-3 h-3 mt-0.5 shrink-0" />
+                  {fs.feedback}
+                </p>
+              </div>
+            </div>
+          </div>
+        );
+      })}
     </div>
   );
 }

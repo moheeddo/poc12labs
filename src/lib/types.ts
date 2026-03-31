@@ -196,6 +196,60 @@ export interface PovComparison {
   bestPracticeHighlights: Highlight[];
 }
 
+// POV 평가 결과 — 절차별 스텝 단위
+export interface StepEvaluation {
+  stepId: string;
+  description: string;
+  status: "pass" | "fail" | "partial" | "skipped";
+  confidence: number;    // 0-100 TwelveLabs 신뢰도
+  timestamp?: number;    // 영상 내 수행 시점 (초)
+  note?: string;         // AI 평가 코멘트
+}
+
+// HPO 기법 적용 평가
+export interface HpoToolEvaluation {
+  toolKey: string;
+  label: string;
+  applied: boolean;
+  score: number;         // 0-100
+  evidence?: string;     // 적용 근거
+  timestamp?: number;
+}
+
+// 운전원 기본수칙 역량 점수
+export interface FundamentalScore {
+  key: string;
+  label: string;
+  score: number;         // 0-100
+  feedback: string;
+}
+
+// 종합 POV 평가 리포트
+export interface PovEvaluationReport {
+  id: string;
+  procedureId: string;
+  procedureTitle: string;
+  videoId: string;
+  evaluatorName?: string;
+  traineeInfo?: string;
+  date: string;
+  // 절차 수행 평가
+  stepEvaluations: StepEvaluation[];
+  procedureComplianceScore: number; // 0-100
+  // HPO 기법 적용도
+  hpoEvaluations: HpoToolEvaluation[];
+  hpoOverallScore: number;          // 0-100
+  // 5대 기본수칙 역량
+  fundamentalScores: FundamentalScore[];
+  // 종합
+  overallScore: number;              // 0-100
+  grade: string;
+  deviations: SopDeviation[];
+  strengths: string[];
+  improvements: string[];
+  summary: string;
+}
+
 // =============================================
 // 공통 UI 타입
 // =============================================

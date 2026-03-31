@@ -18,8 +18,8 @@ export const SERVICE_TABS: {
 }[] = [
   {
     key: "simulator",
-    label: "N-HPAI 시뮬레이터 평가",
-    description: "원전 운전 시뮬레이터 훈련 영상을 분석하여 8대 핵심역량을 정량 평가합니다.",
+    label: "시뮬레이터 훈련 멀티모달 분석",
+    description: "원전 운전 시뮬레이터 훈련 영상을 멀티모달 AI로 분석하여 8대 핵심역량을 정량 평가합니다.",
     color: "text-coral-400",
     bgColor: "bg-coral-500/10",
     borderColor: "border-coral-500/30",

@@ -6,17 +6,40 @@ import { PlayCircle, Upload, Search } from "lucide-react";
 interface VideoPlayerProps {
   src?: string;
   startTime?: number;
+  seekTrigger?: number;        // 동일 시간 재탐색용 카운터
+  onTimeUpdate?: (time: number) => void;  // 재생 시간 콜백
+  autoPlayOnSeek?: boolean;    // seek 후 자동 재생
   className?: string;
 }
 
-export default function VideoPlayer({ src, startTime, className = "" }: VideoPlayerProps) {
+export default function VideoPlayer({
+  src, startTime, seekTrigger, onTimeUpdate, autoPlayOnSeek, className = "",
+}: VideoPlayerProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
 
+  // seek 트리거 — startTime 또는 seekTrigger 변경 시 탐색
   useEffect(() => {
     if (videoRef.current && startTime !== undefined) {
       videoRef.current.currentTime = startTime;
+      if (autoPlayOnSeek) videoRef.current.play().catch(() => {});
     }
-  }, [startTime]);
+  }, [startTime, seekTrigger, autoPlayOnSeek]);
+
+  // 재생 시간 콜백 (throttle: ~250ms 간격)
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video || !onTimeUpdate) return;
+    let last = 0;
+    const handler = () => {
+      const now = performance.now();
+      if (now - last > 250) {
+        last = now;
+        onTimeUpdate(video.currentTime);
+      }
+    };
+    video.addEventListener("timeupdate", handler);
+    return () => video.removeEventListener("timeupdate", handler);
+  }, [onTimeUpdate]);
 
   if (!src) {
     return (

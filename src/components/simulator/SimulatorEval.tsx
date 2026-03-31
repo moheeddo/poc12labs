@@ -87,9 +87,9 @@ export default function SimulatorEval() {
     <div className="max-w-[1440px] mx-auto px-4 md:px-6 py-6 space-y-6 animate-slide-in-right">
       {/* 헤더 */}
       <div>
-        <h2 className="text-xl font-bold text-coral-400">N-HPAI 시뮬레이터 평가</h2>
-        <p className="text-sm text-slate-400 mt-1">
-          원전 운전 시뮬레이터 훈련 영상 분석 및 8대 핵심역량 정량 평가
+        <h2 className="text-2xl font-bold text-coral-400 tracking-tight">시뮬레이터 훈련 멀티모달 분석</h2>
+        <p className="text-base text-slate-400 mt-1.5">
+          원전 운전 시뮬레이터 훈련 영상을 멀티모달 AI로 분석하여 8대 핵심역량 정량 평가
         </p>
       </div>
 

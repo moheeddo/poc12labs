@@ -192,8 +192,8 @@ export default function LeadershipCoaching() {
     <div className="max-w-[1440px] mx-auto px-4 md:px-6 py-8 space-y-8 animate-slide-in-right">
       {/* 헤더 */}
       <div>
-        <h2 className="text-xl font-bold text-teal-400">리더십코칭 역량진단</h2>
-        <p className="text-sm text-slate-500 mt-1">
+        <h2 className="text-2xl font-bold text-teal-400 tracking-tight">리더십코칭 역량진단</h2>
+        <p className="text-base text-slate-400 mt-1.5">
           KHNP 전직급 리더십 역량 정의 및 행동지표 기준 · 9점 척도 평가
         </p>
       </div>
