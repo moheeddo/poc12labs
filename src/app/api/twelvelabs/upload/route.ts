@@ -32,16 +32,15 @@ async function handleUrlUpload(request: NextRequest) {
 
   log.info("URL 기반 업로드 시작", { indexId, videoUrl });
 
+  // TwelveLabs v1.3은 URL 업로드도 multipart/form-data 필요
+  const tlFormData = new FormData();
+  tlFormData.append("index_id", indexId);
+  tlFormData.append("video_url", videoUrl);
+
   const res = await fetch(`${API_URL}/tasks`, {
     method: "POST",
-    headers: {
-      "x-api-key": API_KEY,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      index_id: indexId,
-      video_url: videoUrl,
-    }),
+    headers: { "x-api-key": API_KEY },
+    body: tlFormData,
   });
 
   if (!res.ok) {

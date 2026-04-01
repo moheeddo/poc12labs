@@ -121,75 +121,7 @@ export async function getEmbeddings(taskId: string) {
   );
 }
 
-// =============================================
-// 멀티파트 직접 업로드 (presigned URL 방식)
-// 플로우: initUpload → 클라이언트가 presigned URL로 직접 전송 → completeUpload
-// =============================================
-
-// 1단계: 멀티파트 업로드 태스크 생성 → presigned URL 목록 반환
-export async function initMultipartUpload(indexId: string, fileName: string, fileSize: number) {
-  log.info("멀티파트 업로드 초기화", { indexId, fileName, fileSize: `${(fileSize / 1024 / 1024).toFixed(1)}MB` });
-
-  const res = await fetch(`${API_URL}/tasks/transfers`, {
-    method: "POST",
-    headers: {
-      "x-api-key": API_KEY,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      index_id: indexId,
-      file_name: fileName,
-      file_size: fileSize,
-    }),
-  });
-
-  if (!res.ok) {
-    const error = await res.text();
-    log.error("멀티파트 업로드 초기화 실패", { status: res.status, error });
-    throw new Error(`업로드 초기화 실패 (${res.status}): ${error}`);
-  }
-
-  const data = await res.json();
-  const partCount = data.parts?.length ?? 0;
-  log.info("멀티파트 업로드 초기화 완료", { taskId: data._id, partCount });
-
-  return {
-    taskId: data._id as string,
-    parts: (data.parts as Array<{ presigned_url: string; start_byte: number; end_byte: number }>).map(
-      (p, i) => ({
-        partIndex: i,
-        startByte: p.start_byte,
-        endByte: p.end_byte,
-        presignedUrl: p.presigned_url,
-      })
-    ),
-  };
-}
-
-// 2단계: 업로드 완료 통보
-export async function completeMultipartUpload(taskId: string) {
-  log.info("멀티파트 업로드 완료 통보", { taskId });
-
-  const res = await fetch(`${API_URL}/tasks/transfers/${taskId}`, {
-    method: "PUT",
-    headers: {
-      "x-api-key": API_KEY,
-      "Content-Type": "application/json",
-    },
-  });
-
-  if (!res.ok) {
-    const error = await res.text();
-    log.error("업로드 완료 통보 실패", { taskId, status: res.status, error });
-    throw new Error(`업로드 완료 실패 (${res.status}): ${error}`);
-  }
-
-  const data = await res.json();
-  log.info("업로드 완료 — 인덱싱 시작", { taskId, status: data.status });
-  return data;
-}
-
-// 3단계: 인덱싱 태스크 상태 조회
+// 인덱싱 태스크 상태 조회
 export async function getTaskStatus(taskId: string) {
   log.debug("태스크 상태 조회", { taskId });
 

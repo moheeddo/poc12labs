@@ -29,7 +29,7 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
               style={{ animationDelay: "50ms", animationFillMode: "backwards" }}
             >
               <div className="w-1.5 h-1.5 rounded-full bg-khnp-emerald animate-pulse" />
-              INTEGRATED CONTROL
+              통합 제어
             </div>
             <h2
               className="animate-fade-in-up text-3xl md:text-4xl font-bold text-white mb-2 tracking-[-0.03em] leading-tight"
@@ -152,7 +152,7 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
             className="animate-fade-in-up text-[13px] font-mono text-slate-500 tracking-[0.15em] uppercase"
             style={{ animationDelay: "800ms", animationFillMode: "backwards" }}
           >
-            Quick Start
+            빠른 시작
           </h3>
           <div
             className="animate-fade-in-up h-px flex-1 bg-gradient-to-l from-surface-600 to-transparent"
@@ -168,6 +168,8 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
               desc: "평가 대상 영상을 등록합니다",
               icon: <UploadCloud className="w-5 h-5" />,
               iconColor: "text-coral-400",
+              hoverBorder: "hover:border-coral-500/20",
+              tab: "simulator" as ServiceTab,
             },
             {
               step: 2,
@@ -175,6 +177,8 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
               desc: "멀티모달 AI가 자동으로 분석합니다",
               icon: <ScanSearch className="w-5 h-5" />,
               iconColor: "text-teal-400",
+              hoverBorder: "hover:border-teal-500/20",
+              tab: "leadership" as ServiceTab,
             },
             {
               step: 3,
@@ -182,15 +186,23 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
               desc: "역량 평가 리포트를 확인합니다",
               icon: <ClipboardCheck className="w-5 h-5" />,
               iconColor: "text-amber-400",
+              hoverBorder: "hover:border-amber-500/20",
+              tab: "pov" as ServiceTab,
             },
           ].map((item, i) => (
             <div key={item.step} className="flex flex-col md:flex-row items-center md:flex-1">
-              <div
-                className="animate-fade-in-up w-full glass glass-shine rounded-xl p-5 transition-all duration-300 hover:border-white/[0.06]"
+              <button
+                type="button"
+                onClick={() => onNavigate(item.tab)}
+                className={cn(
+                  "animate-fade-in-up w-full glass glass-shine rounded-xl p-5 transition-all duration-300 cursor-pointer text-left group/step",
+                  item.hoverBorder,
+                  "hover:-translate-y-0.5 hover:shadow-lg",
+                )}
                 style={{ animationDelay: `${900 + i * 100}ms`, animationFillMode: "backwards" }}
               >
                 <div className="flex items-center gap-3 mb-3">
-                  <div className={cn("flex items-center justify-center w-10 h-10 rounded-lg bg-white/[0.03] border border-white/[0.05]", item.iconColor)}>
+                  <div className={cn("flex items-center justify-center w-10 h-10 rounded-lg bg-white/[0.03] border border-white/[0.05] transition-colors duration-300 group-hover/step:bg-white/[0.06]", item.iconColor)}>
                     {item.icon}
                   </div>
                   <span className="text-[11px] font-mono text-slate-500 tracking-wider">
@@ -198,8 +210,8 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
                   </span>
                 </div>
                 <h4 className="text-[15px] text-white font-semibold mb-1 tracking-[-0.01em]">{item.title}</h4>
-                <p className="text-[13px] text-slate-400/80 leading-relaxed">{item.desc}</p>
-              </div>
+                <p className="text-[13px] text-slate-400/80 leading-relaxed group-hover/step:text-slate-300/80 transition-colors duration-300">{item.desc}</p>
+              </button>
 
               {i < 2 && (
                 <>
@@ -223,7 +235,7 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
           style={{ animationDelay: "1200ms", animationFillMode: "backwards" }}
         >
           <Clock className="w-4 h-4 text-slate-500" />
-          Recent Activity
+          최근 활동
         </h3>
 
         <div
@@ -264,40 +276,14 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
             ))}
           </div>
 
-          <div className="h-px bg-white/[0.03] my-6" />
-
-          {/* 빈 상태 CTA */}
+          {/* 하단 안내 */}
           <div
-            className="animate-fade-in-up flex flex-col items-center text-center py-6"
+            className="animate-fade-in-up mt-5 flex items-center justify-center gap-2 text-[12px] text-slate-500/60 font-mono"
             style={{ animationDelay: "1500ms", animationFillMode: "backwards" }}
           >
-            <div className="w-14 h-14 rounded-2xl bg-white/[0.02] border border-white/[0.04] flex items-center justify-center mb-5">
-              <UploadCloud className="w-6 h-6 text-slate-500" />
-            </div>
-            <p className="text-[15px] text-slate-400 mb-1 font-medium">아직 활동 내역이 없습니다</p>
-            <p className="text-sm text-slate-400/80 mb-6 leading-relaxed">
-              영상을 업로드하면 분석 활동이 여기에 표시됩니다
-            </p>
-            <div className="flex items-center gap-2.5">
-              {[
-                { tab: "simulator" as ServiceTab, label: "시뮬레이터", border: "border-coral-500/20 text-coral-400 hover:bg-coral-500/5" },
-                { tab: "leadership" as ServiceTab, label: "리더십", border: "border-teal-500/20 text-teal-400 hover:bg-teal-500/5" },
-                { tab: "pov" as ServiceTab, label: "POV", border: "border-amber-500/20 text-amber-400 hover:bg-amber-500/5" },
-              ].map((btn) => (
-                <button
-                  key={btn.tab}
-                  type="button"
-                  onClick={() => onNavigate(btn.tab)}
-                  className={cn(
-                    "text-[13px] px-4 py-2 rounded-lg border transition-all duration-300",
-                    "active:scale-[0.97]",
-                    btn.border,
-                  )}
-                >
-                  {btn.label}
-                </button>
-              ))}
-            </div>
+            <div className="h-px flex-1 bg-white/[0.03]" />
+            <span>영상을 업로드하면 실시간 활동이 표시됩니다</span>
+            <div className="h-px flex-1 bg-white/[0.03]" />
           </div>
         </div>
       </div>

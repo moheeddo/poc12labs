@@ -50,7 +50,7 @@ export function middleware(request: NextRequest) {
 
 export const config = {
   matcher: [
-    // 정적 파일, _next, TwelveLabs 업로드 프록시 제외
-    "/((?!_next/static|_next/image|favicon.ico|api/twelvelabs/upload|api/tl-).*)",
+    // 정적 파일, _next, 업로드 API 제외 (대용량 body 허용)
+    "/((?!_next/static|_next/image|favicon.ico|api/twelvelabs/upload).*)",
   ],
 };

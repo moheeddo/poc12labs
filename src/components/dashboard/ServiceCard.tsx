@@ -140,14 +140,14 @@ export default function ServiceCard({
             )}
           </div>
 
-          {/* 화살표 — 호버 시 슬라이드 */}
+          {/* 시작하기 CTA — 호버 시 슬라이드 */}
           <span className={cn(
-            "text-[13px] font-mono opacity-0 -translate-x-2",
-            "group-hover:opacity-50 group-hover:translate-x-0",
+            "flex items-center gap-1 text-[13px] font-medium opacity-0 -translate-x-2",
+            "group-hover:opacity-70 group-hover:translate-x-0",
             "transition-all duration-400",
             color,
           )}>
-            &rarr;
+            시작하기 &rarr;
           </span>
         </div>
       </div>
