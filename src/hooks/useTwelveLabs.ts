@@ -93,16 +93,17 @@ export function useVideoUpload() {
     setProgress({ fileName: file.name, progress: 0, status: "uploading" });
 
     try {
-      // FormData → Pages API 라우트 (bodyParser: false, 용량 무제한)
-      console.log(logPrefix, "서버로 영상 전송 중...");
+      // Edge 미들웨어 rewrite로 TwelveLabs에 직접 업로드
+      // /api/tl-upload → https://api.twelvelabs.io/v1.3/tasks (서버리스 함수 우회, body 제한 없음)
+      console.log(logPrefix, "TwelveLabs 직접 전송 중...");
       const formData = new FormData();
-      formData.append("indexId", indexId);
-      formData.append("file", file);
+      formData.append("index_id", indexId);
+      formData.append("video_file", file);
 
       // XMLHttpRequest로 업로드 진행률 추적
       const { taskId } = await new Promise<{ taskId: string; videoId?: string }>((resolve, reject) => {
         const xhr = new XMLHttpRequest();
-        xhr.open("POST", "/api/twelvelabs-upload");
+        xhr.open("POST", "/api/tl-upload");
 
         xhr.upload.onprogress = (e) => {
           if (e.lengthComputable) {
@@ -115,14 +116,16 @@ export function useVideoUpload() {
         xhr.onload = () => {
           if (xhr.status >= 200 && xhr.status < 300) {
             try {
-              resolve(JSON.parse(xhr.responseText));
+              const data = JSON.parse(xhr.responseText);
+              // TwelveLabs 응답 형식: { _id, video_id } → 내부 형식으로 변환
+              resolve({ taskId: data._id, videoId: data.video_id });
             } catch {
               reject(new Error("서버 응답 파싱 실패"));
             }
           } else {
             try {
               const err = JSON.parse(xhr.responseText);
-              reject(new Error(err.error || `HTTP ${xhr.status}`));
+              reject(new Error(err.message || err.error || `HTTP ${xhr.status}`));
             } catch {
               reject(new Error(`업로드 실패 (${xhr.status})`));
             }
