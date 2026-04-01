@@ -74,7 +74,6 @@ export function useVideoSearch() {
 // 3. POST /api/twelvelabs/upload/complete → 인덱싱 시작
 // 4. GET /api/twelvelabs/upload/status 폴링 → 완료 대기
 
-const MAX_UPLOAD_SIZE = 2 * 1024 * 1024 * 1024; // 2GB
 const STATUS_POLL_INTERVAL = 5000; // 5초 간격 폴링
 
 export function useVideoUpload() {
@@ -84,15 +83,6 @@ export function useVideoUpload() {
   const upload = useCallback(async (indexId: string, file: File): Promise<string> => {
     abortRef.current = false;
     const logPrefix = tag("Upload");
-
-    // 1) 클라이언트 사전 검증
-    if (file.size > MAX_UPLOAD_SIZE) {
-      const sizeMB = (file.size / 1024 / 1024).toFixed(1);
-      const errMsg = `파일 크기(${sizeMB}MB)가 제한(2GB)을 초과합니다`;
-      console.error(logPrefix, errMsg);
-      setProgress({ fileName: file.name, progress: 0, status: "error", error: errMsg });
-      throw new Error(errMsg);
-    }
 
     console.log(logPrefix, "업로드 시작", {
       fileName: file.name,

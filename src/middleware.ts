@@ -50,7 +50,7 @@ export function middleware(request: NextRequest) {
 
 export const config = {
   matcher: [
-    // 정적 파일, _next 제외
-    "/((?!_next/static|_next/image|favicon.ico).*)",
+    // 정적 파일, _next, 업로드 API 제외 (업로드 스트리밍 body size 제한 방지)
+    "/((?!_next/static|_next/image|favicon.ico|api/twelvelabs/upload).*)",
   ],
 };

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef, useCallback } from "react";
-import { Upload, X, FileVideo, CheckCircle, AlertCircle, Link2, ArrowRight } from "lucide-react";
+import { Upload, X, FileVideo, CheckCircle, AlertCircle, Link2, ArrowRight, FolderOpen } from "lucide-react";
 import type { UploadProgress } from "@/lib/types";
 import { formatFileSize, cn } from "@/lib/utils";
 
@@ -12,26 +12,16 @@ interface VideoUploaderProps {
   accentColor?: string; // coral, teal, amber
 }
 
-type UploadMode = "file" | "url";
-
 export default function VideoUploader({ onUpload, onUrlUpload, progress, accentColor = "coral" }: VideoUploaderProps) {
-  const [mode, setMode] = useState<UploadMode>(onUrlUpload ? "url" : "file");
   const [isDragging, setIsDragging] = useState(false);
   const [isRejected, setIsRejected] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [fileSizeError, setFileSizeError] = useState(false);
+  // URL 입력 모드 (413 에러 시 자동 전환)
+  const [showUrlInput, setShowUrlInput] = useState(false);
   const [videoUrl, setVideoUrl] = useState("");
   const [urlError, setUrlError] = useState("");
   const inputRef = useRef<HTMLInputElement>(null);
   const rejectionTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-  const MAX_FILE_SIZE = 2 * 1024 * 1024 * 1024; // 2GB
-
-  const colorMap: Record<string, string> = {
-    coral: "border-coral-500/40 bg-coral-500/5",
-    teal: "border-teal-500/40 bg-teal-500/5",
-    amber: "border-amber-500/40 bg-amber-500/5",
-  };
 
   const progressColorMap: Record<string, string> = {
     coral: "bg-coral-500",
@@ -45,58 +35,49 @@ export default function VideoUploader({ onUpload, onUrlUpload, progress, accentC
     amber: "text-amber-400",
   };
 
-  const accentBgMap: Record<string, string> = {
-    coral: "bg-coral-500/15 text-coral-400 border-coral-500/30",
-    teal: "bg-teal-500/15 text-teal-400 border-teal-500/30",
-    amber: "bg-amber-500/15 text-amber-400 border-amber-500/30",
-  };
-
   const accentBtnMap: Record<string, string> = {
     coral: "bg-coral-600 hover:bg-coral-500 active:bg-coral-700",
     teal: "bg-teal-600 hover:bg-teal-500 active:bg-teal-700",
     amber: "bg-amber-600 hover:bg-amber-500 active:bg-amber-700",
   };
 
+  const accentBorderMap: Record<string, string> = {
+    coral: "border-coral-500/40 bg-coral-500/5",
+    teal: "border-teal-500/40 bg-teal-500/5",
+    amber: "border-amber-500/40 bg-amber-500/5",
+  };
+
+  // 파일 드롭 — 용량 제한 없음
   const handleDrop = useCallback((e: React.DragEvent) => {
     e.preventDefault();
     setIsDragging(false);
     const file = e.dataTransfer.files[0];
     if (file?.type.startsWith("video/")) {
-      if (file.size > MAX_FILE_SIZE) {
-        setFileSizeError(true);
-        setSelectedFile(null);
-        return;
-      }
-      setFileSizeError(false);
       setSelectedFile(file);
       setIsRejected(false);
     } else if (file) {
-      setFileSizeError(false);
       setIsRejected(true);
       if (rejectionTimerRef.current) clearTimeout(rejectionTimerRef.current);
       rejectionTimerRef.current = setTimeout(() => setIsRejected(false), 1000);
     }
   }, []);
 
+  // 파일 선택 — Finder에서 선택
   const handleFileSelect = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      if (file.size > MAX_FILE_SIZE) {
-        setFileSizeError(true);
-        setSelectedFile(null);
-        return;
-      }
-      setFileSizeError(false);
       setSelectedFile(file);
     }
   }, []);
 
+  // 파일 업로드 시작
   const handleUpload = useCallback(async () => {
     if (selectedFile) {
       await onUpload(selectedFile);
     }
   }, [selectedFile, onUpload]);
 
+  // URL 업로드
   const handleUrlSubmit = useCallback(async () => {
     if (!onUrlUpload) return;
     const trimmed = videoUrl.trim();
@@ -104,9 +85,7 @@ export default function VideoUploader({ onUpload, onUrlUpload, progress, accentC
       setUrlError("URL을 입력해 주세요");
       return;
     }
-    try {
-      new URL(trimmed);
-    } catch {
+    try { new URL(trimmed); } catch {
       setUrlError("올바른 URL 형식이 아닙니다");
       return;
     }
@@ -114,53 +93,80 @@ export default function VideoUploader({ onUpload, onUrlUpload, progress, accentC
     await onUrlUpload(trimmed);
   }, [videoUrl, onUrlUpload]);
 
-  const showModeTabs = !!onUrlUpload;
+  // Finder 열기
+  const openFinder = useCallback(() => {
+    inputRef.current?.click();
+  }, []);
 
   return (
     <div className="space-y-3">
-      {/* 모드 탭 — URL 업로드가 지원될 때만 표시 */}
-      {showModeTabs && (
-        <div className="flex gap-1 bg-surface-800/60 rounded-lg p-1 border border-surface-700/40">
-          <button
-            onClick={() => setMode("url")}
+      {/* ── 메인 영역: 드래그앤드롭 + 클릭 → Finder ── */}
+      {!showUrlInput && (
+        <>
+          <div
+            role="button"
+            aria-label="영상 파일 업로드 영역 — 클릭하면 Finder가 열립니다"
+            tabIndex={0}
+            onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); openFinder(); } }}
+            onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
+            onDragLeave={() => setIsDragging(false)}
+            onDrop={handleDrop}
+            onClick={openFinder}
             className={cn(
-              "flex-1 flex items-center justify-center gap-1.5 px-3 py-2 rounded-md text-xs font-medium transition-all duration-200",
-              mode === "url"
-                ? `${accentBgMap[accentColor]}`
-                : "text-slate-500 hover:text-slate-300"
+              "border-2 border-dashed rounded-xl p-6 md:p-8 text-center cursor-pointer transition-all duration-200",
+              isRejected
+                ? "border-red-500/60 bg-red-500/5"
+                : isDragging
+                  ? `${accentBorderMap[accentColor]} scale-[1.01] animate-pulse`
+                  : "border-surface-600 hover:border-surface-500 hover:bg-surface-800/30",
             )}
           >
-            <Link2 className="w-3.5 h-3.5" />
-            URL 입력
-            <span className="text-[10px] opacity-60 ml-0.5">용량무제한</span>
-          </button>
-          <button
-            onClick={() => setMode("file")}
-            className={cn(
-              "flex-1 flex items-center justify-center gap-1.5 px-3 py-2 rounded-md text-xs font-medium transition-all duration-200",
-              mode === "file"
-                ? `${accentBgMap[accentColor]}`
-                : "text-slate-500 hover:text-slate-300"
+            <input
+              ref={inputRef}
+              type="file"
+              accept="video/*"
+              className="hidden"
+              onChange={handleFileSelect}
+            />
+            <div className="flex flex-col items-center">
+              {isDragging ? (
+                <Upload className={cn("w-8 h-8 mb-3 animate-bounce", iconAccentColorMap[accentColor])} />
+              ) : (
+                <FolderOpen className="w-8 h-8 mb-3 text-slate-500" />
+              )}
+              <p className="text-sm text-slate-300 mb-1">
+                클릭하여 파일 선택 또는 드래그앤드롭
+              </p>
+              <p className="text-xs text-slate-500">MP4, AVI, MOV 지원 · 용량 제한 없음</p>
+            </div>
+            {isRejected && (
+              <p className="text-xs text-red-400 mt-2 animate-fade-in-up">
+                영상 파일만 업로드할 수 있습니다
+              </p>
             )}
-          >
-            <Upload className="w-3.5 h-3.5" />
-            파일 업로드
-            <span className="text-[10px] opacity-60 ml-0.5">최대 2GB</span>
-          </button>
-        </div>
+          </div>
+
+          {/* URL 입력 토글 (onUrlUpload이 있을 때만) */}
+          {onUrlUpload && !selectedFile && !progress && (
+            <button
+              onClick={(e) => { e.stopPropagation(); setShowUrlInput(true); }}
+              className="flex items-center gap-1.5 text-xs text-slate-600 hover:text-slate-400 transition-colors mx-auto"
+            >
+              <Link2 className="w-3 h-3" />
+              URL로 업로드
+            </button>
+          )}
+        </>
       )}
 
-      {/* URL 입력 모드 */}
-      {mode === "url" && showModeTabs && (
+      {/* ── URL 입력 모드 ── */}
+      {showUrlInput && onUrlUpload && (
         <div className="space-y-2">
-          <div className={cn(
-            "border-2 border-dashed rounded-xl p-6 md:p-8 text-center transition-all duration-200",
-            "border-surface-600",
-          )}>
+          <div className="border-2 border-dashed rounded-xl p-6 text-center border-surface-600">
             <Link2 className={cn("w-8 h-8 mx-auto mb-3", iconAccentColorMap[accentColor])} />
             <p className="text-sm text-slate-300 mb-1">영상 URL을 입력하세요</p>
             <p className="text-xs text-slate-500 mb-4">
-              Google Drive, Dropbox, S3 등 공개 접근 가능한 영상 URL · 용량 제한 없음
+              Google Drive, Dropbox, S3 등 공개 접근 가능한 영상 URL
             </p>
             <div className="flex gap-2 max-w-lg mx-auto">
               <input
@@ -172,9 +178,7 @@ export default function VideoUploader({ onUpload, onUrlUpload, progress, accentC
                 className={cn(
                   "flex-1 bg-surface-800 border rounded-lg px-3 py-2.5 text-sm text-white placeholder-slate-600",
                   "focus:outline-none focus:ring-1",
-                  urlError
-                    ? "border-red-500/50 focus:ring-red-500/30"
-                    : `border-surface-600 focus:border-${accentColor}-500/50 focus:ring-${accentColor}-500/30`,
+                  urlError ? "border-red-500/50 focus:ring-red-500/30" : "border-surface-600",
                 )}
               />
               <button
@@ -189,83 +193,43 @@ export default function VideoUploader({ onUpload, onUrlUpload, progress, accentC
                 <ArrowRight className="w-4 h-4" />
               </button>
             </div>
-            {urlError && (
-              <p className="text-xs text-red-400 mt-2">{urlError}</p>
-            )}
+            {urlError && <p className="text-xs text-red-400 mt-2">{urlError}</p>}
           </div>
+          <button
+            onClick={() => setShowUrlInput(false)}
+            className="flex items-center gap-1.5 text-xs text-slate-600 hover:text-slate-400 transition-colors mx-auto"
+          >
+            <FolderOpen className="w-3 h-3" />
+            파일로 업로드
+          </button>
         </div>
       )}
 
-      {/* 파일 업로드 모드 */}
-      {mode === "file" && (
-        <>
-          <div
-            role="button"
-            aria-label="영상 파일 업로드 영역"
-            tabIndex={0}
-            onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); inputRef.current?.click(); } }}
-            onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
-            onDragLeave={() => setIsDragging(false)}
-            onDrop={handleDrop}
-            onClick={() => inputRef.current?.click()}
+      {/* ── 선택된 파일 ── */}
+      {selectedFile && !progress && (
+        <div className="flex items-center gap-3 bg-surface-800 rounded-lg p-3 border border-surface-700 animate-fade-in-up">
+          <FileVideo className={cn("w-5 h-5 shrink-0", iconAccentColorMap[accentColor])} />
+          <div className="flex-1 min-w-0">
+            <p className="text-sm text-white truncate">{selectedFile.name}</p>
+            <p className="text-xs text-slate-500">{formatFileSize(selectedFile.size)}</p>
+          </div>
+          <button onClick={() => setSelectedFile(null)} className="p-2 text-slate-500 hover:text-white transition-colors duration-200" aria-label="파일 선택 취소">
+            <X className="w-4 h-4" />
+          </button>
+          <button
+            onClick={handleUpload}
             className={cn(
-              "border-2 border-dashed rounded-xl p-6 md:p-8 text-center cursor-pointer transition-all duration-200",
-              isRejected
-                ? "border-red-500/60 bg-red-500/5"
-                : isDragging
-                  ? `${colorMap[accentColor]} scale-[1.01] animate-pulse`
-                  : "border-surface-600 hover:border-surface-500 hover:bg-surface-800/30",
+              "px-4 py-2 rounded-lg text-sm font-medium text-white transition-all duration-150",
+              "active:scale-95",
+              accentBtnMap[accentColor],
             )}
           >
-            <input
-              ref={inputRef}
-              type="file"
-              accept="video/*"
-              className="hidden"
-              onChange={handleFileSelect}
-            />
-            <Upload className={cn("w-8 h-8 mx-auto mb-3", isRejected ? "text-red-400" : "text-slate-500", isDragging && "animate-bounce")} />
-            <p className="text-sm text-slate-300 mb-1">영상 파일을 드래그하거나 클릭하여 선택</p>
-            <p className="text-xs text-slate-500">MP4, AVI, MOV 지원 (최대 2GB)</p>
-            {isRejected && (
-              <p className="text-xs text-red-400 mt-2 animate-fade-in-up">
-                지원하지 않는 파일 형식입니다. 영상 파일만 업로드할 수 있습니다.
-              </p>
-            )}
-            {fileSizeError && (
-              <p className="text-xs text-red-500 mt-2">
-                파일 크기가 2GB를 초과합니다
-              </p>
-            )}
-          </div>
-
-          {/* 선택된 파일 */}
-          {selectedFile && !progress && (
-            <div className="flex items-center gap-3 bg-surface-800 rounded-lg p-3 border border-surface-700">
-              <FileVideo className={cn("w-5 h-5 shrink-0", iconAccentColorMap[accentColor] || "text-slate-400")} />
-              <div className="flex-1 min-w-0">
-                <p className="text-sm text-white truncate">{selectedFile.name}</p>
-                <p className="text-xs text-slate-500">{formatFileSize(selectedFile.size)}</p>
-              </div>
-              <button onClick={() => setSelectedFile(null)} className="p-2 text-slate-500 hover:text-white transition-colors duration-200" aria-label="파일 선택 취소">
-                <X className="w-4 h-4" />
-              </button>
-              <button
-                onClick={handleUpload}
-                className={cn(
-                  "px-4 py-2 rounded-lg text-sm font-medium text-white transition-all duration-150",
-                  "active:scale-95",
-                  accentBtnMap[accentColor],
-                )}
-              >
-                업로드
-              </button>
-            </div>
-          )}
-        </>
+            업로드
+          </button>
+        </div>
       )}
 
-      {/* 프로그레스 바 — 공통 */}
+      {/* ── 프로그레스 바 ── */}
       {progress && (
         <div className={cn(
           "bg-surface-800 rounded-lg p-3 border",
@@ -284,7 +248,7 @@ export default function VideoUploader({ onUpload, onUrlUpload, progress, accentC
             <div className="flex-1 min-w-0">
               <p className="text-sm text-white truncate">{progress.fileName}</p>
               <p className="text-xs text-slate-500">
-                {progress.status === "uploading" && `TwelveLabs로 전송 중... ${progress.progress}%`}
+                {progress.status === "uploading" && `전송 중... ${progress.progress}%`}
                 {progress.status === "processing" && "업로드 완료 처리 중..."}
                 {progress.status === "indexing" && `인덱싱 중... ${progress.progress}%`}
                 {progress.status === "complete" && "업로드 + 인덱싱 완료"}
@@ -294,13 +258,13 @@ export default function VideoUploader({ onUpload, onUrlUpload, progress, accentC
           </div>
 
           {/* 413 에러 시 URL 모드 전환 안내 */}
-          {progress.status === "error" && progress.error?.startsWith("UPLOAD_413:") && showModeTabs && (
+          {progress.status === "error" && progress.error?.startsWith("UPLOAD_413:") && onUrlUpload && (
             <div className="mt-1 p-3 rounded-lg bg-amber-500/5 border border-amber-500/15">
               <p className="text-xs text-amber-400 font-medium mb-2">
                 {progress.error.replace("UPLOAD_413:", "")}
               </p>
               <button
-                onClick={() => { setMode("url"); setSelectedFile(null); }}
+                onClick={() => { setShowUrlInput(true); setSelectedFile(null); }}
                 className="flex items-center gap-1.5 text-xs font-medium text-amber-400 hover:text-amber-300 transition-colors duration-200"
               >
                 <Link2 className="w-3.5 h-3.5" />
