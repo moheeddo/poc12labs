@@ -101,7 +101,7 @@ export default function ServiceCard({
           "bg-white/[0.03] border border-white/[0.06] text-slate-500",
           "font-mono text-[10px]",
           "transition-all duration-300",
-          "group-hover:text-khnp-green-light group-hover:border-khnp-green-light/30 group-hover:bg-khnp-green/5"
+          "group-hover:text-khnp-emerald-light group-hover:border-khnp-emerald-light/30 group-hover:bg-khnp-emerald/5"
         )}>
           {shortcutKey}
         </kbd>

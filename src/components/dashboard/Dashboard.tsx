@@ -25,10 +25,10 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
         <div className="flex items-start justify-between">
           <div>
             <div
-              className="inline-flex items-center gap-2 px-3 py-1 rounded-full glass-subtle text-[11px] font-mono text-khnp-green tracking-wider mb-4"
+              className="inline-flex items-center gap-2 px-3 py-1 rounded-full glass-subtle text-[11px] font-mono text-khnp-emerald tracking-wider mb-4"
               style={{ animationDelay: "50ms", animationFillMode: "backwards" }}
             >
-              <div className="w-1.5 h-1.5 rounded-full bg-khnp-green animate-pulse" />
+              <div className="w-1.5 h-1.5 rounded-full bg-khnp-emerald animate-pulse" />
               INTEGRATED CONTROL
             </div>
             <h2
@@ -49,7 +49,7 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
 
         {/* 그라데이션 디바이더 */}
         <div
-          className="animate-fade-in-up mt-6 h-px bg-gradient-to-r from-khnp-green/40 via-teal-500/20 to-transparent animate-gradient-pulse"
+          className="animate-fade-in-up mt-6 h-px bg-gradient-to-r from-khnp-emerald/40 via-teal-500/20 to-transparent animate-gradient-pulse"
           style={{ animationDelay: "200ms", animationFillMode: "backwards" }}
         />
       </div>

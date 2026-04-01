@@ -26,32 +26,32 @@ export default function KhnpLogo({ className = "", size = 36 }: KhnpLogoProps) {
       <defs>
         {/* 코어 방사형 그라데이션 */}
         <radialGradient id={`${id}-core`} cx="50%" cy="50%" r="50%">
-          <stop offset="0%" stopColor="#34d399" />
-          <stop offset="50%" stopColor="#00A040" />
-          <stop offset="100%" stopColor="#065f46" />
+          <stop offset="0%" stopColor="#00a06a" />
+          <stop offset="50%" stopColor="#006341" />
+          <stop offset="100%" stopColor="#004a31" />
         </radialGradient>
 
         {/* 코어 글로우 */}
         <radialGradient id={`${id}-glow`} cx="50%" cy="50%" r="60%">
-          <stop offset="0%" stopColor="#34d399" stopOpacity="0.4" />
-          <stop offset="100%" stopColor="#34d399" stopOpacity="0" />
+          <stop offset="0%" stopColor="#00a06a" stopOpacity="0.4" />
+          <stop offset="100%" stopColor="#00a06a" stopOpacity="0" />
         </radialGradient>
 
         {/* 궤도 그라데이션 — 3개 각각 다른 불투명도 */}
         <linearGradient id={`${id}-orbit1`} x1="0" y1="0" x2="48" y2="48">
-          <stop offset="0%" stopColor="#34d399" stopOpacity="0.9" />
-          <stop offset="50%" stopColor="#00A040" stopOpacity="0.5" />
-          <stop offset="100%" stopColor="#34d399" stopOpacity="0.15" />
+          <stop offset="0%" stopColor="#00a06a" stopOpacity="0.9" />
+          <stop offset="50%" stopColor="#006341" stopOpacity="0.5" />
+          <stop offset="100%" stopColor="#00a06a" stopOpacity="0.15" />
         </linearGradient>
         <linearGradient id={`${id}-orbit2`} x1="48" y1="0" x2="0" y2="48">
-          <stop offset="0%" stopColor="#6ee7b7" stopOpacity="0.7" />
-          <stop offset="50%" stopColor="#00A040" stopOpacity="0.35" />
-          <stop offset="100%" stopColor="#6ee7b7" stopOpacity="0.1" />
+          <stop offset="0%" stopColor="#2dd898" stopOpacity="0.7" />
+          <stop offset="50%" stopColor="#006341" stopOpacity="0.35" />
+          <stop offset="100%" stopColor="#2dd898" stopOpacity="0.1" />
         </linearGradient>
         <linearGradient id={`${id}-orbit3`} x1="24" y1="0" x2="24" y2="48">
-          <stop offset="0%" stopColor="#a7f3d0" stopOpacity="0.5" />
-          <stop offset="50%" stopColor="#00A040" stopOpacity="0.2" />
-          <stop offset="100%" stopColor="#a7f3d0" stopOpacity="0.08" />
+          <stop offset="0%" stopColor="#7aefc0" stopOpacity="0.5" />
+          <stop offset="50%" stopColor="#006341" stopOpacity="0.2" />
+          <stop offset="100%" stopColor="#7aefc0" stopOpacity="0.08" />
         </linearGradient>
       </defs>
 
@@ -91,9 +91,9 @@ export default function KhnpLogo({ className = "", size = 36 }: KhnpLogoProps) {
       <circle cx="22.5" cy="22.5" r="2" fill="white" opacity="0.3" />
 
       {/* 궤도 위 전자 (3개 — 각 궤도에 하나씩) */}
-      <circle cx="44" cy="24" r="2" fill="#34d399" opacity="0.9" />
-      <circle cx="14" cy="6.7" r="1.6" fill="#6ee7b7" opacity="0.7" />
-      <circle cx="14" cy="41.3" r="1.3" fill="#a7f3d0" opacity="0.5" />
+      <circle cx="44" cy="24" r="2" fill="#00a06a" opacity="0.9" />
+      <circle cx="14" cy="6.7" r="1.6" fill="#2dd898" opacity="0.7" />
+      <circle cx="14" cy="41.3" r="1.3" fill="#7aefc0" opacity="0.5" />
     </svg>
   );
 }

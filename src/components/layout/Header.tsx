@@ -55,7 +55,7 @@ export default function Header({ activeTab, onTabChange }: HeaderProps) {
       {activeGlow ? (
         <div className={`h-[2px] bg-gradient-to-r ${activeGlow} transition-all duration-700`} />
       ) : (
-        <div className="h-[2px] bg-gradient-to-r from-khnp-green/50 via-khnp-green-light/20 to-transparent transition-all duration-700" />
+        <div className="h-[2px] bg-gradient-to-r from-khnp-emerald/50 via-khnp-emerald-light/20 to-transparent transition-all duration-700" />
       )}
 
       <div className="max-w-[1440px] mx-auto px-4 md:px-6">
@@ -68,13 +68,13 @@ export default function Header({ activeTab, onTabChange }: HeaderProps) {
             <div className="relative">
               <KhnpLogo size={38} />
               {/* 로고 주변 미세 글로우 */}
-              <div className="absolute inset-0 rounded-full bg-khnp-green/10 blur-xl scale-150 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+              <div className="absolute inset-0 rounded-full bg-khnp-emerald/10 blur-xl scale-150 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
             </div>
             <div className="flex flex-col">
-              <span className="text-[15px] font-bold tracking-[-0.02em] text-white leading-tight group-hover:text-khnp-green-light transition-colors duration-300">
+              <span className="text-[15px] font-bold tracking-[-0.02em] text-white leading-tight group-hover:text-khnp-emerald-light transition-colors duration-300">
                 KHNP HRDI
               </span>
-              <span className="text-[10px] text-khnp-green/70 font-mono font-medium tracking-[0.15em] uppercase leading-tight hidden sm:block">
+              <span className="text-[10px] text-khnp-emerald/70 font-mono font-medium tracking-[0.15em] uppercase leading-tight hidden sm:block">
                 Video AI Platform
               </span>
             </div>
