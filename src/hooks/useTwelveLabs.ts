@@ -229,6 +229,47 @@ export function useVideoUpload() {
 }
 
 // =============================================
+// 영상 전사(transcript) 조회 훅
+// =============================================
+export interface TranscriptSegment {
+  value: string;
+  start: number;
+  end: number;
+}
+
+export function useVideoTranscription() {
+  const [segments, setSegments] = useState<TranscriptSegment[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const fetchTranscription = useCallback(async (indexId: string, videoId: string) => {
+    console.log(tag("Transcript"), "전사 조회 시작", { indexId, videoId });
+    setLoading(true);
+    setError(null);
+    try {
+      const data = await apiFetch<{
+        videoId: string;
+        duration: number;
+        transcription: TranscriptSegment[];
+      }>(`/api/twelvelabs/transcription?indexId=${encodeURIComponent(indexId)}&videoId=${encodeURIComponent(videoId)}`);
+      const segs = data.transcription || [];
+      console.log(tag("Transcript"), `전사 조회 완료: ${segs.length}개 세그먼트`);
+      setSegments(segs);
+      return segs;
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : "전사 조회 실패";
+      console.error(tag("Transcript"), "전사 조회 실패", msg);
+      setError(msg);
+      return [];
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  return { segments, loading, error, fetchTranscription };
+}
+
+// =============================================
 // 영상 분석 훅
 // =============================================
 export function useVideoAnalysis() {

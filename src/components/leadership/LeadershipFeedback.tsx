@@ -9,10 +9,13 @@ import {
   Clock,
   Sparkles,
   Save,
+  FileText,
+  ClipboardList,
 } from "lucide-react";
-import { useVideoSearch, useVideoAnalysis } from "@/hooks/useTwelveLabs";
+import { useVideoSearch, useVideoAnalysis, useVideoTranscription } from "@/hooks/useTwelveLabs";
 import { TWELVELABS_INDEXES, LEADERSHIP_COMPETENCY_DEFS } from "@/lib/constants";
 import SearchBar from "@/components/shared/SearchBar";
+import TranscriptTimeline from "./TranscriptTimeline";
 import type { Chapter, Highlight, SearchResult, LeadershipCompetencyKey } from "@/lib/types";
 import { formatTime, cn } from "@/lib/utils";
 
@@ -153,9 +156,13 @@ export default function LeadershipFeedback({
   const [activeEvidenceId, setActiveEvidenceId] = useState<string | null>(null);
   const [saved, setSaved] = useState(false);
 
+  // 우측 패널 탭
+  const [rightTab, setRightTab] = useState<"evidence" | "transcript">("evidence");
+
   // 검색
   const { results: searchResults, loading: searchLoading, search } = useVideoSearch();
   const { analyze } = useVideoAnalysis();
+  const { segments: transcriptSegments, loading: transcriptLoading, fetchTranscription } = useVideoTranscription();
 
   // ── 분석 데이터 로드 ──
   useEffect(() => {
@@ -195,6 +202,11 @@ export default function LeadershipFeedback({
     load();
     return () => { cancelled = true; };
   }, [videoId, analyze]);
+
+  // ── 전사 데이터 로드 ──
+  useEffect(() => {
+    fetchTranscription(TWELVELABS_INDEXES.leadership, videoId);
+  }, [videoId, fetchTranscription]);
 
   // ── 비디오 시간 추적 ──
   useEffect(() => {
@@ -432,18 +444,51 @@ export default function LeadershipFeedback({
           )}
         </div>
 
-        {/* ─── 우측: 평가 근거 타임라인 ─── */}
+        {/* ─── 우측: 평가 근거 / 디브리핑 대본 ─── */}
         <div className="lg:col-span-5 space-y-6">
-          {/* 헤더 */}
-          <div className="flex items-center justify-between">
-            <h3 className="text-base font-semibold text-slate-200">평가 근거 타임라인</h3>
-            <span className="text-xs font-mono text-slate-500">
-              {scoredCount}/{evidence.length} 항목 평가
-            </span>
+          {/* 탭 헤더 */}
+          <div className="flex items-center gap-1 p-1 bg-surface-800/40 border border-surface-700/30 rounded-xl">
+            <button
+              onClick={() => setRightTab("evidence")}
+              className={cn(
+                "flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium transition-all",
+                rightTab === "evidence"
+                  ? "bg-surface-700/60 text-teal-400 shadow-sm"
+                  : "text-slate-500 hover:text-slate-400"
+              )}
+            >
+              <ClipboardList className="w-4 h-4" />
+              평가 근거
+              <span className="text-[10px] font-mono opacity-60">{scoredCount}/{evidence.length}</span>
+            </button>
+            <button
+              onClick={() => setRightTab("transcript")}
+              className={cn(
+                "flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium transition-all",
+                rightTab === "transcript"
+                  ? "bg-surface-700/60 text-teal-400 shadow-sm"
+                  : "text-slate-500 hover:text-slate-400"
+              )}
+            >
+              <FileText className="w-4 h-4" />
+              디브리핑 대본
+            </button>
           </div>
 
-          {/* 챕터별 평가 근거 카드 */}
-          {evidenceByChapter.map(({ chapter, items }, ci) => (
+          {/* 디브리핑 대본 탭 */}
+          {rightTab === "transcript" && (
+            <TranscriptTimeline
+              videoId={videoId}
+              currentTime={currentTime}
+              chapters={chapters}
+              onSeek={seekTo}
+              transcriptSegments={transcriptSegments}
+              loading={transcriptLoading}
+            />
+          )}
+
+          {/* 평가 근거 탭 — 챕터별 평가 근거 카드 */}
+          {rightTab === "evidence" && evidenceByChapter.map(({ chapter, items }, ci) => (
             <div
               key={ci}
               className="space-y-3 animate-fade-in-up"

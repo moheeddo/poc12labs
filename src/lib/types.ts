@@ -51,6 +51,28 @@ export interface Highlight {
 }
 
 // =============================================
+// 전사(Transcript) 관련 타입
+// =============================================
+
+export interface TranscriptSegment {
+  value: string;
+  start: number;
+  end: number;
+}
+
+// 화자 추정이 포함된 전사 세그먼트 (디브리핑 대본용)
+export interface AnnotatedTranscript {
+  id: string;
+  value: string;
+  start: number;
+  end: number;
+  speaker?: string;
+  speakerColor?: string;
+  isHighlight?: boolean;
+  competencyTag?: string;
+}
+
+// =============================================
 // 시뮬레이터 평가 (Tab 1) 관련 타입
 // =============================================
 

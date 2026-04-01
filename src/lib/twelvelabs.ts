@@ -60,7 +60,7 @@ export async function listVideos(indexId: string) {
   );
 }
 
-// 영상 검색
+// 영상 검색 (visual + conversation + transcription)
 export async function searchVideos(indexId: string, query: string) {
   return tlFetch<{
     data: Array<{
@@ -75,9 +75,18 @@ export async function searchVideos(indexId: string, query: string) {
     body: JSON.stringify({
       index_id: indexId,
       query,
-      search_options: ["visual", "conversation"],
+      search_options: ["visual", "conversation", "transcription"],
     }),
   });
+}
+
+// 영상 전사(transcript) 조회
+export async function getVideoTranscription(indexId: string, videoId: string) {
+  return tlFetch<{
+    _id: string;
+    metadata: { filename: string; duration: number };
+    transcription?: Array<{ value: string; start: number; end: number }>;
+  }>(`/indexes/${indexId}/videos/${videoId}?embed=true&transcription=true`);
 }
 
 // 영상 분석 (generate)

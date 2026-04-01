@@ -24,7 +24,7 @@ export default function Footer({ onNavigate }: FooterProps) {
               KHNP HRDI
             </span>
             <span className="text-[11px] text-slate-500 font-mono">
-              &copy; 2024 한국수력원자력 인재개발원
+              &copy; 2026 한국수력원자력 인재개발원
             </span>
           </div>
 
