@@ -1,10 +1,10 @@
 import type { CompetencyKey, LeadershipCompetencyKey, JobLevel, LeadershipCompetencyDef, ServiceTab } from "./types";
 
-// TwelveLabs 인덱스 이름
+// TwelveLabs 인덱스 ID (API는 이름이 아닌 UUID ID를 요구)
 export const TWELVELABS_INDEXES = {
-  simulator: "khnp-nhpai-simulator",
-  leadership: "khnp-leadership-coaching",
-  pov: "khnp-pov-training",
+  simulator: "69ccf4b7f7f1a5d7932e56c3",
+  leadership: "69ccf4b781e81bcd08ca5487",
+  pov: "69ccf4b881e81bcd08ca5488",
 } as const;
 
 // 서비스 탭 정의
