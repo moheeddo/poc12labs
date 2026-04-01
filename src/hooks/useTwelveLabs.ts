@@ -215,6 +215,47 @@ export function useVideoUpload() {
     throw new Error("인덱싱 타임아웃 (30분 초과)");
   }
 
+  // URL 기반 업로드 — 용량 제한 없음 (TwelveLabs가 URL에서 직접 다운로드)
+  const uploadByUrl = useCallback(async (indexId: string, videoUrl: string, displayName?: string): Promise<string> => {
+    abortRef.current = false;
+    const logPrefix = tag("UrlUpload");
+    const fileName = displayName || videoUrl.split("/").pop() || "영상";
+
+    console.log(logPrefix, "URL 업로드 시작", { indexId, videoUrl });
+    setProgress({ fileName, progress: 5, status: "uploading" });
+
+    try {
+      // JSON 요청 — 서버가 TwelveLabs에 video_url 전달 (body 크기 제한 없음)
+      const res = await fetch("/api/twelvelabs/upload", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ indexId, videoUrl }),
+      });
+
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({ error: "요청 실패" }));
+        throw new Error(err.error || `HTTP ${res.status}`);
+      }
+
+      const { taskId } = await res.json();
+      console.log(logPrefix, "URL 업로드 접수 — 인덱싱 시작", { taskId });
+      setProgress({ fileName, progress: 50, status: "indexing", taskId });
+
+      // 인덱싱 완료 대기
+      const videoId = await pollTaskStatus(taskId, fileName);
+
+      console.log(logPrefix, "URL 업로드 + 인덱싱 완료!", { taskId, videoId });
+      setProgress({ fileName, progress: 100, status: "complete", taskId, videoId });
+
+      return videoId;
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : "URL 업로드 실패";
+      console.error(logPrefix, "URL 업로드 실패", msg);
+      setProgress({ fileName, progress: 0, status: "error", error: msg });
+      throw e;
+    }
+  }, []);
+
   const cancel = useCallback(() => {
     abortRef.current = true;
     console.log(tag("Upload"), "업로드 취소 요청됨");
@@ -225,7 +266,7 @@ export function useVideoUpload() {
     abortRef.current = false;
   }, []);
 
-  return { progress, upload, cancel, reset };
+  return { progress, upload, uploadByUrl, cancel, reset };
 }
 
 // =============================================

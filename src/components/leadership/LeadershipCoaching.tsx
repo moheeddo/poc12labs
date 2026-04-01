@@ -124,7 +124,7 @@ export default function LeadershipCoaching() {
   const [feedbackVideoTitle, setFeedbackVideoTitle] = useState("");
 
   // 업로드 — 실제 TwelveLabs API 연동
-  const { progress: uploadProgress, upload } = useVideoUpload();
+  const { progress: uploadProgress, upload, uploadByUrl } = useVideoUpload();
   const [uploadedVideoId, setUploadedVideoId] = useState<string | null>(null);
   const [uploadedFileName, setUploadedFileName] = useState("");
 
@@ -152,7 +152,7 @@ export default function LeadershipCoaching() {
     : "0.0";
   const topScorer = speakers.length ? speakers[0].speakerName : "-";
 
-  // 실제 업로드 핸들러
+  // 파일 업로드 핸들러
   const handleUpload = useCallback(async (file: File) => {
     setUploadedFileName(file.name);
     try {
@@ -162,6 +162,18 @@ export default function LeadershipCoaching() {
       // 업로드 실패 시 에러는 useVideoUpload 내부에서 처리됨
     }
   }, [upload]);
+
+  // URL 업로드 핸들러 — 용량 제한 없음
+  const handleUrlUpload = useCallback(async (url: string) => {
+    const fileName = url.split("/").pop() || "영상";
+    setUploadedFileName(fileName);
+    try {
+      const videoId = await uploadByUrl(TWELVELABS_INDEXES.leadership, url, fileName);
+      setUploadedVideoId(videoId);
+    } catch {
+      // 업로드 실패 시 에러는 useVideoUpload 내부에서 처리됨
+    }
+  }, [uploadByUrl]);
 
   const handleSearch = useCallback(
     (query: string) => {
@@ -250,7 +262,7 @@ export default function LeadershipCoaching() {
 
       {/* 업로드 + 검색 */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-        <VideoUploader onUpload={handleUpload} progress={uploadProgress} accentColor="teal" />
+        <VideoUploader onUpload={handleUpload} onUrlUpload={handleUrlUpload} progress={uploadProgress} accentColor="teal" />
         <SearchBar
           placeholder="비전 발표, 갈등 조율, 면담 코칭, 의사결정 등..."
           onSearch={handleSearch}

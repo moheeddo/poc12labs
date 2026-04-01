@@ -4,8 +4,9 @@ import Busboy from "busboy";
 import { createLogger } from "@/lib/logger";
 
 // POST /api/twelvelabs/upload
-// 클라이언트 FormData(indexId + file)를 받아 TwelveLabs POST /tasks로 프록시
-// busboy 스트리밍 파싱으로 body 크기 제한(413) 우회
+// 두 가지 업로드 방식 지원:
+// 1. FormData(indexId + file) → busboy 스트리밍 파싱 → TwelveLabs video_file
+// 2. JSON({ indexId, videoUrl }) → TwelveLabs video_url (용량 제한 없음)
 
 // Vercel Serverless 함수 타임아웃 확장 (Pro: 최대 300초)
 export const maxDuration = 300;
@@ -16,6 +17,53 @@ const API_KEY = process.env.TWELVELABS_API_KEY!;
 const API_URL = process.env.TWELVELABS_API_URL || "https://api.twelvelabs.io/v1.3";
 const MAX_FILE_SIZE = 2 * 1024 * 1024 * 1024; // 2GB
 
+// ── URL 기반 업로드 (용량 제한 없음) ──
+
+async function handleUrlUpload(request: NextRequest) {
+  const { indexId, videoUrl } = await request.json();
+
+  if (!indexId || !videoUrl) {
+    log.warn("URL 업로드: 필수 파라미터 누락", { indexId: !!indexId, videoUrl: !!videoUrl });
+    return NextResponse.json(
+      { error: "indexId와 videoUrl이 필요합니다" },
+      { status: 400 }
+    );
+  }
+
+  log.info("URL 기반 업로드 시작", { indexId, videoUrl });
+
+  const res = await fetch(`${API_URL}/tasks`, {
+    method: "POST",
+    headers: {
+      "x-api-key": API_KEY,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      index_id: indexId,
+      video_url: videoUrl,
+    }),
+  });
+
+  if (!res.ok) {
+    const error = await res.text();
+    log.error("TwelveLabs URL 업로드 실패", { status: res.status, error });
+    return NextResponse.json(
+      { error: `TwelveLabs 업로드 오류 (${res.status}): ${error}` },
+      { status: res.status }
+    );
+  }
+
+  const data = await res.json();
+  log.info("URL 업로드 성공 — 인덱싱 시작", { taskId: data._id });
+
+  return NextResponse.json({
+    taskId: data._id,
+    videoId: data.video_id,
+  });
+}
+
+// ── 파일 기반 업로드 (busboy 스트리밍) ──
+
 interface ParsedUpload {
   indexId: string;
   fileBuffer: Buffer;
@@ -23,10 +71,6 @@ interface ParsedUpload {
   fileMimeType: string;
 }
 
-/**
- * request.formData() 대신 busboy 스트리밍으로 multipart 파싱
- * → Next.js 내부 body parser 크기 제한(1MB)을 우회
- */
 function parseMultipart(request: NextRequest): Promise<ParsedUpload> {
   return new Promise((resolve, reject) => {
     const contentType = request.headers.get("content-type") || "";
@@ -81,7 +125,6 @@ function parseMultipart(request: NextRequest): Promise<ParsedUpload> {
 
     busboy.on("error", (err: Error) => reject(err));
 
-    // Web ReadableStream → Node.js Readable 변환 후 busboy에 파이프
     const body = request.body;
     if (!body) {
       reject(new Error("요청 본문이 비어 있습니다"));
@@ -93,51 +136,60 @@ function parseMultipart(request: NextRequest): Promise<ParsedUpload> {
   });
 }
 
+async function handleFileUpload(request: NextRequest) {
+  const { indexId, fileBuffer, fileName, fileMimeType } = await parseMultipart(request);
+
+  const sizeMB = (fileBuffer.length / 1024 / 1024).toFixed(1);
+  log.info("파일 업로드 시작", { indexId, fileName, fileSize: `${sizeMB}MB` });
+
+  const blob = new Blob([new Uint8Array(fileBuffer)], { type: fileMimeType });
+  const tlFormData = new FormData();
+  tlFormData.append("index_id", indexId);
+  tlFormData.append("video_file", blob, fileName);
+
+  const res = await fetch(`${API_URL}/tasks`, {
+    method: "POST",
+    headers: { "x-api-key": API_KEY },
+    body: tlFormData,
+  });
+
+  if (!res.ok) {
+    const error = await res.text();
+    log.error("TwelveLabs 파일 업로드 실패", { status: res.status, error });
+    return NextResponse.json(
+      { error: `TwelveLabs 업로드 오류 (${res.status}): ${error}` },
+      { status: res.status }
+    );
+  }
+
+  const data = await res.json();
+  log.info("파일 업로드 성공 — 인덱싱 시작", { taskId: data._id });
+
+  return NextResponse.json({
+    taskId: data._id,
+    videoId: data.video_id,
+  });
+}
+
+// ── 메인 핸들러 ──
+
 export async function POST(request: NextRequest) {
   if (!API_KEY) {
     log.error("API 키 미설정");
     return NextResponse.json({ error: "API 키가 설정되지 않았습니다" }, { status: 500 });
   }
 
+  const contentType = request.headers.get("content-type") || "";
+
   try {
-    // busboy 스트리밍 파싱 — body 크기 제한 우회
-    const { indexId, fileBuffer, fileName, fileMimeType } = await parseMultipart(request);
-
-    const sizeMB = (fileBuffer.length / 1024 / 1024).toFixed(1);
-    log.info("영상 업로드 시작", { indexId, fileName, fileSize: `${sizeMB}MB` });
-
-    // TwelveLabs POST /tasks — FormData로 영상 업로드 + 인덱싱 동시 진행
-    const blob = new Blob([new Uint8Array(fileBuffer)], { type: fileMimeType });
-    const tlFormData = new FormData();
-    tlFormData.append("index_id", indexId);
-    tlFormData.append("video_file", blob, fileName);
-
-    const res = await fetch(`${API_URL}/tasks`, {
-      method: "POST",
-      headers: { "x-api-key": API_KEY },
-      body: tlFormData,
-    });
-
-    if (!res.ok) {
-      const error = await res.text();
-      log.error("TwelveLabs 업로드 실패", { status: res.status, error });
-      return NextResponse.json(
-        { error: `TwelveLabs 업로드 오류 (${res.status}): ${error}` },
-        { status: res.status }
-      );
+    // Content-Type으로 업로드 방식 분기
+    if (contentType.includes("application/json")) {
+      return await handleUrlUpload(request);
     }
-
-    const data = await res.json();
-    log.info("업로드 성공 — 인덱싱 시작", { taskId: data._id });
-
-    return NextResponse.json({
-      taskId: data._id,
-      videoId: data.video_id,
-    });
+    return await handleFileUpload(request);
   } catch (e) {
     const msg = e instanceof Error ? e.message : "업로드 실패";
 
-    // 파일 크기 초과 에러 처리
     if (msg.startsWith("FILE_TOO_LARGE:")) {
       const sizeMB = msg.split(":")[1];
       log.warn("파일 크기 초과", { fileSize: `${sizeMB}MB` });
