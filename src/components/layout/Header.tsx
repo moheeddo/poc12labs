@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useMemo, useRef, useState } from "react";
 import type { ServiceTab } from "@/lib/types";
 import { SERVICE_TABS } from "@/lib/constants";
 import { cn } from "@/lib/utils";
@@ -14,7 +14,7 @@ interface HeaderProps {
 export default function Header({ activeTab, onTabChange }: HeaderProps) {
   const navRef = useRef<HTMLElement>(null);
   const [scrolledToEnd, setScrolledToEnd] = useState(false);
-  const allTabs: (ServiceTab | null)[] = [null, ...SERVICE_TABS.map(t => t.key)];
+  const allTabs = useMemo<(ServiceTab | null)[]>(() => [null, ...SERVICE_TABS.map(t => t.key)], []);
   const activeIdx = allTabs.indexOf(activeTab);
 
   const handleNavScroll = useCallback((e: React.UIEvent<HTMLElement>) => {

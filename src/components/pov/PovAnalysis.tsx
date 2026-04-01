@@ -2,14 +2,14 @@
 
 import { useState, useCallback, useMemo, useEffect } from "react";
 import {
-  Shield, GitCompare, Star, AlertTriangle, Upload, ChevronRight,
+  Shield, GitCompare, Star, AlertTriangle, ChevronRight,
   FileText, CheckCircle2, XCircle, Clock, Activity, BookOpen, Eye,
   Users, Brain, Zap, ClipboardCheck, BarChart3, ArrowLeft, Loader2,
-  ChevronDown, ChevronUp, Sparkles, MessageSquare,
+  ChevronDown, Sparkles, MessageSquare,
 } from "lucide-react";
 import {
   RadarChart, Radar, PolarGrid, PolarAngleAxis, PolarRadiusAxis,
-  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend,
+  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip,
   ResponsiveContainer, Cell,
 } from "recharts";
 import VideoUploader from "@/components/shared/VideoUploader";
@@ -19,8 +19,8 @@ import { useVideoUpload } from "@/hooks/useTwelveLabs";
 import { TWELVELABS_INDEXES } from "@/lib/constants";
 import {
   HPO_PROCEDURES, OPERATOR_FUNDAMENTALS, HPO_TOOLS,
-  POV_GRADES, getGradeForScore, SYSTEM_COLORS, getCriticalSteps,
-  type Procedure, type ProcedureSection,
+  getGradeForScore, SYSTEM_COLORS, getCriticalSteps,
+  type Procedure,
 } from "@/lib/pov-standards";
 import type { PovEvaluationReport, StepEvaluation, HpoToolEvaluation, FundamentalScore, SopDeviation } from "@/lib/types";
 import { formatTime, cn } from "@/lib/utils";
@@ -534,7 +534,7 @@ function ReportHeader({ report }: { report: PovEvaluationReport }) {
   );
 }
 
-function OverviewTab({ report, procedure }: { report: PovEvaluationReport; procedure: Procedure }) {
+function OverviewTab({ report }: { report: PovEvaluationReport; procedure: Procedure }) {
   // 레이더 차트 데이터
   const radarData = report.fundamentalScores.map((f) => ({
     subject: f.label.replace(/\s*\(.*\)/, ""),

@@ -234,7 +234,7 @@ export default function LeadershipFeedback({
   const togglePlay = useCallback(() => {
     const v = videoRef.current;
     if (!v) return;
-    v.paused ? v.play() : v.pause();
+    if (v.paused) { v.play(); } else { v.pause(); }
   }, []);
 
   const handleEvidenceClick = useCallback(

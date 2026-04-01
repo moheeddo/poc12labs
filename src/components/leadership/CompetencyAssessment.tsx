@@ -164,7 +164,6 @@ function MultimodalIndicatorTable({
   onSubScoreChange: (id: string, level: number) => void;
 }) {
   const ChIcon = CHANNEL_ICONS[item.channel] || Activity;
-  const levelLabels = ["미흡", "중하", "중상", "상위"];
   const levelColors = ["text-red-400", "text-amber-400", "text-sky-400", "text-teal-400"];
   const levelBgColors = ["bg-red-500/10", "bg-amber-500/10", "bg-sky-500/10", "bg-teal-500/10"];
 
@@ -320,7 +319,7 @@ export default function CompetencyAssessment({ data, onBack }: CompetencyAssessm
   const togglePlay = useCallback(() => {
     const v = videoRef.current;
     if (!v) return;
-    v.paused ? v.play() : v.pause();
+    if (v.paused) { v.play(); } else { v.pause(); }
   }, []);
 
   // BARS 점수 업데이트
@@ -356,7 +355,7 @@ export default function CompetencyAssessment({ data, onBack }: CompetencyAssessm
   }, [data.key, barsScores, mmSubScores, mmNotes]);
 
   const toggleRubric = useCallback((id: string) => {
-    setExpandedRubrics((p) => { const n = new Set(p); n.has(id) ? n.delete(id) : n.add(id); return n; });
+    setExpandedRubrics((p) => { const n = new Set(p); if (n.has(id)) { n.delete(id); } else { n.add(id); } return n; });
   }, []);
 
   const handleClipClick = useCallback(

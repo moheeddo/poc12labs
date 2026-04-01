@@ -11,7 +11,6 @@ import {
   ArrowLeft,
   ChevronRight,
   Target,
-  Handshake,
   Scale,
   GraduationCap,
   Lock,

@@ -6,7 +6,6 @@ import {
   PlayCircle,
   Search,
   Users,
-  MessageSquareText,
   ChevronDown,
   ChevronUp,
   Star,
@@ -152,6 +151,7 @@ interface TranscriptTimelineProps {
 }
 
 export default function TranscriptTimeline({
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   videoId,
   currentTime,
   chapters,
