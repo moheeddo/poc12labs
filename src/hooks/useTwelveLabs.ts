@@ -66,15 +66,27 @@ export function useVideoSearch() {
 }
 
 // =============================================
-// 영상 업로드 훅 — 직접 업로드 방식
+// 영상 업로드 훅 — TwelveLabs presigned URL 직접 업로드
 // =============================================
 // 플로우:
-// 1. POST /api/twelvelabs/upload → 서버가 presigned URL 발급
-// 2. 클라이언트가 각 파트를 presigned URL로 직접 PUT
+// 1. POST /api/twelvelabs/upload/init → presigned URL 목록 발급
+// 2. 클라이언트가 각 파트를 presigned URL로 직접 PUT (서버 무경유)
 // 3. POST /api/twelvelabs/upload/complete → 인덱싱 시작
 // 4. GET /api/twelvelabs/upload/status 폴링 → 완료 대기
 
 const STATUS_POLL_INTERVAL = 5000; // 5초 간격 폴링
+
+interface UploadPart {
+  partIndex: number;
+  startByte: number;
+  endByte: number;
+  presignedUrl: string;
+}
+
+interface InitUploadResponse {
+  taskId: string;
+  parts: UploadPart[];
+}
 
 export function useVideoUpload() {
   const [progress, setProgress] = useState<UploadProgress | null>(null);
@@ -84,7 +96,7 @@ export function useVideoUpload() {
     abortRef.current = false;
     const logPrefix = tag("Upload");
 
-    console.log(logPrefix, "업로드 시작", {
+    console.log(logPrefix, "presigned URL 직접 업로드 시작", {
       fileName: file.name,
       fileSize: `${(file.size / 1024 / 1024).toFixed(1)}MB`,
       indexId,
@@ -93,61 +105,75 @@ export function useVideoUpload() {
     setProgress({ fileName: file.name, progress: 0, status: "uploading" });
 
     try {
-      // 2) FormData로 서버 프록시를 통해 TwelveLabs에 업로드
-      console.log(logPrefix, "서버로 영상 전송 중...");
-      const formData = new FormData();
-      formData.append("indexId", indexId);
-      formData.append("file", file);
+      // 1) 서버에 업로드 초기화 요청 → presigned URL 발급
+      console.log(logPrefix, "업로드 초기화 중...");
+      setProgress({ fileName: file.name, progress: 2, status: "uploading" });
 
-      // XMLHttpRequest로 업로드 진행률 추적
-      const { taskId } = await new Promise<{ taskId: string; videoId?: string }>((resolve, reject) => {
-        const xhr = new XMLHttpRequest();
-        xhr.open("POST", "/api/twelvelabs/upload");
-
-        xhr.upload.onprogress = (e) => {
-          if (e.lengthComputable) {
-            // 업로드 진행률: 5% ~ 85%
-            const pct = 5 + Math.round((e.loaded / e.total) * 80);
-            console.log(logPrefix, `업로드 ${pct}% (${(e.loaded / 1024 / 1024).toFixed(1)}MB / ${(e.total / 1024 / 1024).toFixed(1)}MB)`);
-            setProgress({ fileName: file.name, progress: pct, status: "uploading" });
-          }
-        };
-
-        xhr.onload = () => {
-          if (xhr.status >= 200 && xhr.status < 300) {
-            try {
-              resolve(JSON.parse(xhr.responseText));
-            } catch {
-              reject(new Error("서버 응답 파싱 실패"));
-            }
-          } else {
-            try {
-              const err = JSON.parse(xhr.responseText);
-              reject(new Error(err.error || `HTTP ${xhr.status}`));
-            } catch {
-              reject(new Error(`업로드 실패 (${xhr.status})`));
-            }
-          }
-        };
-
-        xhr.onerror = () => reject(new Error("네트워크 오류"));
-        xhr.onabort = () => reject(new Error("업로드 취소됨"));
-        xhr.send(formData);
-
-        // 취소 처리 연동
-        const checkAbort = setInterval(() => {
-          if (abortRef.current) {
-            xhr.abort();
-            clearInterval(checkAbort);
-          }
-        }, 500);
-        xhr.onloadend = () => clearInterval(checkAbort);
+      const initRes = await fetch("/api/twelvelabs/upload/init", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          indexId,
+          fileName: file.name,
+          fileSize: file.size,
+        }),
       });
 
-      console.log(logPrefix, "업로드 완료 — 인덱싱 시작", { taskId });
+      if (!initRes.ok) {
+        const err = await initRes.json().catch(() => ({ error: "초기화 실패" }));
+        throw new Error(err.error || `초기화 실패 (${initRes.status})`);
+      }
+
+      const { taskId, parts } = (await initRes.json()) as InitUploadResponse;
+      console.log(logPrefix, `초기화 완료 — ${parts.length}개 파트`, { taskId });
+      setProgress({ fileName: file.name, progress: 5, status: "uploading", taskId });
+
+      // 2) 각 파트를 presigned URL로 직접 PUT (서버 무경유, 용량 제한 없음)
+      for (let i = 0; i < parts.length; i++) {
+        if (abortRef.current) throw new Error("업로드 취소됨");
+
+        const part = parts[i];
+        const chunk = file.slice(part.startByte, part.endByte + 1);
+        const chunkSizeMB = (chunk.size / 1024 / 1024).toFixed(1);
+
+        console.log(logPrefix, `파트 ${i + 1}/${parts.length} 업로드 (${chunkSizeMB}MB)`);
+
+        // presigned URL로 직접 PUT
+        const putRes = await fetch(part.presignedUrl, {
+          method: "PUT",
+          headers: { "Content-Type": "application/octet-stream" },
+          body: chunk,
+        });
+
+        if (!putRes.ok) {
+          throw new Error(`파트 ${i + 1} 업로드 실패 (${putRes.status})`);
+        }
+
+        // 진행률: 5% ~ 85% (파트 업로드 구간)
+        const pct = 5 + Math.round(((i + 1) / parts.length) * 80);
+        console.log(logPrefix, `파트 ${i + 1}/${parts.length} 완료 (${pct}%)`);
+        setProgress({ fileName: file.name, progress: pct, status: "uploading", taskId });
+      }
+
+      // 3) 업로드 완료 통보 → 인덱싱 시작
+      console.log(logPrefix, "모든 파트 업로드 완료 — 완료 통보");
+      setProgress({ fileName: file.name, progress: 88, status: "processing", taskId });
+
+      const completeRes = await fetch("/api/twelvelabs/upload/complete", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ taskId }),
+      });
+
+      if (!completeRes.ok) {
+        const err = await completeRes.json().catch(() => ({ error: "완료 처리 실패" }));
+        throw new Error(err.error || `완료 실패 (${completeRes.status})`);
+      }
+
+      console.log(logPrefix, "인덱싱 시작", { taskId });
       setProgress({ fileName: file.name, progress: 90, status: "indexing", taskId });
 
-      // 5) 인덱싱 완료 대기 (폴링)
+      // 4) 인덱싱 완료 대기 (폴링)
       const videoId = await pollTaskStatus(taskId, file.name);
 
       console.log(logPrefix, "업로드 + 인덱싱 완료!", { taskId, videoId });
@@ -156,14 +182,9 @@ export function useVideoUpload() {
       return videoId;
     } catch (e) {
       const msg = e instanceof Error ? e.message : "업로드 실패";
-      // 413 에러 시 URL 모드 안내 메시지
-      const is413 = msg.includes("413") || msg.includes("Too Large") || msg.includes("크기");
-      const errorMsg = is413
-        ? "UPLOAD_413:파일이 서버 용량 제한(4.5MB)을 초과합니다. URL 입력 모드를 사용해 주세요."
-        : msg;
-      console.error(logPrefix, "업로드 실패", errorMsg);
-      setProgress({ fileName: file.name, progress: 0, status: "error", error: errorMsg });
-      throw new Error(errorMsg);
+      console.error(logPrefix, "업로드 실패", msg);
+      setProgress({ fileName: file.name, progress: 0, status: "error", error: msg });
+      throw new Error(msg);
     }
   }, []);
 

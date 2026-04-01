@@ -30,7 +30,7 @@ export function middleware(request: NextRequest) {
       "font-src 'self' https://cdn.jsdelivr.net https://fonts.gstatic.com",
       "img-src 'self' data: blob:",
       "media-src 'self' blob:",
-      "connect-src 'self'",
+      "connect-src 'self' https://*.twelvelabs.io https://*.amazonaws.com",
       "frame-ancestors 'none'",
     ].join("; ")
   );

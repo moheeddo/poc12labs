@@ -233,9 +233,7 @@ export default function VideoUploader({ onUpload, onUrlUpload, progress, accentC
       {progress && (
         <div className={cn(
           "bg-surface-800 rounded-lg p-3 border",
-          progress.status === "error" && progress.error?.startsWith("UPLOAD_413:")
-            ? "border-amber-500/30"
-            : "border-surface-700",
+          progress.status === "error" ? "border-red-500/30" : "border-surface-700",
         )}>
           <div className="flex items-center gap-3 mb-2">
             {progress.status === "complete" ? (
@@ -252,25 +250,17 @@ export default function VideoUploader({ onUpload, onUrlUpload, progress, accentC
                 {progress.status === "processing" && "업로드 완료 처리 중..."}
                 {progress.status === "indexing" && `인덱싱 중... ${progress.progress}%`}
                 {progress.status === "complete" && "업로드 + 인덱싱 완료"}
-                {progress.status === "error" && !progress.error?.startsWith("UPLOAD_413:") && (progress.error || "오류 발생")}
+                {progress.status === "error" && "오류 발생"}
               </p>
             </div>
           </div>
 
-          {/* 413 에러 시 URL 모드 전환 안내 */}
-          {progress.status === "error" && progress.error?.startsWith("UPLOAD_413:") && onUrlUpload && (
-            <div className="mt-1 p-3 rounded-lg bg-amber-500/5 border border-amber-500/15">
-              <p className="text-xs text-amber-400 font-medium mb-2">
-                {progress.error.replace("UPLOAD_413:", "")}
+          {/* 업로드 에러 상세 표시 */}
+          {progress.status === "error" && progress.error && (
+            <div className="mt-1 p-3 rounded-lg bg-red-500/5 border border-red-500/15">
+              <p className="text-xs text-red-400 font-medium">
+                {progress.error}
               </p>
-              <button
-                onClick={() => { setShowUrlInput(true); setSelectedFile(null); }}
-                className="flex items-center gap-1.5 text-xs font-medium text-amber-400 hover:text-amber-300 transition-colors duration-200"
-              >
-                <Link2 className="w-3.5 h-3.5" />
-                URL 입력 모드로 전환
-                <ArrowRight className="w-3 h-3" />
-              </button>
             </div>
           )}
 
