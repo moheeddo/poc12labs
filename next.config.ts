@@ -1,18 +1,25 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  // 영상 파일 업로드 크기 제한 확장 — Server Actions + Route Handlers
   experimental: {
     serverActions: {
       bodySizeLimit: "2gb",
     },
   },
-  // 이미지 최적화 — 외부 소스 차단
   images: {
     remotePatterns: [],
   },
-  // X-Powered-By 헤더 제거 (서버 정보 노출 방지)
   poweredByHeader: false,
+
+  // CDN 레벨 리버스 프록시 — 서버리스 함수를 거치지 않으므로 body size 제한 없음
+  async rewrites() {
+    return [
+      {
+        source: "/api/tl-upload",
+        destination: "https://api.twelvelabs.io/v1.3/tasks",
+      },
+    ];
+  },
 };
 
 export default nextConfig;

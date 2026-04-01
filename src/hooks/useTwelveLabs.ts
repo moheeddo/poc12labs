@@ -93,9 +93,12 @@ export function useVideoUpload() {
     setProgress({ fileName: file.name, progress: 0, status: "uploading" });
 
     try {
-      // Edge 미들웨어 rewrite로 TwelveLabs에 직접 업로드
-      // /api/tl-upload → https://api.twelvelabs.io/v1.3/tasks (서버리스 함수 우회, body 제한 없음)
-      console.log(logPrefix, "TwelveLabs 직접 전송 중...");
+      // next.config.ts rewrite(/api/tl-upload → api.twelvelabs.io)로 CDN 레벨 프록시
+      // 서버리스 함수를 거치지 않으므로 body size 제한 없음
+      console.log(logPrefix, "API 키 조회 중...");
+      const { apiKey } = await apiFetch<{ apiKey: string }>("/api/tl-config");
+
+      console.log(logPrefix, "TwelveLabs CDN 프록시로 전송 중...");
       const formData = new FormData();
       formData.append("index_id", indexId);
       formData.append("video_file", file);
@@ -104,6 +107,7 @@ export function useVideoUpload() {
       const { taskId } = await new Promise<{ taskId: string; videoId?: string }>((resolve, reject) => {
         const xhr = new XMLHttpRequest();
         xhr.open("POST", "/api/tl-upload");
+        xhr.setRequestHeader("x-api-key", apiKey);
 
         xhr.upload.onprogress = (e) => {
           if (e.lengthComputable) {

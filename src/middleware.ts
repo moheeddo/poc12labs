@@ -3,27 +3,6 @@ import type { NextRequest } from "next/server";
 
 // 보안 헤더 미들웨어
 export function middleware(request: NextRequest) {
-  // ── TwelveLabs 직접 업로드 프록시 ──
-  // 서버리스 함수(4.5MB body 제한)를 우회하여 Edge에서 TwelveLabs로 직접 전달
-  if (request.nextUrl.pathname === "/api/tl-upload") {
-    const apiKey = process.env.TWELVELABS_API_KEY;
-    if (!apiKey) {
-      return NextResponse.json({ error: "API 키 미설정" }, { status: 500 });
-    }
-    if (request.method !== "POST") {
-      return NextResponse.json({ error: "POST만 허용" }, { status: 405 });
-    }
-
-    const headers = new Headers(request.headers);
-    headers.set("x-api-key", apiKey);
-    headers.delete("host");
-
-    return NextResponse.rewrite(
-      new URL("https://api.twelvelabs.io/v1.3/tasks"),
-      { request: { headers } }
-    );
-  }
-
   const response = NextResponse.next();
 
   // XSS 보호
@@ -71,7 +50,7 @@ export function middleware(request: NextRequest) {
 
 export const config = {
   matcher: [
-    // 정적 파일, _next, 업로드 API 제외 (업로드 스트리밍 body size 제한 방지)
-    "/((?!_next/static|_next/image|favicon.ico|api/twelvelabs/upload).*)",
+    // 정적 파일, _next, TwelveLabs 업로드 프록시 제외
+    "/((?!_next/static|_next/image|favicon.ico|api/twelvelabs/upload|api/tl-).*)",
   ],
 };
