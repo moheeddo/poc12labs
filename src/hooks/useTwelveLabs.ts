@@ -166,9 +166,14 @@ export function useVideoUpload() {
       return videoId;
     } catch (e) {
       const msg = e instanceof Error ? e.message : "업로드 실패";
-      console.error(logPrefix, "업로드 실패", msg);
-      setProgress({ fileName: file.name, progress: 0, status: "error", error: msg });
-      throw e;
+      // 413 에러 시 URL 모드 안내 메시지
+      const is413 = msg.includes("413") || msg.includes("Too Large") || msg.includes("크기");
+      const errorMsg = is413
+        ? "UPLOAD_413:파일이 서버 용량 제한(4.5MB)을 초과합니다. URL 입력 모드를 사용해 주세요."
+        : msg;
+      console.error(logPrefix, "업로드 실패", errorMsg);
+      setProgress({ fileName: file.name, progress: 0, status: "error", error: errorMsg });
+      throw new Error(errorMsg);
     }
   }, []);
 
