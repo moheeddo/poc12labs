@@ -136,13 +136,43 @@ export default function LeadershipFeedback({
   const { analyze } = useVideoAnalysis();
   const { segments: transcriptSegments, loading: transcriptLoading, fetchTranscription } = useVideoTranscription();
 
-  // ── 분석 데이터 로드 (단계별 피드백) ──
+  // ── 인덱싱 대기 → 분석 → 결과 로드 ──
   useEffect(() => {
     let cancelled = false;
-    async function load() {
+    const POLL_INTERVAL = 4000;
+
+    async function waitForIndexing(): Promise<boolean> {
+      // 인덱싱 완료 대기 (최대 5분)
+      for (let i = 0; i < 75; i++) {
+        if (cancelled) return false;
+        try {
+          const res = await fetch(`/api/twelvelabs/upload/status?taskId=${videoId}`);
+          if (res.ok) {
+            const data = await res.json();
+            if (data.status === "ready") return true;
+            if (data.status === "failed") return false;
+          }
+        } catch { /* 폴링 실패 무시 */ }
+        await new Promise((r) => setTimeout(r, POLL_INTERVAL));
+      }
+      return false;
+    }
+
+    async function loadAnalysis() {
       setAnalysisLoading(true);
       setAnalysisError(null);
+
       try {
+        // 0단계: 인덱싱 완료 대기
+        setAnalysisStep("영상 인덱싱 중... (AI가 영상을 이해하고 있습니다)");
+        const ready = await waitForIndexing();
+        if (cancelled) return;
+        if (!ready) {
+          // 인덱싱 완료 확인 불가 — 바로 분석 시도
+          setAnalysisStep("인덱싱 상태 확인 불가 — 분석을 시도합니다...");
+          await new Promise((r) => setTimeout(r, 1000));
+        }
+
         // 1단계: 챕터 분석
         setAnalysisStep("영상 구간 분석 중...");
         const ch = await analyze(videoId, "chapter");
@@ -186,14 +216,14 @@ export default function LeadershipFeedback({
         if (!cancelled) setAnalysisLoading(false);
       }
     }
-    load();
-    return () => { cancelled = true; };
-  }, [videoId, analyze]);
 
-  // ── 전사 데이터 로드 ──
-  useEffect(() => {
+    loadAnalysis();
+
+    // 전사 데이터도 병렬로 로드
     fetchTranscription(TWELVELABS_INDEXES.leadership, videoId);
-  }, [videoId, fetchTranscription]);
+
+    return () => { cancelled = true; };
+  }, [videoId, analyze, fetchTranscription]);
 
   // ── 비디오 시간 추적 ──
   useEffect(() => {
