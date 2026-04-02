@@ -101,12 +101,12 @@ export default function VideoUploader({ onUpload, onUrlUpload, progress, accentC
   return (
     <div className="space-y-3">
       {/* ── 메인 영역: 드래그앤드롭 + 클릭 → Finder ── */}
-      {/* 파일 input — 클릭 영역 밖에 배치하여 이벤트 버블링 방지 */}
+      {/* 파일 input — 완전히 숨김 (display:none), 클릭은 ref로만 트리거 */}
       <input
         ref={inputRef}
         type="file"
         accept="video/*"
-        className="sr-only"
+        style={{ display: "none" }}
         onChange={handleFileSelect}
       />
 
