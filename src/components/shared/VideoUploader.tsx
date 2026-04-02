@@ -101,6 +101,15 @@ export default function VideoUploader({ onUpload, onUrlUpload, progress, accentC
   return (
     <div className="space-y-3">
       {/* ── 메인 영역: 드래그앤드롭 + 클릭 → Finder ── */}
+      {/* 파일 input — 클릭 영역 밖에 배치하여 이벤트 버블링 방지 */}
+      <input
+        ref={inputRef}
+        type="file"
+        accept="video/*"
+        className="sr-only"
+        onChange={handleFileSelect}
+      />
+
       {!showUrlInput && (
         <>
           <div
@@ -121,13 +130,6 @@ export default function VideoUploader({ onUpload, onUrlUpload, progress, accentC
                   : "border-surface-600 hover:border-surface-500 hover:bg-surface-800/30",
             )}
           >
-            <input
-              ref={inputRef}
-              type="file"
-              accept="video/*"
-              className="sr-only"
-              onChange={handleFileSelect}
-            />
             <div className="flex flex-col items-center">
               {isDragging ? (
                 <Upload className={cn("w-8 h-8 mb-3 animate-bounce", iconAccentColorMap[accentColor])} />
