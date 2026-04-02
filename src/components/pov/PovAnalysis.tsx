@@ -125,7 +125,7 @@ export default function PovAnalysis() {
   const [expandedSections, setExpandedSections] = useState<Set<string>>(new Set());
   const [reportTab, setReportTab] = useState<"overview" | "steps" | "hpo" | "fundamentals">("overview");
   const [videoUrl, setVideoUrl] = useState<string | null>(null); // 브라우저 내 재생용 로컬 URL
-  const { progress: uploadProgress, upload } = useVideoUpload();
+  const { progress: uploadProgress, upload, uploadByUrl } = useVideoUpload();
 
   // 컴포넌트 언마운트 시 blob URL 해제
   useEffect(() => {
@@ -163,6 +163,24 @@ export default function PovAnalysis() {
       setPhase("report");
     }
   }, [selectedProcedure, upload, videoUrl]);
+
+  // URL 기반 업로드
+  const handleUrlUpload = useCallback(async (url: string) => {
+    if (!selectedProcedure) return;
+    setPhase("analyzing");
+    try {
+      await uploadByUrl(TWELVELABS_INDEXES.pov, url);
+      await new Promise((r) => setTimeout(r, 2000));
+      const demoReport = generateDemoReport(selectedProcedure);
+      setReport(demoReport);
+      setPhase("report");
+    } catch {
+      await new Promise((r) => setTimeout(r, 1500));
+      const demoReport = generateDemoReport(selectedProcedure);
+      setReport(demoReport);
+      setPhase("report");
+    }
+  }, [selectedProcedure, uploadByUrl]);
 
   // 뒤로가기
   const handleBack = useCallback(() => {
@@ -374,7 +392,7 @@ export default function PovAnalysis() {
           </div>
 
           {/* 영상 업로드 */}
-          <VideoUploader onUpload={handleUpload} progress={uploadProgress} accentColor="amber" />
+          <VideoUploader onUpload={handleUpload} onUrlUpload={handleUrlUpload} progress={uploadProgress} accentColor="amber" />
         </div>
       )}
 

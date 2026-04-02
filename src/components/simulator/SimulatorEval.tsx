@@ -40,7 +40,7 @@ const DEFAULT_SCORES: CompetencyScore[] = (Object.entries(COMPETENCY_LABELS) as 
 );
 
 export default function SimulatorEval() {
-  const { progress: uploadProgress, upload } = useVideoUpload();
+  const { progress: uploadProgress, upload, uploadByUrl } = useVideoUpload();
   const [scores] = useState<CompetencyScore[]>(DEFAULT_SCORES);
   const [selectedChapter, setSelectedChapter] = useState<number | null>(null);
   const { results, loading, hasSearched, search } = useVideoSearch();
@@ -76,6 +76,14 @@ export default function SimulatorEval() {
     }
   }, [upload]);
 
+  const handleUrlUpload = useCallback(async (url: string) => {
+    try {
+      await uploadByUrl(TWELVELABS_INDEXES.simulator, url);
+    } catch {
+      // 에러는 useVideoUpload 내부에서 처리
+    }
+  }, [uploadByUrl]);
+
   const handleSearch = useCallback(
     (query: string) => {
       search(TWELVELABS_INDEXES.simulator, query);
@@ -96,7 +104,7 @@ export default function SimulatorEval() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* 좌측: 업로드 + 검색 + 결과 */}
         <div className="lg:col-span-2 space-y-4">
-          <VideoUploader onUpload={handleUpload} progress={uploadProgress} accentColor="coral" />
+          <VideoUploader onUpload={handleUpload} onUrlUpload={handleUrlUpload} progress={uploadProgress} accentColor="coral" />
 
           <SearchBar
             placeholder="비상냉각 조작, 제어봉 삽입 등 장면 검색..."
