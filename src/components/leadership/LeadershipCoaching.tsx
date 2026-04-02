@@ -59,7 +59,7 @@ type ViewState =
   | { type: "level-select" }
   | { type: "competency-list"; level: JobLevel }
   | { type: "assessment"; level: JobLevel; data: CompetencyAssessmentData }
-  | { type: "feedback"; videoId: string; videoTitle: string }
+  | { type: "feedback"; videoId: string; videoTitle: string; videoUrl?: string }
   | { type: "overview"; level: JobLevel };
 
 // 성장 추이 데이터 (실제 연동 시 API에서 조회)
@@ -95,6 +95,7 @@ export default function LeadershipCoaching() {
   const { progress: uploadProgress, upload, uploadByUrl } = useVideoUpload();
   const [uploadedVideoId, setUploadedVideoId] = useState<string | null>(null);
   const [uploadedFileName, setUploadedFileName] = useState("");
+  const [uploadedBlobUrl, setUploadedBlobUrl] = useState<string | null>(null);
 
   // 참가자 데이터 (업로드 후 분석 결과로 채워짐)
   const [speakers] = useState<SpeakerScore[]>([]);
@@ -119,6 +120,9 @@ export default function LeadershipCoaching() {
   // 핸들러
   const handleUpload = useCallback(async (file: File) => {
     setUploadedFileName(file.name);
+    // 브라우저 내 재생용 blob URL 생성
+    const blobUrl = URL.createObjectURL(file);
+    setUploadedBlobUrl(blobUrl);
     try {
       const videoId = await upload(TWELVELABS_INDEXES.leadership, file);
       setUploadedVideoId(videoId);
@@ -147,6 +151,7 @@ export default function LeadershipCoaching() {
       <LeadershipFeedback
         videoId={view.videoId}
         videoTitle={view.videoTitle}
+        videoUrl={view.videoUrl}
         onBack={() => setView({ type: "level-select" })}
       />
     );
@@ -283,7 +288,7 @@ export default function LeadershipCoaching() {
                 <p className="text-xs text-slate-500">업로드 완료 — AI 분석 후 구간별 피드백을 작성할 수 있습니다</p>
               </div>
               <button
-                onClick={() => setView({ type: "feedback", videoId: uploadedVideoId, videoTitle: uploadedFileName })}
+                onClick={() => setView({ type: "feedback", videoId: uploadedVideoId, videoTitle: uploadedFileName, videoUrl: uploadedBlobUrl || undefined })}
                 className="flex items-center gap-2 px-4 py-2.5 rounded-lg bg-teal-600 hover:bg-teal-500 text-white text-sm font-medium hover:scale-105 active:scale-95 transition-all duration-200 shrink-0"
               >
                 <PlayCircle className="w-4 h-4" />

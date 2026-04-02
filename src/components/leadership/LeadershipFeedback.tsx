@@ -22,6 +22,7 @@ import { formatTime, cn } from "@/lib/utils";
 interface LeadershipFeedbackProps {
   videoId: string;
   videoTitle: string;
+  videoUrl?: string;
   onBack: () => void;
 }
 
@@ -44,39 +45,7 @@ const COMP_MAP = Object.fromEntries(
   LEADERSHIP_COMPETENCY_DEFS.map((d) => [d.key, d])
 ) as Record<LeadershipCompetencyKey, (typeof LEADERSHIP_COMPETENCY_DEFS)[number]>;
 
-// ─── 데모 데이터 ────────────────────────────────
-
-const DEMO_CHAPTERS: Chapter[] = [
-  { title: "도입 — 참가자 소개 및 토론 주제 설정", start: 0, end: 120 },
-  { title: "전략 발표 — PEST 분석 기반 과제 도출", start: 120, end: 360 },
-  { title: "그룹 토의 — 부서간 갈등 조율", start: 360, end: 600 },
-  { title: "코칭 면담 — 구성원 피드백 전달", start: 600, end: 780 },
-  { title: "종합 토론 — 의사결정 및 합의 도출", start: 780, end: 900 },
-];
-
-const DEMO_HIGHLIGHTS: Highlight[] = [
-  { text: "PEST 분석을 활용한 체계적 전략 도출", start: 165, end: 200 },
-  { text: "부서간 갈등에서 합의점 도출하는 과정", start: 395, end: 430 },
-  { text: "구체적 사례 기반의 코칭 피드백 전달", start: 690, end: 730 },
-];
-
-const DEMO_SUMMARY =
-  "신임부장 리더십역량 진단 세션으로, PEST 분석 기반 전략 발표, 부서간 갈등 조율 토론, 코칭 면담 실습, 종합 의사결정을 통해 비전제시·신뢰형성·구성원육성·합리적의사결정 4개 역량을 평가합니다.";
-
-const DEMO_EVIDENCE: EvidenceItem[] = [
-  { id: "ev-01", chapterIndex: 0, competencyKey: "visionPresentation", criteriaLabel: "PEST 이해 및 분석 적절성", timestamp: 35, endTime: 58, description: "경영환경 분석 프레임워크를 활용하여 신재생에너지 사업의 전략 방향을 체계적으로 제시", speaker: "김철수", score: 7, feedback: "" },
-  { id: "ev-02", chapterIndex: 0, competencyKey: "trustBuilding", criteriaLabel: "공정한 기준 적용", timestamp: 75, endTime: 95, description: "토론 규칙과 발언 순서를 공평하게 제안하여 참가자 간 신뢰 분위기 조성", speaker: "정수진", score: 6, feedback: "" },
-  { id: "ev-03", chapterIndex: 1, competencyKey: "visionPresentation", criteriaLabel: "분석결과와 Align된 과제 도출", timestamp: 165, endTime: 200, description: "PEST 분석 결과에서 도출한 구체적 실행과제 3개를 전략목표와 연계하여 제시", speaker: "이영희", score: 8, feedback: "" },
-  { id: "ev-04", chapterIndex: 1, competencyKey: "rationalDecision", criteriaLabel: "문제의 정확한 파악", timestamp: 225, endTime: 260, description: "핵심 이슈를 데이터 기반으로 정리하여 토론의 논점을 명확하게 구조화", speaker: "박민준", score: 7, feedback: "" },
-  { id: "ev-05", chapterIndex: 1, competencyKey: "visionPresentation", criteriaLabel: "발표 명확성 및 동기부여", timestamp: 300, endTime: 340, description: "비전과 과제를 구성원 관점에서 설명하며 참여 동기를 효과적으로 유발", speaker: "김철수", score: 7, feedback: "" },
-  { id: "ev-06", chapterIndex: 2, competencyKey: "trustBuilding", criteriaLabel: "설득과 협의", timestamp: 395, endTime: 430, description: "반대 의견에 대해 논리적으로 반박하면서도 합의점을 적극적으로 모색", speaker: "한지원", score: 8, feedback: "" },
-  { id: "ev-07", chapterIndex: 2, competencyKey: "rationalDecision", criteriaLabel: "이해관계자 의견 수렴", timestamp: 465, endTime: 500, description: "각 부서 입장을 균형있게 수렴하여 최적안 도출 과정을 주도", speaker: "김철수", score: 7, feedback: "" },
-  { id: "ev-08", chapterIndex: 2, competencyKey: "trustBuilding", criteriaLabel: "존중과 협력", timestamp: 530, endTime: 560, description: "소수 의견을 적극 경청하며 발언 기회를 공평하게 배분", speaker: "이영희", score: 8, feedback: "" },
-  { id: "ev-09", chapterIndex: 3, competencyKey: "memberDevelopment", criteriaLabel: "허용 분위기 조성", timestamp: 625, endTime: 660, description: "편안한 면담 분위기를 조성하고 면담 목적과 기대사항을 명확히 전달", speaker: "정수진", score: 6, feedback: "" },
-  { id: "ev-10", chapterIndex: 3, competencyKey: "memberDevelopment", criteriaLabel: "발전적 피드백", timestamp: 690, endTime: 730, description: "구체적 사례를 기반으로 개선 포인트를 명확히 제시하고 함께 대안 모색", speaker: "최동현", score: 8, feedback: "" },
-  { id: "ev-11", chapterIndex: 4, competencyKey: "rationalDecision", criteriaLabel: "리스크 관리", timestamp: 800, endTime: 835, description: "잠재 리스크 요인을 체계적으로 식별하고 구체적 대응방안 3가지를 제시", speaker: "박민준", score: 8, feedback: "" },
-  { id: "ev-12", chapterIndex: 4, competencyKey: "visionPresentation", criteriaLabel: "과제의 도전성", timestamp: 860, endTime: 890, description: "현 수준 대비 도전적 목표를 설정하고 단계별 실행계획을 구체적으로 제안", speaker: "최동현", score: 6, feedback: "" },
-];
+// (데모 데이터 제거됨 — TwelveLabs API 분석 결과로 채워짐)
 
 // ─── 헬퍼 ────────────────────────────────────────
 
@@ -135,18 +104,19 @@ function ScoreSelector({ value, onChange }: { value: number; onChange: (v: numbe
 export default function LeadershipFeedback({
   videoId,
   videoTitle,
+  videoUrl,
   onBack,
 }: LeadershipFeedbackProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
 
-  // 분석 데이터 (초기값: 데모)
-  const [chapters, setChapters] = useState<Chapter[]>(DEMO_CHAPTERS);
-  const [highlights, setHighlights] = useState<Highlight[]>(DEMO_HIGHLIGHTS);
-  const [summary, setSummary] = useState(DEMO_SUMMARY);
+  // 분석 데이터 (TwelveLabs API 결과로 채워짐)
+  const [chapters, setChapters] = useState<Chapter[]>([]);
+  const [highlights, setHighlights] = useState<Highlight[]>([]);
+  const [summary, setSummary] = useState("");
   const [analysisLoading, setAnalysisLoading] = useState(true);
 
   // 평가 근거
-  const [evidence, setEvidence] = useState<EvidenceItem[]>(DEMO_EVIDENCE);
+  const [evidence, setEvidence] = useState<EvidenceItem[]>([]);
 
   // 재생
   const [currentTime, setCurrentTime] = useState(0);
@@ -330,6 +300,7 @@ export default function LeadershipFeedback({
           <div className="rounded-2xl overflow-hidden border border-surface-700/40 bg-black shadow-2xl shadow-black/50">
             <video
               ref={videoRef}
+              src={videoUrl}
               controls
               className="w-full aspect-video bg-black"
               aria-label="토론 영상"
