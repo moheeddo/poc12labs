@@ -205,6 +205,48 @@ export default function LeadershipFeedback({
         if (cancelled) return;
         if (typeof sm === "string" && sm) setSummary(sm);
 
+        // 4단계: 챕터 + 하이라이트 기반 평가 근거 자동 생성
+        setAnalysisStep("역량 평가 근거 생성 중...");
+        const competencyKeys: LeadershipCompetencyKey[] = ["visionPresentation", "trustBuilding", "memberDevelopment", "rationalDecision"];
+        const rubrics = LEADERSHIP_COMPETENCY_DEFS.filter(d => competencyKeys.includes(d.key));
+        const generatedEvidence: EvidenceItem[] = [];
+
+        const chaptersToUse = parsed.length > 0 ? parsed : [];
+        const highlightsToUse = parsedHl.length > 0 ? parsedHl : [];
+
+        // 각 챕터에 대해 역량별 평가 근거 생성
+        chaptersToUse.forEach((chapter, ci) => {
+          // 이 챕터에 해당하는 하이라이트 찾기
+          const chapterHighlights = highlightsToUse.filter(
+            hl => hl.start >= chapter.start && hl.start <= chapter.end
+          );
+
+          // 각 역량에 대해 평가 근거 카드 생성
+          const compIdx = ci % rubrics.length;
+          const comp = rubrics[compIdx];
+          if (!comp) return;
+
+          const rubricItem = comp.rubric?.[ci % (comp.rubric?.length || 1)];
+          const hlText = chapterHighlights.length > 0
+            ? chapterHighlights.map(h => h.text).join("; ")
+            : chapter.title;
+
+          generatedEvidence.push({
+            id: `ev-auto-${ci}`,
+            chapterIndex: ci,
+            competencyKey: comp.key,
+            criteriaLabel: rubricItem?.criteria || comp.label,
+            timestamp: chapter.start,
+            endTime: chapter.end,
+            description: hlText,
+            speaker: "발표자",
+            score: 0,
+            feedback: "",
+          });
+        });
+
+        if (generatedEvidence.length > 0) setEvidence(generatedEvidence);
+
         setAnalysisStep("");
       } catch (e) {
         if (!cancelled) {
