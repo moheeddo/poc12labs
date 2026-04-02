@@ -7,8 +7,8 @@ import SearchBar from "@/components/shared/SearchBar";
 import VideoPlayer from "@/components/shared/VideoPlayer";
 import CompetencyRadar from "./CompetencyRadar";
 import { useVideoSearch, useVideoUpload } from "@/hooks/useTwelveLabs";
-import { COMPETENCY_LABELS, TWELVELABS_INDEXES } from "@/lib/constants";
-import type { CompetencyScore, CompetencyKey } from "@/lib/types";
+import { TWELVELABS_INDEXES } from "@/lib/constants";
+import type { CompetencyScore } from "@/lib/types";
 import { formatTime, getGrade, getGradeDescription } from "@/lib/utils";
 
 // 역량 바 등급별 색상
@@ -30,21 +30,13 @@ const gradeBgMap: Record<string, string> = {
   "text-red-400": "bg-red-500/10",
 };
 
-// 데모용 기본 역량 점수
-const DEFAULT_SCORES: CompetencyScore[] = (Object.entries(COMPETENCY_LABELS) as [CompetencyKey, string][]).map(
-  ([key, label]) => ({
-    key,
-    label,
-    score: Math.floor(Math.random() * 30) + 60,
-  })
-);
-
 export default function SimulatorEval() {
   const { progress: uploadProgress, upload, uploadByUrl } = useVideoUpload();
-  const [scores] = useState<CompetencyScore[]>(DEFAULT_SCORES);
+  const [scores] = useState<CompetencyScore[]>([]);
   const [selectedChapter, setSelectedChapter] = useState<number | null>(null);
   const { results, loading, hasSearched, search } = useVideoSearch();
-  const overallScore = Math.round(scores.reduce((a, b) => a + b.score, 0) / scores.length);
+  const hasScores = scores.length > 0;
+  const overallScore = hasScores ? Math.round(scores.reduce((a, b) => a + b.score, 0) / scores.length) : 0;
   const { grade, color } = getGrade(overallScore);
 
   // 종합 점수 카운트업 애니메이션 (0 → overallScore, ~800ms)
@@ -159,8 +151,15 @@ export default function SimulatorEval() {
 
         {/* 우측: 평가 리포트 */}
         <div className="space-y-4">
+          {!hasScores && (
+            <div className="animate-fade-in-up bg-surface-800 border border-surface-700 rounded-xl p-8 text-center" style={{ animationDelay: "100ms", animationFillMode: "backwards" }}>
+              <Target className="w-10 h-10 mx-auto mb-3 text-slate-600" />
+              <p className="text-sm text-slate-400 mb-1">평가 결과 없음</p>
+              <p className="text-xs text-slate-600">영상을 업로드하면 8대 핵심역량 분석 결과가 표시됩니다</p>
+            </div>
+          )}
           {/* 종합 점수 */}
-          <div className="animate-fade-in-up bg-surface-800 border border-coral-500/30 rounded-xl p-4 text-center hover:border-coral-500/50 hover:shadow-lg hover:shadow-coral-500/10 transition-all duration-300" style={{ animationDelay: "100ms", animationFillMode: "backwards" }}>
+          {hasScores && <div className="animate-fade-in-up bg-surface-800 border border-coral-500/30 rounded-xl p-4 text-center hover:border-coral-500/50 hover:shadow-lg hover:shadow-coral-500/10 transition-all duration-300" style={{ animationDelay: "100ms", animationFillMode: "backwards" }}>
             <p className="text-xs text-slate-500 mb-1">종합 평가</p>
             <div className="flex items-baseline justify-center gap-2">
               <span className="text-4xl font-bold font-mono text-white tabular-nums">{displayScore}</span>
@@ -168,14 +167,15 @@ export default function SimulatorEval() {
             </div>
             <span className={`text-lg font-bold px-3 py-0.5 rounded-md ${color} ${gradeBgMap[color]}`}>{grade}</span>
             <p className="text-xs text-slate-500 mt-1">{getGradeDescription(grade)}</p>
-          </div>
+          </div>}
 
           {/* 레이더 차트 */}
-          <div className="animate-fade-in-up" style={{ animationDelay: "200ms", animationFillMode: "backwards" }}>
+          {hasScores && <div className="animate-fade-in-up" style={{ animationDelay: "200ms", animationFillMode: "backwards" }}>
             <CompetencyRadar scores={scores} />
-          </div>
+          </div>}
 
           {/* 역량별 상세 */}
+          {hasScores &&
           <div className="animate-fade-in-up bg-surface-800 border border-surface-700 rounded-xl p-4" style={{ animationDelay: "300ms", animationFillMode: "backwards" }}>
             <h4 className="text-sm font-medium text-slate-300 mb-3 flex items-center gap-2">
               <Target className="w-4 h-4" /> 역량별 상세
@@ -199,7 +199,7 @@ export default function SimulatorEval() {
                 </div>
               ))}
             </div>
-          </div>
+          </div>}
 
           {/* 챕터링 (타임라인 UI) */}
           <div className="animate-fade-in-up bg-surface-800 border border-surface-700 rounded-xl p-4" style={{ animationDelay: "400ms", animationFillMode: "backwards" }}>

@@ -36,7 +36,6 @@ import CompetencyAssessment from "./CompetencyAssessment";
 import { useVideoSearch, useVideoUpload } from "@/hooks/useTwelveLabs";
 import {
   TWELVELABS_INDEXES,
-  LEVEL_COMPETENCY_MAP,
   JOB_LEVEL_LABELS,
   getCompetenciesForLevel,
 } from "@/lib/constants";
@@ -45,7 +44,7 @@ import {
   ASSESSMENT_BY_KEY,
 } from "@/lib/leadership-rubric-data";
 import type { CompetencyAssessmentData } from "@/lib/leadership-rubric-data";
-import type { SpeakerScore, LeadershipCompetencyKey, JobLevel } from "@/lib/types";
+import type { SpeakerScore, JobLevel } from "@/lib/types";
 
 // ─── 아이콘 매핑 ───
 const COMPETENCY_ICONS: Record<string, React.ElementType> = {
@@ -63,74 +62,7 @@ type ViewState =
   | { type: "feedback"; videoId: string; videoTitle: string }
   | { type: "overview"; level: JobLevel };
 
-// 신임부장(2직급) 평가 기준으로 현실적 데모 데이터 생성
-function generateDemoSpeakers(level: JobLevel): SpeakerScore[] {
-  const competencyKeys = LEVEL_COMPETENCY_MAP[level];
-
-  const profiles: {
-    name: string;
-    scoreBase: number[];
-    strengths: string[];
-    improvements: string[];
-  }[] = [
-    {
-      name: "김철수",
-      scoreBase: [8, 7, 7, 8],
-      strengths: ["PEST 분석을 체계적으로 활용하여 전략과제를 도출", "멤버들에게 명확하게 비전을 전달하며 동기부여 역량 탁월"],
-      improvements: ["부서 간 갈등 조율 시 보다 적극적인 중재 역할 필요"],
-    },
-    {
-      name: "이영희",
-      scoreBase: [6, 8, 8, 7],
-      strengths: ["그룹토의에서 상대 의견을 존중하며 합의를 이끌어내는 능력 우수", "구성원 면담 시 허용적 분위기 조성에 강점"],
-      improvements: ["전략 수립 시 분석 결과와 과제 간 연계성 보강 필요"],
-    },
-    {
-      name: "박민준",
-      scoreBase: [7, 6, 7, 8],
-      strengths: ["의사결정 시 리스크 분석과 대안 수립이 체계적", "실행계획의 구체성과 현실성이 뛰어남"],
-      improvements: ["토론 과정에서 보다 적극적인 참여와 의견 개진 필요"],
-    },
-    {
-      name: "정수진",
-      scoreBase: [7, 7, 6, 6],
-      strengths: ["비전제시 시 전략적 커뮤니케이션 역량이 우수", "공정한 기준 적용으로 구성원 신뢰 확보"],
-      improvements: ["구성원 코칭 시 구체적 사례 기반 피드백 강화 필요", "의사결정 근거의 논리적 연결 보강 필요"],
-    },
-    {
-      name: "최동현",
-      scoreBase: [5, 7, 8, 7],
-      strengths: ["구성원 육성에 대한 열정이 높고 멘토링 역량 탁월", "문제 상황 분석 시 객관적 데이터 활용 능력 우수"],
-      improvements: ["비전제시 역량 중 전략과제의 도전성 수준 향상 필요"],
-    },
-    {
-      name: "한지원",
-      scoreBase: [7, 8, 5, 7],
-      strengths: ["설득과 협의 역량이 뛰어나 토의를 효과적으로 이끔", "의사결정 시 이해관계자 의견 수렴을 체계적으로 수행"],
-      improvements: ["구성원 면담 시 함께 대안을 모색하는 과정 보강 필요"],
-    },
-  ];
-
-  return profiles.map((p, i) => {
-    const scores: Partial<Record<LeadershipCompetencyKey, number>> = {};
-    competencyKeys.forEach((key, ki) => {
-      scores[key] = p.scoreBase[ki];
-    });
-    const total = competencyKeys.reduce((acc, key, ki) => acc + p.scoreBase[ki], 0) / competencyKeys.length;
-    return {
-      speakerId: `speaker-${i}`,
-      speakerName: p.name,
-      jobLevel: level,
-      scores,
-      totalScore: total,
-      feedback: "",
-      strengths: p.strengths,
-      improvements: p.improvements,
-    };
-  });
-}
-
-// 데모: 성장 추이 데이터
+// 성장 추이 데이터 (실제 연동 시 API에서 조회)
 function generateGrowthData(level: JobLevel) {
   const competencies = getCompetenciesForLevel(level);
   return ["1월", "2월", "3월", "4월", "5월"].map((month, mi) => {
@@ -142,11 +74,8 @@ function generateGrowthData(level: JobLevel) {
   });
 }
 
-// 데모: 분석 완료된 영상 목록
-const DEMO_VIDEOS = [
-  { videoId: "demo-video-001", title: "신임부장 리더십역량 진단 세션 #1", date: "2026-03-10", level: 2 as JobLevel },
-  { videoId: "demo-video-002", title: "신임부장 리더십역량 진단 세션 #2", date: "2026-03-17", level: 2 as JobLevel },
-];
+// 분석 완료 영상 (실제 연동 시 API에서 조회)
+const ANALYZED_VIDEOS: { videoId: string; title: string; date: string; level: JobLevel }[] = [];
 
 // 평가항목 카드 데이터 (부장/2직급)
 const ASSESSMENT_CARDS = DEPARTMENT_HEAD_ASSESSMENTS.map((a) => ({
@@ -167,10 +96,8 @@ export default function LeadershipCoaching() {
   const [uploadedVideoId, setUploadedVideoId] = useState<string | null>(null);
   const [uploadedFileName, setUploadedFileName] = useState("");
 
-  // 데모 데이터
-  const [speakers] = useState<SpeakerScore[]>(
-    () => [...generateDemoSpeakers(2)].sort((a, b) => b.totalScore - a.totalScore)
-  );
+  // 참가자 데이터 (업로드 후 분석 결과로 채워짐)
+  const [speakers] = useState<SpeakerScore[]>([]);
   const [periodFilter, setPeriodFilter] = useState<"3개월" | "6개월" | "1년">("6개월");
   const [growthData] = useState(() => generateGrowthData(2));
   const { loading, search } = useVideoSearch();
@@ -371,7 +298,7 @@ export default function LeadershipCoaching() {
               <Video className="w-4 h-4" /> 분석 완료 영상
             </h3>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              {DEMO_VIDEOS.map((video, i) => (
+              {ANALYZED_VIDEOS.map((video, i) => (
                 <button
                   key={video.videoId}
                   onClick={() => setView({ type: "feedback", videoId: video.videoId, videoTitle: video.title })}
