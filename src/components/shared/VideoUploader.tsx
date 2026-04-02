@@ -261,6 +261,20 @@ export default function VideoUploader({ onUpload, onUrlUpload, progress, accentC
               <p className="text-xs text-red-400 font-medium">
                 {progress.error}
               </p>
+              {/* 파일 크기 관련 에러 시 URL 업로드 전환 버튼 */}
+              {onUrlUpload && (progress.error.includes("URL로 업로드") || progress.error.includes("너무 큽니다")) && (
+                <button
+                  onClick={() => { setShowUrlInput(true); setSelectedFile(null); }}
+                  className={cn(
+                    "mt-2.5 flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium text-white transition-all duration-150",
+                    "active:scale-95",
+                    accentBtnMap[accentColor],
+                  )}
+                >
+                  <Link2 className="w-3.5 h-3.5" />
+                  URL로 업로드 전환
+                </button>
+              )}
             </div>
           )}
 
