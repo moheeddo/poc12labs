@@ -113,6 +113,8 @@ export default function LeadershipFeedback({
   const [chapters, setChapters] = useState<Chapter[]>([]);
   const [highlights, setHighlights] = useState<Highlight[]>([]);
   const [summary, setSummary] = useState("");
+  const [analysisError, setAnalysisError] = useState<string | null>(null);
+  const [analysisStep, setAnalysisStep] = useState("");
   const [analysisLoading, setAnalysisLoading] = useState(true);
 
   // 평가 근거
@@ -134,17 +136,16 @@ export default function LeadershipFeedback({
   const { analyze } = useVideoAnalysis();
   const { segments: transcriptSegments, loading: transcriptLoading, fetchTranscription } = useVideoTranscription();
 
-  // ── 분석 데이터 로드 ──
+  // ── 분석 데이터 로드 (단계별 피드백) ──
   useEffect(() => {
     let cancelled = false;
     async function load() {
       setAnalysisLoading(true);
+      setAnalysisError(null);
       try {
-        const [ch, hl, sm] = await Promise.all([
-          analyze(videoId, "chapter"),
-          analyze(videoId, "highlight"),
-          analyze(videoId, "summary"),
-        ]);
+        // 1단계: 챕터 분석
+        setAnalysisStep("영상 구간 분석 중...");
+        const ch = await analyze(videoId, "chapter");
         if (cancelled) return;
         const parsed: Chapter[] = Array.isArray(ch)
           ? ch.map((c: Record<string, unknown>) => ({
@@ -154,6 +155,11 @@ export default function LeadershipFeedback({
             }))
           : [];
         if (parsed.length > 0) setChapters(parsed);
+
+        // 2단계: 하이라이트 추출
+        setAnalysisStep("핵심 장면 추출 중...");
+        const hl = await analyze(videoId, "highlight");
+        if (cancelled) return;
         const parsedHl: Highlight[] = Array.isArray(hl)
           ? hl.map((h: Record<string, unknown>) => ({
               text: (h.highlight as string) || (h.text as string) || "",
@@ -162,9 +168,20 @@ export default function LeadershipFeedback({
             }))
           : [];
         if (parsedHl.length > 0) setHighlights(parsedHl);
+
+        // 3단계: AI 요약
+        setAnalysisStep("AI 요약 생성 중...");
+        const sm = await analyze(videoId, "summary");
+        if (cancelled) return;
         if (typeof sm === "string" && sm) setSummary(sm);
-      } catch {
-        // 데모 데이터 유지
+
+        setAnalysisStep("");
+      } catch (e) {
+        if (!cancelled) {
+          const msg = e instanceof Error ? e.message : "분석 실패";
+          setAnalysisError(msg);
+          setAnalysisStep("");
+        }
       } finally {
         if (!cancelled) setAnalysisLoading(false);
       }
@@ -384,9 +401,41 @@ export default function LeadershipFeedback({
             </div>
           )}
 
+          {/* AI 분석 상태 */}
+          {analysisLoading && (
+            <div className="bg-surface-800/40 border border-teal-500/20 rounded-xl p-5 animate-pulse">
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 rounded-lg bg-teal-500/15 flex items-center justify-center shrink-0">
+                  <Sparkles className="w-4 h-4 text-teal-400 animate-spin" />
+                </div>
+                <div>
+                  <p className="text-sm text-teal-400 font-medium">AI 분석 진행 중</p>
+                  <p className="text-xs text-slate-500 mt-0.5">{analysisStep || "준비 중..."}</p>
+                </div>
+              </div>
+              <div className="mt-3 h-1.5 bg-surface-700 rounded-full overflow-hidden">
+                <div className="h-full bg-teal-500/60 rounded-full animate-[loading_2s_ease-in-out_infinite]"
+                  style={{ width: analysisStep.includes("요약") ? "80%" : analysisStep.includes("핵심") ? "50%" : "20%" }}
+                />
+              </div>
+            </div>
+          )}
+
+          {/* 분석 에러 */}
+          {analysisError && !analysisLoading && (
+            <div className="bg-surface-800/40 border border-amber-500/20 rounded-xl p-4">
+              <p className="text-xs text-amber-400 flex items-center gap-1.5 mb-1">
+                <Sparkles className="w-3.5 h-3.5" />
+                분석 결과를 불러오지 못했습니다
+              </p>
+              <p className="text-xs text-slate-500">{analysisError}</p>
+              <p className="text-xs text-slate-600 mt-2">영상 인덱싱이 완료된 후 다시 시도해 주세요</p>
+            </div>
+          )}
+
           {/* AI 요약 + 하이라이트 */}
           {!analysisLoading && (summary || highlights.length > 0) && (
-            <div className="bg-surface-800/40 border border-surface-700/30 rounded-xl p-4 space-y-3">
+            <div className="bg-surface-800/40 border border-surface-700/30 rounded-xl p-4 space-y-3 animate-fade-in-up">
               {summary && (
                 <div>
                   <p className="text-xs text-slate-500 flex items-center gap-1.5 mb-1.5">
@@ -458,7 +507,14 @@ export default function LeadershipFeedback({
             />
           )}
 
-          {/* 평가 근거 탭 — 챕터별 평가 근거 카드 */}
+          {/* 평가 근거 탭 */}
+          {rightTab === "evidence" && evidence.length === 0 && !analysisLoading && (
+            <div className="bg-surface-800/40 border border-surface-700/30 rounded-xl p-8 text-center">
+              <ClipboardList className="w-10 h-10 mx-auto mb-3 text-slate-600" />
+              <p className="text-sm text-slate-400 mb-1">평가 근거 없음</p>
+              <p className="text-xs text-slate-600">AI 분석이 완료되면 챕터별 평가 근거가 자동 생성됩니다</p>
+            </div>
+          )}
           {rightTab === "evidence" && evidenceByChapter.map(({ chapter, items }, ci) => (
             <div
               key={ci}
