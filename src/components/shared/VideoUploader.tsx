@@ -93,36 +93,31 @@ export default function VideoUploader({ onUpload, onUrlUpload, progress, accentC
     await onUrlUpload(trimmed);
   }, [videoUrl, onUrlUpload]);
 
-  // Finder 열기
-  const openFinder = useCallback(() => {
-    inputRef.current?.click();
-  }, []);
+  // 고유 input ID (여러 인스턴스 충돌 방지)
+  const inputId = useRef(`file-upload-${Math.random().toString(36).slice(2, 8)}`).current;
 
   return (
     <div className="space-y-3">
-      {/* ── 메인 영역: 드래그앤드롭 + 클릭 → Finder ── */}
-      {/* 파일 input — 완전히 숨김 (display:none), 클릭은 ref로만 트리거 */}
+      {/* 파일 input — label과 연결, JS .click() 없이 네이티브로 동작 */}
       <input
         ref={inputRef}
+        id={inputId}
         type="file"
         accept="video/*"
-        style={{ display: "none" }}
+        style={{ position: "absolute", width: 0, height: 0, opacity: 0, pointerEvents: "none" }}
         onChange={handleFileSelect}
       />
 
       {!showUrlInput && (
         <>
-          <div
-            role="button"
-            aria-label="영상 파일 업로드 영역 — 클릭하면 Finder가 열립니다"
-            tabIndex={0}
-            onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); openFinder(); } }}
+          {/* label로 감싸서 클릭 시 네이티브로 파일 선택창 오픈 */}
+          <label
+            htmlFor={inputId}
             onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
             onDragLeave={() => setIsDragging(false)}
             onDrop={handleDrop}
-            onClick={openFinder}
             className={cn(
-              "border-2 border-dashed rounded-xl p-6 md:p-8 text-center cursor-pointer transition-all duration-200",
+              "block border-2 border-dashed rounded-xl p-6 md:p-8 text-center cursor-pointer transition-all duration-200",
               isRejected
                 ? "border-red-500/60 bg-red-500/5"
                 : isDragging
@@ -146,7 +141,7 @@ export default function VideoUploader({ onUpload, onUrlUpload, progress, accentC
                 영상 파일만 업로드할 수 있습니다
               </p>
             )}
-          </div>
+          </label>
 
           {/* URL 입력 토글 (onUrlUpload이 있을 때만) */}
           {onUrlUpload && !selectedFile && !progress && (
