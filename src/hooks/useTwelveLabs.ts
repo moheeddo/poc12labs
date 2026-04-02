@@ -92,16 +92,24 @@ export function useVideoUpload() {
     setProgress({ fileName: file.name, progress: 0, status: "uploading" });
 
     try {
-      // 서버 프록시로 업로드 (API 키 서버 전용, Vercel body 제한 ~4.5MB)
-      console.log(logPrefix, "서버 프록시로 전송 중...");
+      // 브라우저 → TwelveLabs API 직접 업로드 (서버 미경유, 크기 제한 없음)
+      // 1) 서버에서 업로드 토큰 조회 (작은 JSON, Vercel 제한 없음)
+      console.log(logPrefix, "업로드 토큰 조회 중...");
+      const { token } = await apiFetch<{ token: string }>("/api/tl-token");
+
+      // 2) TwelveLabs API로 직접 전송
+      console.log(logPrefix, "TwelveLabs API로 직접 전송 중...");
       const formData = new FormData();
-      formData.append("indexId", indexId);
-      formData.append("file", file);
+      formData.append("index_id", indexId);
+      formData.append("video_file", file);
+
+      const apiUrl = "https://api.twelvelabs.io/v1.3/tasks";
 
       // XMLHttpRequest로 업로드 진행률 추적
       const { taskId } = await new Promise<{ taskId: string; videoId?: string }>((resolve, reject) => {
         const xhr = new XMLHttpRequest();
-        xhr.open("POST", "/api/twelvelabs/upload");
+        xhr.open("POST", apiUrl);
+        xhr.setRequestHeader("x-api-key", token);
 
         xhr.upload.onprogress = (e) => {
           if (e.lengthComputable) {
@@ -115,24 +123,21 @@ export function useVideoUpload() {
           if (xhr.status >= 200 && xhr.status < 300) {
             try {
               const data = JSON.parse(xhr.responseText);
-              resolve({ taskId: data.taskId, videoId: data.videoId });
+              resolve({ taskId: data._id, videoId: data.video_id });
             } catch {
               reject(new Error("서버 응답 파싱 실패"));
             }
-          } else if (xhr.status === 413 || xhr.status === 502) {
-            const sizeMB = (file.size / 1024 / 1024).toFixed(0);
-            reject(new Error(`파일(${sizeMB}MB)이 너무 큽니다. 'URL로 업로드'를 사용해 주세요.`));
           } else {
             try {
               const err = JSON.parse(xhr.responseText);
-              reject(new Error(err.error || `HTTP ${xhr.status}`));
+              reject(new Error(err.message || err.error || `HTTP ${xhr.status}`));
             } catch {
               reject(new Error(`업로드 실패 (${xhr.status})`));
             }
           }
         };
 
-        xhr.onerror = () => reject(new Error("네트워크 오류 — 파일이 크면 'URL로 업로드'를 사용해 주세요."));
+        xhr.onerror = () => reject(new Error("네트워크 오류"));
         xhr.onabort = () => reject(new Error("업로드 취소됨"));
         xhr.send(formData);
 
