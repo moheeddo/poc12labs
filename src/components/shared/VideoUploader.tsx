@@ -125,7 +125,7 @@ export default function VideoUploader({ onUpload, onUrlUpload, progress, accentC
               ref={inputRef}
               type="file"
               accept="video/*"
-              className="hidden"
+              className="sr-only"
               onChange={handleFileSelect}
             />
             <div className="flex flex-col items-center">
