@@ -92,16 +92,21 @@ export function useVideoUpload() {
     setProgress({ fileName: file.name, progress: 0, status: "uploading" });
 
     try {
-      // 서버사이드 프록시로 업로드 (API 키는 서버에서만 사용)
-      console.log(logPrefix, "서버 프록시로 전송 중...");
+      // CDN rewrite 프록시로 업로드 — Vercel 서버리스 body 제한(4.5MB) 우회
+      // /api/tl-upload → TwelveLabs API 직접 스트리밍 (서버리스 함수 미경유)
+      console.log(logPrefix, "API 키 조회 중...");
+      const { apiKey } = await apiFetch<{ apiKey: string }>("/api/tl-config");
+
+      console.log(logPrefix, "CDN 프록시로 전송 중...");
       const formData = new FormData();
-      formData.append("indexId", indexId);
-      formData.append("file", file);
+      formData.append("index_id", indexId);
+      formData.append("video_file", file);
 
       // XMLHttpRequest로 업로드 진행률 추적
       const { taskId } = await new Promise<{ taskId: string; videoId?: string }>((resolve, reject) => {
         const xhr = new XMLHttpRequest();
-        xhr.open("POST", "/api/twelvelabs/upload");
+        xhr.open("POST", "/api/tl-upload");
+        xhr.setRequestHeader("x-api-key", apiKey);
 
         xhr.upload.onprogress = (e) => {
           if (e.lengthComputable) {
@@ -115,14 +120,15 @@ export function useVideoUpload() {
           if (xhr.status >= 200 && xhr.status < 300) {
             try {
               const data = JSON.parse(xhr.responseText);
-              resolve({ taskId: data.taskId, videoId: data.videoId });
+              // TwelveLabs 응답: { _id, video_id }
+              resolve({ taskId: data._id, videoId: data.video_id });
             } catch {
               reject(new Error("서버 응답 파싱 실패"));
             }
           } else {
             try {
               const err = JSON.parse(xhr.responseText);
-              reject(new Error(err.error || `HTTP ${xhr.status}`));
+              reject(new Error(err.message || err.error || `HTTP ${xhr.status}`));
             } catch {
               reject(new Error(`업로드 실패 (${xhr.status})`));
             }
