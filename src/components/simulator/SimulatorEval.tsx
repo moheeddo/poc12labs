@@ -253,7 +253,7 @@ export default function SimulatorEval() {
                       className={`relative flex items-center gap-3 text-xs py-2 px-2 pl-9 rounded-lg cursor-pointer transition-all duration-200 group ${
                         isSelected
                           ? "bg-coral-500/10"
-                          : "hover:bg-surface-700/50"
+                          : "hover:bg-slate-50"
                       }`}
                     >
                       {/* 숫자 뱃지 (연결선 위) */}

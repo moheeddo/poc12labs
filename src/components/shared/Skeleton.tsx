@@ -24,7 +24,7 @@ const variantStyles: Record<SkeletonVariant, string> = {
  * 범용 스켈레톤 컴포넌트
  *
  * globals.css에 정의된 `.animate-shimmer` 활용
- * - surface-800 → surface-700 → surface-600 그라데이션 시머
+ * - slate-50 → slate-100 → slate-200 그라데이션 시머
  */
 export default function Skeleton({
   variant = "text",
@@ -37,7 +37,7 @@ export default function Skeleton({
       role="status"
       aria-label="로딩 중"
       className={cn(
-        "animate-shimmer bg-surface-700",
+        "animate-shimmer bg-slate-100",
         variantStyles[variant],
         className,
       )}

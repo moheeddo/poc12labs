@@ -150,7 +150,7 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
       <div className="mt-16 md:mt-20">
         <div className="flex items-center gap-3 mb-8">
           <div
-            className="animate-fade-in-up h-px flex-1 bg-gradient-to-r from-surface-600 to-transparent"
+            className="animate-fade-in-up h-px flex-1 bg-gradient-to-r from-slate-200 to-transparent"
             style={{ animationDelay: "800ms", animationFillMode: "backwards" }}
           />
           <h3
@@ -160,7 +160,7 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
             빠른 시작
           </h3>
           <div
-            className="animate-fade-in-up h-px flex-1 bg-gradient-to-l from-surface-600 to-transparent"
+            className="animate-fade-in-up h-px flex-1 bg-gradient-to-l from-slate-200 to-transparent"
             style={{ animationDelay: "800ms", animationFillMode: "backwards" }}
           />
         </div>

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { X, CheckCircle, AlertCircle, Info, AlertTriangle } from "lucide-react";
 import type { Toast as ToastType } from "@/lib/types";
 import { cn } from "@/lib/utils";
@@ -56,17 +56,16 @@ export default function Toast({ toast, onDismiss }: ToastProps) {
   const style = TOAST_STYLES[toast.type];
 
   /** 퇴장 애니메이션 후 실제 제거 */
-  const handleDismiss = () => {
+  const handleDismiss = useCallback(() => {
     setExiting(true);
     setTimeout(() => onDismiss(toast.id), EXIT_ANIMATION_MS);
-  };
+  }, [onDismiss, toast.id]);
 
   /** 3초 후 자동 닫기 */
   useEffect(() => {
     const timer = setTimeout(handleDismiss, AUTO_DISMISS_MS);
     return () => clearTimeout(timer);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [toast.id]);
+  }, [handleDismiss]);
 
   return (
     <div

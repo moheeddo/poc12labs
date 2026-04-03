@@ -574,7 +574,7 @@ function OverviewTab({ report }: { report: PovEvaluationReport; procedure: Proce
           </h4>
           <ResponsiveContainer width="100%" height={260}>
             <RadarChart data={radarData}>
-              <PolarGrid stroke="#1e293b" />
+              <PolarGrid stroke="#e2e8f0" />
               <PolarAngleAxis dataKey="subject" tick={{ fill: "#94a3b8", fontSize: 11 }} />
               <PolarRadiusAxis angle={90} domain={[0, 100]} tick={{ fill: "#475569", fontSize: 9 }} />
               <Radar name="점수" dataKey="score" stroke="#f59e0b" fill="#f59e0b" fillOpacity={0.2} strokeWidth={2} />
@@ -605,7 +605,7 @@ function OverviewTab({ report }: { report: PovEvaluationReport; procedure: Proce
             </div>
           </div>
           {/* 프로그레스 바 */}
-          <div className="h-3 rounded-full bg-surface-900 overflow-hidden flex">
+          <div className="h-3 rounded-full bg-slate-100 overflow-hidden flex">
             <div className="bg-teal-500 transition-all duration-1000" style={{ width: `${(passCount / report.stepEvaluations.length) * 100}%` }} />
             <div className="bg-amber-500 transition-all duration-1000" style={{ width: `${(partialCount / report.stepEvaluations.length) * 100}%` }} />
             <div className="bg-red-500 transition-all duration-1000" style={{ width: `${(failCount / report.stepEvaluations.length) * 100}%` }} />
@@ -680,7 +680,7 @@ function StepsTab({ report, procedure }: { report: PovEvaluationReport; procedur
                 {section.title}
               </h4>
               <div className="flex items-center gap-2">
-                <div className="w-16 h-1.5 rounded-full bg-surface-900 overflow-hidden">
+                <div className="w-16 h-1.5 rounded-full bg-slate-100 overflow-hidden">
                   <div className="h-full bg-teal-500 transition-all duration-1000" style={{ width: `${sectionPassRate}%` }} />
                 </div>
                 <span className="text-sm font-mono text-slate-500">{sectionPassRate}%</span>
@@ -692,7 +692,7 @@ function StepsTab({ report, procedure }: { report: PovEvaluationReport; procedur
                 return (
                   <div
                     key={evalItem.stepId}
-                    className="animate-fade-in-up flex items-start gap-3 p-2.5 rounded-lg bg-surface-900/50 hover:bg-surface-900 transition-colors"
+                    className="animate-fade-in-up flex items-start gap-3 p-2.5 rounded-lg bg-slate-100/50 hover:bg-slate-100 transition-colors"
                     style={{ animationDelay: `${i * 40}ms`, animationFillMode: "backwards" }}
                   >
                     <div className={cn("mt-0.5 shrink-0", cfg.color)}>{cfg.icon}</div>
@@ -749,7 +749,7 @@ function HpoTab({ report }: { report: PovEvaluationReport }) {
           <div className="min-w-[500px]">
             <ResponsiveContainer width="100%" height={300}>
               <BarChart data={barData} layout="vertical">
-                <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" />
+                <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
                 <XAxis type="number" domain={[0, 100]} tick={{ fill: "#94a3b8", fontSize: 10 }} />
                 <YAxis dataKey="name" type="category" tick={{ fill: "#94a3b8", fontSize: 10 }} width={100} />
                 <Tooltip content={<ChartTooltip unit="점" />} cursor={{ fill: "rgba(255,255,255,0.03)" }} />
@@ -777,7 +777,7 @@ function HpoTab({ report }: { report: PovEvaluationReport }) {
               return (
                 <div
                   key={tool.toolKey}
-                  className="animate-fade-in-up flex items-center gap-3 p-3 rounded-lg bg-surface-900/50"
+                  className="animate-fade-in-up flex items-center gap-3 p-3 rounded-lg bg-slate-100/50"
                   style={{ animationDelay: `${i * 50}ms`, animationFillMode: "backwards" }}
                 >
                   <div className="w-1.5 h-8 rounded-full" style={{ backgroundColor: toolDef?.color || "#64748b" }} />
@@ -819,7 +819,7 @@ function FundamentalsTab({ report }: { report: PovEvaluationReport }) {
             score: f.score,
             fullMark: 100,
           }))}>
-            <PolarGrid stroke="#1e293b" />
+            <PolarGrid stroke="#e2e8f0" />
             <PolarAngleAxis dataKey="subject" tick={{ fill: "#94a3b8", fontSize: 11 }} />
             <PolarRadiusAxis angle={90} domain={[0, 100]} tick={{ fill: "#475569", fontSize: 9 }} />
             <Radar name="점수" dataKey="score" stroke="#f59e0b" fill="#f59e0b" fillOpacity={0.15} strokeWidth={2} />
@@ -850,7 +850,7 @@ function FundamentalsTab({ report }: { report: PovEvaluationReport }) {
                 <p className="text-sm text-slate-500 mb-2">{fundDef?.definition}</p>
 
                 {/* 프로그레스 바 */}
-                <div className="h-1.5 rounded-full bg-surface-900 overflow-hidden mb-2">
+                <div className="h-1.5 rounded-full bg-slate-100 overflow-hidden mb-2">
                   <div className="h-full rounded-full transition-all duration-1000" style={{ width: `${fs.score}%`, backgroundColor: fundDef?.color }} />
                 </div>
 

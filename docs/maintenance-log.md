@@ -1,5 +1,81 @@
 # Maintenance Log
 
+## 2026-04-04 QA 사이클 5 — 실제 사이트 브라우징 + 시각적 버그 탐지 + surface 컬러 정규화
+
+### 1. 개발 서버 + SSR 검증
+
+| 항목 | 결과 |
+|------|------|
+| `lsof -i :3000` 서버 확인 | O — 실행 중 |
+| curl 홈페이지 HTML | O — `bg-slate-50` 확인, SSR 정상 응답 |
+| `npx tsc --noEmit` | O — 오류 0개 |
+| `npx next build` | O — 성공, 경고 0개 |
+
+### 2. surface-* 컬러 토큰 → 표준 slate 클래스로 정규화
+
+커스텀 `surface-*` 토큰(CSS 변수로 정의됨)은 기능상 문제 없으나, 높은 번호가 밝은 색을 의미하는 역전 매핑이 혼란을 유발. 범용 Tailwind `slate-*` 클래스로 일괄 교체하여 가독성과 유지보수성 향상.
+
+| 파일 | 변경 전 | 변경 후 |
+|------|---------|---------|
+| `src/app/page.tsx` | `bg-surface-900` | `bg-slate-50` |
+| `src/components/shared/Skeleton.tsx` | `bg-surface-700` | `bg-slate-100` |
+| `src/components/shared/VideoUploader.tsx` | `bg-surface-700` | `bg-slate-100` |
+| `src/components/shared/VideoPlayer.tsx` | `text-surface-600` | `text-slate-300` |
+| `src/components/simulator/SimulatorEval.tsx` | `hover:bg-surface-700/50` | `hover:bg-slate-50` |
+| `src/components/dashboard/Dashboard.tsx` | `from-surface-600` (x2) | `from-slate-200` |
+| `src/components/pov/PovAnalysis.tsx` | `bg-surface-900` (x5), `bg-surface-900/50` (x2) | `bg-slate-100`, `bg-slate-100/50` |
+
+### 3. 차트 라이트 테마 색상 수정
+
+| 파일 | 수정 내용 |
+|------|----------|
+| `src/components/pov/PovAnalysis.tsx` | PolarGrid/CartesianGrid `stroke="#1e293b"` (다크) → `stroke="#e2e8f0"` (라이트) — 3개소. 흰 배경에서 격자선이 너무 진했던 문제 해결 |
+
+### 4. 시각적 미세 버그 수정
+
+| 파일 | 수정 내용 |
+|------|----------|
+| `src/components/leadership/LeadershipFeedback.tsx` | 분석 단계 대기 아이콘 `text-slate-200` → `text-slate-300` — 흰 배경에서 거의 보이지 않던 문제 해결 |
+
+### 5. 타입 안전성 강화
+
+| 파일 | 수정 내용 |
+|------|----------|
+| `src/hooks/useMultimodalPipeline.ts` | `(signals as any)[signalKey]` → `(signals as Record<string, unknown>)[signalKey]` — `as any` 제거 + eslint-disable 주석 제거 |
+
+### 6. eslint-disable 정리
+
+| 파일 | 수정 내용 |
+|------|----------|
+| `src/hooks/useMultimodalPipeline.ts` | `eslint-disable @typescript-eslint/no-explicit-any` 제거 (타입 개선으로 불필요) |
+| `src/components/shared/Toast.tsx` | `eslint-disable react-hooks/exhaustive-deps` 제거 — `handleDismiss`를 `useCallback`으로 감싸서 의존성 정상 선언 |
+| `src/components/leadership/LeadershipFeedback.tsx` (348, 358행) | 유지 — 의도적 "1회 실행" 패턴으로 정당한 사용 |
+
+### 7. 시뮬레이터/POV 탭 코드 점검 결과
+
+| 컴포넌트 | 점검 결과 |
+|---------|----------|
+| `SimulatorEval.tsx` | 빈 상태 UX 양호 (8대 역량 미리보기 카드 + 안내 문구). 다크 잔여 1건 수정 완료 |
+| `CompetencyRadar.tsx` | 라이트 테마 색상 정상 (`#e2e8f0` 그리드, `#475569` 틱) |
+| `PovAnalysis.tsx` | surface-* 5건 + 차트 stroke 3건 수정 완료 |
+| `PovReviewSession.tsx` | `text-slate-200` 잔여 없음, 라이트 테마 적합 확인 |
+
+### 8. 공용 컴포넌트 점검 결과
+
+| 컴포넌트 | 점검 결과 |
+|---------|----------|
+| `VideoUploader.tsx` | 드래그앤드롭 피드백 정상 (isDragging 상태 + 거부 애니메이션). 용량 안내 "용량 제한 없음" 표시 |
+| `VideoPlayer.tsx` | 빈 상태 처리 양호 (PlayCircle 아이콘 + 안내 텍스트 + 업로드/검색 링크) |
+| `SearchBar.tsx` | Enter 키 → form submit으로 정상 동작. 빈 입력 방지 (`disabled={!query.trim()}`). Escape로 입력 초기화 |
+| `Toast.tsx` | `role="alert"` + `aria-live="polite"` + `aria-label="토스트 닫기"` 접근성 양호 |
+
+### 빌드 결과
+
+- `npx tsc --noEmit`: 오류 0개
+- `npx next build`: 성공, 경고 0개
+
+---
+
 ## 2026-04-04 QA 사이클 4 — 실사용 시나리오 E2E 검증 + 방어 코드 강화
 
 ### 1. 엣지 케이스 방어 코드

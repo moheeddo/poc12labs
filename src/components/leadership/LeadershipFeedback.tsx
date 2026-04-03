@@ -577,7 +577,7 @@ export default function LeadershipFeedback({
                     ) : isCurrent ? (
                       <Loader2 className="w-6 h-6 text-teal-600 animate-spin" />
                     ) : (
-                      <Circle className="w-6 h-6 text-slate-200" />
+                      <Circle className="w-6 h-6 text-slate-300" />
                     )}
                   </div>
                   {/* 텍스트 */}

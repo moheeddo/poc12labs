@@ -125,8 +125,8 @@ export function useMultimodalPipeline() {
 
           const signalKey = SIGNAL_KEYS[ch];
           if (signalKey) {
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            (signals as any)[signalKey] = channelData;
+            // TwelveLabs API 응답은 동적 구조이므로 타입 단언이 불가피
+            (signals as Record<string, unknown>)[signalKey] = channelData;
             completed.push(ch);
           }
         }

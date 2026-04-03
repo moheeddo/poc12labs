@@ -277,7 +277,7 @@ export default function VideoUploader({ onUpload, onUrlUpload, progress, accentC
 
           {(progress.status === "uploading" || progress.status === "processing" || progress.status === "indexing") && (
             <div
-              className="w-full bg-surface-700 rounded-full h-1.5"
+              className="w-full bg-slate-100 rounded-full h-1.5"
               role="progressbar"
               aria-valuenow={progress.progress}
               aria-valuemin={0}
