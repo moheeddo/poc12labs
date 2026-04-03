@@ -240,7 +240,7 @@ export default function PovAnalysis() {
             <div className="flex items-start gap-3">
               <BookOpen className="w-5 h-5 text-amber-600 mt-0.5 shrink-0" />
               <div>
-                <h3 className="text-base font-semibold text-slate-200">운전행위 표준지침반 실습가이드</h3>
+                <h3 className="text-base font-semibold text-slate-800">운전행위 표준지침반 실습가이드</h3>
                 <p className="text-sm text-slate-500 mt-1 leading-relaxed">
                   HPO 센터 종합실습설비를 활용한 운전원 기본수칙 및 인적오류예방기법 체화 훈련입니다.
                   4개 계통(냉각수, 순환수, 온수, 공정수)의 기동/정지/교체운전 밸브라인업 절차를 POV(1인칭 시점) 영상으로 촬영 후 AI가 자동 분석합니다.
@@ -288,7 +288,7 @@ export default function PovAnalysis() {
                               </span>
                               <span className="text-sm text-slate-500">{proc.group}</span>
                             </div>
-                            <h4 className="text-base font-medium text-slate-200 group-hover:text-amber-300 transition-colors truncate">
+                            <h4 className="text-base font-medium text-slate-800 group-hover:text-amber-600 transition-colors truncate">
                               {proc.title}
                             </h4>
                             <p className="text-sm text-slate-500 mt-1">{proc.operation} | {proc.target}</p>
@@ -323,7 +323,7 @@ export default function PovAnalysis() {
               <span className="text-sm font-mono px-1.5 py-0.5 rounded bg-amber-50 text-amber-500">
                 붙임{selectedProcedure.appendixNo}
               </span>
-              <h3 className="text-base font-semibold text-slate-200">{selectedProcedure.title}</h3>
+              <h3 className="text-base font-semibold text-slate-800">{selectedProcedure.title}</h3>
             </div>
             {/* 절차 스텝 미리보기 */}
             <div className="space-y-1.5 mt-3 max-h-[300px] overflow-y-auto scrollbar-hide">
@@ -331,7 +331,7 @@ export default function PovAnalysis() {
                 <div key={section.id}>
                   <button
                     onClick={() => toggleSection(section.id)}
-                    className="flex items-center gap-2 w-full text-left py-1 text-sm text-slate-500 hover:text-slate-200 transition-colors"
+                    className="flex items-center gap-2 w-full text-left py-1 text-sm text-slate-500 hover:text-slate-700 transition-colors"
                   >
                     {expandedSections.has(section.id) ? <ChevronDown className="w-3 h-3" /> : <ChevronRight className="w-3 h-3" />}
                     <span className="font-mono text-amber-500/60">{section.id}</span>
@@ -407,7 +407,7 @@ export default function PovAnalysis() {
               <Sparkles className="w-3.5 h-3.5 text-amber-600" />
             </div>
           </div>
-          <h3 className="text-lg font-semibold text-slate-200 mt-6">AI 평가 분석 진행 중</h3>
+          <h3 className="text-lg font-semibold text-slate-800 mt-6">AI 평가 분석 진행 중</h3>
           <p className="text-base text-slate-500 mt-2 text-center max-w-md">
             TwelveLabs Video AI가 POV 영상을 분석하여<br />
             표준지침-3035-01 및 표준운영-2035A 기준으로 평가합니다
@@ -843,7 +843,7 @@ function FundamentalsTab({ report }: { report: PovEvaluationReport }) {
               </div>
               <div className="flex-1">
                 <div className="flex items-center gap-2 mb-1">
-                  <h5 className="text-base font-medium text-slate-200">{fs.label}</h5>
+                  <h5 className="text-base font-medium text-slate-800">{fs.label}</h5>
                   <span className={cn("text-sm px-1.5 py-0.5 rounded", gradeInfo.bgColor, gradeInfo.color)}>{gradeInfo.grade}</span>
                   <span className="text-sm text-slate-400 ml-auto">{fundDef?.section}</span>
                 </div>

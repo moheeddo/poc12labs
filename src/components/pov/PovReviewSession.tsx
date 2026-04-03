@@ -393,7 +393,7 @@ export default function PovReviewSession({
             value={overallFeedback}
             onChange={(e) => setOverallFeedback(e.target.value)}
             placeholder="실습 수행에 대한 종합적인 강평을 입력하세요...&#10;&#10;예) 전반적으로 기본 절차를 숙지하고 있으나, 밸브 상태 확인 시 교차확인(Cross-Check) 기법의 적용이 부족합니다. 특히 1.1.3 단계의 경우..."
-            className="w-full bg-slate-50 border border-slate-200 rounded-lg px-4 py-3 text-base text-slate-200 placeholder:text-slate-400 focus:border-amber-500/40 focus:outline-none focus:ring-1 focus:ring-amber-500/20 resize-y min-h-[120px] transition-colors"
+            className="w-full bg-slate-50 border border-slate-200 rounded-lg px-4 py-3 text-base text-slate-900 placeholder:text-slate-400 focus:border-amber-500/40 focus:outline-none focus:ring-1 focus:ring-amber-500/20 resize-y min-h-[120px] transition-colors"
           />
         </div>
 
@@ -425,7 +425,7 @@ export default function PovReviewSession({
               onChange={(e) => setNewActionItem(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && addActionItem()}
               placeholder="후속 조치 항목 추가..."
-              className="flex-1 bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-sm text-slate-200 placeholder:text-slate-400 focus:border-amber-500/40 focus:outline-none transition-colors"
+              className="flex-1 bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400 focus:border-amber-500/40 focus:outline-none transition-colors"
             />
             <button
               onClick={addActionItem}
@@ -630,7 +630,7 @@ const ReviewItem = forwardRef<HTMLDivElement, {
               onChange={(e) => onFeedbackChange(e.target.value)}
               placeholder="강사 피드백을 입력하세요..."
               rows={2}
-              className="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-sm text-slate-200 placeholder:text-slate-400 focus:border-blue-500/40 focus:outline-none focus:ring-1 focus:ring-blue-500/20 resize-y transition-colors"
+              className="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400 focus:border-blue-500/40 focus:outline-none focus:ring-1 focus:ring-blue-500/20 resize-y transition-colors"
             />
             <div className="flex items-center gap-2">
               <button
