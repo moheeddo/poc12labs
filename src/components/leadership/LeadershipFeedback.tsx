@@ -352,27 +352,32 @@ export default function LeadershipFeedback({
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [analysisLoading, analysisPhase, mmStarted, videoId]);
 
-  // ── 비디오 시간 추적 ──
+  // ── 비디오 시간 추적 (로딩 완료 후 재등록) ──
   useEffect(() => {
     const v = videoRef.current;
     if (!v) return;
     const onTime = () => setCurrentTime(v.currentTime);
     const onPlay = () => setIsPlaying(true);
     const onPause = () => setIsPlaying(false);
+    const onSeeked = () => setCurrentTime(v.currentTime);
     v.addEventListener("timeupdate", onTime);
     v.addEventListener("play", onPlay);
     v.addEventListener("pause", onPause);
+    v.addEventListener("seeked", onSeeked);
     return () => {
       v.removeEventListener("timeupdate", onTime);
       v.removeEventListener("play", onPlay);
       v.removeEventListener("pause", onPause);
+      v.removeEventListener("seeked", onSeeked);
     };
-  }, []);
+  // 분석 완료 후 video 엘리먼트가 새로 마운트되므로 재등록
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [analysisLoading, mmProgress.phase]);
 
   // ── 핸들러 ──
   const seekTo = useCallback((time: number) => {
     const v = videoRef.current;
-    if (v) { v.currentTime = time; v.play(); }
+    if (v) { v.currentTime = time; setCurrentTime(time); v.play(); }
   }, []);
 
   const togglePlay = useCallback(() => {
@@ -703,10 +708,10 @@ export default function LeadershipFeedback({
         })}
       </div>
 
-      {/* ── 2단 레이아웃 ── */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-        {/* ─── 좌측: 영상 + 컨트롤 ─── */}
-        <div className="lg:col-span-7 lg:sticky lg:top-6 lg:self-start space-y-5">
+      {/* ── 2단 레이아웃 (리포트 중심) ── */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        {/* ─── 좌측: 영상 (컴팩트) ─── */}
+        <div className="lg:col-span-5 lg:sticky lg:top-6 lg:self-start space-y-4">
           {/* 영상 플레이어 */}
           <div className="rounded-2xl overflow-hidden border border-slate-200/40 bg-black shadow-2xl shadow-slate-200/60">
             <video
@@ -795,7 +800,8 @@ export default function LeadershipFeedback({
         </div>
 
         {/* ─── 우측: 평가 근거 / 디브리핑 대본 / 종합 리포트 ─── */}
-        <div className="lg:col-span-5 space-y-6">
+        {/* ─── 우측: 리포트 (넓게) ─── */}
+        <div className="lg:col-span-7 space-y-5">
           {/* 탭 헤더 — 3탭 */}
           <div className="flex items-center gap-1 p-1 bg-white/40 border border-slate-200/30 rounded-xl">
             <button
@@ -911,16 +917,61 @@ export default function LeadershipFeedback({
                   </div>
                 ))}
 
-                {/* Solar Pro 2 보고서 */}
+                {/* Solar Pro 2 보고서 (마크다운 렌더링) */}
                 {mmResult.report && (
-                  <div className="bg-white/60 border border-slate-200/30 rounded-xl p-5">
-                    <p className="text-sm text-slate-600 font-medium mb-3 flex items-center gap-1.5">
-                      <Sparkles className="w-3.5 h-3.5 text-violet-500" />
-                      AI 종합 보고서 {mmResult.reportModel === "solar-pro2-preview" && <span className="text-xs bg-violet-50 text-violet-500 px-1.5 py-0.5 rounded">Solar Pro 2</span>}
-                    </p>
-                    <div className="text-sm text-slate-600 leading-relaxed whitespace-pre-line prose prose-sm max-w-none">
-                      {mmResult.report}
+                  <div className="bg-white border border-slate-200/30 rounded-xl p-5 print:shadow-none" id="multimodal-report">
+                    <div className="flex items-center justify-between mb-4">
+                      <p className="text-sm text-slate-600 font-medium flex items-center gap-1.5">
+                        <Sparkles className="w-3.5 h-3.5 text-violet-500" />
+                        AI 종합 보고서
+                        {mmResult.reportModel === "solar-pro2-preview" && (
+                          <span className="text-xs bg-violet-50 text-violet-500 px-1.5 py-0.5 rounded">Solar Pro 2</span>
+                        )}
+                      </p>
+                      <div className="flex items-center gap-1.5 print:hidden">
+                        <button
+                          onClick={() => window.print()}
+                          className="text-xs text-slate-500 hover:text-teal-600 px-2 py-1 rounded border border-slate-200 hover:border-teal-300 transition-colors"
+                        >
+                          PDF 내보내기
+                        </button>
+                        <button
+                          onClick={() => {
+                            const text = mmResult.report;
+                            navigator.clipboard.writeText(text);
+                            alert("보고서가 클립보드에 복사되었습니다. 메일이나 메시지에 붙여넣기하세요.");
+                          }}
+                          className="text-xs text-slate-500 hover:text-teal-600 px-2 py-1 rounded border border-slate-200 hover:border-teal-300 transition-colors"
+                        >
+                          복사 & 공유
+                        </button>
+                      </div>
                     </div>
+                    <div
+                      className="text-sm text-slate-700 leading-[1.8] max-w-none
+                        [&_h2]:text-base [&_h2]:font-bold [&_h2]:text-slate-800 [&_h2]:mt-5 [&_h2]:mb-2 [&_h2]:border-b [&_h2]:border-slate-200/50 [&_h2]:pb-1
+                        [&_h3]:text-sm [&_h3]:font-bold [&_h3]:text-slate-700 [&_h3]:mt-4 [&_h3]:mb-1.5
+                        [&_strong]:font-semibold [&_strong]:text-slate-800
+                        [&_ul]:list-disc [&_ul]:pl-5 [&_ul]:space-y-1 [&_ul]:my-2
+                        [&_ol]:list-decimal [&_ol]:pl-5 [&_ol]:space-y-1 [&_ol]:my-2
+                        [&_li]:text-sm [&_li]:text-slate-600
+                        [&_p]:mb-2
+                        [&_hr]:my-3 [&_hr]:border-slate-200/50"
+                      dangerouslySetInnerHTML={{
+                        __html: mmResult.report
+                          .replace(/^### (.*$)/gm, '<h3>$1</h3>')
+                          .replace(/^## (.*$)/gm, '<h2>$1</h2>')
+                          .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                          .replace(/^\* (.*$)/gm, '<li>$1</li>')
+                          .replace(/^(\d+)\. (.*$)/gm, '<li>$2</li>')
+                          .replace(/(<li>.*<\/li>\n?)+/g, (match) =>
+                            match.includes('1.') ? `<ol>${match}</ol>` : `<ul>${match}</ul>`
+                          )
+                          .replace(/^(?!<[hulo])(.*\S.*)$/gm, '<p>$1</p>')
+                          .replace(/\n{2,}/g, '<hr/>')
+                          .replace(/※/g, '<span class="text-amber-600">※</span>')
+                      }}
+                    />
                   </div>
                 )}
               </div>

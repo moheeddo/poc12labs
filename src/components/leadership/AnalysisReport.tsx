@@ -182,8 +182,8 @@ export default function AnalysisReport({ data, onSeek }: AnalysisReportProps) {
             역량 프로파일 (9점 척도)
           </p>
           <div className="flex justify-center">
-            <ResponsiveContainer width="100%" height={340}>
-              <RadarChart data={radarData} cx="50%" cy="50%" outerRadius="75%">
+            <ResponsiveContainer width="100%" height={420}>
+              <RadarChart data={radarData} cx="50%" cy="50%" outerRadius="80%">
                 <PolarGrid stroke="#e2e8f0" />
                 <PolarAngleAxis
                   dataKey="subject"
