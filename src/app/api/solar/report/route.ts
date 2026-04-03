@@ -80,7 +80,7 @@ export async function POST(req: NextRequest) {
         Authorization: `Bearer ${SOLAR_API_KEY}`,
       },
       body: JSON.stringify({
-        model: "solar-pro2-preview",
+        model: "solar-pro2",
         messages: [
           { role: "system", content: REPORT_SYSTEM_PROMPT },
           { role: "user", content: userPrompt },
@@ -101,8 +101,8 @@ export async function POST(req: NextRequest) {
     const data = await response.json();
     const reportText = data.choices?.[0]?.message?.content || "";
 
-    log.info("Solar 보고서 생성 완료", { model: "solar-pro2-preview", length: reportText.length });
-    return NextResponse.json({ report: reportText, model: "solar-pro2-preview" });
+    log.info("Solar 보고서 생성 완료", { model: "solar-pro2", length: reportText.length });
+    return NextResponse.json({ report: reportText, model: "solar-pro2" });
   } catch (error) {
     const message = error instanceof Error ? error.message : "보고서 생성 실패";
     log.error("보고서 생성 실패", { error: message });

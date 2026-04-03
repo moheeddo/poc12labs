@@ -857,7 +857,7 @@ export default function LeadershipFeedback({
                   </div>
                   <p className="text-sm text-violet-500 mt-1">{mmResult.scoring.interpretation}</p>
                   <p className="text-xs text-slate-400 mt-1">
-                    {mmResult.scoring.scorableItemCount}/5개 항목 채점 · {mmResult.reportModel === "solar-pro2-preview" ? "Solar Pro 2" : "로컬"} 생성
+                    {mmResult.scoring.scorableItemCount}/5개 항목 채점 · {mmResult.reportModel === "solar-pro2" ? "Solar Pro 2" : "로컬"} 생성
                   </p>
                 </div>
 
@@ -924,7 +924,7 @@ export default function LeadershipFeedback({
                       <p className="text-sm text-slate-600 font-medium flex items-center gap-1.5">
                         <Sparkles className="w-3.5 h-3.5 text-violet-500" />
                         AI 종합 보고서
-                        {mmResult.reportModel === "solar-pro2-preview" && (
+                        {mmResult.reportModel === "solar-pro2" && (
                           <span className="text-xs bg-violet-50 text-violet-500 px-1.5 py-0.5 rounded">Solar Pro 2</span>
                         )}
                       </p>

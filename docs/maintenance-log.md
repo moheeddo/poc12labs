@@ -1,5 +1,71 @@
 # Maintenance Log
 
+## 2026-04-04 QA 사이클 7 — 개발 서버 기능 테스트 + Solar 모델 수정 + TODO 정리 (최종)
+
+### 1. 개발 서버 + API 기능 테스트
+
+| 테스트 | 결과 |
+|-------|------|
+| `curl http://localhost:3000` 홈페이지 | O — 200 OK, `bg-slate-50` 라이트 테마 정상 응답 |
+| `POST /api/twelvelabs/multimodal-extract` (잘못된 videoId) | O — 400 에러 응답 형식 정상 (`parameter_invalid`) |
+| `POST /api/solar/report` (빈 채점 데이터) | O — 폴백 동작 후 Solar Pro 2 보고서 정상 생성 |
+
+### 2. Solar Pro 2 모델명 수정 (버그 수정)
+
+**원인**: Upstage API에서 `solar-pro2-preview` 모델 지원 중단, `solar-pro2`로 변경 필요
+**에러 메시지**: `"The requested model solar-pro2-preview is no longer supported. Please switch to the solar-pro2 model."`
+
+| 파일 | 변경 내용 |
+|------|----------|
+| `src/app/api/solar/report/route.ts` | `model: "solar-pro2-preview"` → `model: "solar-pro2"` (API 호출 + 로그 + 응답 3개소) |
+| `src/components/leadership/LeadershipFeedback.tsx` | `reportModel === "solar-pro2-preview"` → `reportModel === "solar-pro2"` (UI 표시 2개소) |
+
+**검증**: 수정 후 Solar API가 정상 응답하며 구조화된 한국어 보고서 생성 확인 완료.
+
+### 3. 코드 정합성 최종 확인
+
+| 항목 | 결과 |
+|------|------|
+| `npx tsc --noEmit` | O — 오류 0개 |
+| `npx next build` | O — 성공, 경고 0개 |
+
+### 4. docs/TODO.md 생성
+
+향후 개선 가능 항목 10가지 정리:
+
+| # | 항목 | 난이도 |
+|---|------|--------|
+| 1 | 실시간 영상 스트리밍 분석 | 높음 |
+| 2 | 데이터베이스 연동 (localStorage → DB) | 중간 |
+| 3 | 사용자 인증/권한 체계 | 중간 |
+| 4 | 6인 조 결과 이력 관리 | 중간 |
+| 5 | 멀티모달 정밀도 향상 (FACS AU, F0 등) | 높음 |
+| 6 | 모바일 앱 대응 (PWA/네이티브) | 중간~높음 |
+| 7 | 테스트 자동화 (Jest, Playwright E2E) | 중간 |
+| 8 | 성능 최적화 (RSC, 청크 업로드) | 중간 |
+| 9 | 다국어 지원 | 낮음~중간 |
+| 10 | SOP 절차 데이터베이스 (POV용) | 높음 |
+
+### 5. 전체 7사이클 요약
+
+| 사이클 | 날짜 | 주요 내용 | 상태 |
+|--------|------|----------|------|
+| 1 | 2026-04-03 | 다크 테마 잔여 제거, 미사용 코드 정리, 접근성, 파이프라인 검증 | 완료 |
+| 2 | 2026-04-03 | API 점검, XSS 방지, 성능 최적화(useMemo), 참조 안정성 | 완료 |
+| 3 | 2026-04-04 | PDF 대조 검증, 멀티모달 프롬프트 개선, Solar 보고서 구조화, 전사 종결 패턴 | 완료 |
+| 4 | 2026-04-04 | 엣지 케이스 방어, 빈 대시보드, 인쇄 CSS, SEO, 환경변수 | 완료 |
+| 5 | 2026-04-04 | surface-* 컬러 정규화, 차트 라이트 테마, 타입 안전성, 전체 컴포넌트 점검 | 완료 |
+| 6 | 2026-04-04 | 빌드/배포 검증, rubricurl 문서 대조, 반응형 마무리, API 로깅 전면 적용 | 완료 |
+| 7 | 2026-04-04 | 개발 서버 기능 테스트, Solar 모델명 수정, TODO 정리, 최종 빌드 검증 | **최종 완료** |
+
+### 빌드 결과
+
+- `npx tsc --noEmit`: 오류 0개
+- `npx next build`: 성공, 경고 0개
+- 개발 서버: 홈페이지 + API 3건 테스트 통과
+
+---
+
 ## 2026-04-04 QA 사이클 6 — 사용자 경험 마무리 + 최종 정합성 점검 (안정화 완료)
 
 ### 1. 전체 빌드 + 타입 점검
