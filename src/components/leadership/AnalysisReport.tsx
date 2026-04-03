@@ -289,7 +289,7 @@ export default function AnalysisReport({ data, onSeek }: AnalysisReportProps) {
                 {c.highlightTimestamp !== undefined && onSeek && (
                   <button
                     onClick={() => onSeek(c.highlightTimestamp!)}
-                    className="inline-flex items-center gap-1 shrink-0 text-xs font-mono text-teal-600 bg-teal-50 hover:bg-teal-100 rounded px-1.5 py-0.5 transition-colors mt-0.5"
+                    className="inline-flex items-center gap-1 shrink-0 text-xs font-mono text-teal-600 bg-teal-50 hover:bg-teal-100 rounded px-2 py-1.5 min-h-[44px] transition-colors"
                   >
                     <PlayCircle className="w-3 h-3" />
                     {formatTime(c.highlightTimestamp)}
@@ -318,7 +318,7 @@ export default function AnalysisReport({ data, onSeek }: AnalysisReportProps) {
                         {rs.evidenceTimestamp !== undefined && rs.evidenceTimestamp > 0 && onSeek && (
                           <button
                             onClick={() => onSeek(rs.evidenceTimestamp!)}
-                            className="inline-flex items-center gap-0.5 text-[10px] font-mono text-teal-600 bg-teal-50 hover:bg-teal-100 rounded px-1 py-0.5 transition-colors"
+                            className="inline-flex items-center gap-0.5 text-[10px] font-mono text-teal-600 bg-teal-50 hover:bg-teal-100 rounded px-1.5 py-1 min-h-[28px] transition-colors"
                           >
                             <PlayCircle className="w-2.5 h-2.5" />
                             {formatTime(rs.evidenceTimestamp)}

@@ -217,17 +217,17 @@ export default function TranscriptTimeline({
           <button
             onClick={() => setAutoScroll(!autoScroll)}
             className={cn(
-              "p-1.5 rounded-md text-sm transition-colors",
+              "min-h-[44px] min-w-[44px] flex items-center justify-center rounded-md text-sm transition-colors",
               autoScroll ? "bg-teal-50 text-teal-600" : "text-slate-400 hover:text-slate-500"
             )}
             title="자동 스크롤"
             aria-label={autoScroll ? "자동 스크롤 끄기" : "자동 스크롤 켜기"}
           >
-            <Volume2 className="w-3.5 h-3.5" />
+            <Volume2 className="w-4 h-4" />
           </button>
           <button
             onClick={() => setIsCompact(!isCompact)}
-            className="p-1.5 rounded-md text-slate-400 hover:text-slate-500 transition-colors"
+            className="min-h-[44px] min-w-[44px] flex items-center justify-center rounded-md text-slate-400 hover:text-slate-500 transition-colors"
             title={isCompact ? "상세 보기" : "간결 보기"}
             aria-label={isCompact ? "상세 보기로 전환" : "간결 보기로 전환"}
           >
@@ -342,7 +342,7 @@ export default function TranscriptTimeline({
                       }}
                       aria-label={isBookmarked ? "북마크 해제" : "북마크 추가"}
                       className={cn(
-                        "ml-auto shrink-0 p-1 rounded-md transition-all",
+                        "ml-auto shrink-0 min-h-[44px] min-w-[44px] flex items-center justify-center rounded-md transition-all",
                         isBookmarked
                           ? "opacity-100"
                           : "opacity-0 group-hover:opacity-100"

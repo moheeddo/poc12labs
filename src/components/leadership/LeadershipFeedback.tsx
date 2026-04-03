@@ -78,6 +78,9 @@ const ANALYSIS_STEPS = [
   { phase: 8, label: "Solar Pro 2 보고서", desc: "AI가 종합 보고서를 생성합니다", icon: Sparkles },
 ];
 
+// 단계별 완료 시각 기록용 타입
+type PhaseTimestamps = Record<number, number>;
+
 // ─── 헬퍼 ────────────────────────────────────────
 
 function getScoreLabel(score: number) {
@@ -111,7 +114,7 @@ function ScoreSelector({
             type="button"
             onClick={() => onChange(n)}
             className={cn(
-              "w-6 h-6 rounded-md text-sm font-mono font-semibold transition-all duration-150",
+              "w-7 h-7 rounded-md text-sm font-mono font-semibold transition-all duration-150",
               filled
                 ? tier === "teal"
                   ? "bg-teal-100 text-teal-700 border border-teal-300"
@@ -169,6 +172,9 @@ export default function LeadershipFeedback({
   const { progress: mmProgress, result: mmResult, error: mmError, runPipeline } = useMultimodalPipeline();
   const [mmStarted, setMmStarted] = useState(false);
 
+  // 단계별 완료 시각 기록 (로딩 스켈레톤 UX)
+  const [phaseTimestamps, setPhaseTimestamps] = useState<PhaseTimestamps>({});
+
   // 재생
   const [currentTime, setCurrentTime] = useState(0);
   const [, setIsPlaying] = useState(false);
@@ -179,6 +185,9 @@ export default function LeadershipFeedback({
 
   // 우측 패널 탭 — 멀티모달 기본
   const [rightTab, setRightTab] = useState<"evidence" | "transcript" | "report" | "multimodal">("multimodal");
+
+  // 멀티모달 항목별 observation 확장 상태
+  const [expandedObs, setExpandedObs] = useState<Set<number>>(new Set());
 
   // 검색
   // 검색 기능은 향후 UI 연동을 위해 보존
@@ -517,6 +526,26 @@ export default function LeadershipFeedback({
     [selectedCompetencies]
   );
 
+  // 단계 전환 시 타임스탬프 기록
+  useEffect(() => {
+    if (effectivePhase > 0) {
+      setPhaseTimestamps((prev) => {
+        if (prev[effectivePhase]) return prev; // 이미 기록됨
+        return { ...prev, [effectivePhase]: Date.now() };
+      });
+    }
+  }, [effectivePhase]);
+
+  // 단계별 소요 시간 계산 헬퍼
+  const getPhaseElapsed = useCallback((phase: number): string | null => {
+    const startTs = phaseTimestamps[phase];
+    const endTs = phaseTimestamps[phase + 1];
+    if (!startTs || !endTs) return null;
+    const elapsed = Math.round((endTs - startTs) / 1000);
+    if (elapsed < 60) return `${elapsed}초`;
+    return `${Math.floor(elapsed / 60)}분 ${elapsed % 60}초`;
+  }, [phaseTimestamps]);
+
   // ── JSX ──
 
   // ═══════════════════════════════════════
@@ -587,11 +616,18 @@ export default function LeadershipFeedback({
                       isDone ? "text-teal-600" : isCurrent ? "text-slate-800" : "text-slate-400"
                     )}>
                       {step.label}
-                      {isDone && <span className="text-sm text-teal-500 ml-2">완료</span>}
+                      {isDone && (
+                        <span className="text-sm text-teal-500 ml-2">
+                          {(() => {
+                            const elapsed = getPhaseElapsed(step.phase);
+                            return elapsed ? `${elapsed}` : "완료";
+                          })()}
+                        </span>
+                      )}
                     </p>
                     <p className={cn(
-                      "text-sm mt-0.5 transition-colors",
-                      isCurrent ? "text-slate-500" : "text-slate-400"
+                      "mt-0.5 transition-colors",
+                      isCurrent ? "text-base text-slate-700 font-medium" : "text-sm text-slate-400"
                     )}>
                       {step.desc}
                     </p>
@@ -921,17 +957,36 @@ export default function LeadershipFeedback({
                     {/* 하위지표 */}
                     <div className="space-y-1">
                       {item.indicators.map((ind) => (
-                        <div key={ind.name} className="flex items-center gap-2 text-xs">
-                          <span className="text-slate-500 flex-1 truncate">{ind.label}</span>
-                          <span className="font-mono text-slate-500 w-14 text-right">
+                        <div
+                          key={ind.name}
+                          className={cn(
+                            "flex items-center gap-2 text-xs rounded-md px-1.5 py-1 -mx-1.5 transition-colors",
+                            ind.judgment === "미흡" && "bg-red-50/60 ring-1 ring-red-200/40",
+                            ind.judgment === "상위" && "bg-teal-50/60 ring-1 ring-teal-200/40"
+                          )}
+                        >
+                          <span className={cn(
+                            "flex-1 truncate",
+                            ind.judgment === "미흡" ? "text-red-600 font-medium" :
+                            ind.judgment === "상위" ? "text-teal-700 font-medium" :
+                            "text-slate-500"
+                          )}>
+                            {ind.label}
+                          </span>
+                          <span className={cn(
+                            "font-mono w-14 text-right",
+                            ind.judgment === "미흡" ? "text-red-500" :
+                            ind.judgment === "상위" ? "text-teal-600" :
+                            "text-slate-500"
+                          )}>
                             {ind.value !== null ? ind.value.toFixed(2) : "—"}
                           </span>
                           <span className={cn(
                             "px-1.5 py-0.5 rounded font-medium w-10 text-center",
-                            ind.judgment === "상위" ? "bg-teal-50 text-teal-600" :
+                            ind.judgment === "상위" ? "bg-teal-100 text-teal-700" :
                             ind.judgment === "중상" ? "bg-sky-50 text-sky-600" :
                             ind.judgment === "중하" ? "bg-amber-50 text-amber-600" :
-                            ind.judgment === "미흡" ? "bg-red-50 text-red-500" :
+                            ind.judgment === "미흡" ? "bg-red-100 text-red-600" :
                             "bg-slate-100 text-slate-400"
                           )}>
                             {ind.judgment}
@@ -941,8 +996,32 @@ export default function LeadershipFeedback({
                     </div>
                     {item.observation && (
                       <div className="mt-2.5 pt-2.5 border-t border-violet-100/50">
-                        <p className="text-[10px] uppercase tracking-wider text-violet-500/70 font-medium mb-1">AI 관찰 소견</p>
-                        <p className="text-sm text-slate-600 leading-relaxed bg-violet-50/30 rounded-lg px-3 py-2">{item.observation}</p>
+                        <div className="flex items-center justify-between mb-1">
+                          <p className="text-[10px] uppercase tracking-wider text-violet-500/70 font-medium">AI 관찰 소견</p>
+                          {item.observation.length > 120 && (
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setExpandedObs((prev) => {
+                                  const next = new Set(prev);
+                                  if (next.has(itemIdx)) next.delete(itemIdx);
+                                  else next.add(itemIdx);
+                                  return next;
+                                });
+                              }}
+                              className="text-[10px] text-violet-500 hover:text-violet-700 transition-colors min-h-[28px] min-w-[44px] flex items-center justify-center"
+                              aria-label={expandedObs.has(itemIdx) ? "관찰 소견 접기" : "관찰 소견 펼치기"}
+                            >
+                              {expandedObs.has(itemIdx) ? "접기" : "더보기"}
+                            </button>
+                          )}
+                        </div>
+                        <p className={cn(
+                          "text-sm text-slate-600 leading-relaxed bg-violet-50/30 rounded-lg px-3 py-2",
+                          !expandedObs.has(itemIdx) && item.observation.length > 120 && "line-clamp-3"
+                        )}>
+                          {item.observation}
+                        </p>
                       </div>
                     )}
                   </div>

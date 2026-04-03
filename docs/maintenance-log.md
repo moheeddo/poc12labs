@@ -1,5 +1,36 @@
 # Maintenance Log
 
+## 2026-04-04 사이클 12 — 마지막 UX 폴리시
+
+### 1. 로딩 스켈레톤 개선 (LeadershipFeedback.tsx)
+- 현재 진행 중인 분석 단계의 설명(desc)을 `text-base font-medium text-slate-700`으로 확대 표시
+- 완료된 단계에 소요 시간을 자동 표시 (예: "12초", "1분 3초")
+- `PhaseTimestamps` 타입 + `phaseTimestamps` state + `getPhaseElapsed()` 헬퍼 추가
+- effectivePhase 변경 시 `Date.now()` 기록하는 useEffect 추가
+
+### 2. 멀티모달 탭 항목 카드 개선 (LeadershipFeedback.tsx)
+- 판정 "미흡"인 하위지표: 행 전체 `bg-red-50/60 ring-1 ring-red-200/40`, 라벨 `text-red-600 font-medium`
+- 판정 "상위"인 하위지표: 행 전체 `bg-teal-50/60 ring-1 ring-teal-200/40`, 라벨 `text-teal-700 font-medium`
+- 관찰 소견(observation) 120자 초과 시 `line-clamp-3` truncate + "더보기/접기" 토글 버튼 추가
+- `expandedObs` state(Set<number>)로 항목별 독립 확장/접기 제어
+
+### 3. 대본 탭 빈 상태 확인 (TranscriptTimeline.tsx)
+- 세그먼트 0개 + 검색어 없을 때 "전사 데이터가 없습니다" 빈 상태 메시지 **기존 존재 확인 (변경 불필요)**
+
+### 4. 접근성 최종 점검
+- TranscriptTimeline.tsx: 자동 스크롤/간결 보기/북마크 버튼 → `min-h-[44px] min-w-[44px]` hit area 보강
+- AnalysisReport.tsx: 타임스탬프 재생 버튼 → `min-h-[44px]` / 루브릭 타임스탬프 → `min-h-[28px]` 패딩 확대
+- LeadershipFeedback.tsx: ScoreSelector 점수 버튼 `w-6 h-6` → `w-7 h-7` (28px)로 확대
+- 분석 진행 화면 현재 단계 desc 색상 `text-slate-400` → `text-slate-700` (WCAG AA 4.5:1 충족)
+- 멀티모달 observation "더보기" 버튼 `min-h-[28px] min-w-[44px]` 보장
+
+### 빌드 결과
+
+- `npx tsc --noEmit`: 오류 0개
+- `npx next build`: 성공 (15개 라우트, 경고 0개)
+
+---
+
 ## 2026-04-04 사이클 11 — UX 고도화
 
 ### 1. 멀티모달 분석 "산출 보류" 개선 (LeadershipFeedback.tsx)
