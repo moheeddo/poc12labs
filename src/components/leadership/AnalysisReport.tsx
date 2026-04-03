@@ -19,9 +19,17 @@ import {
 } from "lucide-react";
 import type { AnalysisReportData } from "@/lib/leadership-analysis";
 import { cn } from "@/lib/utils";
+import { PlayCircle } from "lucide-react";
+
+function formatTime(sec: number) {
+  const m = Math.floor(sec / 60);
+  const s = Math.floor(sec % 60);
+  return `${m}:${String(s).padStart(2, "0")}`;
+}
 
 interface AnalysisReportProps {
   data: AnalysisReportData;
+  onSeek?: (time: number) => void;
 }
 
 function getScoreColor(score: number) {
@@ -61,7 +69,7 @@ function RadarTooltipContent({ active, payload }: { active?: boolean; payload?: 
   );
 }
 
-export default function AnalysisReport({ data }: AnalysisReportProps) {
+export default function AnalysisReport({ data, onSeek }: AnalysisReportProps) {
   // 레이더 차트 데이터
   const radarData = useMemo(
     () =>
@@ -174,12 +182,12 @@ export default function AnalysisReport({ data }: AnalysisReportProps) {
             역량 프로파일 (9점 척도)
           </p>
           <div className="flex justify-center">
-            <ResponsiveContainer width="100%" height={260}>
-              <RadarChart data={radarData} cx="50%" cy="50%" outerRadius="70%">
-                <PolarGrid stroke="#1e293b" />
+            <ResponsiveContainer width="100%" height={340}>
+              <RadarChart data={radarData} cx="50%" cy="50%" outerRadius="75%">
+                <PolarGrid stroke="#e2e8f0" />
                 <PolarAngleAxis
                   dataKey="subject"
-                  tick={{ fill: "#94a3b8", fontSize: 11 }}
+                  tick={{ fill: "#475569", fontSize: 12, fontWeight: 500 }}
                 />
                 <PolarRadiusAxis
                   domain={[0, 9]}
@@ -289,9 +297,20 @@ export default function AnalysisReport({ data }: AnalysisReportProps) {
             )}
 
             {c.topHighlight && (
-              <p className="text-sm text-slate-500 leading-relaxed line-clamp-2 mb-2">
-                {c.topHighlight}
-              </p>
+              <div className="flex items-start gap-2 mb-2">
+                {c.highlightTimestamp !== undefined && onSeek && (
+                  <button
+                    onClick={() => onSeek(c.highlightTimestamp!)}
+                    className="inline-flex items-center gap-1 shrink-0 text-xs font-mono text-teal-600 bg-teal-50 hover:bg-teal-100 rounded px-1.5 py-0.5 transition-colors mt-0.5"
+                  >
+                    <PlayCircle className="w-3 h-3" />
+                    {formatTime(c.highlightTimestamp)}
+                  </button>
+                )}
+                <p className="text-sm text-slate-500 leading-relaxed line-clamp-2">
+                  {c.topHighlight}
+                </p>
+              </div>
             )}
 
             {/* 루브릭 항목별 판정 기준 (BARS) */}

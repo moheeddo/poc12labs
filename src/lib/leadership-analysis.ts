@@ -320,6 +320,7 @@ export interface CompetencySummary {
   avgScore: number;
   evidenceCount: number;
   topHighlight: string;
+  highlightTimestamp?: number;       // 대표 하이라이트 타임스탬프 (초)
   strengths: string[];
   improvements: string[];
   rubricScores: RubricItemScore[];  // 루브릭 항목별 판정
@@ -352,6 +353,7 @@ interface EvidenceForReport {
   feedback: string;
   description: string;
   aiScore?: number;
+  timestamp?: number;
 }
 
 /**
@@ -371,8 +373,10 @@ export function generateAnalysisReport(
     const scores = items.map((e) => e.score > 0 ? e.score : (e.aiScore || 0)).filter((s) => s > 0);
     const avg = scores.length > 0 ? scores.reduce((a, b) => a + b, 0) / scores.length : 0;
 
-    // 대표 하이라이트
-    const topHl = items.find((e) => e.description.length > 10)?.description || "";
+    // 대표 하이라이트 + 타임스탬프
+    const topEvidence = items.find((e) => e.description.length > 10);
+    const topHl = topEvidence?.description || "";
+    const highlightTimestamp = topEvidence?.timestamp;
 
     // 강점/개선점 추출
     const strengths: string[] = [];
@@ -408,6 +412,7 @@ export function generateAnalysisReport(
       avgScore: Math.round(avg * 10) / 10,
       evidenceCount: items.length,
       topHighlight: topHl.length > 60 ? topHl.slice(0, 60) + "..." : topHl,
+      highlightTimestamp,
       strengths,
       improvements,
       rubricScores,

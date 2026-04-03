@@ -472,6 +472,7 @@ export default function LeadershipFeedback({
         feedback: e.feedback,
         description: e.description,
         aiScore: e.aiScore,
+        timestamp: e.timestamp,
       })),
       summary,
       selectedCompetencies && selectedCompetencies.length > 0
@@ -940,7 +941,7 @@ export default function LeadershipFeedback({
           {/* ── 종합 리포트 탭 ── */}
           {rightTab === "report" && (
             reportData ? (
-              <AnalysisReport data={reportData} />
+              <AnalysisReport data={reportData} onSeek={seekTo} />
             ) : (
               <div className="bg-white border border-slate-200/30 rounded-xl p-8 text-center space-y-4">
                 <BarChart3 className="w-10 h-10 mx-auto mb-3 text-slate-300" />

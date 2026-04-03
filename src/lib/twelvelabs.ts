@@ -89,33 +89,78 @@ export async function getVideoTranscription(indexId: string, videoId: string) {
   }>(`/indexes/${indexId}/videos/${videoId}?embed=true&transcription=true`);
 }
 
-// 영상 분석 (generate)
+// 영상 분석 (/analyze SSE 엔드포인트 — v1.3에서 /generate 대체)
 export async function analyzeVideo(videoId: string, type: "summary" | "chapter" | "highlight" | "text") {
-  return tlFetch<{ data: string | Array<{ chapter_title?: string; start: number; end: number; highlight?: string }> }>(
-    "/generate",
-    {
-      method: "POST",
-      body: JSON.stringify({
-        video_id: videoId,
-        type,
-      }),
+  // type별 프롬프트 매핑
+  const prompts: Record<string, string> = {
+    summary: "이 영상의 내용을 한국어로 3~5문장으로 요약해주세요.",
+    chapter: "이 영상을 시간순 챕터로 나눠주세요. 각 챕터의 제목과 시작/종료 시간(초)을 JSON 배열로 출력: [{\"chapter_title\":\"제목\",\"start\":시작초,\"end\":종료초}]",
+    highlight: "이 영상에서 가장 중요한 핵심 장면들을 찾아주세요. 각 장면의 설명과 시작/종료 시간(초)을 JSON 배열로 출력: [{\"highlight\":\"설명\",\"start\":시작초,\"end\":종료초}]",
+    text: "이 영상의 전체 내용을 구조화하여 한국어로 분석해주세요.",
+  };
+
+  const result = await generateWithPrompt(videoId, prompts[type] || prompts.text);
+  const text = result.data;
+
+  // summary, text는 그대로 문자열 반환
+  if (type === "summary" || type === "text") {
+    return { data: text };
+  }
+
+  // chapter, highlight는 JSON 배열 파싱 시도
+  try {
+    const jsonMatch = text.match(/\[[\s\S]*\]/);
+    if (jsonMatch) {
+      const parsed = JSON.parse(jsonMatch[0]);
+      return { data: parsed };
     }
-  );
+  } catch {
+    // JSON 파싱 실패 시 텍스트 그대로
+  }
+
+  return { data: text };
 }
 
-// 커스텀 프롬프트 기반 영상 분석 (generate with prompt)
-export async function generateWithPrompt(videoId: string, prompt: string) {
-  return tlFetch<{ data: string }>(
-    "/generate",
-    {
-      method: "POST",
-      body: JSON.stringify({
-        video_id: videoId,
-        type: "text",
-        prompt,
-      }),
+// 커스텀 프롬프트 기반 영상 분석 (/analyze 엔드포인트, SSE 스트리밍)
+export async function generateWithPrompt(videoId: string, prompt: string): Promise<{ data: string }> {
+  log.debug("analyze (custom prompt)", { videoId, promptLength: prompt.length });
+
+  const res = await fetch(`${API_URL}/analyze`, {
+    method: "POST",
+    headers: {
+      "x-api-key": API_KEY,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      video_id: videoId,
+      prompt,
+    }),
+  });
+
+  if (!res.ok) {
+    const error = await res.text();
+    log.error("analyze 실패", { status: res.status, error });
+    throw new Error(`TwelveLabs analyze 오류 (${res.status}): ${error}`);
+  }
+
+  // SSE 스트리밍 응답을 텍스트로 조합
+  const rawText = await res.text();
+  const lines = rawText.split("\n").filter((l) => l.trim());
+  let fullText = "";
+
+  for (const line of lines) {
+    try {
+      const event = JSON.parse(line);
+      if (event.event_type === "text_generation" && event.text) {
+        fullText += event.text;
+      }
+    } catch {
+      // 파싱 불가한 라인은 건너뛰기
     }
-  );
+  }
+
+  log.info("analyze 완료", { videoId, responseLength: fullText.length });
+  return { data: fullText };
 }
 
 // 영상 임베딩 생성 태스크
