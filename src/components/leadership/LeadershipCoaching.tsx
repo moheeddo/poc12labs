@@ -16,6 +16,7 @@ import {
   MessageCircle,
   Sparkles,
   CheckCircle2,
+  Circle,
 } from "lucide-react";
 import {
   LineChart,
@@ -450,7 +451,7 @@ export default function LeadershipCoaching() {
           </button>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           {competencyDefs.map((comp, idx) => {
             const IconComp = COMPETENCY_ICONS[comp.key] || Target;
             const isSelected = selectedCompetencies.has(comp.key);
@@ -461,8 +462,8 @@ export default function LeadershipCoaching() {
                 onClick={() => toggleCompetency(comp.key)}
                 className={`animate-fade-in-up text-left rounded-xl p-5 border-2 transition-all duration-200 group ${
                   isSelected
-                    ? "bg-white shadow-lg"
-                    : "bg-white/60 border-slate-200/40 hover:border-slate-300 hover:bg-white"
+                    ? "bg-white shadow-lg shadow-slate-200/60"
+                    : "bg-white/60 border-slate-200/40 hover:border-slate-300 hover:bg-white hover:shadow-md"
                 }`}
                 style={{
                   animationDelay: `${idx * 80}ms`,
@@ -472,52 +473,72 @@ export default function LeadershipCoaching() {
               >
                 <div className="flex items-start gap-3">
                   <div
-                    className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 transition-colors"
+                    className="w-11 h-11 rounded-xl flex items-center justify-center shrink-0 transition-colors"
                     style={{ backgroundColor: `${comp.color}15` }}
                   >
                     <IconComp className="w-5 h-5" style={{ color: comp.color }} />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 mb-1">
+                    <div className="flex items-center gap-2 mb-1.5">
                       <h4
-                        className="text-base font-semibold transition-colors"
+                        className="text-[15px] font-bold transition-colors"
                         style={{ color: isSelected ? comp.color : "#334155" }}
                       >
                         {comp.label}
                       </h4>
                       {isSelected && (
-                        <CheckCircle2 className="w-4 h-4 shrink-0" style={{ color: comp.color }} />
+                        <CheckCircle2 className="w-4.5 h-4.5 shrink-0" style={{ color: comp.color }} />
+                      )}
+                      {comp.rubric && (
+                        <span className="text-[11px] px-2 py-0.5 rounded bg-teal-50 text-teal-600/70 font-medium ml-auto">
+                          BARS {comp.rubric.length}항목
+                        </span>
                       )}
                     </div>
-                    <p className="text-sm text-slate-500 leading-relaxed line-clamp-2">
+                    <p className="text-sm text-slate-500 leading-relaxed line-clamp-3">
                       {comp.definition}
                     </p>
                   </div>
                 </div>
-
-                {/* 루브릭 수 + 활동유형 태그 */}
-                {comp.rubric && (
-                  <div className="flex items-center gap-2 mt-3 pt-3 border-t border-slate-200/30">
-                    <span className="text-[11px] px-2 py-0.5 rounded bg-teal-50 text-teal-600/70 font-medium">
-                      BARS {comp.rubric.length}항목
-                    </span>
-                  </div>
-                )}
               </button>
             );
           })}
         </div>
       </div>
 
-      {/* ── 분석 시작 버튼 ── */}
-      <div className="flex justify-center pt-2">
+      {/* ── 분석 시작 영역 ── */}
+      <div className={`rounded-2xl p-6 text-center transition-all duration-300 ${
+        canStartAnalysis
+          ? "bg-gradient-to-r from-teal-50 to-emerald-50 border border-teal-200/50"
+          : "bg-slate-50/50 border border-dashed border-slate-200/60"
+      }`}>
+        {!canStartAnalysis && (
+          <div className="mb-4">
+            <div className="flex items-center justify-center gap-6 text-sm">
+              <span className={`flex items-center gap-1.5 ${uploadedVideoId ? "text-teal-600" : "text-slate-400"}`}>
+                {uploadedVideoId ? <CheckCircle2 className="w-4 h-4" /> : <Circle className="w-4 h-4" />}
+                영상 업로드
+              </span>
+              <span className="text-slate-300">→</span>
+              <span className={`flex items-center gap-1.5 ${selectedCompetencies.size > 0 ? "text-teal-600" : "text-slate-400"}`}>
+                {selectedCompetencies.size > 0 ? <CheckCircle2 className="w-4 h-4" /> : <Circle className="w-4 h-4" />}
+                역량 선택
+              </span>
+              <span className="text-slate-300">→</span>
+              <span className="flex items-center gap-1.5 text-slate-400">
+                <Circle className="w-4 h-4" />
+                AI 분석
+              </span>
+            </div>
+          </div>
+        )}
         <button
           onClick={handleStartAnalysis}
           disabled={!canStartAnalysis}
-          className={`flex items-center gap-3 px-8 py-4 rounded-2xl text-lg font-semibold transition-all duration-300 ${
+          className={`inline-flex items-center gap-3 px-10 py-4 rounded-2xl text-lg font-semibold transition-all duration-300 ${
             canStartAnalysis
               ? "bg-teal-600 hover:bg-teal-500 text-white shadow-xl shadow-teal-500/20 hover:shadow-2xl hover:shadow-teal-500/30 hover:scale-[1.02] active:scale-[0.98]"
-              : "bg-slate-100 text-slate-400 cursor-not-allowed"
+              : "bg-slate-200/80 text-slate-400 cursor-not-allowed"
           }`}
         >
           <Sparkles className="w-5 h-5" />
@@ -527,15 +548,6 @@ export default function LeadershipCoaching() {
           )}
         </button>
       </div>
-
-      {/* 안내 */}
-      {!canStartAnalysis && (
-        <p className="text-center text-sm text-slate-400">
-          {!uploadedVideoId
-            ? "영상을 업로드하고 평가할 역량을 선택해주세요"
-            : "평가할 역량을 1개 이상 선택해주세요"}
-        </p>
-      )}
 
       {/* ── 9점 척도 안내 ── */}
       <div className="bg-white border border-slate-200/30 rounded-xl p-5">
