@@ -38,7 +38,7 @@ export default function LiveClock() {
     return (
       <div className="text-right" aria-hidden>
         <div className="text-xs text-slate-500 font-mono">&nbsp;</div>
-        <div className="text-lg text-white font-bold font-mono tabular-nums">
+        <div className="text-lg text-slate-900 font-bold font-mono tabular-nums">
           --:--:--
         </div>
       </div>
@@ -53,8 +53,8 @@ export default function LiveClock() {
       className="text-right select-none"
       aria-label={`현재 시각 ${formatDate(now)} ${formatTime(now)}`}
     >
-      <div className="text-xs text-slate-500 font-mono">{formatDate(now)}</div>
-      <div className="text-lg text-white font-bold font-mono tabular-nums">
+      <div className="text-sm text-slate-500 font-mono">{formatDate(now)}</div>
+      <div className="text-xl text-slate-900 font-bold font-mono tabular-nums">
         {hh}
         <span className="animate-colon-blink" aria-hidden="true">:</span>
         {mm}

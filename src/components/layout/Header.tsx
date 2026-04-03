@@ -36,21 +36,21 @@ export default function Header({ activeTab, onTabChange }: HeaderProps) {
 
   /* 활성 탭 글로우 라인 색상 */
   const glowColorMap: Record<string, string> = {
-    simulator: "from-coral-500/80 via-coral-400/30 to-transparent",
-    leadership: "from-teal-500/80 via-teal-400/30 to-transparent",
-    pov: "from-amber-500/80 via-amber-400/30 to-transparent",
+    simulator: "from-coral-500 via-coral-400/40 to-transparent",
+    leadership: "from-teal-500 via-teal-400/40 to-transparent",
+    pov: "from-amber-500 via-amber-400/40 to-transparent",
   };
   const activeGlow = activeTab ? glowColorMap[activeTab] : null;
 
   /* 탭 언더라인 색상 매핑 */
   const underlineColorMap: Record<string, string> = {
-    "text-coral-400": "after:bg-coral-400",
-    "text-teal-400": "after:bg-teal-400",
-    "text-amber-400": "after:bg-amber-400",
+    "text-coral-600": "after:bg-coral-500",
+    "text-teal-600": "after:bg-teal-500",
+    "text-amber-600": "after:bg-amber-500",
   };
 
   return (
-    <header className="glass sticky top-0 z-50 border-b border-white/[0.04]">
+    <header className="glass sticky top-0 z-50 border-b border-slate-200/80">
       {/* 활성 서비스 상단 글로우 라인 */}
       {activeGlow ? (
         <div className={`h-[2px] bg-gradient-to-r ${activeGlow} transition-all duration-700`} />
@@ -71,10 +71,10 @@ export default function Header({ activeTab, onTabChange }: HeaderProps) {
               <div className="absolute inset-0 rounded-full bg-khnp-emerald/10 blur-xl scale-150 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
             </div>
             <div className="flex flex-col">
-              <span className="text-[15px] font-bold tracking-[-0.02em] text-white leading-tight group-hover:text-khnp-emerald-light transition-colors duration-300">
+              <span className="text-base font-bold tracking-[-0.02em] text-slate-900 leading-tight group-hover:text-khnp-emerald transition-colors duration-300">
                 KHNP HRDI
               </span>
-              <span className="text-[10px] text-khnp-emerald/70 font-mono font-medium tracking-[0.15em] uppercase leading-tight hidden sm:block">
+              <span className="text-[11px] text-khnp-emerald font-mono font-medium tracking-[0.15em] uppercase leading-tight hidden sm:block">
                 Video AI Platform
               </span>
             </div>
@@ -87,7 +87,7 @@ export default function Header({ activeTab, onTabChange }: HeaderProps) {
                 <div className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
                 <div className="absolute w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping opacity-40" />
               </div>
-              <span className="text-[11px] text-slate-400 font-mono tracking-wider">
+              <span className="text-xs text-slate-500 font-mono tracking-wider">
                 SYSTEM ONLINE
               </span>
             </div>
@@ -110,11 +110,11 @@ export default function Header({ activeTab, onTabChange }: HeaderProps) {
               tabIndex={activeTab === null ? 0 : -1}
               onClick={() => onTabChange(null)}
               className={cn(
-                "relative px-5 py-3.5 text-[14px] font-semibold transition-all duration-300 whitespace-nowrap tracking-[-0.01em]",
+                "relative px-5 py-3.5 text-[15px] font-semibold transition-all duration-300 whitespace-nowrap tracking-[-0.01em]",
                 "after:absolute after:bottom-0 after:left-2 after:right-2 after:h-[2px] after:rounded-full after:transition-all after:duration-300 after:ease-out",
                 activeTab === null
-                  ? "text-white after:bg-white after:scale-x-100"
-                  : "text-slate-500 after:bg-transparent after:scale-x-0 hover:text-slate-300"
+                  ? "text-slate-900 after:bg-khnp-emerald after:scale-x-100"
+                  : "text-slate-500 after:bg-transparent after:scale-x-0 hover:text-slate-700"
               )}
             >
               대시보드
@@ -129,11 +129,11 @@ export default function Header({ activeTab, onTabChange }: HeaderProps) {
                   tabIndex={isActive ? 0 : -1}
                   onClick={() => onTabChange(tab.key)}
                   className={cn(
-                    "relative px-5 py-3.5 text-[14px] font-semibold transition-all duration-300 whitespace-nowrap tracking-[-0.01em]",
+                    "relative px-5 py-3.5 text-[15px] font-semibold transition-all duration-300 whitespace-nowrap tracking-[-0.01em]",
                     "after:absolute after:bottom-0 after:left-2 after:right-2 after:h-[2px] after:rounded-full after:transition-all after:duration-300 after:ease-out",
                     isActive
                       ? `${tab.color} ${underlineColorMap[tab.color] || "after:bg-current"} after:scale-x-100`
-                      : "text-slate-500 after:bg-transparent after:scale-x-0 hover:text-slate-300"
+                      : "text-slate-500 after:bg-transparent after:scale-x-0 hover:text-slate-700"
                   )}
                 >
                   {tab.label}
@@ -144,7 +144,7 @@ export default function Header({ activeTab, onTabChange }: HeaderProps) {
           {/* 모바일 스크롤 페이드 힌트 */}
           <div
             className={cn(
-              "absolute right-0 top-0 bottom-0 w-16 bg-gradient-to-l from-surface-900/95 to-transparent pointer-events-none transition-opacity duration-200 md:hidden",
+              "absolute right-0 top-0 bottom-0 w-16 bg-gradient-to-l from-white/95 to-transparent pointer-events-none transition-opacity duration-200 md:hidden",
               scrolledToEnd ? "opacity-0" : "opacity-100"
             )}
             aria-hidden="true"

@@ -74,8 +74,8 @@ export default function Toast({ toast, onDismiss }: ToastProps) {
       aria-live="polite"
       className={cn(
         "relative flex items-start gap-3 overflow-hidden",
-        "bg-surface-800 border rounded-lg p-3 pr-9",
-        "shadow-lg shadow-black/40",
+        "bg-white border rounded-lg p-3.5 pr-9",
+        "shadow-lg shadow-slate-200/60",
         style.border,
         exiting ? "animate-fade-out" : "animate-fade-in-up",
       )}
@@ -106,11 +106,11 @@ export default function Toast({ toast, onDismiss }: ToastProps) {
 
       {/* 텍스트 */}
       <div className="flex-1 min-w-0">
-        <p className="text-[13px] font-semibold text-white leading-tight">
+        <p className="text-sm font-semibold text-slate-900 leading-tight">
           {toast.title}
         </p>
         {toast.message && (
-          <p className="text-[12px] text-slate-400 mt-0.5 leading-snug">
+          <p className="text-[13px] text-slate-500 mt-0.5 leading-snug">
             {toast.message}
           </p>
         )}
@@ -123,7 +123,7 @@ export default function Toast({ toast, onDismiss }: ToastProps) {
         aria-label="토스트 닫기"
         className={cn(
           "absolute top-2.5 right-2.5",
-          "text-slate-500 hover:text-white transition-colors",
+          "text-slate-400 hover:text-slate-700 transition-colors",
         )}
       >
         <X className="w-3.5 h-3.5" />

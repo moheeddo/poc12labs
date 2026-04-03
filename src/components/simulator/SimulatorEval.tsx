@@ -87,8 +87,8 @@ export default function SimulatorEval() {
     <div className="max-w-[1440px] mx-auto px-4 md:px-6 py-6 space-y-6 animate-slide-in-right">
       {/* 헤더 */}
       <div>
-        <h2 className="text-2xl font-bold text-coral-400 tracking-tight">시뮬레이터 훈련 멀티모달 분석</h2>
-        <p className="text-base text-slate-400 mt-1.5">
+        <h2 className="text-2xl font-bold text-coral-600 tracking-tight">시뮬레이터 훈련 멀티모달 분석</h2>
+        <p className="text-lg text-slate-500 mt-1.5">
           원전 운전 시뮬레이터 훈련 영상을 멀티모달 AI로 분석하여 8대 핵심역량 정량 평가
         </p>
       </div>
@@ -110,21 +110,21 @@ export default function SimulatorEval() {
 
           {/* 검색 결과 */}
           {results.length > 0 && (
-            <div className="bg-surface-800 border border-surface-700 rounded-xl p-4 animate-fade-in-up">
-              <h4 className="text-sm font-medium text-slate-300 mb-3">
+            <div className="bg-white border border-slate-200 rounded-xl p-5 shadow-sm animate-fade-in-up">
+              <h4 className="text-base font-medium text-slate-700 mb-3">
                 검색 결과 ({results.length}건)
               </h4>
               <div className="space-y-2">
                 {results.map((r, i) => (
                   <div
                     key={i}
-                    className="flex items-center gap-3 p-3 rounded-lg hover:bg-surface-700 hover:pl-5 hover:border-l-2 hover:border-l-coral-500 cursor-pointer transition-all duration-200"
+                    className="flex items-center gap-3 p-3 rounded-lg hover:bg-slate-50 hover:pl-5 hover:border-l-2 hover:border-l-coral-500 cursor-pointer transition-all duration-200"
                   >
                     <Clock className="w-4 h-4 text-slate-500" />
-                    <span className="font-mono text-xs text-coral-400">
+                    <span className="font-mono text-sm text-coral-600">
                       {formatTime(r.start)} — {formatTime(r.end)}
                     </span>
-                    <span className="text-sm text-slate-300 flex-1 truncate">{r.videoTitle}</span>
+                    <span className="text-base text-slate-700 flex-1 truncate">{r.videoTitle}</span>
                     <span className="text-xs font-mono text-slate-500">
                       {(r.confidence * 100).toFixed(0)}%
                     </span>
@@ -136,15 +136,19 @@ export default function SimulatorEval() {
 
           {/* 검색 결과 없음 */}
           {hasSearched && !loading && results.length === 0 && (
-            <div className="bg-surface-800 border border-surface-700 rounded-xl p-8 text-center animate-fade-in-up">
-              <SearchX className="w-10 h-10 mx-auto mb-3 text-slate-600" />
-              <p className="text-sm text-slate-400 mb-1">검색 결과가 없습니다</p>
-              <p className="text-xs text-slate-600">
+            <div className="bg-white border border-slate-200 rounded-xl p-10 text-center shadow-sm animate-fade-in-up">
+              <div className="w-14 h-14 rounded-2xl bg-coral-50 flex items-center justify-center mx-auto mb-4">
+                <SearchX className="w-7 h-7 text-coral-400" />
+              </div>
+              <p className="text-lg font-medium text-slate-700 mb-1">검색 결과가 없습니다</p>
+              <p className="text-base text-slate-400 mb-4">
                 다른 키워드로 검색하거나, 영상을 먼저 업로드해 주세요
               </p>
-              <p className="text-xs text-slate-600 mt-3">
-                추천: &lsquo;비상냉각&rsquo;, &lsquo;ECCS 기동&rsquo;, &lsquo;제어봉 삽입&rsquo;
-              </p>
+              <div className="flex flex-wrap justify-center gap-2">
+                <span className="px-3 py-1 rounded-full bg-coral-50 text-coral-600 text-sm">비상냉각</span>
+                <span className="px-3 py-1 rounded-full bg-coral-50 text-coral-600 text-sm">ECCS 기동</span>
+                <span className="px-3 py-1 rounded-full bg-coral-50 text-coral-600 text-sm">제어봉 삽입</span>
+              </div>
             </div>
           )}
         </div>
@@ -152,18 +156,20 @@ export default function SimulatorEval() {
         {/* 우측: 평가 리포트 */}
         <div className="space-y-4">
           {!hasScores && (
-            <div className="animate-fade-in-up bg-surface-800 border border-surface-700 rounded-xl p-8 text-center" style={{ animationDelay: "100ms", animationFillMode: "backwards" }}>
-              <Target className="w-10 h-10 mx-auto mb-3 text-slate-600" />
-              <p className="text-sm text-slate-400 mb-1">평가 결과 없음</p>
-              <p className="text-xs text-slate-600">영상을 업로드하면 8대 핵심역량 분석 결과가 표시됩니다</p>
+            <div className="animate-fade-in-up bg-white border border-slate-200 rounded-xl p-10 text-center shadow-sm" style={{ animationDelay: "100ms", animationFillMode: "backwards" }}>
+              <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-coral-50 to-amber-50 flex items-center justify-center mx-auto mb-4">
+                <Target className="w-7 h-7 text-coral-500" />
+              </div>
+              <p className="text-lg font-medium text-slate-700 mb-1">역량 평가 대기 중</p>
+              <p className="text-base text-slate-400 leading-relaxed">영상을 업로드하면<br />8대 핵심역량 분석 결과가 표시됩니다</p>
             </div>
           )}
           {/* 종합 점수 */}
-          {hasScores && <div className="animate-fade-in-up bg-surface-800 border border-coral-500/30 rounded-xl p-4 text-center hover:border-coral-500/50 hover:shadow-lg hover:shadow-coral-500/10 transition-all duration-300" style={{ animationDelay: "100ms", animationFillMode: "backwards" }}>
-            <p className="text-xs text-slate-500 mb-1">종합 평가</p>
+          {hasScores && <div className="animate-fade-in-up bg-white border border-coral-200 rounded-xl p-5 text-center hover:border-coral-300 hover:shadow-lg hover:shadow-coral-100/50 transition-all duration-300" style={{ animationDelay: "100ms", animationFillMode: "backwards" }}>
+            <p className="text-sm text-slate-500 mb-1">종합 평가</p>
             <div className="flex items-baseline justify-center gap-2">
-              <span className="text-4xl font-bold font-mono text-white tabular-nums">{displayScore}</span>
-              <span className="text-sm text-slate-500">/ 100</span>
+              <span className="text-4xl font-bold font-mono text-slate-900 tabular-nums">{displayScore}</span>
+              <span className="text-base text-slate-400">/ 100</span>
             </div>
             <span className={`text-lg font-bold px-3 py-0.5 rounded-md ${color} ${gradeBgMap[color]}`}>{grade}</span>
             <p className="text-xs text-slate-500 mt-1">{getGradeDescription(grade)}</p>
@@ -176,39 +182,39 @@ export default function SimulatorEval() {
 
           {/* 역량별 상세 */}
           {hasScores &&
-          <div className="animate-fade-in-up bg-surface-800 border border-surface-700 rounded-xl p-4" style={{ animationDelay: "300ms", animationFillMode: "backwards" }}>
-            <h4 className="text-sm font-medium text-slate-300 mb-3 flex items-center gap-2">
+          <div className="animate-fade-in-up bg-white border border-slate-200 rounded-xl p-5 shadow-sm" style={{ animationDelay: "300ms", animationFillMode: "backwards" }}>
+            <h4 className="text-base font-medium text-slate-700 mb-3 flex items-center gap-2">
               <Target className="w-4 h-4" /> 역량별 상세
             </h4>
             <div className="space-y-2">
               {scores.map((s, idx) => (
                 <div
                   key={s.key}
-                  className="animate-fade-in-up flex items-center gap-3 group py-1 -mx-2 px-2 rounded hover:bg-surface-700/50 transition-colors duration-150"
+                  className="animate-fade-in-up flex items-center gap-3 group py-1.5 -mx-2 px-2 rounded hover:bg-slate-50 transition-colors duration-150"
                   style={{ animationDelay: `${idx * 50}ms`, animationFillMode: "backwards" }}
                   aria-label={`${s.label} ${s.score}점`}
                 >
-                  <span className="text-xs text-slate-400 w-16 shrink-0 group-hover:text-slate-300 transition-colors duration-200">{s.label}</span>
-                  <div className="flex-1 bg-surface-700 rounded-full h-1.5 group-hover:h-2 transition-all duration-200">
+                  <span className="text-sm text-slate-500 w-16 shrink-0 group-hover:text-slate-700 transition-colors duration-200">{s.label}</span>
+                  <div className="flex-1 bg-slate-100 rounded-full h-2 group-hover:h-2.5 transition-all duration-200">
                     <div
                       className={`h-full rounded-full ${getBarColor(s.score)} transition-all duration-700`}
                       style={{ width: `${s.score}%`, transitionDelay: `${300 + idx * 80}ms` }}
                     />
                   </div>
-                  <span className="text-xs font-mono text-slate-300 w-8 text-right group-hover:text-white transition-colors duration-200">{s.score}</span>
+                  <span className="text-sm font-mono text-slate-700 w-8 text-right group-hover:text-slate-900 transition-colors duration-200">{s.score}</span>
                 </div>
               ))}
             </div>
           </div>}
 
           {/* 챕터링 (타임라인 UI) */}
-          <div className="animate-fade-in-up bg-surface-800 border border-surface-700 rounded-xl p-4" style={{ animationDelay: "400ms", animationFillMode: "backwards" }}>
-            <h4 className="text-sm font-medium text-slate-300 mb-3 flex items-center gap-2">
+          <div className="animate-fade-in-up bg-white border border-slate-200 rounded-xl p-5 shadow-sm" style={{ animationDelay: "400ms", animationFillMode: "backwards" }}>
+            <h4 className="text-base font-medium text-slate-700 mb-3 flex items-center gap-2">
               <FileText className="w-4 h-4" /> 자동 챕터링
             </h4>
             <div className="relative ml-1" role="listbox" aria-label="자동 챕터링 목록">
               {/* 세로 연결선 */}
-              <div className="absolute left-3 top-3 bottom-3 w-px bg-surface-600" />
+              <div className="absolute left-3 top-3 bottom-3 w-px bg-slate-200" />
               <div className="space-y-1">
                 {["초기 상태 확인", "비상 절차 진입", "냉각 계통 기동", "정상화 조치"].map((chapter, i) => {
                   const isSelected = selectedChapter === i;
@@ -231,7 +237,7 @@ export default function SimulatorEval() {
                         className={`absolute left-0 z-10 flex items-center justify-center w-6 h-6 rounded-full text-[10px] font-mono font-semibold border transition-all duration-200 ${
                           isSelected
                             ? "bg-coral-500 border-coral-500 text-white"
-                            : "bg-surface-800 border-surface-600 text-slate-500 group-hover:border-coral-500 group-hover:text-coral-400"
+                            : "bg-white border-slate-200 text-slate-400 group-hover:border-coral-400 group-hover:text-coral-600"
                         }`}
                       >
                         {String(i + 1).padStart(2, "0")}
@@ -247,8 +253,8 @@ export default function SimulatorEval() {
                       <span
                         className={`transition-colors duration-200 ${
                           isSelected
-                            ? "text-coral-400 font-medium"
-                            : "text-slate-400 group-hover:text-slate-300"
+                            ? "text-coral-600 font-medium"
+                            : "text-slate-600 group-hover:text-slate-800"
                         }`}
                       >
                         {chapter}
@@ -256,8 +262,8 @@ export default function SimulatorEval() {
                       <span
                         className={`ml-auto font-mono transition-colors duration-200 ${
                           isSelected
-                            ? "text-coral-400/70"
-                            : "text-slate-600 group-hover:text-slate-500"
+                            ? "text-coral-500"
+                            : "text-slate-400 group-hover:text-slate-500"
                         }`}
                       >
                         --:--
@@ -267,7 +273,7 @@ export default function SimulatorEval() {
                 })}
               </div>
             </div>
-            <p className="text-xs text-slate-600 mt-3">영상 업로드 시 타임스탬프가 자동 생성됩니다</p>
+            <p className="text-sm text-slate-400 mt-3">영상 업로드 시 타임스탬프가 자동 생성됩니다</p>
           </div>
         </div>
       </div>

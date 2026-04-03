@@ -91,14 +91,14 @@ function ScoreSelector({
             type="button"
             onClick={() => onChange(n)}
             className={cn(
-              "w-7 h-7 rounded-md text-xs font-mono font-semibold transition-all duration-150",
+              "w-7 h-7 rounded-md text-sm font-mono font-semibold transition-all duration-150",
               filled
                 ? tier === "high"
                   ? "bg-teal-500/25 text-teal-300 border border-teal-500/40"
                   : tier === "mid"
                     ? "bg-amber-500/25 text-amber-300 border border-amber-500/40"
                     : "bg-red-500/25 text-red-300 border border-red-500/40"
-                : "bg-surface-900/50 text-slate-600 border border-surface-700/50 hover:border-surface-600 hover:text-slate-400"
+                : "bg-slate-50/50 text-slate-400 border border-slate-200/50 hover:border-slate-200 hover:text-slate-500"
             )}
           >
             {n}
@@ -106,7 +106,7 @@ function ScoreSelector({
         );
       })}
       {value > 0 && (
-        <span className={cn("text-xs font-medium ml-2 tabular-nums", value >= 6 ? "text-teal-400" : value >= 2 ? "text-amber-400" : "text-red-400")}>
+        <span className={cn("text-sm font-medium ml-2 tabular-nums", value >= 6 ? "text-teal-600" : value >= 2 ? "text-amber-600" : "text-red-400")}>
           {value}점 · {getLabel(value)}
         </span>
       )}
@@ -125,26 +125,26 @@ function BarsRubricTable({
   onToggle: () => void;
 }) {
   return (
-    <div className="rounded-lg overflow-hidden border border-surface-700/40">
+    <div className="rounded-lg overflow-hidden border border-slate-200/40">
       <button
         onClick={onToggle}
-        className="w-full flex items-center justify-between px-4 py-2.5 bg-surface-800/60 hover:bg-surface-800/80 transition-colors text-left"
+        className="w-full flex items-center justify-between px-4 py-2.5 bg-white/60 hover:bg-white/80 transition-colors text-left"
       >
         <div className="flex items-center gap-2">
           <BookOpen className="w-3.5 h-3.5 text-slate-500" />
-          <span className="text-xs font-medium text-slate-300">판정 기준 보기</span>
+          <span className="text-sm font-medium text-slate-700">판정 기준 보기</span>
         </div>
         {isExpanded ? <ChevronUp className="w-3.5 h-3.5 text-slate-500" /> : <ChevronDown className="w-3.5 h-3.5 text-slate-500" />}
       </button>
       {isExpanded && (
-        <div className="grid grid-cols-4 gap-px bg-surface-700/30">
+        <div className="grid grid-cols-4 gap-px bg-slate-100/30">
           {item.levels.map((level, li) => (
-            <div key={li} className={cn("p-3 text-xs leading-relaxed", level.bgColor)}>
+            <div key={li} className={cn("p-3 text-sm leading-relaxed", level.bgColor)}>
               <div className="flex items-center gap-1.5 mb-1.5">
                 <span className={cn("font-bold font-mono", level.color)}>{level.range}</span>
               </div>
-              <p className="text-[10px] font-medium text-slate-400 mb-1">{level.label}</p>
-              <p className="text-[11px] leading-[1.5] text-slate-300/80">{level.description}</p>
+              <p className="text-sm font-medium text-slate-500 mb-1">{level.label}</p>
+              <p className="text-sm leading-[1.5] text-slate-700/80">{level.description}</p>
             </div>
           ))}
         </div>
@@ -164,25 +164,25 @@ function MultimodalIndicatorTable({
   onSubScoreChange: (id: string, level: number) => void;
 }) {
   const ChIcon = CHANNEL_ICONS[item.channel] || Activity;
-  const levelColors = ["text-red-400", "text-amber-400", "text-sky-400", "text-teal-400"];
-  const levelBgColors = ["bg-red-500/10", "bg-amber-500/10", "bg-sky-500/10", "bg-teal-500/10"];
+  const levelColors = ["text-red-400", "text-amber-600", "text-sky-400", "text-teal-600"];
+  const levelBgColors = ["bg-red-500/10", "bg-amber-50", "bg-sky-500/10", "bg-teal-50"];
 
   return (
     <div className="space-y-3">
       {/* 채널 + 정의 */}
       <div className="flex items-center gap-2 mb-1">
         <ChIcon className="w-3.5 h-3.5 text-slate-500" />
-        <span className="text-[10px] text-slate-500">{item.channel}</span>
+        <span className="text-sm text-slate-500">{item.channel}</span>
       </div>
 
       {/* 하위지표 테이블 */}
-      <div className="rounded-lg overflow-hidden border border-surface-700/40">
+      <div className="rounded-lg overflow-hidden border border-slate-200/40">
         {/* 헤더 */}
-        <div className="grid grid-cols-[1fr_repeat(4,80px)] bg-surface-800/80 px-3 py-2 text-[10px] font-medium text-slate-500">
+        <div className="grid grid-cols-[1fr_repeat(4,80px)] bg-white/80 px-3 py-2 text-sm font-medium text-slate-500">
           <span>하위지표</span>
-          <span className="text-center text-teal-400/70">상위 (3)</span>
+          <span className="text-center text-teal-600/70">상위 (3)</span>
           <span className="text-center text-sky-400/70">중상 (2)</span>
-          <span className="text-center text-amber-400/70">중하 (1)</span>
+          <span className="text-center text-amber-600/70">중하 (1)</span>
           <span className="text-center text-red-400/70">미흡 (0)</span>
         </div>
         {/* 행 */}
@@ -191,11 +191,11 @@ function MultimodalIndicatorTable({
           const thresholds = [sub.thresholds.upper, sub.thresholds.midHigh, sub.thresholds.midLow, sub.thresholds.poor];
 
           return (
-            <div key={sub.id} className="border-t border-surface-700/30">
+            <div key={sub.id} className="border-t border-slate-200/30">
               {/* 지표명 */}
               <div className="px-3 py-2 flex items-center gap-2">
-                <span className="text-xs text-slate-300">{sub.label}</span>
-                <span className="text-[9px] font-mono text-slate-600">{sub.name}</span>
+                <span className="text-sm text-slate-700">{sub.label}</span>
+                <span className="text-[9px] font-mono text-slate-400">{sub.name}</span>
                 {sub.condition && (
                   <span className="text-[9px] text-amber-500/70 flex items-center gap-0.5">
                     <AlertTriangle className="w-2.5 h-2.5" />
@@ -205,7 +205,7 @@ function MultimodalIndicatorTable({
               </div>
               {/* 임계값 + 선택 */}
               <div className="grid grid-cols-[1fr_repeat(4,80px)] px-3 pb-2">
-                <span className="text-[10px] text-slate-600 font-mono">{sub.unit}</span>
+                <span className="text-sm text-slate-400 font-mono">{sub.unit}</span>
                 {thresholds.map((th, ti) => {
                   const score = 3 - ti; // 상위=3, 중상=2, 중하=1, 미흡=0
                   const isSelected = selected === score;
@@ -214,10 +214,10 @@ function MultimodalIndicatorTable({
                       key={ti}
                       onClick={() => onSubScoreChange(sub.id, score)}
                       className={cn(
-                        "text-center text-[10px] font-mono px-1 py-1 rounded transition-all mx-0.5",
+                        "text-center text-sm font-mono px-1 py-1 rounded transition-all mx-0.5",
                         isSelected
                           ? cn(levelBgColors[score], levelColors[score], "border", "border-current/30", "font-bold")
-                          : "text-slate-500 hover:bg-surface-700/40 hover:text-slate-300"
+                          : "text-slate-500 hover:bg-slate-100 hover:text-slate-700"
                       )}
                     >
                       {th}
@@ -233,8 +233,8 @@ function MultimodalIndicatorTable({
       {/* 채점 유의사항 */}
       {item.scoringNotes.length > 0 && (
         <div className="flex items-start gap-1.5 px-1">
-          <Info className="w-3 h-3 text-slate-600 mt-0.5 shrink-0" />
-          <div className="text-[10px] text-slate-600 leading-relaxed space-y-0.5">
+          <Info className="w-3 h-3 text-slate-400 mt-0.5 shrink-0" />
+          <div className="text-sm text-slate-400 leading-relaxed space-y-0.5">
             {item.scoringNotes.map((note, ni) => (
               <p key={ni}>· {note}</p>
             ))}
@@ -374,10 +374,10 @@ export default function CompetencyAssessment({ data, onBack }: CompetencyAssessm
       {/* ── 헤더 ── */}
       <div className="flex items-center justify-between mb-2">
         <div className="flex items-center gap-3">
-          <button onClick={onBack} className="flex items-center gap-1.5 text-sm text-slate-400 hover:text-teal-400 transition-colors">
+          <button onClick={onBack} className="flex items-center gap-1.5 text-base text-slate-500 hover:text-teal-600 transition-colors">
             <ArrowLeft className="w-4 h-4" />부장(2직급)
           </button>
-          <span className="text-surface-600">/</span>
+          <span className="text-slate-400">/</span>
           <div className="flex items-center gap-2">
             <div className="w-7 h-7 rounded-lg flex items-center justify-center" style={{ backgroundColor: `${data.color}15` }}>
               <IconComp className="w-4 h-4" style={{ color: data.color }} />
@@ -388,28 +388,28 @@ export default function CompetencyAssessment({ data, onBack }: CompetencyAssessm
         <div className="flex items-center gap-3">
           {/* 현재 버전 총점 */}
           {rubricVersion === "bars" && barsScoredCount > 0 && (
-            <div className="flex items-center gap-2 px-3 py-1.5 bg-surface-800/60 border border-surface-700/40 rounded-lg">
-              <span className="text-[10px] text-slate-500">BARS 평균</span>
-              <span className={cn("text-sm font-bold font-mono", barsTotalScore >= 6 ? "text-teal-400" : barsTotalScore >= 2 ? "text-amber-400" : "text-red-400")}>
+            <div className="flex items-center gap-2 px-3 py-1.5 bg-white/60 border border-slate-200/40 rounded-lg">
+              <span className="text-sm text-slate-500">BARS 평균</span>
+              <span className={cn("text-base font-bold font-mono", barsTotalScore >= 6 ? "text-teal-600" : barsTotalScore >= 2 ? "text-amber-600" : "text-red-400")}>
                 {barsTotalScore.toFixed(1)}
               </span>
-              <span className="text-[10px] text-slate-600">/ 9</span>
+              <span className="text-sm text-slate-400">/ 9</span>
             </div>
           )}
           {rubricVersion === "multimodal" && mmTotalScore !== null && (
-            <div className="flex items-center gap-2 px-3 py-1.5 bg-surface-800/60 border border-surface-700/40 rounded-lg">
-              <span className="text-[10px] text-slate-500">멀티모달 총점</span>
-              <span className={cn("text-sm font-bold font-mono", mmTotalScore >= 5.5 ? "text-teal-400" : mmTotalScore >= 3 ? "text-amber-400" : "text-red-400")}>
+            <div className="flex items-center gap-2 px-3 py-1.5 bg-white/60 border border-slate-200/40 rounded-lg">
+              <span className="text-sm text-slate-500">멀티모달 총점</span>
+              <span className={cn("text-base font-bold font-mono", mmTotalScore >= 5.5 ? "text-teal-600" : mmTotalScore >= 3 ? "text-amber-600" : "text-red-400")}>
                 {mmTotalScore.toFixed(1)}
               </span>
-              <span className="text-[10px] text-slate-600">/ 9</span>
+              <span className="text-sm text-slate-400">/ 9</span>
             </div>
           )}
           <button
             onClick={handleSave}
             className={cn(
-              "flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition-all duration-200",
-              saved ? "bg-teal-500/15 text-teal-400 border border-teal-500/30" : "bg-surface-800 text-slate-300 border border-surface-700 hover:border-teal-500/30 hover:text-teal-400"
+              "flex items-center gap-2 px-4 py-2 rounded-xl text-base font-medium transition-all duration-200",
+              saved ? "bg-teal-50 text-teal-600 border border-teal-500/30" : "bg-white text-slate-700 border border-slate-200 hover:border-teal-500/30 hover:text-teal-600"
             )}
           >
             <Save className="w-4 h-4" />{saved ? "저장 완료" : "평가 저장"}
@@ -420,18 +420,18 @@ export default function CompetencyAssessment({ data, onBack }: CompetencyAssessm
       {/* 활동 유형 + 루브릭 버전 전환 */}
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-2">
-          <span className="text-xs px-2.5 py-1 rounded-md font-medium" style={{ backgroundColor: `${data.color}15`, color: data.color }}>
+          <span className="text-sm px-2.5 py-1 rounded-md font-medium" style={{ backgroundColor: `${data.color}15`, color: data.color }}>
             {data.scenario.activityType}
           </span>
-          <span className="text-xs text-slate-600">9점 척도</span>
+          <span className="text-sm text-slate-400">9점 척도</span>
         </div>
         {/* 루브릭 버전 토글 */}
-        <div className="flex items-center gap-1 p-1 bg-surface-800/40 border border-surface-700/30 rounded-xl">
+        <div className="flex items-center gap-1 p-1 bg-white/40 border border-slate-200/30 rounded-xl">
           <button
             onClick={() => setRubricVersion("bars")}
             className={cn(
-              "flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all",
-              rubricVersion === "bars" ? "bg-surface-700/60 text-teal-400 shadow-sm" : "text-slate-500 hover:text-slate-400"
+              "flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-all",
+              rubricVersion === "bars" ? "bg-slate-100/60 text-teal-600 shadow-sm" : "text-slate-500 hover:text-slate-500"
             )}
           >
             <BookOpen className="w-3.5 h-3.5" />
@@ -440,8 +440,8 @@ export default function CompetencyAssessment({ data, onBack }: CompetencyAssessm
           <button
             onClick={() => setRubricVersion("multimodal")}
             className={cn(
-              "flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all",
-              rubricVersion === "multimodal" ? "bg-surface-700/60 text-violet-400 shadow-sm" : "text-slate-500 hover:text-slate-400"
+              "flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-all",
+              rubricVersion === "multimodal" ? "bg-slate-100/60 text-violet-600 shadow-sm" : "text-slate-500 hover:text-slate-500"
             )}
           >
             <Activity className="w-3.5 h-3.5" />
@@ -456,7 +456,7 @@ export default function CompetencyAssessment({ data, onBack }: CompetencyAssessm
         {/* ─── 좌측: 영상 + 상황사례 ─── */}
         <div className="lg:col-span-5 lg:sticky lg:top-6 lg:self-start space-y-5">
           {/* 비디오 플레이어 */}
-          <div className="rounded-2xl overflow-hidden border border-surface-700/40 bg-black shadow-2xl shadow-black/50">
+          <div className="rounded-2xl overflow-hidden border border-slate-200/40 bg-black shadow-2xl shadow-slate-200/60">
             <video
               ref={videoRef}
               controls
@@ -468,29 +468,29 @@ export default function CompetencyAssessment({ data, onBack }: CompetencyAssessm
           </div>
 
           {/* 재생 컨트롤 */}
-          <div className="bg-surface-800/60 border border-surface-700/40 rounded-xl p-3 flex items-center gap-3">
-            <button onClick={togglePlay} className="w-8 h-8 rounded-full bg-teal-500/15 flex items-center justify-center text-teal-400 hover:bg-teal-500/25 transition-colors shrink-0">
+          <div className="bg-white/60 border border-slate-200/40 rounded-xl p-3 flex items-center gap-3">
+            <button onClick={togglePlay} className="w-8 h-8 rounded-full bg-teal-50 flex items-center justify-center text-teal-600 hover:bg-teal-500/25 transition-colors shrink-0">
               {isPlaying ? <Pause className="w-3.5 h-3.5" /> : <Play className="w-3.5 h-3.5 ml-0.5" />}
             </button>
-            <span className="text-sm font-mono text-slate-300 tabular-nums">{formatTime(currentTime)}</span>
+            <span className="text-base font-mono text-slate-700 tabular-nums">{formatTime(currentTime)}</span>
           </div>
 
           {/* 상황 사례 */}
-          <div className="bg-surface-800/50 border border-surface-700/40 rounded-xl overflow-hidden">
-            <button onClick={() => setShowScenario(!showScenario)} className="w-full flex items-center justify-between px-4 py-3 hover:bg-surface-800/70 transition-colors">
+          <div className="bg-white/50 border border-slate-200/40 rounded-xl overflow-hidden">
+            <button onClick={() => setShowScenario(!showScenario)} className="w-full flex items-center justify-between px-4 py-3 hover:bg-white/70 transition-colors">
               <div className="flex items-center gap-2">
                 <FileText className="w-4 h-4 text-slate-500" />
-                <span className="text-sm font-medium text-slate-300">상황 사례</span>
+                <span className="text-base font-medium text-slate-700">상황 사례</span>
               </div>
               {showScenario ? <ChevronUp className="w-4 h-4 text-slate-500" /> : <ChevronDown className="w-4 h-4 text-slate-500" />}
             </button>
             {showScenario && (
               <div className="px-4 pb-4 space-y-3 animate-fade-in-up">
-                <p className="text-xs font-medium text-slate-400">{data.scenario.title}</p>
-                <p className="text-sm text-slate-400 leading-relaxed whitespace-pre-line">{data.scenario.description}</p>
+                <p className="text-sm font-medium text-slate-500">{data.scenario.title}</p>
+                <p className="text-base text-slate-500 leading-relaxed whitespace-pre-line">{data.scenario.description}</p>
                 <div className="flex items-start gap-1.5 pt-1">
-                  <Info className="w-3 h-3 text-slate-600 mt-0.5 shrink-0" />
-                  <p className="text-[10px] text-slate-600 leading-relaxed">{data.scenario.reference}</p>
+                  <Info className="w-3 h-3 text-slate-400 mt-0.5 shrink-0" />
+                  <p className="text-sm text-slate-400 leading-relaxed">{data.scenario.reference}</p>
                 </div>
               </div>
             )}
@@ -499,18 +499,18 @@ export default function CompetencyAssessment({ data, onBack }: CompetencyAssessm
           {/* 멀티모달 버전일 때: 점수 산식 안내 */}
           {rubricVersion === "multimodal" && (
             <div className="bg-violet-500/5 border border-violet-500/20 rounded-xl p-4 space-y-2">
-              <p className="text-xs font-medium text-violet-400 flex items-center gap-1.5">
+              <p className="text-sm font-medium text-violet-600 flex items-center gap-1.5">
                 <Activity className="w-3.5 h-3.5" />
                 멀티모달 평가 산식
               </p>
-              <div className="text-[11px] text-slate-400 space-y-1 font-mono">
+              <div className="text-sm text-slate-500 space-y-1 font-mono">
                 <p>{MULTIMODAL_RUBRIC.scoringFormula.subIndicatorScale}</p>
                 <p>{MULTIMODAL_RUBRIC.scoringFormula.itemFormula}</p>
                 <p>{MULTIMODAL_RUBRIC.scoringFormula.totalFormula}</p>
               </div>
               <div className="flex flex-wrap gap-2 pt-1">
                 {MULTIMODAL_RUBRIC.totalInterpretation.map((t) => (
-                  <span key={t.range} className={cn("text-[10px] font-mono px-2 py-0.5 rounded", t.color, "bg-surface-800/50")}>
+                  <span key={t.range} className={cn("text-sm font-mono px-2 py-0.5 rounded", t.color, "bg-white/50")}>
                     {t.range} {t.label}
                   </span>
                 ))}
@@ -529,19 +529,19 @@ export default function CompetencyAssessment({ data, onBack }: CompetencyAssessm
             return (
               <div
                 key={item.id}
-                className="bg-surface-800/40 border border-surface-700/30 rounded-xl overflow-hidden animate-fade-in-up"
+                className="bg-white/40 border border-slate-200/30 rounded-xl overflow-hidden animate-fade-in-up"
                 style={{ animationDelay: `${idx * 80}ms`, animationFillMode: "backwards", borderLeftWidth: "3px", borderLeftColor: data.color }}
               >
                 {/* 항목 헤더 */}
                 <div className="px-5 pt-4 pb-3">
                   <div className="flex items-center justify-between mb-1">
                     <div className="flex items-center gap-2">
-                      <span className="text-xs font-mono font-bold text-slate-500">{String(idx + 1).padStart(2, "0")}</span>
-                      <h3 className="text-sm font-semibold text-slate-200">{item.criteria}</h3>
-                      <span className="text-[10px] px-2 py-0.5 rounded bg-surface-700/50 text-slate-500">{item.subLabel}</span>
+                      <span className="text-sm font-mono font-bold text-slate-500">{String(idx + 1).padStart(2, "0")}</span>
+                      <h3 className="text-base font-semibold text-slate-200">{item.criteria}</h3>
+                      <span className="text-sm px-2 py-0.5 rounded bg-slate-100/50 text-slate-500">{item.subLabel}</span>
                     </div>
                     {itemScore.score > 0 && (
-                      <span className={cn("text-xs font-mono font-bold px-2.5 py-1 rounded-lg", itemScore.score >= 6 ? "bg-teal-500/15 text-teal-400" : itemScore.score >= 2 ? "bg-amber-500/15 text-amber-400" : "bg-red-500/15 text-red-400")}>
+                      <span className={cn("text-sm font-mono font-bold px-2.5 py-1 rounded-lg", itemScore.score >= 6 ? "bg-teal-50 text-teal-600" : itemScore.score >= 2 ? "bg-amber-500/15 text-amber-600" : "bg-red-500/15 text-red-400")}>
                         {itemScore.score}/9
                       </span>
                     )}
@@ -556,7 +556,7 @@ export default function CompetencyAssessment({ data, onBack }: CompetencyAssessm
                 {/* 디브리핑 클립 */}
                 {itemClips.length > 0 && (
                   <div className="px-5 pb-3">
-                    <p className="text-[10px] uppercase tracking-wider text-slate-600 mb-2">디브리핑 장면 ({itemClips.length}건)</p>
+                    <p className="text-sm uppercase tracking-wider text-slate-400 mb-2">디브리핑 장면 ({itemClips.length}건)</p>
                     <div className="space-y-1.5">
                       {itemClips.map((clip) => {
                         const isClipPlaying = currentTime >= clip.timestamp && currentTime <= clip.endTime;
@@ -566,19 +566,19 @@ export default function CompetencyAssessment({ data, onBack }: CompetencyAssessm
                             onClick={() => handleClipClick(clip)}
                             className={cn(
                               "w-full text-left rounded-lg px-3 py-2.5 transition-all duration-200 group",
-                              activeClipId === clip.id ? "bg-surface-700/60 border border-surface-600/50" : "bg-surface-800/40 border border-transparent hover:bg-surface-700/40",
+                              activeClipId === clip.id ? "bg-slate-100/60 border border-slate-200/50" : "bg-white/40 border border-transparent hover:bg-slate-100/40",
                               isClipPlaying && "ring-1 ring-teal-500/30"
                             )}
                           >
                             <div className="flex items-center gap-2 mb-1">
-                              <span className="inline-flex items-center gap-1 text-teal-400 font-mono text-xs shrink-0">
+                              <span className="inline-flex items-center gap-1 text-teal-600 font-mono text-sm shrink-0">
                                 <PlayCircle className="w-3 h-3" />{formatTime(clip.timestamp)}
                               </span>
-                              <span className="text-xs text-slate-500">{clip.speaker}</span>
+                              <span className="text-sm text-slate-500">{clip.speaker}</span>
                               {isClipPlaying && <div className="w-1.5 h-1.5 rounded-full bg-teal-500 animate-pulse" />}
-                              {clip.suggestedScore > 0 && <span className="ml-auto text-[10px] font-mono text-slate-600">AI 추천: {clip.suggestedScore}점</span>}
+                              {clip.suggestedScore > 0 && <span className="ml-auto text-sm font-mono text-slate-400">AI 추천: {clip.suggestedScore}점</span>}
                             </div>
-                            <p className="text-xs text-slate-400 leading-relaxed line-clamp-2 group-hover:text-slate-300">{clip.description}</p>
+                            <p className="text-sm text-slate-500 leading-relaxed line-clamp-2 group-hover:text-slate-700">{clip.description}</p>
                           </button>
                         );
                       })}
@@ -587,18 +587,18 @@ export default function CompetencyAssessment({ data, onBack }: CompetencyAssessm
                 )}
 
                 {/* 채점 + 메모 */}
-                <div className="px-5 pb-5 space-y-3 border-t border-surface-700/20 pt-3">
+                <div className="px-5 pb-5 space-y-3 border-t border-slate-200/20 pt-3">
                   <div>
-                    <p className="text-[10px] uppercase tracking-wider text-slate-600 mb-2">평가 점수</p>
+                    <p className="text-sm uppercase tracking-wider text-slate-400 mb-2">평가 점수</p>
                     <ScoreSelector value={itemScore.score} onChange={(s) => updateBarsScore(item.id, s)} />
                   </div>
                   <div>
-                    <p className="text-[10px] uppercase tracking-wider text-slate-600 mb-1.5">평가 메모</p>
+                    <p className="text-sm uppercase tracking-wider text-slate-400 mb-1.5">평가 메모</p>
                     <textarea
                       value={itemScore.note}
                       onChange={(e) => updateBarsNote(item.id, e.target.value)}
                       placeholder="관찰된 행동과 근거를 기록하세요..."
-                      className="w-full bg-surface-900/60 border border-surface-700/40 rounded-lg px-3 py-2 text-sm text-white placeholder:text-slate-600 outline-none focus:border-teal-500/30 focus:ring-1 focus:ring-teal-500/15 transition-all resize-none leading-relaxed"
+                      className="w-full bg-slate-50/60 border border-slate-200/40 rounded-lg px-3 py-2 text-base text-slate-900 placeholder:text-slate-400 outline-none focus:border-teal-500/30 focus:ring-1 focus:ring-teal-500/15 transition-all resize-none leading-relaxed"
                       rows={2}
                     />
                   </div>
@@ -613,26 +613,26 @@ export default function CompetencyAssessment({ data, onBack }: CompetencyAssessm
             return (
               <div
                 key={item.id}
-                className="bg-surface-800/40 border border-surface-700/30 rounded-xl overflow-hidden animate-fade-in-up"
+                className="bg-white/40 border border-slate-200/30 rounded-xl overflow-hidden animate-fade-in-up"
                 style={{ animationDelay: `${idx * 80}ms`, animationFillMode: "backwards", borderLeftWidth: "3px", borderLeftColor: "#8b5cf6" }}
               >
                 {/* 항목 헤더 */}
                 <div className="px-5 pt-4 pb-3">
                   <div className="flex items-center justify-between mb-1">
                     <div className="flex items-center gap-2">
-                      <span className="text-xs font-mono font-bold text-violet-400/70">{String(item.number).padStart(2, "0")}</span>
-                      <h3 className="text-sm font-semibold text-slate-200">{item.criteria}</h3>
+                      <span className="text-sm font-mono font-bold text-violet-600/70">{String(item.number).padStart(2, "0")}</span>
+                      <h3 className="text-base font-semibold text-slate-200">{item.criteria}</h3>
                     </div>
                     {itemResult?.score !== null && itemResult?.score !== undefined && (
                       <span className={cn(
-                        "text-xs font-mono font-bold px-2.5 py-1 rounded-lg",
-                        itemResult.score >= 5.5 ? "bg-teal-500/15 text-teal-400" : itemResult.score >= 3 ? "bg-amber-500/15 text-amber-400" : "bg-red-500/15 text-red-400"
+                        "text-sm font-mono font-bold px-2.5 py-1 rounded-lg",
+                        itemResult.score >= 5.5 ? "bg-teal-50 text-teal-600" : itemResult.score >= 3 ? "bg-amber-500/15 text-amber-600" : "bg-red-500/15 text-red-400"
                       )}>
                         {itemResult.score.toFixed(1)}/9
                       </span>
                     )}
                   </div>
-                  <p className="text-xs text-slate-500 leading-relaxed">{item.definition}</p>
+                  <p className="text-sm text-slate-500 leading-relaxed">{item.definition}</p>
                 </div>
 
                 {/* 하위지표 테이블 */}
@@ -647,30 +647,30 @@ export default function CompetencyAssessment({ data, onBack }: CompetencyAssessm
                 {/* 비전제시 클립 (멀티모달에서도 보여줌) */}
                 {clips.length > 0 && idx < clips.length && (
                   <div className="px-5 pb-3">
-                    <p className="text-[10px] uppercase tracking-wider text-slate-600 mb-2">관련 장면</p>
+                    <p className="text-sm uppercase tracking-wider text-slate-400 mb-2">관련 장면</p>
                     <button
                       onClick={() => seekTo(clips[idx]?.timestamp || 0)}
-                      className="w-full text-left rounded-lg px-3 py-2 bg-surface-800/40 hover:bg-surface-700/40 transition-colors group"
+                      className="w-full text-left rounded-lg px-3 py-2 bg-white/40 hover:bg-slate-100/40 transition-colors group"
                     >
                       <div className="flex items-center gap-2">
-                        <span className="inline-flex items-center gap-1 text-violet-400 font-mono text-xs">
+                        <span className="inline-flex items-center gap-1 text-violet-600 font-mono text-sm">
                           <PlayCircle className="w-3 h-3" />{formatTime(clips[idx]?.timestamp || 0)}
                         </span>
-                        <span className="text-xs text-slate-500">{clips[idx]?.speaker}</span>
+                        <span className="text-sm text-slate-500">{clips[idx]?.speaker}</span>
                       </div>
-                      <p className="text-xs text-slate-400 line-clamp-1 mt-1 group-hover:text-slate-300">{clips[idx]?.description}</p>
+                      <p className="text-sm text-slate-500 line-clamp-1 mt-1 group-hover:text-slate-700">{clips[idx]?.description}</p>
                     </button>
                   </div>
                 )}
 
                 {/* 메모 */}
-                <div className="px-5 pb-5 border-t border-surface-700/20 pt-3">
-                  <p className="text-[10px] uppercase tracking-wider text-slate-600 mb-1.5">평가 메모</p>
+                <div className="px-5 pb-5 border-t border-slate-200/20 pt-3">
+                  <p className="text-sm uppercase tracking-wider text-slate-400 mb-1.5">평가 메모</p>
                   <textarea
                     value={mmNotes[item.id] || ""}
                     onChange={(e) => updateMmNote(item.id, e.target.value)}
                     placeholder="행동 신호 기반 관찰 사항을 기록하세요..."
-                    className="w-full bg-surface-900/60 border border-surface-700/40 rounded-lg px-3 py-2 text-sm text-white placeholder:text-slate-600 outline-none focus:border-violet-500/30 focus:ring-1 focus:ring-violet-500/15 transition-all resize-none leading-relaxed"
+                    className="w-full bg-slate-50/60 border border-slate-200/40 rounded-lg px-3 py-2 text-base text-slate-900 placeholder:text-slate-400 outline-none focus:border-violet-500/30 focus:ring-1 focus:ring-violet-500/15 transition-all resize-none leading-relaxed"
                     rows={2}
                   />
                 </div>
@@ -680,14 +680,14 @@ export default function CompetencyAssessment({ data, onBack }: CompetencyAssessm
 
           {/* 종합 평가 요약 (BARS) */}
           {rubricVersion === "bars" && barsScoredCount === data.rubricItems.length && (
-            <div className="bg-surface-800/60 border border-surface-700/40 rounded-xl p-5 animate-fade-in-up">
-              <h3 className="text-sm font-medium text-slate-300 mb-3">BARS 종합 평가</h3>
+            <div className="bg-white/60 border border-slate-200/40 rounded-xl p-5 animate-fade-in-up">
+              <h3 className="text-base font-medium text-slate-700 mb-3">BARS 종합 평가</h3>
               <div className="flex items-center gap-4 mb-3">
                 <div className="flex items-center gap-2">
                   <span className="text-2xl font-bold font-mono" style={{ color: barsTotalScore >= 6 ? "#14b8a6" : barsTotalScore >= 2 ? "#f59e0b" : "#ef4444" }}>
                     {barsTotalScore.toFixed(1)}
                   </span>
-                  <span className="text-sm text-slate-600">/ 9</span>
+                  <span className="text-base text-slate-400">/ 9</span>
                 </div>
               </div>
               <div className="space-y-1.5">
@@ -695,11 +695,11 @@ export default function CompetencyAssessment({ data, onBack }: CompetencyAssessm
                   const s = barsScores[item.id].score;
                   return (
                     <div key={item.id} className="flex items-center gap-2">
-                      <span className="text-[10px] text-slate-500 w-32 truncate">{item.criteria}</span>
-                      <div className="flex-1 h-2 bg-surface-900/60 rounded-full overflow-hidden">
+                      <span className="text-sm text-slate-500 w-32 truncate">{item.criteria}</span>
+                      <div className="flex-1 h-2 bg-slate-50/60 rounded-full overflow-hidden">
                         <div className={cn("h-full rounded-full transition-all duration-500", s >= 6 ? "bg-teal-500" : s >= 2 ? "bg-amber-500" : "bg-red-500")} style={{ width: `${(s / 9) * 100}%` }} />
                       </div>
-                      <span className="text-[10px] font-mono text-slate-500 w-6 text-right">{s}</span>
+                      <span className="text-sm font-mono text-slate-500 w-6 text-right">{s}</span>
                     </div>
                   );
                 })}
@@ -710,15 +710,15 @@ export default function CompetencyAssessment({ data, onBack }: CompetencyAssessm
           {/* 종합 평가 요약 (멀티모달) */}
           {rubricVersion === "multimodal" && mmTotalScore !== null && (
             <div className="bg-violet-500/5 border border-violet-500/20 rounded-xl p-5 animate-fade-in-up">
-              <h3 className="text-sm font-medium text-violet-400 mb-3">멀티모달 종합 평가</h3>
+              <h3 className="text-base font-medium text-violet-600 mb-3">멀티모달 종합 평가</h3>
               <div className="flex items-center gap-4 mb-3">
                 <div className="flex items-center gap-2">
                   <span className="text-2xl font-bold font-mono" style={{ color: mmTotalScore >= 5.5 ? "#14b8a6" : mmTotalScore >= 3 ? "#f59e0b" : "#ef4444" }}>
                     {mmTotalScore.toFixed(1)}
                   </span>
-                  <span className="text-sm text-slate-600">/ 9</span>
+                  <span className="text-base text-slate-400">/ 9</span>
                 </div>
-                <span className="text-xs text-slate-400">
+                <span className="text-sm text-slate-500">
                   {mmTotalScore >= 7.5 ? "매우 우수" : mmTotalScore >= 5.5 ? "보통 이상" : mmTotalScore >= 3 ? "보통 미만" : "미흡"}
                 </span>
               </div>
@@ -728,11 +728,11 @@ export default function CompetencyAssessment({ data, onBack }: CompetencyAssessm
                   const s = r?.score ?? 0;
                   return (
                     <div key={item.id} className="flex items-center gap-2">
-                      <span className="text-[10px] text-slate-500 w-40 truncate">{item.criteria}</span>
-                      <div className="flex-1 h-2 bg-surface-900/60 rounded-full overflow-hidden">
-                        <div className={cn("h-full rounded-full transition-all duration-500", s >= 5.5 ? "bg-violet-500" : s >= 3 ? "bg-amber-500" : s > 0 ? "bg-red-500" : "bg-surface-700")} style={{ width: `${(s / 9) * 100}%` }} />
+                      <span className="text-sm text-slate-500 w-40 truncate">{item.criteria}</span>
+                      <div className="flex-1 h-2 bg-slate-50/60 rounded-full overflow-hidden">
+                        <div className={cn("h-full rounded-full transition-all duration-500", s >= 5.5 ? "bg-violet-500" : s >= 3 ? "bg-amber-500" : s > 0 ? "bg-red-500" : "bg-slate-100")} style={{ width: `${(s / 9) * 100}%` }} />
                       </div>
-                      <span className="text-[10px] font-mono text-slate-500 w-8 text-right">{r?.score !== null ? s.toFixed(1) : "N/A"}</span>
+                      <span className="text-sm font-mono text-slate-500 w-8 text-right">{r?.score !== null ? s.toFixed(1) : "N/A"}</span>
                     </div>
                   );
                 })}

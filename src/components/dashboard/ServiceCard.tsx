@@ -19,23 +19,23 @@ const CARD_THEME: Record<ServiceTab, {
   dotColor: string;
 }> = {
   simulator: {
-    gradient: "from-coral-500/5 to-transparent",
-    iconBg: "bg-coral-500/8 group-hover:bg-coral-500/15 border-coral-500/10 group-hover:border-coral-500/25",
-    glowHover: "group-hover:shadow-coral-500/8",
+    gradient: "from-coral-50 to-transparent",
+    iconBg: "bg-coral-50 group-hover:bg-coral-100 border-coral-200 group-hover:border-coral-300",
+    glowHover: "group-hover:shadow-coral-200/40",
     accentLine: "from-coral-400 via-coral-500 to-coral-600",
     dotColor: "bg-coral-500",
   },
   leadership: {
-    gradient: "from-teal-500/5 to-transparent",
-    iconBg: "bg-teal-500/8 group-hover:bg-teal-500/15 border-teal-500/10 group-hover:border-teal-500/25",
-    glowHover: "group-hover:shadow-teal-500/8",
+    gradient: "from-teal-50 to-transparent",
+    iconBg: "bg-teal-50 group-hover:bg-teal-100 border-teal-200 group-hover:border-teal-300",
+    glowHover: "group-hover:shadow-teal-200/40",
     accentLine: "from-teal-400 via-teal-500 to-teal-600",
     dotColor: "bg-teal-500",
   },
   pov: {
-    gradient: "from-amber-500/5 to-transparent",
-    iconBg: "bg-amber-500/8 group-hover:bg-amber-500/15 border-amber-500/10 group-hover:border-amber-500/25",
-    glowHover: "group-hover:shadow-amber-500/8",
+    gradient: "from-amber-50 to-transparent",
+    iconBg: "bg-amber-50 group-hover:bg-amber-100 border-amber-200 group-hover:border-amber-300",
+    glowHover: "group-hover:shadow-amber-200/40",
     accentLine: "from-amber-400 via-amber-500 to-amber-600",
     dotColor: "bg-amber-500",
   },
@@ -72,9 +72,9 @@ export default function ServiceCard({
       aria-label={`${label} 서비스로 이동 — ${description}`}
       className={cn(
         "group relative text-left rounded-2xl overflow-hidden",
-        "glass glass-shine",
+        "bg-white border border-slate-200 shadow-sm",
         "transition-all duration-500 ease-out",
-        "hover:-translate-y-1.5 hover:shadow-2xl",
+        "hover:-translate-y-2 hover:shadow-xl",
         theme.glowHover,
         "active:scale-[0.98] active:shadow-none active:translate-y-0",
       )}
@@ -97,11 +97,11 @@ export default function ServiceCard({
         <kbd className={cn(
           "hidden md:flex items-center justify-center",
           "absolute top-4 right-4 z-10",
-          "w-6 h-6 rounded-md",
-          "bg-white/[0.03] border border-white/[0.06] text-slate-500",
-          "font-mono text-[10px]",
+          "w-7 h-7 rounded-md",
+          "bg-slate-100 border border-slate-200 text-slate-400",
+          "font-mono text-[11px]",
           "transition-all duration-300",
-          "group-hover:text-khnp-emerald-light group-hover:border-khnp-emerald-light/30 group-hover:bg-khnp-emerald/5"
+          "group-hover:text-khnp-emerald group-hover:border-khnp-emerald/30 group-hover:bg-khnp-emerald/5"
         )}>
           {shortcutKey}
         </kbd>
@@ -118,31 +118,31 @@ export default function ServiceCard({
           )}>
             {ICONS[tabKey]}
           </span>
-          <h3 className={cn("text-lg font-bold tracking-[-0.02em]", color)}>
+          <h3 className={cn("text-xl font-bold tracking-[-0.02em]", color)}>
             {label}
           </h3>
         </div>
 
         {/* 설명 */}
-        <p className="text-[14px] text-slate-400/90 leading-relaxed mb-6">
+        <p className="text-[15px] text-slate-500 leading-relaxed mb-6">
           {description}
         </p>
 
         {/* 하단 메타 + 화살표 */}
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3 text-[13px] text-slate-500">
+          <div className="flex items-center gap-3 text-sm text-slate-400">
             <div className="flex items-center gap-1.5">
               <div className={cn("w-1.5 h-1.5 rounded-full", theme.dotColor, "opacity-60")} />
               <span className="font-mono">{videoCount}건</span>
             </div>
             {lastAnalysis && (
-              <span className="font-mono text-slate-500">· {lastAnalysis}</span>
+              <span className="font-mono text-slate-400">· {lastAnalysis}</span>
             )}
           </div>
 
           {/* 시작하기 CTA — 호버 시 슬라이드 */}
           <span className={cn(
-            "flex items-center gap-1 text-[13px] font-medium opacity-0 -translate-x-2",
+            "flex items-center gap-1 text-sm font-medium opacity-0 -translate-x-2",
             "group-hover:opacity-70 group-hover:translate-x-0",
             "transition-all duration-400",
             color,

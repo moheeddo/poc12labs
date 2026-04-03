@@ -60,9 +60,9 @@ export default function SearchBar({
   };
 
   const suggestionHoverMap: Record<string, string> = {
-    coral: "hover:bg-coral-500/10 hover:text-coral-300 hover:border-coral-500/20",
-    teal: "hover:bg-teal-500/10 hover:text-teal-300 hover:border-teal-500/20",
-    amber: "hover:bg-amber-500/10 hover:text-amber-300 hover:border-amber-500/20",
+    coral: "hover:bg-coral-50 hover:text-coral-600 hover:border-coral-200",
+    teal: "hover:bg-teal-50 hover:text-teal-600 hover:border-teal-200",
+    amber: "hover:bg-amber-50 hover:text-amber-600 hover:border-amber-200",
   };
 
   return (
@@ -70,7 +70,7 @@ export default function SearchBar({
       <form onSubmit={handleSubmit} className="relative" role="search" aria-busy={loading}>
         <div
           className={cn(
-            "flex items-center gap-3 bg-surface-800 border border-surface-600 rounded-xl px-4 py-3 transition-all duration-200",
+            "flex items-center gap-3 bg-white border border-slate-200 rounded-xl px-4 py-3.5 transition-all duration-200 shadow-sm",
             borderColorMap[accentColor],
             ringColorMap[accentColor]
           )}
@@ -88,19 +88,19 @@ export default function SearchBar({
             onKeyDown={handleKeyDown}
             placeholder={placeholder}
             aria-label={placeholder}
-            className="flex-1 bg-transparent text-sm text-white placeholder:text-slate-500 outline-none"
+            className="flex-1 bg-transparent text-base text-slate-900 placeholder:text-slate-400 outline-none"
           />
           {query ? (
             <button
               type="button"
               onClick={() => { setQuery(""); inputRef.current?.focus(); }}
-              className="p-1 text-slate-500 hover:text-white transition-colors duration-150"
+              className="p-1 text-slate-400 hover:text-slate-700 transition-colors duration-150"
               aria-label="검색어 지우기"
             >
               <X className="w-4 h-4" />
             </button>
           ) : (
-            <kbd className="hidden md:inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[10px] text-slate-600 bg-surface-700 border border-surface-600 font-mono select-none">
+            <kbd className="hidden md:inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[11px] text-slate-400 bg-slate-100 border border-slate-200 font-mono select-none">
               Enter
             </kbd>
           )}
@@ -134,7 +134,7 @@ export default function SearchBar({
               key={s}
               onClick={() => { setQuery(s); onSearch(s); }}
               className={cn(
-                "animate-fade-in-up px-3 py-1.5 rounded-full text-xs bg-surface-700 border border-transparent text-slate-400 transition-all duration-200 active:scale-95",
+                "animate-fade-in-up px-3 py-1.5 rounded-full text-sm bg-slate-100 border border-slate-200 text-slate-500 transition-all duration-200 active:scale-95",
                 suggestionHoverMap[accentColor]
               )}
               style={{

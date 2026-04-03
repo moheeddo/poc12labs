@@ -2,7 +2,7 @@ import type { Metadata, Viewport } from "next";
 import "./globals.css";
 
 export const viewport: Viewport = {
-  themeColor: "#030810",
+  themeColor: "#f8fafc",
   width: "device-width",
   initialScale: 1,
 };
@@ -30,7 +30,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="ko" className="dark">
+    <html lang="ko">
       <body className="min-h-screen antialiased scanline-overlay">{children}</body>
     </html>
   );

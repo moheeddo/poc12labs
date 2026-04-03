@@ -45,20 +45,20 @@
   --color-amber-600: #d97706;
   --color-amber-700: #b45309;
 
-  /* Dark Navy 파생 서피스 시스템 — #002855 기반 */
-  --color-surface-950: #030810;
-  --color-surface-900: #061222;
-  --color-surface-800: #0c1a2e;
-  --color-surface-700: #142438;
-  --color-surface-600: #1c3048;
-  --color-surface-500: #264060;
+  /* 밝은 서피스 시스템 — Warm White 기반 */
+  --color-surface-950: #f8fafc;
+  --color-surface-900: #f1f5f9;
+  --color-surface-800: #ffffff;
+  --color-surface-700: #f1f5f9;
+  --color-surface-600: #e2e8f0;
+  --color-surface-500: #cbd5e1;
 
   --font-sans: "Pretendard Variable", "Pretendard", -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
   --font-mono: "JetBrains Mono", monospace;
 }
 
 html {
-  color-scheme: dark;
+  color-scheme: light;
   scroll-behavior: smooth;
 }
 
@@ -71,9 +71,9 @@ html {
 body {
   font-family: var(--font-sans);
   background-color: var(--color-surface-950);
-  color: #e2e8f0;
-  font-size: 15px;
-  line-height: 1.6;
+  color: #1e293b;
+  font-size: 17px;
+  line-height: 1.65;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   font-feature-settings: "ss01", "ss02";
@@ -85,7 +85,7 @@ body::before {
   position: fixed;
   inset: 0;
   z-index: -1;
-  opacity: 0.015;
+  opacity: 0.008;
   background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
   pointer-events: none;
 }
@@ -114,29 +114,30 @@ button:focus-visible, [role="button"]:focus-visible, a:focus-visible, input:focu
 }
 
 /* ═══════════════════════════════
-   Dark Navy 글래스모피즘 유틸리티
+   Light 글래스모피즘 유틸리티
    ═══════════════════════════════ */
 .glass {
   background: linear-gradient(
     135deg,
-    rgba(12, 26, 46, 0.8) 0%,
-    rgba(6, 18, 34, 0.9) 100%
+    rgba(255, 255, 255, 0.88) 0%,
+    rgba(248, 250, 252, 0.96) 100%
   );
   backdrop-filter: blur(16px) saturate(1.2);
   -webkit-backdrop-filter: blur(16px) saturate(1.2);
-  border: 1px solid rgba(0, 99, 65, 0.06);
+  border: 1px solid rgba(0, 99, 65, 0.08);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
   will-change: transform;
 }
 
 .glass-subtle {
   background: linear-gradient(
     135deg,
-    rgba(12, 26, 46, 0.5) 0%,
-    rgba(6, 18, 34, 0.7) 100%
+    rgba(255, 255, 255, 0.6) 0%,
+    rgba(248, 250, 252, 0.8) 100%
   );
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
-  border: 1px solid rgba(0, 99, 65, 0.04);
+  border: 1px solid rgba(0, 99, 65, 0.05);
 }
 
 /* 카드 내부 미세 하이라이트 — Emerald 톤 */
@@ -154,9 +155,9 @@ button:focus-visible, [role="button"]:focus-visible, a:focus-visible, input:focu
   background: linear-gradient(
     90deg,
     transparent 0%,
-    rgba(0, 160, 106, 0.08) 30%,
-    rgba(0, 160, 106, 0.14) 50%,
-    rgba(0, 160, 106, 0.08) 70%,
+    rgba(0, 160, 106, 0.1) 30%,
+    rgba(0, 160, 106, 0.18) 50%,
+    rgba(0, 160, 106, 0.1) 70%,
     transparent 100%
   );
 }
@@ -212,11 +213,11 @@ button:focus-visible, [role="button"]:focus-visible, a:focus-visible, input:focu
 .animate-shimmer {
   background: linear-gradient(
     90deg,
-    var(--color-surface-800) 0%,
-    var(--color-surface-700) 40%,
-    var(--color-surface-600) 50%,
-    var(--color-surface-700) 60%,
-    var(--color-surface-800) 100%
+    #f1f5f9 0%,
+    #e2e8f0 40%,
+    #f8fafc 50%,
+    #e2e8f0 60%,
+    #f1f5f9 100%
   );
   background-size: 200% 100%;
   animation: shimmer 2s ease-in-out infinite;
@@ -258,7 +259,7 @@ button:focus-visible, [role="button"]:focus-visible, a:focus-visible, input:focu
   animation: slideInFromRight 0.3s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-/* 스캔라인 오버레이 (원전 제어실 감성 — Deep Emerald 톤) */
+/* 스캔라인 오버레이 — 라이트 모드에서는 미세하게 */
 @keyframes scanline {
   0% { transform: translateY(-100%); }
   100% { transform: translateY(100vh); }
@@ -270,18 +271,18 @@ button:focus-visible, [role="button"]:focus-visible, a:focus-visible, input:focu
   top: 0;
   left: 0;
   right: 0;
-  height: 2px;
-  background: linear-gradient(90deg, transparent, rgba(0, 99, 65, 0.04), transparent);
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(0, 99, 65, 0.06), transparent);
   z-index: 9999;
   pointer-events: none;
-  animation: scanline 8s linear infinite;
+  animation: scanline 10s linear infinite;
   will-change: transform;
 }
 
-/* 텍스트 선택 색상 — Deep Emerald */
+/* 텍스트 선택 색상 — Emerald */
 ::selection {
-  background: rgba(0, 99, 65, 0.3);
-  color: white;
+  background: rgba(0, 99, 65, 0.15);
+  color: #0f172a;
 }
 
 /* 스크롤바 숨김 유틸리티 */
@@ -326,18 +327,54 @@ button:focus-visible, [role="button"]:focus-visible, a:focus-visible, input:focu
   left: 0;
 }
 
-/* 프리미엄 스크롤바 — Navy 톤 */
+/* 카드 호버 리프트 효과 */
+.card-lift {
+  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.3s ease;
+}
+.card-lift:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 30px rgba(0, 99, 65, 0.06), 0 2px 8px rgba(0, 0, 0, 0.04);
+}
+
+/* 프리미엄 그라데이션 텍스트 */
+.gradient-text-emerald {
+  background: linear-gradient(135deg, #006341 0%, #00a06a 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* 상태 카드 좌측 액센트 바 */
+.accent-bar-left {
+  position: relative;
+}
+.accent-bar-left::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 12px;
+  bottom: 12px;
+  width: 3px;
+  border-radius: 2px;
+  opacity: 0.7;
+  transition: opacity 0.3s, height 0.3s;
+}
+.accent-bar-left:hover::before {
+  opacity: 1;
+}
+
+/* 프리미엄 스크롤바 — 라이트 톤 */
 ::-webkit-scrollbar {
-  width: 5px;
-  height: 5px;
+  width: 6px;
+  height: 6px;
 }
 ::-webkit-scrollbar-track {
   background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: var(--color-surface-600);
+  background: #cbd5e1;
   border-radius: 4px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--color-surface-500);
+  background: #94a3b8;
 }

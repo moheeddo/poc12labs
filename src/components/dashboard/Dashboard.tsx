@@ -25,23 +25,23 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
         <div className="flex items-start justify-between">
           <div>
             <div
-              className="inline-flex items-center gap-2 px-3 py-1 rounded-full glass-subtle text-[11px] font-mono text-khnp-emerald tracking-wider mb-4"
+              className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full glass-subtle text-xs font-mono text-khnp-emerald tracking-wider mb-4"
               style={{ animationDelay: "50ms", animationFillMode: "backwards" }}
             >
               <div className="w-1.5 h-1.5 rounded-full bg-khnp-emerald animate-pulse" />
               통합 제어
             </div>
             <h2
-              className="animate-fade-in-up text-3xl md:text-4xl font-bold text-white mb-2 tracking-[-0.03em] leading-tight"
+              className="animate-fade-in-up text-3xl md:text-4xl font-bold gradient-text-emerald mb-3 tracking-[-0.03em] leading-tight"
               style={{ animationDelay: "100ms", animationFillMode: "backwards" }}
             >
               통합 관제 대시보드
             </h2>
             <p
-              className="animate-fade-in-up text-base text-slate-400/80"
+              className="animate-fade-in-up text-lg text-slate-500 max-w-lg"
               style={{ animationDelay: "150ms", animationFillMode: "backwards" }}
             >
-              영상 AI 기반 역량 평가 시스템
+              영상 AI 기반 역량 평가 시스템 — 시뮬레이터·리더십·POV 통합 분석
             </p>
           </div>
           <LiveClock />
@@ -55,31 +55,34 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
       </div>
 
       {/* ═══ 상태 카드 그리드 ═══ */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4 mb-12 md:mb-16">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-5 mb-12 md:mb-16">
         {[
           {
             icon: <Film className="w-5 h-5" />,
             label: "등록 영상",
             value: "0",
             unit: "건",
-            accentColor: "text-coral-400/70",
-            borderHover: "hover:border-coral-500/15",
+            accentColor: "text-coral-600",
+            borderHover: "hover:border-coral-200",
+            accentBorder: "border-l-coral-500",
           },
           {
             icon: <BarChart3 className="w-5 h-5" />,
             label: "완료 분석",
             value: "0",
             unit: "건",
-            accentColor: "text-teal-400/70",
-            borderHover: "hover:border-teal-500/15",
+            accentColor: "text-teal-600",
+            borderHover: "hover:border-teal-200",
+            accentBorder: "border-l-teal-500",
           },
           {
             icon: <TrendingUp className="w-5 h-5" />,
             label: "평균 역량",
             value: "—",
             unit: "점",
-            accentColor: "text-amber-400/70",
-            borderHover: "hover:border-amber-500/15",
+            accentColor: "text-amber-600",
+            borderHover: "hover:border-amber-200",
+            accentBorder: "border-l-amber-500",
             trend: { direction: "up", label: "전월 대비" },
           },
           {
@@ -87,32 +90,34 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
             label: "최근 분석",
             value: "—",
             unit: "",
-            accentColor: "text-slate-400/50",
-            borderHover: "hover:border-surface-500",
+            accentColor: "text-slate-500",
+            borderHover: "hover:border-slate-300",
+            accentBorder: "border-l-slate-400",
           },
         ].map((stat, i) => (
           <div
             key={stat.label}
             className={cn(
-              "animate-fade-in-up glass glass-shine rounded-xl p-5",
-              "transition-all duration-300",
+              "animate-fade-in-up bg-white rounded-xl p-5 border border-slate-200 shadow-sm card-lift",
+              "border-l-[3px]",
+              stat.accentBorder,
               stat.borderHover,
             )}
             style={{ animationDelay: `${250 + i * 60}ms`, animationFillMode: "backwards" }}
           >
-            <div className="flex items-center gap-2 mb-4">
+            <div className="flex items-center gap-2.5 mb-4">
               <span className={stat.accentColor}>{stat.icon}</span>
-              <span className="text-[13px] text-slate-400 font-medium">{stat.label}</span>
+              <span className="text-sm text-slate-500 font-medium">{stat.label}</span>
               {stat.trend && (
-                <span className="ml-auto flex items-center gap-0.5 text-[11px] font-mono text-emerald-400/80">
+                <span className="ml-auto flex items-center gap-0.5 text-xs font-mono text-emerald-600">
                   <ArrowUpRight className="w-3 h-3" />
                   {stat.trend.label}
                 </span>
               )}
             </div>
             <div className="flex items-baseline gap-1.5">
-              <span className="text-3xl font-bold font-mono text-white tabular-nums tracking-tight">{stat.value}</span>
-              <span className="text-[13px] text-slate-500">{stat.unit}</span>
+              <span className="text-3xl font-bold font-mono text-slate-900 tabular-nums tracking-tight">{stat.value}</span>
+              <span className="text-sm text-slate-400">{stat.unit}</span>
             </div>
           </div>
         ))}
@@ -149,7 +154,7 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
             style={{ animationDelay: "800ms", animationFillMode: "backwards" }}
           />
           <h3
-            className="animate-fade-in-up text-[13px] font-mono text-slate-500 tracking-[0.15em] uppercase"
+            className="animate-fade-in-up text-sm font-mono text-slate-400 tracking-[0.15em] uppercase"
             style={{ animationDelay: "800ms", animationFillMode: "backwards" }}
           >
             빠른 시작
@@ -202,23 +207,23 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
                 style={{ animationDelay: `${900 + i * 100}ms`, animationFillMode: "backwards" }}
               >
                 <div className="flex items-center gap-3 mb-3">
-                  <div className={cn("flex items-center justify-center w-10 h-10 rounded-lg bg-white/[0.03] border border-white/[0.05] transition-colors duration-300 group-hover/step:bg-white/[0.06]", item.iconColor)}>
+                  <div className={cn("flex items-center justify-center w-10 h-10 rounded-lg bg-slate-50 border border-slate-200 transition-colors duration-300 group-hover/step:bg-slate-100", item.iconColor)}>
                     {item.icon}
                   </div>
-                  <span className="text-[11px] font-mono text-slate-500 tracking-wider">
+                  <span className="text-xs font-mono text-slate-400 tracking-wider">
                     STEP {item.step}
                   </span>
                 </div>
-                <h4 className="text-[15px] text-white font-semibold mb-1 tracking-[-0.01em]">{item.title}</h4>
-                <p className="text-[13px] text-slate-400/80 leading-relaxed group-hover/step:text-slate-300/80 transition-colors duration-300">{item.desc}</p>
+                <h4 className="text-base text-slate-900 font-semibold mb-1 tracking-[-0.01em]">{item.title}</h4>
+                <p className="text-sm text-slate-500 leading-relaxed group-hover/step:text-slate-600 transition-colors duration-300">{item.desc}</p>
               </button>
 
               {i < 2 && (
                 <>
-                  <div className="animate-fade-in-up hidden md:flex items-center justify-center px-3 text-slate-700" style={{ animationDelay: `${950 + i * 100}ms`, animationFillMode: "backwards" }}>
+                  <div className="animate-fade-in-up hidden md:flex items-center justify-center px-3 text-slate-300" style={{ animationDelay: `${950 + i * 100}ms`, animationFillMode: "backwards" }}>
                     <ChevronRight className="w-4 h-4" />
                   </div>
-                  <div className="animate-fade-in-up flex md:hidden items-center justify-center py-1 text-slate-700" style={{ animationDelay: `${950 + i * 100}ms`, animationFillMode: "backwards" }}>
+                  <div className="animate-fade-in-up flex md:hidden items-center justify-center py-1 text-slate-300" style={{ animationDelay: `${950 + i * 100}ms`, animationFillMode: "backwards" }}>
                     <ChevronRight className="w-4 h-4 rotate-90" />
                   </div>
                 </>
@@ -231,7 +236,7 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
       {/* ═══ 최근 활동 ═══ */}
       <div className="mt-16">
         <h3
-          className="animate-fade-in-up flex items-center gap-2.5 text-[13px] font-mono text-slate-500 tracking-[0.1em] uppercase mb-5"
+          className="animate-fade-in-up flex items-center gap-2.5 text-sm font-mono text-slate-400 tracking-[0.1em] uppercase mb-5"
           style={{ animationDelay: "1200ms", animationFillMode: "backwards" }}
         >
           <Clock className="w-4 h-4 text-slate-500" />
@@ -239,24 +244,26 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
         </h3>
 
         <div
-          className="animate-fade-in-up glass glass-shine rounded-2xl p-6 md:p-8"
+          className="animate-fade-in-up bg-white border border-slate-200 rounded-2xl p-6 md:p-8 shadow-sm"
           style={{ animationDelay: "1250ms", animationFillMode: "backwards" }}
         >
           {/* 활동 타임라인 — 실제 연동 시 API 데이터로 교체 */}
-          <div className="flex flex-col items-center py-4">
-            <Clock className="w-8 h-8 text-slate-600 mb-2" />
-            <p className="text-sm text-slate-500">아직 활동 내역이 없습니다</p>
-            <p className="text-xs text-slate-600 mt-1">영상을 업로드하면 실시간 활동이 표시됩니다</p>
+          <div className="flex flex-col items-center py-8">
+            <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-khnp-emerald/5 to-teal-50 flex items-center justify-center mb-4">
+              <Clock className="w-8 h-8 text-khnp-emerald/40" />
+            </div>
+            <p className="text-lg font-medium text-slate-700 mb-1">활동 내역이 없습니다</p>
+            <p className="text-base text-slate-400">영상을 업로드하면 AI 분석 결과가 실시간으로 표시됩니다</p>
           </div>
 
-          {/* 하단 안내 */}
+          {/* 하단 기능 힌트 */}
           <div
-            className="animate-fade-in-up mt-5 flex items-center justify-center gap-2 text-[12px] text-slate-500/60 font-mono"
+            className="animate-fade-in-up mt-4 flex items-center justify-center gap-3 text-sm text-slate-400"
             style={{ animationDelay: "1500ms", animationFillMode: "backwards" }}
           >
-            <div className="h-px flex-1 bg-white/[0.03]" />
-            <span>영상을 업로드하면 실시간 활동이 표시됩니다</span>
-            <div className="h-px flex-1 bg-white/[0.03]" />
+            <div className="h-px flex-1 bg-slate-100" />
+            <span className="font-mono text-xs tracking-wider">영상 업로드 → AI 분석 → 리포트 자동 생성</span>
+            <div className="h-px flex-1 bg-slate-100" />
           </div>
         </div>
       </div>

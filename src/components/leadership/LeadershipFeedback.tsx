@@ -11,11 +11,22 @@ import {
   Save,
   FileText,
   ClipboardList,
+  BarChart3,
+  Wand2,
+  Bot,
 } from "lucide-react";
 import { useVideoSearch, useVideoAnalysis, useVideoTranscription } from "@/hooks/useTwelveLabs";
 import { TWELVELABS_INDEXES, LEADERSHIP_COMPETENCY_DEFS } from "@/lib/constants";
+import {
+  matchChapterToCompetency,
+  generateAIScore,
+  generateAutoFeedback,
+  generateAnalysisReport,
+} from "@/lib/leadership-analysis";
+import type { AnalysisReportData } from "@/lib/leadership-analysis";
 import SearchBar from "@/components/shared/SearchBar";
 import TranscriptTimeline from "./TranscriptTimeline";
+import AnalysisReport from "./AnalysisReport";
 import type { Chapter, Highlight, SearchResult, LeadershipCompetencyKey } from "@/lib/types";
 import { formatTime, cn } from "@/lib/utils";
 
@@ -26,7 +37,7 @@ interface LeadershipFeedbackProps {
   onBack: () => void;
 }
 
-// 평가 근거 항목 — 영상 타임스탬프 + 역량 기준 연결
+// 평가 근거 항목 — AI 추천 점수/피드백 포함
 interface EvidenceItem {
   id: string;
   chapterIndex: number;
@@ -36,16 +47,19 @@ interface EvidenceItem {
   endTime: number;
   description: string;
   speaker: string;
-  score: number;
-  feedback: string;
+  score: number;          // 평가자 입력 (0 = 미입력)
+  feedback: string;       // 평가자 피드백
+  aiScore: number;        // AI 추천 점수
+  aiConfidence: number;   // AI 신뢰도 (0-100)
+  aiReasoning: string;    // AI 점수 근거
+  autoFeedback: string;   // AI 자동 피드백
+  matchedKeywords: string[]; // 매칭된 역량 키워드
 }
 
 // 역량 정보 빠른 조회
 const COMP_MAP = Object.fromEntries(
   LEADERSHIP_COMPETENCY_DEFS.map((d) => [d.key, d])
 ) as Record<LeadershipCompetencyKey, (typeof LEADERSHIP_COMPETENCY_DEFS)[number]>;
-
-// (데모 데이터 제거됨 — TwelveLabs API 분석 결과로 채워짐)
 
 // ─── 헬퍼 ────────────────────────────────────────
 
@@ -59,11 +73,20 @@ function getScoreLabel(score: number) {
 }
 
 // 9점 척도 인라인 점수 선택기
-function ScoreSelector({ value, onChange }: { value: number; onChange: (v: number) => void }) {
+function ScoreSelector({
+  value,
+  aiScore,
+  onChange,
+}: {
+  value: number;
+  aiScore?: number;
+  onChange: (v: number) => void;
+}) {
   return (
-    <div className="flex items-center gap-1">
+    <div className="flex items-center gap-1 flex-wrap">
       {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((n) => {
         const filled = n <= value;
+        const isAiSuggested = aiScore === n && value === 0;
         const tier = value >= 7 ? "teal" : value >= 5 ? "slate" : "amber";
         return (
           <button
@@ -71,14 +94,16 @@ function ScoreSelector({ value, onChange }: { value: number; onChange: (v: numbe
             type="button"
             onClick={() => onChange(n)}
             className={cn(
-              "w-6 h-6 rounded-md text-[10px] font-mono font-semibold transition-all duration-150",
+              "w-6 h-6 rounded-md text-sm font-mono font-semibold transition-all duration-150",
               filled
                 ? tier === "teal"
                   ? "bg-teal-500/25 text-teal-300 border border-teal-500/40"
                   : tier === "slate"
-                    ? "bg-slate-500/25 text-slate-300 border border-slate-500/40"
+                    ? "bg-slate-500/25 text-slate-700 border border-slate-500/40"
                     : "bg-amber-500/25 text-amber-300 border border-amber-500/40"
-                : "bg-surface-900/50 text-slate-600 border border-surface-700/50 hover:border-surface-600 hover:text-slate-400"
+                : isAiSuggested
+                  ? "bg-violet-500/15 text-violet-600 border border-violet-500/30 ring-1 ring-violet-500/20"
+                  : "bg-slate-50/50 text-slate-400 border border-slate-200/50 hover:border-slate-200 hover:text-slate-500"
             )}
           >
             {n}
@@ -88,8 +113,8 @@ function ScoreSelector({ value, onChange }: { value: number; onChange: (v: numbe
       {value > 0 && (
         <span
           className={cn(
-            "text-xs font-medium ml-2 tabular-nums",
-            value >= 7 ? "text-teal-400" : value >= 5 ? "text-slate-400" : "text-amber-400"
+            "text-sm font-medium ml-2 tabular-nums",
+            value >= 7 ? "text-teal-600" : value >= 5 ? "text-slate-500" : "text-amber-600"
           )}
         >
           {value}/9 {getScoreLabel(value)}
@@ -109,7 +134,7 @@ export default function LeadershipFeedback({
 }: LeadershipFeedbackProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
 
-  // 분석 데이터 (TwelveLabs API 결과로 채워짐)
+  // 분석 데이터
   const [chapters, setChapters] = useState<Chapter[]>([]);
   const [highlights, setHighlights] = useState<Highlight[]>([]);
   const [summary, setSummary] = useState("");
@@ -128,8 +153,8 @@ export default function LeadershipFeedback({
   const [activeEvidenceId, setActiveEvidenceId] = useState<string | null>(null);
   const [saved, setSaved] = useState(false);
 
-  // 우측 패널 탭
-  const [rightTab, setRightTab] = useState<"evidence" | "transcript">("evidence");
+  // 우측 패널 탭 — 리포트 탭 추가
+  const [rightTab, setRightTab] = useState<"evidence" | "transcript" | "report">("evidence");
 
   // 검색
   const { results: searchResults, loading: searchLoading, search } = useVideoSearch();
@@ -142,7 +167,6 @@ export default function LeadershipFeedback({
     const POLL_INTERVAL = 4000;
 
     async function waitForIndexing(): Promise<boolean> {
-      // 인덱싱 완료 대기 (최대 5분)
       for (let i = 0; i < 75; i++) {
         if (cancelled) return false;
         try {
@@ -168,7 +192,6 @@ export default function LeadershipFeedback({
         const ready = await waitForIndexing();
         if (cancelled) return;
         if (!ready) {
-          // 인덱싱 완료 확인 불가 — 바로 분석 시도
           setAnalysisStep("인덱싱 상태 확인 불가 — 분석을 시도합니다...");
           await new Promise((r) => setTimeout(r, 1000));
         }
@@ -203,50 +226,75 @@ export default function LeadershipFeedback({
         setAnalysisStep("AI 요약 생성 중...");
         const sm = await analyze(videoId, "summary");
         if (cancelled) return;
-        if (typeof sm === "string" && sm) setSummary(sm);
+        const summaryText = typeof sm === "string" && sm ? sm : "";
+        if (summaryText) setSummary(summaryText);
 
-        // 4단계: 챕터 + 하이라이트 기반 평가 근거 자동 생성
-        setAnalysisStep("역량 평가 근거 생성 중...");
-        const competencyKeys: LeadershipCompetencyKey[] = ["visionPresentation", "trustBuilding", "memberDevelopment", "rationalDecision"];
-        const rubrics = LEADERSHIP_COMPETENCY_DEFS.filter(d => competencyKeys.includes(d.key));
+        // ═══════════════════════════════════════════
+        // 4단계: 내용 기반 역량 매칭 + AI 자동 스코어링
+        // (기존 라운드-로빈 → 지능형 매칭으로 완전 교체)
+        // ═══════════════════════════════════════════
+        setAnalysisStep("AI 역량 매칭 및 자동 평가 중...");
+        const competencyKeys: LeadershipCompetencyKey[] = [
+          "visionPresentation", "trustBuilding", "memberDevelopment", "rationalDecision",
+        ];
         const generatedEvidence: EvidenceItem[] = [];
-
         const chaptersToUse = parsed.length > 0 ? parsed : [];
         const highlightsToUse = parsedHl.length > 0 ? parsedHl : [];
 
-        // 각 챕터에 대해 역량별 평가 근거 생성
+        // 사용된 역량 추적 (다양성 확보)
+        const usedKeys = new Set<LeadershipCompetencyKey>();
+
         chaptersToUse.forEach((chapter, ci) => {
-          // 이 챕터에 해당하는 하이라이트 찾기
+          // 이 챕터에 해당하는 하이라이트
           const chapterHighlights = highlightsToUse.filter(
-            hl => hl.start >= chapter.start && hl.start <= chapter.end
+            (h) => h.start >= chapter.start && h.start <= chapter.end
           );
 
-          // 각 역량에 대해 평가 근거 카드 생성
-          const compIdx = ci % rubrics.length;
-          const comp = rubrics[compIdx];
-          if (!comp) return;
+          // 1) 내용 기반 역량 매칭
+          const match = matchChapterToCompetency(
+            chapter, chapterHighlights, competencyKeys, usedKeys
+          );
+          usedKeys.add(match.key);
 
-          const rubricItem = comp.rubric?.[ci % (comp.rubric?.length || 1)];
+          // 매칭된 역량의 루브릭 항목 선택
+          const comp = COMP_MAP[match.key];
+          const rubricItem = comp?.rubric?.[ci % (comp?.rubric?.length || 1)];
+
+          // 2) AI 자동 점수 제안
+          const aiResult = generateAIScore(
+            chapter, chapterHighlights, match.matchedKeywords, summaryText
+          );
+
+          // 3) 자동 피드백 생성
+          const autoFb = generateAutoFeedback(
+            match.key, aiResult.score, chapter, match.matchedKeywords, chapterHighlights
+          );
+
+          // 하이라이트 텍스트 조합
           const hlText = chapterHighlights.length > 0
-            ? chapterHighlights.map(h => h.text).join("; ")
+            ? chapterHighlights.map((h) => h.text).join("; ")
             : chapter.title;
 
           generatedEvidence.push({
             id: `ev-auto-${ci}`,
             chapterIndex: ci,
-            competencyKey: comp.key,
-            criteriaLabel: rubricItem?.criteria || comp.label,
+            competencyKey: match.key,
+            criteriaLabel: rubricItem?.criteria || comp?.label || match.key,
             timestamp: chapter.start,
             endTime: chapter.end,
             description: hlText,
             speaker: "발표자",
             score: 0,
             feedback: "",
+            aiScore: aiResult.score,
+            aiConfidence: aiResult.confidence,
+            aiReasoning: aiResult.reasoning,
+            autoFeedback: autoFb,
+            matchedKeywords: match.matchedKeywords,
           });
         });
 
         if (generatedEvidence.length > 0) setEvidence(generatedEvidence);
-
         setAnalysisStep("");
       } catch (e) {
         if (!cancelled) {
@@ -260,10 +308,7 @@ export default function LeadershipFeedback({
     }
 
     loadAnalysis();
-
-    // 전사 데이터도 병렬로 로드
     fetchTranscription(TWELVELABS_INDEXES.leadership, videoId);
-
     return () => { cancelled = true; };
   }, [videoId, analyze, fetchTranscription]);
 
@@ -323,6 +368,33 @@ export default function LeadershipFeedback({
     setSaved(false);
   }, []);
 
+  // AI 추천 점수 일괄 적용
+  const applyAllAIScores = useCallback(() => {
+    setEvidence((prev) =>
+      prev.map((e) => ({
+        ...e,
+        score: e.score === 0 ? e.aiScore : e.score,
+        feedback: !e.feedback ? e.autoFeedback : e.feedback,
+      }))
+    );
+    setSaved(false);
+  }, []);
+
+  // 개별 AI 추천 적용
+  const applyAIScore = useCallback((id: string) => {
+    setEvidence((prev) =>
+      prev.map((e) => {
+        if (e.id !== id) return e;
+        return {
+          ...e,
+          score: e.aiScore,
+          feedback: e.feedback || e.autoFeedback,
+        };
+      })
+    );
+    setSaved(false);
+  }, []);
+
   const handleSave = useCallback(() => {
     localStorage.setItem(
       `evidence-${videoId}`,
@@ -350,6 +422,25 @@ export default function LeadershipFeedback({
 
   const scoredCount = useMemo(() => evidence.filter((e) => e.score > 0).length, [evidence]);
 
+  // 종합 리포트 데이터
+  const reportData: AnalysisReportData | null = useMemo(() => {
+    if (evidence.length === 0) return null;
+    return generateAnalysisReport(
+      evidence.map((e) => ({
+        competencyKey: e.competencyKey,
+        score: e.score,
+        feedback: e.feedback,
+        description: e.description,
+        aiScore: e.aiScore,
+      })),
+      summary,
+      ["visionPresentation", "trustBuilding", "memberDevelopment", "rationalDecision"]
+    );
+  }, [evidence, summary]);
+
+  // 미평가 항목 수
+  const unscoredCount = evidence.filter((e) => e.score === 0).length;
+
   // ── JSX ──
   return (
     <div className="max-w-[1440px] mx-auto px-4 md:px-6 py-8 animate-slide-in-right">
@@ -358,35 +449,47 @@ export default function LeadershipFeedback({
         <div className="flex items-center gap-3">
           <button
             onClick={onBack}
-            className="flex items-center gap-1.5 text-sm text-slate-400 hover:text-teal-400 transition-colors"
+            className="flex items-center gap-1.5 text-base text-slate-500 hover:text-teal-600 transition-colors"
           >
             <ArrowLeft className="w-4 h-4" />
             역량진단
           </button>
-          <span className="text-surface-600">/</span>
-          <h2 className="text-lg font-bold text-teal-400">영상 리뷰 &amp; 피드백</h2>
+          <span className="text-slate-400">/</span>
+          <h2 className="text-lg font-bold text-teal-600">영상 리뷰 &amp; 피드백</h2>
         </div>
-        <button
-          onClick={handleSave}
-          className={cn(
-            "flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-medium transition-all duration-200",
-            saved
-              ? "bg-teal-500/15 text-teal-400 border border-teal-500/30"
-              : "bg-surface-800 text-slate-300 border border-surface-700 hover:border-teal-500/30 hover:text-teal-400"
+        <div className="flex items-center gap-2">
+          {/* AI 추천 일괄 적용 */}
+          {unscoredCount > 0 && !analysisLoading && (
+            <button
+              onClick={applyAllAIScores}
+              className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-base font-medium transition-all duration-200 bg-violet-50 text-violet-600 border border-violet-500/20 hover:bg-violet-500/20 hover:border-violet-500/30"
+            >
+              <Wand2 className="w-4 h-4" />
+              AI 추천 적용 ({unscoredCount}건)
+            </button>
           )}
-        >
-          <Save className="w-4 h-4" />
-          {saved ? "저장 완료" : "피드백 저장"}
-        </button>
+          <button
+            onClick={handleSave}
+            className={cn(
+              "flex items-center gap-2 px-5 py-2.5 rounded-xl text-base font-medium transition-all duration-200",
+              saved
+                ? "bg-teal-50 text-teal-600 border border-teal-500/30"
+                : "bg-white text-slate-700 border border-slate-200 hover:border-teal-500/30 hover:text-teal-600"
+            )}
+          >
+            <Save className="w-4 h-4" />
+            {saved ? "저장 완료" : "피드백 저장"}
+          </button>
+        </div>
       </div>
-      <p className="text-sm text-slate-300 mb-8">{videoTitle}</p>
+      <p className="text-base text-slate-700 mb-8">{videoTitle}</p>
 
       {/* ── 2단 레이아웃 ── */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
         {/* ─── 좌측: 영상 + 컨트롤 ─── */}
         <div className="lg:col-span-7 lg:sticky lg:top-6 lg:self-start space-y-5">
           {/* 영상 플레이어 */}
-          <div className="rounded-2xl overflow-hidden border border-surface-700/40 bg-black shadow-2xl shadow-black/50">
+          <div className="rounded-2xl overflow-hidden border border-slate-200/40 bg-black shadow-2xl shadow-slate-200/60">
             <video
               ref={videoRef}
               src={videoUrl}
@@ -397,19 +500,19 @@ export default function LeadershipFeedback({
           </div>
 
           {/* 재생 컨트롤 + 챕터 타임라인 */}
-          <div className="bg-surface-800/60 border border-surface-700/40 rounded-xl p-4">
+          <div className="bg-white/60 border border-slate-200/40 rounded-xl p-4">
             <div className="flex items-center gap-3 mb-3">
               <button
                 onClick={togglePlay}
-                className="w-9 h-9 rounded-full bg-teal-500/15 flex items-center justify-center text-teal-400 hover:bg-teal-500/25 transition-colors shrink-0"
+                className="w-9 h-9 rounded-full bg-teal-50 flex items-center justify-center text-teal-600 hover:bg-teal-500/25 transition-colors shrink-0"
               >
                 {isPlaying ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4 ml-0.5" />}
               </button>
-              <span className="text-sm font-mono text-slate-300 tabular-nums min-w-[48px]">
+              <span className="text-base font-mono text-slate-700 tabular-nums min-w-[48px]">
                 {formatTime(currentTime)}
               </span>
               {currentChapterIndex >= 0 && (
-                <span className="text-sm text-teal-400/80 truncate">
+                <span className="text-base text-teal-600/80 truncate">
                   {chapters[currentChapterIndex]?.title}
                 </span>
               )}
@@ -428,7 +531,7 @@ export default function LeadershipFeedback({
                           ? "bg-teal-500"
                           : currentTime >= ch.end
                             ? "bg-teal-500/30"
-                            : "bg-surface-600"
+                            : "bg-slate-200"
                       )}
                       style={{ width: `${((ch.end - ch.start) / total) * 100}%` }}
                       title={ch.title}
@@ -450,22 +553,22 @@ export default function LeadershipFeedback({
 
           {/* 검색 결과 */}
           {searchResults.length > 0 && (
-            <div className="bg-surface-800/60 border border-surface-700/40 rounded-xl p-4 space-y-1 animate-fade-in-up">
-              <p className="text-xs text-slate-500 mb-2">검색 결과 {searchResults.length}건</p>
+            <div className="bg-white/60 border border-slate-200/40 rounded-xl p-4 space-y-1 animate-fade-in-up">
+              <p className="text-sm text-slate-500 mb-2">검색 결과 {searchResults.length}건</p>
               {searchResults.map((r: SearchResult, i: number) => (
                 <button
                   key={i}
                   onClick={() => seekTo(r.start)}
-                  className="w-full text-left flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-surface-700/50 transition-colors group"
+                  className="w-full text-left flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-100/50 transition-colors group"
                 >
-                  <span className="inline-flex items-center gap-1 text-teal-400 font-mono text-xs shrink-0">
+                  <span className="inline-flex items-center gap-1 text-teal-600 font-mono text-sm shrink-0">
                     <Clock className="w-3 h-3" />
                     {formatTime(r.start)}
                   </span>
-                  <span className="text-sm text-slate-400 group-hover:text-slate-300 truncate flex-1">
+                  <span className="text-base text-slate-500 group-hover:text-slate-700 truncate flex-1">
                     {r.text || r.videoTitle}
                   </span>
-                  <span className="text-xs font-mono text-slate-600">
+                  <span className="text-sm font-mono text-slate-400">
                     {(r.confidence * 100).toFixed(0)}%
                   </span>
                 </button>
@@ -475,19 +578,25 @@ export default function LeadershipFeedback({
 
           {/* AI 분석 상태 */}
           {analysisLoading && (
-            <div className="bg-surface-800/40 border border-teal-500/20 rounded-xl p-5 animate-pulse">
+            <div className="bg-white/40 border border-teal-500/20 rounded-xl p-5 animate-pulse">
               <div className="flex items-center gap-3">
-                <div className="w-8 h-8 rounded-lg bg-teal-500/15 flex items-center justify-center shrink-0">
-                  <Sparkles className="w-4 h-4 text-teal-400 animate-spin" />
+                <div className="w-8 h-8 rounded-lg bg-teal-50 flex items-center justify-center shrink-0">
+                  <Sparkles className="w-4 h-4 text-teal-600 animate-spin" />
                 </div>
                 <div>
-                  <p className="text-sm text-teal-400 font-medium">AI 분석 진행 중</p>
-                  <p className="text-xs text-slate-500 mt-0.5">{analysisStep || "준비 중..."}</p>
+                  <p className="text-base text-teal-600 font-medium">AI 분석 진행 중</p>
+                  <p className="text-sm text-slate-500 mt-0.5">{analysisStep || "준비 중..."}</p>
                 </div>
               </div>
-              <div className="mt-3 h-1.5 bg-surface-700 rounded-full overflow-hidden">
+              <div className="mt-3 h-1.5 bg-slate-100 rounded-full overflow-hidden">
                 <div className="h-full bg-teal-500/60 rounded-full animate-[loading_2s_ease-in-out_infinite]"
-                  style={{ width: analysisStep.includes("요약") ? "80%" : analysisStep.includes("핵심") ? "50%" : "20%" }}
+                  style={{
+                    width: analysisStep.includes("역량 매칭") ? "90%"
+                      : analysisStep.includes("요약") ? "75%"
+                      : analysisStep.includes("핵심") ? "50%"
+                      : analysisStep.includes("구간") ? "25%"
+                      : "10%"
+                  }}
                 />
               </div>
             </div>
@@ -495,26 +604,26 @@ export default function LeadershipFeedback({
 
           {/* 분석 에러 */}
           {analysisError && !analysisLoading && (
-            <div className="bg-surface-800/40 border border-amber-500/20 rounded-xl p-4">
-              <p className="text-xs text-amber-400 flex items-center gap-1.5 mb-1">
+            <div className="bg-white/40 border border-amber-500/20 rounded-xl p-4">
+              <p className="text-sm text-amber-600 flex items-center gap-1.5 mb-1">
                 <Sparkles className="w-3.5 h-3.5" />
                 분석 결과를 불러오지 못했습니다
               </p>
-              <p className="text-xs text-slate-500">{analysisError}</p>
-              <p className="text-xs text-slate-600 mt-2">영상 인덱싱이 완료된 후 다시 시도해 주세요</p>
+              <p className="text-sm text-slate-500">{analysisError}</p>
+              <p className="text-sm text-slate-400 mt-2">영상 인덱싱이 완료된 후 다시 시도해 주세요</p>
             </div>
           )}
 
           {/* AI 요약 + 하이라이트 */}
           {!analysisLoading && (summary || highlights.length > 0) && (
-            <div className="bg-surface-800/40 border border-surface-700/30 rounded-xl p-4 space-y-3 animate-fade-in-up">
+            <div className="bg-white/40 border border-slate-200/30 rounded-xl p-4 space-y-3 animate-fade-in-up">
               {summary && (
                 <div>
-                  <p className="text-xs text-slate-500 flex items-center gap-1.5 mb-1.5">
+                  <p className="text-sm text-slate-500 flex items-center gap-1.5 mb-1.5">
                     <Sparkles className="w-3.5 h-3.5 text-teal-500/60" />
                     AI 분석 요약
                   </p>
-                  <p className="text-sm text-slate-400 leading-relaxed">{summary}</p>
+                  <p className="text-base text-slate-500 leading-relaxed">{summary}</p>
                 </div>
               )}
               {highlights.length > 0 && (
@@ -523,7 +632,7 @@ export default function LeadershipFeedback({
                     <button
                       key={i}
                       onClick={() => seekTo(hl.start)}
-                      className="inline-flex items-center gap-1.5 bg-surface-700/50 hover:bg-teal-500/10 border border-surface-700/40 hover:border-teal-500/20 rounded-lg px-3 py-1.5 text-xs text-slate-400 hover:text-teal-400 transition-all"
+                      className="inline-flex items-center gap-1.5 bg-slate-100/50 hover:bg-teal-50 border border-slate-200/40 hover:border-teal-500/20 rounded-lg px-3 py-1.5 text-sm text-slate-500 hover:text-teal-600 transition-all"
                     >
                       <PlayCircle className="w-3 h-3" />
                       <span className="font-mono">{formatTime(hl.start)}</span>
@@ -536,38 +645,63 @@ export default function LeadershipFeedback({
           )}
         </div>
 
-        {/* ─── 우측: 평가 근거 / 디브리핑 대본 ─── */}
+        {/* ─── 우측: 평가 근거 / 디브리핑 대본 / 종합 리포트 ─── */}
         <div className="lg:col-span-5 space-y-6">
-          {/* 탭 헤더 */}
-          <div className="flex items-center gap-1 p-1 bg-surface-800/40 border border-surface-700/30 rounded-xl">
+          {/* 탭 헤더 — 3탭 */}
+          <div className="flex items-center gap-1 p-1 bg-white/40 border border-slate-200/30 rounded-xl">
             <button
               onClick={() => setRightTab("evidence")}
               className={cn(
-                "flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium transition-all",
+                "flex-1 flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-lg text-base font-medium transition-all",
                 rightTab === "evidence"
-                  ? "bg-surface-700/60 text-teal-400 shadow-sm"
-                  : "text-slate-500 hover:text-slate-400"
+                  ? "bg-slate-100/60 text-teal-600 shadow-sm"
+                  : "text-slate-500 hover:text-slate-500"
               )}
             >
-              <ClipboardList className="w-4 h-4" />
-              평가 근거
-              <span className="text-[10px] font-mono opacity-60">{scoredCount}/{evidence.length}</span>
+              <ClipboardList className="w-3.5 h-3.5" />
+              <span className="hidden sm:inline">평가 근거</span>
+              <span className="text-sm font-mono opacity-60">{scoredCount}/{evidence.length}</span>
+            </button>
+            <button
+              onClick={() => setRightTab("report")}
+              className={cn(
+                "flex-1 flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-lg text-base font-medium transition-all",
+                rightTab === "report"
+                  ? "bg-slate-100/60 text-teal-600 shadow-sm"
+                  : "text-slate-500 hover:text-slate-500"
+              )}
+            >
+              <BarChart3 className="w-3.5 h-3.5" />
+              <span className="hidden sm:inline">종합 리포트</span>
             </button>
             <button
               onClick={() => setRightTab("transcript")}
               className={cn(
-                "flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium transition-all",
+                "flex-1 flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-lg text-base font-medium transition-all",
                 rightTab === "transcript"
-                  ? "bg-surface-700/60 text-teal-400 shadow-sm"
-                  : "text-slate-500 hover:text-slate-400"
+                  ? "bg-slate-100/60 text-teal-600 shadow-sm"
+                  : "text-slate-500 hover:text-slate-500"
               )}
             >
-              <FileText className="w-4 h-4" />
-              디브리핑 대본
+              <FileText className="w-3.5 h-3.5" />
+              <span className="hidden sm:inline">대본</span>
             </button>
           </div>
 
-          {/* 디브리핑 대본 탭 */}
+          {/* ── 종합 리포트 탭 ── */}
+          {rightTab === "report" && (
+            reportData ? (
+              <AnalysisReport data={reportData} />
+            ) : (
+              <div className="bg-white/40 border border-slate-200/30 rounded-xl p-8 text-center">
+                <BarChart3 className="w-10 h-10 mx-auto mb-3 text-slate-400" />
+                <p className="text-base text-slate-500 mb-1">분석 데이터 없음</p>
+                <p className="text-sm text-slate-400">AI 분석 완료 후 종합 리포트가 생성됩니다</p>
+              </div>
+            )
+          )}
+
+          {/* ── 디브리핑 대본 탭 ── */}
           {rightTab === "transcript" && (
             <TranscriptTimeline
               videoId={videoId}
@@ -579,12 +713,12 @@ export default function LeadershipFeedback({
             />
           )}
 
-          {/* 평가 근거 탭 */}
+          {/* ── 평가 근거 탭 ── */}
           {rightTab === "evidence" && evidence.length === 0 && !analysisLoading && (
-            <div className="bg-surface-800/40 border border-surface-700/30 rounded-xl p-8 text-center">
-              <ClipboardList className="w-10 h-10 mx-auto mb-3 text-slate-600" />
-              <p className="text-sm text-slate-400 mb-1">평가 근거 없음</p>
-              <p className="text-xs text-slate-600">AI 분석이 완료되면 챕터별 평가 근거가 자동 생성됩니다</p>
+            <div className="bg-white/40 border border-slate-200/30 rounded-xl p-8 text-center">
+              <ClipboardList className="w-10 h-10 mx-auto mb-3 text-slate-400" />
+              <p className="text-base text-slate-500 mb-1">평가 근거 없음</p>
+              <p className="text-sm text-slate-400">AI 분석이 완료되면 챕터별 평가 근거가 자동 생성됩니다</p>
             </div>
           )}
           {rightTab === "evidence" && evidenceByChapter.map(({ chapter, items }, ci) => (
@@ -595,20 +729,20 @@ export default function LeadershipFeedback({
             >
               {/* 챕터 헤더 */}
               <div className="flex items-center gap-3">
-                <div className="w-7 h-7 rounded-lg bg-surface-700/60 flex items-center justify-center shrink-0">
-                  <span className="text-[10px] font-mono font-bold text-slate-400">
+                <div className="w-7 h-7 rounded-lg bg-slate-100/60 flex items-center justify-center shrink-0">
+                  <span className="text-sm font-mono font-bold text-slate-500">
                     {String(ci + 1).padStart(2, "0")}
                   </span>
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm text-slate-200 font-medium leading-tight truncate">
+                  <p className="text-base text-slate-200 font-medium leading-tight truncate">
                     {chapter.title}
                   </p>
-                  <p className="text-[10px] font-mono text-slate-600">
+                  <p className="text-sm font-mono text-slate-400">
                     {formatTime(chapter.start)} — {formatTime(chapter.end)}
                   </p>
                 </div>
-                <div className="h-px flex-1 max-w-[60px] bg-surface-700/50 shrink-0" />
+                <div className="h-px flex-1 max-w-[60px] bg-slate-100/50 shrink-0" />
               </div>
 
               {/* 평가 근거 카드 */}
@@ -617,6 +751,7 @@ export default function LeadershipFeedback({
                 const isEvidencePlaying =
                   currentTime >= ev.timestamp && currentTime <= ev.endTime;
                 const comp = COMP_MAP[ev.competencyKey];
+                const displayScore = ev.score > 0 ? ev.score : ev.aiScore;
 
                 return (
                   <div
@@ -624,13 +759,13 @@ export default function LeadershipFeedback({
                     className={cn(
                       "ml-3.5 rounded-xl border-l-[3px] transition-all duration-200",
                       isActive
-                        ? "bg-surface-800 border border-surface-700/50 shadow-lg shadow-black/20"
-                        : "bg-surface-800/40 border border-transparent hover:bg-surface-800/70 hover:border-surface-700/30",
+                        ? "bg-white border border-slate-200/50 shadow-lg shadow-slate-200/60"
+                        : "bg-white/40 border border-transparent hover:bg-white/70 hover:border-slate-200/30",
                       isEvidencePlaying && !isActive && "ring-1 ring-teal-500/20"
                     )}
                     style={{ borderLeftColor: comp?.color || "#14b8a6" }}
                   >
-                    {/* 카드 헤더 — 클릭으로 확장 + 영상 재생 */}
+                    {/* 카드 헤더 */}
                     <div
                       role="button"
                       tabIndex={0}
@@ -640,77 +775,144 @@ export default function LeadershipFeedback({
                     >
                       <div className="flex items-center justify-between mb-1">
                         <span
-                          className="text-xs font-semibold tracking-wide"
+                          className="text-sm font-semibold tracking-wide"
                           style={{ color: comp?.color }}
                         >
                           {comp?.label}
                         </span>
-                        {!isActive && ev.score > 0 && (
-                          <span
-                            className={cn(
-                              "text-xs font-mono font-bold px-2 py-0.5 rounded-md",
-                              ev.score >= 7
-                                ? "bg-teal-500/15 text-teal-400"
-                                : ev.score >= 5
-                                  ? "bg-slate-500/15 text-slate-400"
-                                  : "bg-amber-500/15 text-amber-400"
-                            )}
-                          >
-                            {ev.score}/9
-                          </span>
-                        )}
-                        {isEvidencePlaying && (
-                          <div className="w-2 h-2 rounded-full bg-teal-500 animate-pulse" />
-                        )}
+                        <div className="flex items-center gap-1.5">
+                          {/* AI 추천 점수 뱃지 */}
+                          {!isActive && ev.score === 0 && ev.aiScore > 0 && (
+                            <span className="text-sm font-mono px-1.5 py-0.5 rounded bg-violet-500/15 text-violet-600 flex items-center gap-0.5">
+                              <Bot className="w-3 h-3" />
+                              {ev.aiScore}
+                            </span>
+                          )}
+                          {/* 확정 점수 뱃지 */}
+                          {!isActive && ev.score > 0 && (
+                            <span
+                              className={cn(
+                                "text-sm font-mono font-bold px-2 py-0.5 rounded-md",
+                                ev.score >= 7
+                                  ? "bg-teal-50 text-teal-600"
+                                  : ev.score >= 5
+                                    ? "bg-slate-500/15 text-slate-500"
+                                    : "bg-amber-500/15 text-amber-600"
+                              )}
+                            >
+                              {ev.score}/9
+                            </span>
+                          )}
+                          {isEvidencePlaying && (
+                            <div className="w-2 h-2 rounded-full bg-teal-500 animate-pulse" />
+                          )}
+                        </div>
                       </div>
 
-                      <p className="text-xs text-slate-400 mb-2.5">{ev.criteriaLabel}</p>
+                      <p className="text-sm text-slate-500 mb-2.5">{ev.criteriaLabel}</p>
 
                       <div className="flex items-center gap-2 flex-wrap">
                         <button
                           type="button"
                           onClick={(e) => handleTimestampReplay(e, ev.timestamp)}
-                          className="inline-flex items-center gap-1 bg-teal-500/10 hover:bg-teal-500/20 text-teal-400 rounded-md px-2.5 py-1 text-xs font-mono transition-colors"
+                          className="inline-flex items-center gap-1 bg-teal-50 hover:bg-teal-500/20 text-teal-600 rounded-md px-2.5 py-1 text-sm font-mono transition-colors"
                         >
                           <PlayCircle className="w-3.5 h-3.5" />
                           {formatTime(ev.timestamp)}
                         </button>
-                        <span className="text-xs text-slate-500">{ev.speaker}</span>
+                        <span className="text-sm text-slate-500">{ev.speaker}</span>
+                        {/* 매칭 키워드 태그 (축약) */}
+                        {ev.matchedKeywords.length > 0 && (
+                          <span className="text-sm text-violet-600/60 truncate max-w-[120px]">
+                            {ev.matchedKeywords.slice(0, 2).join(", ")}
+                          </span>
+                        )}
                       </div>
 
                       {!isActive && (
-                        <p className="text-xs text-slate-500 mt-2 line-clamp-1 leading-relaxed">
+                        <p className="text-sm text-slate-500 mt-2 line-clamp-1 leading-relaxed">
                           {ev.description}
                         </p>
                       )}
                     </div>
 
-                    {/* 확장: 상세 + 점수 + 피드백 */}
+                    {/* 확장: 상세 + AI 추천 + 점수 + 피드백 */}
                     {isActive && (
                       <div className="px-4 pb-5 space-y-4 animate-fade-in-up">
-                        <p className="text-sm text-slate-300 leading-relaxed">
+                        <p className="text-base text-slate-700 leading-relaxed">
                           {ev.description}
                         </p>
 
+                        {/* AI 분석 근거 */}
+                        {ev.aiReasoning && (
+                          <div className="bg-violet-500/5 border border-violet-500/15 rounded-lg p-3">
+                            <div className="flex items-center justify-between mb-1.5">
+                              <p className="text-sm text-violet-600 flex items-center gap-1">
+                                <Bot className="w-3 h-3" />
+                                AI 분석 근거
+                              </p>
+                              <div className="flex items-center gap-2">
+                                <span className="text-sm font-mono text-violet-600/70">
+                                  신뢰도 {ev.aiConfidence}%
+                                </span>
+                                <span className="text-sm font-mono font-bold text-violet-600">
+                                  추천 {ev.aiScore}/9
+                                </span>
+                              </div>
+                            </div>
+                            <p className="text-sm text-slate-500 leading-relaxed">
+                              {ev.aiReasoning}
+                            </p>
+                            {ev.score === 0 && (
+                              <button
+                                type="button"
+                                onClick={(e) => { e.stopPropagation(); applyAIScore(ev.id); }}
+                                className="mt-2 flex items-center gap-1.5 text-sm text-violet-600 hover:text-violet-300 transition-colors"
+                              >
+                                <Wand2 className="w-3 h-3" />
+                                AI 추천 점수 적용
+                              </button>
+                            )}
+                          </div>
+                        )}
+
+                        {/* 점수 선택 */}
                         <div>
-                          <p className="text-[10px] uppercase tracking-wider text-slate-600 mb-2">
+                          <p className="text-sm uppercase tracking-wider text-slate-400 mb-2">
                             평가 (9점 척도)
                           </p>
                           <ScoreSelector
                             value={ev.score}
+                            aiScore={ev.aiScore}
                             onChange={(s) => updateScore(ev.id, s)}
                           />
                         </div>
 
+                        {/* 피드백 */}
                         <div>
-                          <p className="text-[10px] uppercase tracking-wider text-slate-600 mb-2">
-                            피드백
-                          </p>
+                          <div className="flex items-center justify-between mb-2">
+                            <p className="text-sm uppercase tracking-wider text-slate-400">
+                              피드백
+                            </p>
+                            {!ev.feedback && ev.autoFeedback && (
+                              <button
+                                type="button"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  updateFeedback(ev.id, ev.autoFeedback);
+                                }}
+                                className="text-sm text-violet-600 hover:text-violet-300 flex items-center gap-1 transition-colors"
+                              >
+                                <Wand2 className="w-3 h-3" />
+                                AI 피드백 채우기
+                              </button>
+                            )}
+                          </div>
                           <textarea
                             value={ev.feedback}
                             onChange={(e) => updateFeedback(ev.id, e.target.value)}
-                            placeholder="이 장면에 대한 피드백을 작성하세요..."
-                            className="w-full bg-surface-900/60 border border-surface-700/40 rounded-lg px-3.5 py-2.5 text-sm text-white placeholder:text-slate-600 outline-none focus:border-teal-500/30 focus:ring-1 focus:ring-teal-500/15 transition-all resize-none leading-relaxed"
+                            placeholder={ev.autoFeedback ? `AI 추천: ${ev.autoFeedback.slice(0, 60)}...` : "이 장면에 대한 피드백을 작성하세요..."}
+                            className="w-full bg-slate-50/60 border border-slate-200/40 rounded-lg px-3.5 py-2.5 text-base text-slate-900 placeholder:text-slate-400 outline-none focus:border-teal-500/30 focus:ring-1 focus:ring-teal-500/15 transition-all resize-none leading-relaxed"
                             rows={3}
                           />
                         </div>

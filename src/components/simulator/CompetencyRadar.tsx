@@ -28,22 +28,22 @@ export default function CompetencyRadar({ scores, targetScore = 80 }: Competency
   }));
 
   return (
-    <div className="bg-surface-800 border border-surface-700 rounded-xl p-4 hover:border-coral-500/30 hover:shadow-lg hover:shadow-coral-500/5 transition-all duration-300" role="img" aria-label="8대 핵심역량 레이더 차트">
+    <div className="bg-white border border-slate-200 rounded-xl p-5 hover:border-coral-300 hover:shadow-lg hover:shadow-coral-100/50 transition-all duration-300" role="img" aria-label="8대 핵심역량 레이더 차트">
       <div className="flex items-center justify-between mb-3">
-        <h4 className="text-sm font-medium text-slate-300">8대 핵심역량 평가</h4>
-        <span className="text-xs text-slate-600 font-mono">목표 {targetScore}점</span>
+        <h4 className="text-base font-medium text-slate-700">8대 핵심역량 평가</h4>
+        <span className="text-sm text-slate-400 font-mono">목표 {targetScore}점</span>
       </div>
       <ResponsiveContainer width="100%" height={320}>
         <RadarChart data={data} cx="50%" cy="50%" outerRadius="72%">
-          <PolarGrid stroke="#243044" />
+          <PolarGrid stroke="#e2e8f0" />
           <PolarAngleAxis
             dataKey="subject"
-            tick={{ fill: "#94a3b8", fontSize: 11 }}
+            tick={{ fill: "#475569", fontSize: 12 }}
           />
           <PolarRadiusAxis
             angle={90}
             domain={[0, 100]}
-            tick={{ fill: "#475569", fontSize: 10 }}
+            tick={{ fill: "#94a3b8", fontSize: 11 }}
             axisLine={false}
           />
           <Tooltip content={<ChartTooltip unit="점" />} />
@@ -76,7 +76,7 @@ export default function CompetencyRadar({ scores, targetScore = 80 }: Competency
             fill="#ff6b47"
             fillOpacity={0.2}
             strokeWidth={2}
-            dot={{ r: 3, fill: "#ff6b47", stroke: "#0a0e14", strokeWidth: 2 }}
+            dot={{ r: 3, fill: "#ff6b47", stroke: "#ffffff", strokeWidth: 2 }}
             animationBegin={200}
             animationDuration={800}
           />

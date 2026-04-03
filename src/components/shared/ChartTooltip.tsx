@@ -18,11 +18,11 @@ export default function ChartTooltip({ active, payload, label, unit = "점" }: C
 
   return (
     <div
-      className="animate-fade-in-up min-w-[140px] rounded-lg border border-surface-700 bg-surface-800 px-3 py-2.5 font-sans shadow-lg shadow-black/40"
-      style={{ fontSize: "12px" }}
+      className="animate-fade-in-up min-w-[140px] rounded-lg border border-slate-200 bg-white px-3 py-2.5 font-sans shadow-lg shadow-slate-200/60"
+      style={{ fontSize: "13px" }}
     >
       {label && (
-        <p className="mb-1.5 text-slate-400" style={{ fontSize: "11px" }}>
+        <p className="mb-1.5 text-slate-500" style={{ fontSize: "12px" }}>
           {label}
         </p>
       )}
@@ -33,8 +33,8 @@ export default function ChartTooltip({ active, payload, label, unit = "점" }: C
               className="inline-block h-2 w-2 shrink-0 rounded-full"
               style={{ backgroundColor: item.color }}
             />
-            <span className="text-slate-400">{item.name}</span>
-            <span className="ml-auto font-medium text-white tabular-nums">
+            <span className="text-slate-500">{item.name}</span>
+            <span className="ml-auto font-medium text-slate-900 tabular-nums">
               {item.value}
               {unit}
             </span>

@@ -21,7 +21,7 @@ export default function DashboardSkeleton() {
         {[0, 1, 2, 3].map((i) => (
           <div
             key={i}
-            className="animate-fade-in-up bg-gradient-to-br from-surface-800 to-surface-900 border border-surface-700 rounded-lg p-4"
+            className="animate-fade-in-up bg-gradient-to-br from-white to-slate-50 border border-slate-200 rounded-lg p-4"
             style={{ animationDelay: `${i * 60}ms`, animationFillMode: "backwards" }}
           >
             <div className="flex items-center gap-2 mb-3">
@@ -41,7 +41,7 @@ export default function DashboardSkeleton() {
         {[0, 1, 2].map((i) => (
           <div
             key={i}
-            className="animate-fade-in-up bg-surface-800 border border-surface-700 rounded-xl p-6"
+            className="animate-fade-in-up bg-white border border-slate-200 rounded-xl p-6"
             style={{ animationDelay: `${i * 100}ms`, animationFillMode: "backwards" }}
           >
             {/* 아이콘 + 제목 */}

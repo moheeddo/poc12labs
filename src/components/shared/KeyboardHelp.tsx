@@ -59,7 +59,7 @@ export default function KeyboardHelp({ isOpen, onClose }: KeyboardHelpProps) {
     <div className="fixed inset-0 z-50 flex items-center justify-center">
       {/* 오버레이 */}
       <div
-        className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+        className="absolute inset-0 bg-black/20 backdrop-blur-sm"
         onClick={onClose}
         aria-hidden="true"
       />
@@ -71,17 +71,17 @@ export default function KeyboardHelp({ isOpen, onClose }: KeyboardHelpProps) {
         aria-modal="true"
         aria-label="키보드 단축키"
         tabIndex={-1}
-        className="relative w-full max-w-md rounded-xl border border-surface-600 bg-surface-800 p-6 shadow-2xl animate-fade-in-up"
+        className="relative w-full max-w-md rounded-xl border border-slate-200 bg-white p-6 shadow-2xl animate-fade-in-up"
       >
         {/* 헤더 */}
         <div className="mb-5 flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <Keyboard className="w-5 h-5 text-teal-400" />
-            <h2 className="text-lg font-semibold text-white">키보드 단축키</h2>
+            <Keyboard className="w-5 h-5 text-teal-600" />
+            <h2 className="text-lg font-semibold text-slate-900">키보드 단축키</h2>
           </div>
           <button
             onClick={onClose}
-            className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 transition-colors hover:bg-surface-700 hover:text-white"
+            className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-700"
             aria-label="닫기"
           >
             <X className="w-[18px] h-[18px]" />
@@ -92,15 +92,15 @@ export default function KeyboardHelp({ isOpen, onClose }: KeyboardHelpProps) {
         <div className="space-y-4">
           {shortcutGroups.map((group) => (
             <div key={group.title}>
-              <p className="text-[11px] font-medium text-slate-500 uppercase tracking-wider mb-2">{group.title}</p>
+              <p className="text-xs font-medium text-slate-400 uppercase tracking-wider mb-2">{group.title}</p>
               <ul className="space-y-2">
                 {group.items.map(({ key, description }) => (
                   <li
                     key={key}
-                    className="flex items-center justify-between text-sm py-1 px-2 -mx-2 rounded-lg hover:bg-surface-700/50 transition-colors duration-150"
+                    className="flex items-center justify-between text-sm py-1.5 px-2 -mx-2 rounded-lg hover:bg-slate-50 transition-colors duration-150"
                   >
-                    <span className="text-slate-300">{description}</span>
-                    <kbd className="inline-flex min-w-[2rem] items-center justify-center rounded-md border border-surface-600 bg-surface-700 px-2 py-1 font-mono text-xs font-medium text-teal-400">
+                    <span className="text-slate-700">{description}</span>
+                    <kbd className="inline-flex min-w-[2rem] items-center justify-center rounded-md border border-slate-200 bg-slate-100 px-2 py-1 font-mono text-xs font-medium text-teal-600">
                       {key}
                     </kbd>
                   </li>
@@ -111,7 +111,7 @@ export default function KeyboardHelp({ isOpen, onClose }: KeyboardHelpProps) {
         </div>
 
         {/* 하단 안내 */}
-        <p className="mt-5 text-center text-xs text-slate-500">
+        <p className="mt-5 text-center text-sm text-slate-400">
           입력 필드 포커스 시 단축키가 비활성됩니다
         </p>
       </div>

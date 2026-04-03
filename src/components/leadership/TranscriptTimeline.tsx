@@ -19,9 +19,9 @@ import { formatTime, cn } from "@/lib/utils";
 
 // ─── 화자 색상 팔레트 (6인 토론 기준) ───
 const SPEAKER_PALETTE = [
-  { name: "화자 A", color: "#14b8a6", bg: "bg-teal-500/12", border: "border-teal-500/25", text: "text-teal-400", ring: "ring-teal-500/20" },
-  { name: "화자 B", color: "#f59e0b", bg: "bg-amber-500/12", border: "border-amber-500/25", text: "text-amber-400", ring: "ring-amber-500/20" },
-  { name: "화자 C", color: "#8b5cf6", bg: "bg-violet-500/12", border: "border-violet-500/25", text: "text-violet-400", ring: "ring-violet-500/20" },
+  { name: "화자 A", color: "#14b8a6", bg: "bg-teal-500/12", border: "border-teal-500/25", text: "text-teal-600", ring: "ring-teal-500/20" },
+  { name: "화자 B", color: "#f59e0b", bg: "bg-amber-500/12", border: "border-amber-500/25", text: "text-amber-600", ring: "ring-amber-500/20" },
+  { name: "화자 C", color: "#8b5cf6", bg: "bg-violet-500/12", border: "border-violet-500/25", text: "text-violet-600", ring: "ring-violet-500/20" },
   { name: "화자 D", color: "#ef4444", bg: "bg-red-500/12", border: "border-red-500/25", text: "text-red-400", ring: "ring-red-500/20" },
   { name: "화자 E", color: "#3b82f6", bg: "bg-blue-500/12", border: "border-blue-500/25", text: "text-blue-400", ring: "ring-blue-500/20" },
   { name: "화자 F", color: "#ec4899", bg: "bg-pink-500/12", border: "border-pink-500/25", text: "text-pink-400", ring: "ring-pink-500/20" },
@@ -130,7 +130,7 @@ export default function TranscriptTimeline({
       <div className="flex items-center justify-center py-16">
         <div className="flex flex-col items-center gap-3">
           <div className="w-8 h-8 border-2 border-teal-500/30 border-t-teal-400 rounded-full animate-spin" />
-          <p className="text-sm text-slate-500">전사 데이터 로딩 중...</p>
+          <p className="text-base text-slate-500">전사 데이터 로딩 중...</p>
         </div>
       </div>
     );
@@ -141,20 +141,20 @@ export default function TranscriptTimeline({
       {/* ─── 헤더 바 ─── */}
       <div className="flex items-center justify-between px-1 mb-4">
         <div className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded-lg bg-teal-500/10 flex items-center justify-center">
-            <FileText className="w-4 h-4 text-teal-400" />
+          <div className="w-8 h-8 rounded-lg bg-teal-50 flex items-center justify-center">
+            <FileText className="w-4 h-4 text-teal-600" />
           </div>
           <div>
-            <h4 className="text-sm font-semibold text-slate-200">디브리핑 대본</h4>
-            <p className="text-[10px] text-slate-600 font-mono">{segments.length}개 발언 구간</p>
+            <h4 className="text-base font-semibold text-slate-200">디브리핑 대본</h4>
+            <p className="text-sm text-slate-400 font-mono">{segments.length}개 발언 구간</p>
           </div>
         </div>
         <div className="flex items-center gap-1.5">
           <button
             onClick={() => setAutoScroll(!autoScroll)}
             className={cn(
-              "p-1.5 rounded-md text-xs transition-colors",
-              autoScroll ? "bg-teal-500/15 text-teal-400" : "text-slate-600 hover:text-slate-400"
+              "p-1.5 rounded-md text-sm transition-colors",
+              autoScroll ? "bg-teal-50 text-teal-600" : "text-slate-400 hover:text-slate-500"
             )}
             title="자동 스크롤"
           >
@@ -162,14 +162,14 @@ export default function TranscriptTimeline({
           </button>
           <button
             onClick={() => setIsCompact(!isCompact)}
-            className="p-1.5 rounded-md text-slate-600 hover:text-slate-400 transition-colors"
+            className="p-1.5 rounded-md text-slate-400 hover:text-slate-500 transition-colors"
             title={isCompact ? "상세 보기" : "간결 보기"}
           >
             {isCompact ? <ChevronDown className="w-3.5 h-3.5" /> : <ChevronUp className="w-3.5 h-3.5" />}
           </button>
           <button
             onClick={() => window.print()}
-            className="p-1.5 rounded-md text-slate-600 hover:text-slate-400 transition-colors"
+            className="p-1.5 rounded-md text-slate-400 hover:text-slate-500 transition-colors"
             title="인쇄"
           >
             <Printer className="w-3.5 h-3.5" />
@@ -182,10 +182,10 @@ export default function TranscriptTimeline({
         <button
           onClick={() => setFilterSpeaker(null)}
           className={cn(
-            "inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-medium transition-all",
+            "inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-sm font-medium transition-all",
             !filterSpeaker
-              ? "bg-teal-500/15 text-teal-400 border border-teal-500/25"
-              : "bg-surface-800/60 text-slate-500 border border-surface-700/40 hover:text-slate-400"
+              ? "bg-teal-50 text-teal-600 border border-teal-500/25"
+              : "bg-white/60 text-slate-500 border border-slate-200/40 hover:text-slate-500"
           )}
         >
           <Users className="w-3 h-3" />
@@ -198,10 +198,10 @@ export default function TranscriptTimeline({
               key={name}
               onClick={() => setFilterSpeaker(filterSpeaker === name ? null : name)}
               className={cn(
-                "inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-medium transition-all border",
+                "inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-sm font-medium transition-all border",
                 filterSpeaker === name
                   ? `${palette.bg} ${palette.text} ${palette.border}`
-                  : "bg-surface-800/40 text-slate-500 border-surface-700/30 hover:text-slate-400"
+                  : "bg-white/40 text-slate-500 border-slate-200/30 hover:text-slate-500"
               )}
             >
               <span
@@ -221,16 +221,16 @@ export default function TranscriptTimeline({
 
       {/* ─── 인라인 검색 ─── */}
       <div className="relative mb-4">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-600" />
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400" />
         <input
           type="text"
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           placeholder="대본 내 검색..."
-          className="w-full pl-9 pr-3 py-2 bg-surface-900/50 border border-surface-700/40 rounded-lg text-xs text-white placeholder:text-slate-600 outline-none focus:border-teal-500/30 focus:ring-1 focus:ring-teal-500/15 transition-all"
+          className="w-full pl-9 pr-3 py-2 bg-slate-50/50 border border-slate-200/40 rounded-lg text-sm text-slate-900 placeholder:text-slate-400 outline-none focus:border-teal-500/30 focus:ring-1 focus:ring-teal-500/15 transition-all"
         />
         {searchQuery && (
-          <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] text-teal-400 font-mono">
+          <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-teal-600 font-mono">
             {filtered.length}건
           </span>
         )}
@@ -238,8 +238,8 @@ export default function TranscriptTimeline({
 
       {/* ─── 화자별 통계 미니 바 ─── */}
       {!isCompact && (
-        <div className="mb-4 p-3 bg-surface-800/30 border border-surface-700/20 rounded-xl">
-          <p className="text-[10px] uppercase tracking-wider text-slate-600 mb-2">발언량 분석</p>
+        <div className="mb-4 p-3 bg-white/30 border border-slate-200/20 rounded-xl">
+          <p className="text-sm uppercase tracking-wider text-slate-400 mb-2">발언량 분석</p>
           <div className="space-y-1.5">
             {speakers.map(([name, palette]) => {
               const stats = speakerStats.get(name);
@@ -248,19 +248,19 @@ export default function TranscriptTimeline({
               const pct = totalDur > 0 ? (stats.totalDuration / totalDur) * 100 : 0;
               return (
                 <div key={name} className="flex items-center gap-2">
-                  <span className={cn("text-[10px] font-medium w-14 truncate", palette.text)}>
+                  <span className={cn("text-sm font-medium w-14 truncate", palette.text)}>
                     {name}
                   </span>
-                  <div className="flex-1 h-1.5 bg-surface-900/60 rounded-full overflow-hidden">
+                  <div className="flex-1 h-1.5 bg-slate-50/60 rounded-full overflow-hidden">
                     <div
                       className="h-full rounded-full transition-all duration-500"
                       style={{ width: `${pct}%`, backgroundColor: palette.color }}
                     />
                   </div>
-                  <span className="text-[9px] font-mono text-slate-600 w-10 text-right">
+                  <span className="text-[9px] font-mono text-slate-400 w-10 text-right">
                     {formatTime(stats.totalDuration)}
                   </span>
-                  <span className="text-[9px] font-mono text-slate-600 w-8 text-right">
+                  <span className="text-[9px] font-mono text-slate-400 w-8 text-right">
                     {pct.toFixed(0)}%
                   </span>
                 </div>
@@ -287,7 +287,7 @@ export default function TranscriptTimeline({
               {showChapterBoundary && (
                 <div className="flex items-center gap-3 py-3 mt-2 first:mt-0">
                   <div className="h-px flex-1 bg-gradient-to-r from-teal-500/20 to-transparent" />
-                  <span className="text-[10px] font-medium text-teal-500/60 uppercase tracking-wider whitespace-nowrap">
+                  <span className="text-sm font-medium text-teal-500/60 uppercase tracking-wider whitespace-nowrap">
                     {chapter.title}
                   </span>
                   <div className="h-px flex-1 bg-gradient-to-l from-teal-500/20 to-transparent" />
@@ -301,7 +301,7 @@ export default function TranscriptTimeline({
                   "group relative flex gap-3 px-3 py-2.5 rounded-xl transition-all duration-200 cursor-pointer",
                   isActive
                     ? "bg-teal-500/8 ring-1 ring-teal-500/20"
-                    : "hover:bg-surface-800/50",
+                    : "hover:bg-white/50",
                   isBookmarked && !isActive && "bg-amber-500/5"
                 )}
                 onClick={() => onSeek(seg.start)}
@@ -313,12 +313,12 @@ export default function TranscriptTimeline({
                       "w-2.5 h-2.5 rounded-full border-2 transition-all",
                       isActive
                         ? "border-teal-400 bg-teal-400 shadow-[0_0_8px_rgba(20,184,166,0.4)]"
-                        : `border-surface-600 group-hover:border-slate-500`
+                        : `border-slate-200 group-hover:border-slate-500`
                     )}
                     style={!isActive ? { borderColor: seg.palette.color + "40" } : undefined}
                   />
                   {fi < filtered.length - 1 && (
-                    <div className="w-px flex-1 mt-1 bg-surface-700/30" />
+                    <div className="w-px flex-1 mt-1 bg-slate-100/30" />
                   )}
                 </div>
 
@@ -327,19 +327,19 @@ export default function TranscriptTimeline({
                   {/* 화자 + 타임스탬프 */}
                   <div className="flex items-center gap-2 mb-1">
                     <span
-                      className={cn("text-[11px] font-semibold", seg.palette.text)}
+                      className={cn("text-sm font-semibold", seg.palette.text)}
                     >
                       {seg.speaker}
                     </span>
                     <button
                       onClick={(e) => { e.stopPropagation(); onSeek(seg.start); }}
-                      className="inline-flex items-center gap-0.5 text-[10px] font-mono text-slate-600 hover:text-teal-400 transition-colors"
+                      className="inline-flex items-center gap-0.5 text-sm font-mono text-slate-400 hover:text-teal-600 transition-colors"
                     >
                       <PlayCircle className="w-3 h-3" />
                       {formatTime(seg.start)}
                     </button>
                     {isActive && (
-                      <span className="inline-flex items-center gap-1 text-[9px] text-teal-400 font-medium animate-pulse">
+                      <span className="inline-flex items-center gap-1 text-[9px] text-teal-600 font-medium animate-pulse">
                         <div className="w-1.5 h-1.5 rounded-full bg-teal-400" />
                         재생 중
                       </span>
@@ -349,8 +349,8 @@ export default function TranscriptTimeline({
                   {/* 발언 텍스트 */}
                   <p
                     className={cn(
-                      "text-sm leading-relaxed transition-colors",
-                      isActive ? "text-slate-200" : "text-slate-400",
+                      "text-base leading-relaxed transition-colors",
+                      isActive ? "text-slate-200" : "text-slate-500",
                       isCompact && "line-clamp-1"
                     )}
                   >
@@ -360,7 +360,7 @@ export default function TranscriptTimeline({
                   {/* 발언 길이 표시 */}
                   {!isCompact && (
                     <div className="flex items-center gap-3 mt-1.5">
-                      <span className="text-[9px] font-mono text-slate-700">
+                      <span className="text-[9px] font-mono text-slate-300">
                         {(seg.end - seg.start).toFixed(0)}초
                       </span>
                     </div>
@@ -378,7 +378,7 @@ export default function TranscriptTimeline({
                   <Star
                     className={cn(
                       "w-3.5 h-3.5 transition-colors",
-                      isBookmarked ? "text-amber-400 fill-amber-400" : "text-slate-700 hover:text-amber-400"
+                      isBookmarked ? "text-amber-600 fill-amber-400" : "text-slate-300 hover:text-amber-600"
                     )}
                   />
                 </button>
@@ -390,10 +390,10 @@ export default function TranscriptTimeline({
 
       {/* ─── 푸터: 북마크 요약 ─── */}
       {bookmarks.size > 0 && (
-        <div className="mt-4 pt-3 border-t border-surface-700/30">
+        <div className="mt-4 pt-3 border-t border-slate-200/30">
           <div className="flex items-center justify-between mb-2">
-            <p className="text-[10px] uppercase tracking-wider text-amber-500/60 flex items-center gap-1">
-              <Star className="w-3 h-3 fill-amber-400 text-amber-400" />
+            <p className="text-sm uppercase tracking-wider text-amber-500/60 flex items-center gap-1">
+              <Star className="w-3 h-3 fill-amber-400 text-amber-600" />
               핵심 발언 {bookmarks.size}건
             </p>
             <button
@@ -407,7 +407,7 @@ export default function TranscriptTimeline({
                   .join("\n\n");
                 navigator.clipboard.writeText(text);
               }}
-              className="text-[10px] text-slate-600 hover:text-teal-400 transition-colors flex items-center gap-1"
+              className="text-sm text-slate-400 hover:text-teal-600 transition-colors flex items-center gap-1"
             >
               <Download className="w-3 h-3" />
               복사
@@ -421,11 +421,11 @@ export default function TranscriptTimeline({
                 <button
                   key={i}
                   onClick={() => onSeek(s.start)}
-                  className="w-full text-left flex items-center gap-2 px-2 py-1 rounded-md hover:bg-surface-800/40 transition-colors"
+                  className="w-full text-left flex items-center gap-2 px-2 py-1 rounded-md hover:bg-white/40 transition-colors"
                 >
-                  <span className="text-[10px] font-mono text-teal-400">{formatTime(s.start)}</span>
-                  <span className={cn("text-[10px] font-medium", s.palette.text)}>{s.speaker}</span>
-                  <span className="text-[10px] text-slate-500 truncate flex-1">{s.value}</span>
+                  <span className="text-sm font-mono text-teal-600">{formatTime(s.start)}</span>
+                  <span className={cn("text-sm font-medium", s.palette.text)}>{s.speaker}</span>
+                  <span className="text-sm text-slate-500 truncate flex-1">{s.value}</span>
                 </button>
               );
             })}

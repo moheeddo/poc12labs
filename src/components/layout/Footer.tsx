@@ -5,14 +5,14 @@ interface FooterProps {
 }
 
 const FOOTER_LINKS: { key: ServiceTab; label: string; color: string }[] = [
-  { key: "simulator", label: "시뮬레이터 훈련 멀티모달 분석", color: "hover:text-coral-400" },
-  { key: "leadership", label: "리더십코칭", color: "hover:text-teal-400" },
-  { key: "pov", label: "POV 분석", color: "hover:text-amber-400" },
+  { key: "simulator", label: "시뮬레이터 훈련 멀티모달 분석", color: "hover:text-coral-600" },
+  { key: "leadership", label: "리더십코칭", color: "hover:text-teal-600" },
+  { key: "pov", label: "POV 분석", color: "hover:text-amber-600" },
 ];
 
 export default function Footer({ onNavigate }: FooterProps) {
   return (
-    <footer className="border-t border-white/[0.03]">
+    <footer className="border-t border-slate-200">
       {/* 멀티컬러 디바이더 */}
       <div className="h-px bg-gradient-to-r from-coral-500/20 via-teal-500/20 to-amber-500/20" />
 
@@ -20,10 +20,10 @@ export default function Footer({ onNavigate }: FooterProps) {
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
           {/* 좌측: 로고 + 저작권 */}
           <div className="flex flex-col gap-1">
-            <span className="text-[13px] font-semibold text-slate-500 tracking-[-0.01em]">
+            <span className="text-sm font-semibold text-slate-600 tracking-[-0.01em]">
               KHNP HRDI
             </span>
-            <span className="text-[11px] text-slate-500 font-mono">
+            <span className="text-xs text-slate-400 font-mono">
               &copy; 2026 한국수력원자력 인재개발원
             </span>
           </div>
@@ -33,11 +33,11 @@ export default function Footer({ onNavigate }: FooterProps) {
             {FOOTER_LINKS.map((link, i) => (
               <span key={link.key} className="flex items-center gap-5">
                 {i > 0 && (
-                  <span className="text-[10px] text-slate-700/50" aria-hidden="true">/</span>
+                  <span className="text-[10px] text-slate-300" aria-hidden="true">/</span>
                 )}
                 <button
                   onClick={() => onNavigate?.(link.key)}
-                  className={`text-[13px] text-slate-400/80 ${link.color} transition-colors duration-300`}
+                  className={`text-sm text-slate-500 ${link.color} transition-colors duration-300`}
                 >
                   {link.label}
                 </button>
@@ -46,11 +46,11 @@ export default function Footer({ onNavigate }: FooterProps) {
           </nav>
 
           {/* 우측: 단축키 힌트 */}
-          <span className="text-[11px] text-slate-600 flex items-center gap-1.5">
-            <kbd className="px-1.5 py-0.5 rounded bg-white/[0.03] border border-white/[0.05] text-slate-500 font-mono text-[10px]">
+          <span className="text-xs text-slate-400 flex items-center gap-1.5">
+            <kbd className="px-1.5 py-0.5 rounded bg-slate-100 border border-slate-200 text-slate-500 font-mono text-[11px]">
               ?
             </kbd>
-            <span className="text-slate-500">단축키</span>
+            <span className="text-slate-400">단축키</span>
           </span>
         </div>
       </div>

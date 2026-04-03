@@ -30,9 +30,9 @@ export default function VideoUploader({ onUpload, onUrlUpload, progress, accentC
   };
 
   const iconAccentColorMap: Record<string, string> = {
-    coral: "text-coral-400",
-    teal: "text-teal-400",
-    amber: "text-amber-400",
+    coral: "text-coral-600",
+    teal: "text-teal-600",
+    amber: "text-amber-600",
   };
 
   const accentBtnMap: Record<string, string> = {
@@ -122,7 +122,7 @@ export default function VideoUploader({ onUpload, onUrlUpload, progress, accentC
                 ? "border-red-500/60 bg-red-500/5"
                 : isDragging
                   ? `${accentBorderMap[accentColor]} scale-[1.01] animate-pulse`
-                  : "border-surface-600 hover:border-surface-500 hover:bg-surface-800/30",
+                  : "border-slate-200 hover:border-slate-300 hover:bg-slate-50",
             )}
           >
             <div className="flex flex-col items-center">
@@ -131,10 +131,10 @@ export default function VideoUploader({ onUpload, onUrlUpload, progress, accentC
               ) : (
                 <FolderOpen className="w-8 h-8 mb-3 text-slate-500" />
               )}
-              <p className="text-sm text-slate-300 mb-1">
+              <p className="text-base text-slate-600 mb-1">
                 클릭하여 파일 선택 또는 드래그앤드롭
               </p>
-              <p className="text-xs text-slate-500">MP4, AVI, MOV 지원 · 용량 제한 없음</p>
+              <p className="text-sm text-slate-400">MP4, AVI, MOV 지원 · 용량 제한 없음</p>
             </div>
             {isRejected && (
               <p className="text-xs text-red-400 mt-2 animate-fade-in-up">
@@ -159,10 +159,10 @@ export default function VideoUploader({ onUpload, onUrlUpload, progress, accentC
       {/* ── URL 입력 모드 ── */}
       {showUrlInput && onUrlUpload && (
         <div className="space-y-2">
-          <div className="border-2 border-dashed rounded-xl p-6 text-center border-surface-600">
+          <div className="border-2 border-dashed rounded-xl p-6 text-center border-slate-200">
             <Link2 className={cn("w-8 h-8 mx-auto mb-3", iconAccentColorMap[accentColor])} />
-            <p className="text-sm text-slate-300 mb-1">영상 URL을 입력하세요</p>
-            <p className="text-xs text-slate-500 mb-4">
+            <p className="text-base text-slate-600 mb-1">영상 URL을 입력하세요</p>
+            <p className="text-sm text-slate-400 mb-4">
               Google Drive, Dropbox, S3 등 공개 접근 가능한 영상 URL
             </p>
             <div className="flex gap-2 max-w-lg mx-auto">
@@ -173,9 +173,9 @@ export default function VideoUploader({ onUpload, onUrlUpload, progress, accentC
                 onKeyDown={(e) => { if (e.key === "Enter") handleUrlSubmit(); }}
                 placeholder="https://example.com/video.mp4"
                 className={cn(
-                  "flex-1 bg-surface-800 border rounded-lg px-3 py-2.5 text-sm text-white placeholder-slate-600",
+                  "flex-1 bg-white border rounded-lg px-3 py-2.5 text-base text-slate-900 placeholder-slate-400",
                   "focus:outline-none focus:ring-1",
-                  urlError ? "border-red-500/50 focus:ring-red-500/30" : "border-surface-600",
+                  urlError ? "border-red-500/50 focus:ring-red-500/30" : "border-slate-200",
                 )}
               />
               <button
@@ -204,13 +204,13 @@ export default function VideoUploader({ onUpload, onUrlUpload, progress, accentC
 
       {/* ── 선택된 파일 ── */}
       {selectedFile && !progress && (
-        <div className="flex items-center gap-3 bg-surface-800 rounded-lg p-3 border border-surface-700 animate-fade-in-up">
+        <div className="flex items-center gap-3 bg-white rounded-lg p-3.5 border border-slate-200 shadow-sm animate-fade-in-up">
           <FileVideo className={cn("w-5 h-5 shrink-0", iconAccentColorMap[accentColor])} />
           <div className="flex-1 min-w-0">
-            <p className="text-sm text-white truncate">{selectedFile.name}</p>
-            <p className="text-xs text-slate-500">{formatFileSize(selectedFile.size)}</p>
+            <p className="text-base text-slate-900 truncate">{selectedFile.name}</p>
+            <p className="text-sm text-slate-400">{formatFileSize(selectedFile.size)}</p>
           </div>
-          <button onClick={() => setSelectedFile(null)} className="p-2 text-slate-500 hover:text-white transition-colors duration-200" aria-label="파일 선택 취소">
+          <button onClick={() => setSelectedFile(null)} className="p-2 text-slate-400 hover:text-slate-700 transition-colors duration-200" aria-label="파일 선택 취소">
             <X className="w-4 h-4" />
           </button>
           <button
@@ -229,8 +229,8 @@ export default function VideoUploader({ onUpload, onUrlUpload, progress, accentC
       {/* ── 프로그레스 바 ── */}
       {progress && (
         <div className={cn(
-          "bg-surface-800 rounded-lg p-3 border",
-          progress.status === "error" ? "border-red-500/30" : "border-surface-700",
+          "bg-white rounded-lg p-3.5 border shadow-sm",
+          progress.status === "error" ? "border-red-500/30" : "border-slate-200",
         )}>
           <div className="flex items-center gap-3 mb-2">
             {progress.status === "complete" ? (
@@ -241,8 +241,8 @@ export default function VideoUploader({ onUpload, onUrlUpload, progress, accentC
               <FileVideo className="w-5 h-5 text-slate-400 shrink-0 animate-pulse" />
             )}
             <div className="flex-1 min-w-0">
-              <p className="text-sm text-white truncate">{progress.fileName}</p>
-              <p className="text-xs text-slate-500">
+              <p className="text-base text-slate-900 truncate">{progress.fileName}</p>
+              <p className="text-sm text-slate-500">
                 {progress.status === "uploading" && `전송 중... ${progress.progress}%`}
                 {progress.status === "processing" && "업로드 완료 처리 중..."}
                 {progress.status === "indexing" && `인덱싱 중... ${progress.progress}%`}
