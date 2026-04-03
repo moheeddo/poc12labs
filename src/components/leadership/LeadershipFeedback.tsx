@@ -14,6 +14,9 @@ import {
   BarChart3,
   Wand2,
   Bot,
+  CheckCircle2,
+  Circle,
+  Loader2,
 } from "lucide-react";
 import { useVideoSearch, useVideoAnalysis, useVideoTranscription } from "@/hooks/useTwelveLabs";
 import { TWELVELABS_INDEXES, LEADERSHIP_COMPETENCY_DEFS } from "@/lib/constants";
@@ -145,6 +148,7 @@ export default function LeadershipFeedback({
   const [analysisError, setAnalysisError] = useState<string | null>(null);
   const [analysisStep, setAnalysisStep] = useState("");
   const [analysisLoading, setAnalysisLoading] = useState(true);
+  const [analysisPhase, setAnalysisPhase] = useState(0); // 0=대기, 1=인덱싱, 2=챕터, 3=하이라이트, 4=요약, 5=매칭, 6=완료
 
   // 평가 근거
   const [evidence, setEvidence] = useState<EvidenceItem[]>([]);
@@ -157,8 +161,8 @@ export default function LeadershipFeedback({
   const [activeEvidenceId, setActiveEvidenceId] = useState<string | null>(null);
   const [saved, setSaved] = useState(false);
 
-  // 우측 패널 탭 — 리포트 탭 추가
-  const [rightTab, setRightTab] = useState<"evidence" | "transcript" | "report">("evidence");
+  // 우측 패널 탭 — 리포트 기본
+  const [rightTab, setRightTab] = useState<"evidence" | "transcript" | "report">("report");
 
   // 검색
   const { results: searchResults, loading: searchLoading, search } = useVideoSearch();
@@ -192,6 +196,7 @@ export default function LeadershipFeedback({
 
       try {
         // 0단계: 인덱싱 완료 대기
+        setAnalysisPhase(1);
         setAnalysisStep("영상 인덱싱 중... (AI가 영상을 이해하고 있습니다)");
         const ready = await waitForIndexing();
         if (cancelled) return;
@@ -201,6 +206,7 @@ export default function LeadershipFeedback({
         }
 
         // 1단계: 챕터 분석
+        setAnalysisPhase(2);
         setAnalysisStep("영상 구간 분석 중...");
         const ch = await analyze(videoId, "chapter");
         if (cancelled) return;
@@ -214,6 +220,7 @@ export default function LeadershipFeedback({
         if (parsed.length > 0) setChapters(parsed);
 
         // 2단계: 하이라이트 추출
+        setAnalysisPhase(3);
         setAnalysisStep("핵심 장면 추출 중...");
         const hl = await analyze(videoId, "highlight");
         if (cancelled) return;
@@ -227,6 +234,7 @@ export default function LeadershipFeedback({
         if (parsedHl.length > 0) setHighlights(parsedHl);
 
         // 3단계: AI 요약
+        setAnalysisPhase(4);
         setAnalysisStep("AI 요약 생성 중...");
         const sm = await analyze(videoId, "summary");
         if (cancelled) return;
@@ -237,6 +245,7 @@ export default function LeadershipFeedback({
         // 4단계: 내용 기반 역량 매칭 + AI 자동 스코어링
         // (기존 라운드-로빈 → 지능형 매칭으로 완전 교체)
         // ═══════════════════════════════════════════
+        setAnalysisPhase(5);
         setAnalysisStep("AI 역량 매칭 및 자동 평가 중...");
         const competencyKeys: LeadershipCompetencyKey[] = selectedCompetencies && selectedCompetencies.length > 0
           ? selectedCompetencies
@@ -299,7 +308,8 @@ export default function LeadershipFeedback({
         });
 
         if (generatedEvidence.length > 0) setEvidence(generatedEvidence);
-        setAnalysisStep("");
+        setAnalysisPhase(6);
+        setAnalysisStep("분석 완료");
       } catch (e) {
         if (!cancelled) {
           const msg = e instanceof Error ? e.message : "분석 실패";
@@ -448,7 +458,151 @@ export default function LeadershipFeedback({
   // 미평가 항목 수
   const unscoredCount = evidence.filter((e) => e.score === 0).length;
 
+  // 분석 단계 정의
+  const ANALYSIS_STEPS = [
+    { phase: 1, label: "영상 인덱싱", desc: "AI가 영상 내용을 이해하고 있습니다" },
+    { phase: 2, label: "구간 분석", desc: "영상을 의미 있는 챕터로 분할합니다" },
+    { phase: 3, label: "핵심 장면 추출", desc: "중요한 하이라이트를 찾고 있습니다" },
+    { phase: 4, label: "AI 요약", desc: "전체 내용을 요약하고 있습니다" },
+    { phase: 5, label: "역량 매칭 & 평가", desc: "루브릭 기준으로 역량을 평가합니다" },
+  ];
+
+  const competencyKeysToUse = selectedCompetencies && selectedCompetencies.length > 0
+    ? selectedCompetencies
+    : (["visionPresentation", "trustBuilding", "memberDevelopment", "rationalDecision"] as LeadershipCompetencyKey[]);
+
   // ── JSX ──
+
+  // ═══════════════════════════════════════
+  // 분석 중 → 전체 화면 진행 상태
+  // ═══════════════════════════════════════
+  if (analysisLoading) {
+    return (
+      <div className="max-w-[800px] mx-auto px-4 md:px-6 py-12 animate-slide-in-right">
+        {/* 뒤로가기 */}
+        <button
+          onClick={onBack}
+          className="flex items-center gap-1.5 text-base text-slate-500 hover:text-teal-600 transition-colors mb-8"
+        >
+          <ArrowLeft className="w-4 h-4" />
+          역량진단으로 돌아가기
+        </button>
+
+        {/* 영상 정보 */}
+        <div className="text-center mb-10">
+          <div className="w-16 h-16 rounded-2xl bg-teal-50 flex items-center justify-center mx-auto mb-4">
+            <Sparkles className="w-8 h-8 text-teal-600 animate-pulse" />
+          </div>
+          <h2 className="text-2xl font-bold text-slate-800 mb-2">AI 역량 분석 진행 중</h2>
+          <p className="text-base text-slate-500">{videoTitle}</p>
+        </div>
+
+        {/* 선택된 역량 */}
+        <div className="flex items-center justify-center gap-2 flex-wrap mb-8">
+          {competencyKeysToUse.map((key) => {
+            const comp = COMP_MAP[key];
+            return comp ? (
+              <span
+                key={key}
+                className="inline-flex items-center gap-1 text-sm font-medium px-3 py-1.5 rounded-lg"
+                style={{ backgroundColor: `${comp.color}15`, color: comp.color }}
+              >
+                {comp.label}
+              </span>
+            ) : null;
+          })}
+        </div>
+
+        {/* 단계별 진행 체크리스트 */}
+        <div className="bg-white border border-slate-200/40 rounded-2xl p-8 shadow-sm">
+          <div className="space-y-5">
+            {ANALYSIS_STEPS.map((step) => {
+              const isDone = analysisPhase > step.phase;
+              const isCurrent = analysisPhase === step.phase;
+              const isPending = analysisPhase < step.phase;
+
+              return (
+                <div key={step.phase} className="flex items-start gap-4">
+                  {/* 아이콘 */}
+                  <div className="shrink-0 mt-0.5">
+                    {isDone ? (
+                      <CheckCircle2 className="w-6 h-6 text-teal-500" />
+                    ) : isCurrent ? (
+                      <Loader2 className="w-6 h-6 text-teal-600 animate-spin" />
+                    ) : (
+                      <Circle className="w-6 h-6 text-slate-200" />
+                    )}
+                  </div>
+                  {/* 텍스트 */}
+                  <div className="flex-1">
+                    <p className={cn(
+                      "text-base font-medium transition-colors",
+                      isDone ? "text-teal-600" : isCurrent ? "text-slate-800" : "text-slate-400"
+                    )}>
+                      {step.label}
+                      {isDone && <span className="text-sm text-teal-500 ml-2">완료</span>}
+                    </p>
+                    <p className={cn(
+                      "text-sm mt-0.5 transition-colors",
+                      isCurrent ? "text-slate-500" : "text-slate-400"
+                    )}>
+                      {step.desc}
+                    </p>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
+          {/* 프로그레스 바 */}
+          <div className="mt-8">
+            <div className="flex items-center justify-between text-sm text-slate-400 mb-2">
+              <span>{analysisStep}</span>
+              <span className="font-mono">{Math.min(Math.round((analysisPhase / 6) * 100), 95)}%</span>
+            </div>
+            <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
+              <div
+                className="h-full bg-gradient-to-r from-teal-500 to-teal-400 rounded-full transition-all duration-700 ease-out"
+                style={{ width: `${Math.min((analysisPhase / 6) * 100, 95)}%` }}
+              />
+            </div>
+          </div>
+
+          {/* 상황사례 표시 */}
+          {scenarioText && (
+            <div className="mt-6 pt-6 border-t border-slate-200/30">
+              <p className="text-sm text-slate-500 mb-1 font-medium">상황사례</p>
+              <p className="text-sm text-slate-400 leading-relaxed line-clamp-3">{scenarioText}</p>
+            </div>
+          )}
+        </div>
+
+        {/* 에러 표시 */}
+        {analysisError && (
+          <div className="mt-6 bg-amber-50 border border-amber-200 rounded-xl p-4">
+            <p className="text-sm text-amber-700 font-medium mb-1">분석 중 오류 발생</p>
+            <p className="text-sm text-amber-600">{analysisError}</p>
+          </div>
+        )}
+
+        {/* 영상 미리보기 (하단) */}
+        {videoUrl && (
+          <div className="mt-8 rounded-2xl overflow-hidden border border-slate-200/40 bg-black shadow-lg">
+            <video
+              ref={videoRef}
+              src={videoUrl}
+              controls
+              className="w-full aspect-video bg-black"
+            />
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  // ═══════════════════════════════════════
+  // 분석 완료 → 결과 뷰
+  // ═══════════════════════════════════════
   return (
     <div className="max-w-[1440px] mx-auto px-4 md:px-6 py-8 animate-slide-in-right">
       {/* 헤더 */}
@@ -466,7 +620,7 @@ export default function LeadershipFeedback({
         </div>
         <div className="flex items-center gap-2">
           {/* AI 추천 일괄 적용 */}
-          {unscoredCount > 0 && !analysisLoading && (
+          {unscoredCount > 0 && (
             <button
               onClick={applyAllAIScores}
               className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-base font-medium transition-all duration-200 bg-violet-50 text-violet-600 border border-violet-500/20 hover:bg-violet-500/20 hover:border-violet-500/30"
@@ -493,10 +647,7 @@ export default function LeadershipFeedback({
 
       {/* 선택된 역량 + 상황사례 표시 */}
       <div className="flex items-center gap-2 flex-wrap mb-4">
-        {(selectedCompetencies && selectedCompetencies.length > 0
-          ? selectedCompetencies
-          : (["visionPresentation", "trustBuilding", "memberDevelopment", "rationalDecision"] as LeadershipCompetencyKey[])
-        ).map((key) => {
+        {competencyKeysToUse.map((key) => {
           const comp = COMP_MAP[key];
           return comp ? (
             <span
@@ -609,34 +760,8 @@ export default function LeadershipFeedback({
             </div>
           )}
 
-          {/* AI 분석 상태 */}
-          {analysisLoading && (
-            <div className="bg-white/40 border border-teal-500/20 rounded-xl p-5 animate-pulse">
-              <div className="flex items-center gap-3">
-                <div className="w-8 h-8 rounded-lg bg-teal-50 flex items-center justify-center shrink-0">
-                  <Sparkles className="w-4 h-4 text-teal-600 animate-spin" />
-                </div>
-                <div>
-                  <p className="text-base text-teal-600 font-medium">AI 분석 진행 중</p>
-                  <p className="text-sm text-slate-500 mt-0.5">{analysisStep || "준비 중..."}</p>
-                </div>
-              </div>
-              <div className="mt-3 h-1.5 bg-slate-100 rounded-full overflow-hidden">
-                <div className="h-full bg-teal-500/60 rounded-full animate-[loading_2s_ease-in-out_infinite]"
-                  style={{
-                    width: analysisStep.includes("역량 매칭") ? "90%"
-                      : analysisStep.includes("요약") ? "75%"
-                      : analysisStep.includes("핵심") ? "50%"
-                      : analysisStep.includes("구간") ? "25%"
-                      : "10%"
-                  }}
-                />
-              </div>
-            </div>
-          )}
-
           {/* 분석 에러 */}
-          {analysisError && !analysisLoading && (
+          {analysisError && (
             <div className="bg-white/40 border border-amber-500/20 rounded-xl p-4">
               <p className="text-sm text-amber-600 flex items-center gap-1.5 mb-1">
                 <Sparkles className="w-3.5 h-3.5" />
@@ -726,10 +851,13 @@ export default function LeadershipFeedback({
             reportData ? (
               <AnalysisReport data={reportData} />
             ) : (
-              <div className="bg-white/40 border border-slate-200/30 rounded-xl p-8 text-center">
-                <BarChart3 className="w-10 h-10 mx-auto mb-3 text-slate-400" />
-                <p className="text-base text-slate-500 mb-1">분석 데이터 없음</p>
-                <p className="text-sm text-slate-400">AI 분석 완료 후 종합 리포트가 생성됩니다</p>
+              <div className="bg-white border border-slate-200/30 rounded-xl p-8 text-center">
+                <BarChart3 className="w-10 h-10 mx-auto mb-3 text-slate-300" />
+                <p className="text-base text-slate-500 mb-1">리포트 생성 대기 중</p>
+                <p className="text-sm text-slate-400">
+                  AI 분석이 완료되면 역량별 점수와 피드백이 자동 생성됩니다.
+                  <br />평가 근거 탭에서 수동 점수를 입력하면 리포트에 반영됩니다.
+                </p>
               </div>
             )
           )}
