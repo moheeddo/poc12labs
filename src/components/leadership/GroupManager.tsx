@@ -13,6 +13,7 @@ import {
   BarChart3,
   Loader2,
   FileText,
+  Video,
 } from "lucide-react";
 import { useVideoUpload } from "@/hooks/useTwelveLabs";
 import { TWELVELABS_INDEXES } from "@/lib/constants";
@@ -46,15 +47,23 @@ export default function GroupManager({
   const currentComp = COMPETENCY_ORDER[session.currentStep];
   const currentState = session.competencies[session.currentStep];
   const isGroupType = currentComp?.type === "group";
+  const isHybridType = currentComp?.type === "hybrid";
+  const isIndividualType = currentComp?.type === "individual";
 
   const completedSteps = session.competencies.filter((c) => {
     if (c.type === "group") return !!c.sharedVideoId;
+    if (c.type === "hybrid") return !!c.sharedVideoId && session.members.every((m) => !!c.memberVideos[m.id]);
     return session.members.every((m) => !!c.memberVideos[m.id]);
   }).length;
 
+  const individualCount = session.members.filter((m) => currentState?.memberVideos[m.id]).length;
+  const hasGroupVideo = !!currentState?.sharedVideoId;
   const uploadedCount = isGroupType
-    ? (currentState?.sharedVideoId ? 1 : 0)
-    : session.members.filter((m) => currentState?.memberVideos[m.id]).length;
+    ? (hasGroupVideo ? 1 : 0)
+    : isHybridType
+      ? individualCount + (hasGroupVideo ? 1 : 0)
+      : individualCount;
+  const totalExpected = isGroupType ? 1 : isHybridType ? session.members.length + 1 : session.members.length;
 
   const handleUpload = useCallback(async (file: File, memberId: string) => {
     setUploadingFor(memberId);
@@ -63,7 +72,7 @@ export default function GroupManager({
       const blobUrl = URL.createObjectURL(file);
       const updated = { ...session };
       const comp = updated.competencies[session.currentStep];
-      if (isGroupType) {
+      if (memberId === "shared") {
         comp.sharedVideoId = videoId;
         comp.sharedFileName = file.name;
         comp.sharedBlobUrl = blobUrl;
@@ -168,9 +177,7 @@ export default function GroupManager({
             <h3 className="text-lg font-bold" style={{ color: currentComp.color }}>
               {currentComp.label} — {currentComp.activityType}
             </h3>
-            <p className="text-sm text-slate-500">
-              {isGroupType ? "집단 토론 영상 1개 업로드 (6명 공용)" : `${session.members.length}명 각자의 영상 업로드`}
-            </p>
+            <p className="text-sm text-slate-500">{currentComp.description}</p>
           </div>
         </div>
 
@@ -193,7 +200,105 @@ export default function GroupManager({
           </div>
         )}
 
-        {/* 집단 토론 */}
+        {/* ═══ hybrid: 신뢰형성 (개별 클로즈업 6개 + 전체 와이드 1개) ═══ */}
+        {isHybridType && (
+          <div className="space-y-5">
+            {/* 전체 와이드샷 */}
+            <div>
+              <p className="text-sm font-medium text-slate-700 mb-2 flex items-center gap-2">
+                <Video className="w-4 h-4 text-amber-500" />
+                전체 와이드샷 (경청 태도 분석용)
+              </p>
+              {currentState?.sharedVideoId ? (
+                <div className="flex items-center gap-3 p-3 bg-amber-50/50 border border-amber-200/30 rounded-xl">
+                  <CheckCircle2 className="w-5 h-5 text-amber-600 shrink-0" />
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium text-slate-700 truncate">{currentState.sharedFileName}</p>
+                    <p className="text-xs text-amber-600">전체 영상 업로드 완료</p>
+                  </div>
+                  <button
+                    onClick={() => onAnalyzeMember("shared", "전체 토론", currentState.sharedVideoId!, currentState.sharedBlobUrl, currentComp.key, scenarioText)}
+                    className="text-xs text-amber-600 hover:text-amber-500 px-3 py-1.5 rounded-lg border border-amber-200 hover:bg-amber-50 transition-colors"
+                  >
+                    <Play className="w-3 h-3 inline mr-1" />경청 분석
+                  </button>
+                </div>
+              ) : (
+                <label className={cn(
+                  "block cursor-pointer rounded-xl border-2 border-dashed p-6 text-center transition-all",
+                  uploadingFor === "shared" ? "border-amber-300 bg-amber-50/30" : "border-amber-200/60 hover:border-amber-300 hover:bg-amber-50/20"
+                )}>
+                  {uploadingFor === "shared" ? (
+                    <Loader2 className="w-6 h-6 mx-auto text-amber-500 animate-spin mb-1" />
+                  ) : (
+                    <Upload className="w-6 h-6 mx-auto text-amber-400 mb-1" />
+                  )}
+                  <p className="text-sm text-slate-600">전체 와이드샷 영상 업로드</p>
+                  <p className="text-xs text-slate-400 mt-0.5">6명이 모두 보이는 전체 촬영 영상</p>
+                  <input type="file" accept="video/*" className="hidden" onChange={(e) => { const f = e.target.files?.[0]; if (f) handleUpload(f, "shared"); }} />
+                </label>
+              )}
+            </div>
+
+            {/* 개별 클로즈업 6명 */}
+            <div>
+              <p className="text-sm font-medium text-slate-700 mb-2 flex items-center gap-2">
+                <Users className="w-4 h-4" style={{ color: currentComp.color }} />
+                개별 클로즈업 (발언 분석용) — {individualCount}/{session.members.length}명
+              </p>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {session.members.map((member) => {
+                  const videoInfo = currentState?.memberVideos[member.id];
+                  const hasVideo = !!videoInfo;
+                  const isUploading = uploadingFor === member.id;
+                  const score = currentState?.memberScores[member.id];
+
+                  return (
+                    <div key={member.id} className={cn("rounded-xl border p-4 transition-all", hasVideo ? "bg-white border-amber-200/50" : "bg-slate-50/50 border-slate-200/40")}>
+                      <div className="flex items-center gap-3 mb-3">
+                        <div className={cn("w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold", hasVideo ? "bg-amber-100 text-amber-700" : "bg-slate-100 text-slate-500")}>{member.order}</div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-bold text-slate-800">{member.name}</p>
+                          <p className="text-xs text-slate-400">{member.position}</p>
+                        </div>
+                        {score?.analyzed && <span className="text-xs font-mono font-bold text-amber-600 bg-amber-50 px-2 py-0.5 rounded">{score.overallScore.toFixed(1)}/9</span>}
+                        {hasVideo && !score?.analyzed && <CheckCircle2 className="w-4 h-4 text-amber-500" />}
+                      </div>
+                      {hasVideo ? (
+                        <div className="space-y-2">
+                          <p className="text-xs text-slate-500 truncate">{videoInfo.fileName}</p>
+                          <button onClick={() => onAnalyzeMember(member.id, member.name, videoInfo.videoId, videoInfo.blobUrl, currentComp.key, scenarioText)} className="w-full flex items-center justify-center gap-1.5 text-sm font-medium py-2.5 rounded-lg bg-amber-50 text-amber-600 hover:bg-amber-100 border border-amber-200/50 transition-colors">
+                            <Play className="w-3.5 h-3.5" />{score?.analyzed ? "결과 보기" : "발언 분석"}
+                          </button>
+                        </div>
+                      ) : (
+                        <label className={cn("block cursor-pointer rounded-lg border-2 border-dashed transition-all", isUploading ? "border-amber-300 bg-amber-50/30" : "border-slate-200 hover:border-amber-300 hover:bg-amber-50/20")}>
+                          <div className="flex flex-col items-center gap-2 py-5 text-center">
+                            {isUploading ? (
+                              <>
+                                <Loader2 className="w-5 h-5 text-amber-500 animate-spin" />
+                                <p className="text-xs text-amber-600 font-medium">{uploadStatus === "indexing" ? "인덱싱 중..." : `업로드 ${Math.round(uploadPercent)}%`}</p>
+                                <div className="w-24 h-1.5 bg-amber-100 rounded-full overflow-hidden"><div className="h-full bg-amber-500 rounded-full transition-all duration-300" style={{ width: `${uploadPercent}%` }} /></div>
+                              </>
+                            ) : (
+                              <>
+                                <Upload className="w-5 h-5 text-slate-400" />
+                                <p className="text-xs text-slate-500">클로즈업 영상</p>
+                              </>
+                            )}
+                          </div>
+                          <input type="file" accept="video/*" className="hidden" disabled={isUploading} onChange={(e) => { const f = e.target.files?.[0]; if (f) handleUpload(f, member.id); }} />
+                        </label>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* ═══ group: 공용 1개 (현재 사용 안 함, 하위 호환) ═══ */}
         {isGroupType && (
           <div>
             {currentState?.sharedVideoId ? (
@@ -228,8 +333,8 @@ export default function GroupManager({
           </div>
         )}
 
-        {/* 개별 발표 — 2열 그리드 */}
-        {!isGroupType && (
+        {/* ═══ individual: 개별 발표 — 2열 그리드 ═══ */}
+        {isIndividualType && (
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {session.members.map((member) => {
               const videoInfo = currentState?.memberVideos[member.id];
@@ -319,7 +424,7 @@ export default function GroupManager({
         {/* 진행 버튼 */}
         <div className="flex items-center justify-between mt-6 pt-4 border-t border-slate-200/30">
           <button onClick={() => goStep(session.currentStep - 1)} disabled={session.currentStep === 0} className="text-sm text-slate-500 hover:text-slate-700 disabled:opacity-30 transition-colors">← 이전 역량</button>
-          <div className="text-sm text-slate-400">{uploadedCount}/{isGroupType ? 1 : session.members.length}명 업로드</div>
+          <div className="text-sm text-slate-400">{uploadedCount}/{totalExpected}건 업로드</div>
           <button onClick={() => goStep(session.currentStep + 1)} disabled={session.currentStep >= 3} className="text-sm font-medium text-teal-600 hover:text-teal-500 disabled:opacity-30 transition-colors">다음 역량 →</button>
         </div>
       </div>

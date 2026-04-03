@@ -16,17 +16,18 @@ export interface GroupMember {
 // 역량별 영상 등록 상태
 export interface CompetencyVideoState {
   competencyKey: LeadershipCompetencyKey;
-  type: "individual" | "group"; // individual: 6개 개별, group: 1개 공용
-  // individual일 때: memberId → videoId 매핑
-  // group일 때: sharedVideoId에 저장
+  type: "individual" | "group" | "hybrid";
+  // individual: memberId → videoId
+  // group: sharedVideoId만
+  // hybrid: memberId → videoId (개별 발언) + sharedVideoId (전체 경청)
   memberVideos: Record<string, { videoId: string; fileName: string; blobUrl?: string }>;
-  sharedVideoId?: string;
+  sharedVideoId?: string;    // group/hybrid: 전체 영상
   sharedFileName?: string;
   sharedBlobUrl?: string;
   // 분석 결과
   memberScores: Record<string, {
     overallScore: number;
-    bars: Record<string, number>; // 루브릭 항목별 점수
+    bars: Record<string, number>;
     multimodal?: number;
     analyzed: boolean;
   }>;
@@ -38,9 +39,7 @@ export interface GroupSession {
   name: string;
   createdAt: string;
   members: GroupMember[];
-  // 수업 순서대로 4개 역량
   competencies: CompetencyVideoState[];
-  // 현재 진행 중인 역량 인덱스 (0~3)
   currentStep: number;
 }
 
@@ -48,14 +47,43 @@ export interface GroupSession {
 export const COMPETENCY_ORDER: {
   key: LeadershipCompetencyKey;
   label: string;
-  type: "individual" | "group";
+  type: "individual" | "group" | "hybrid";
   activityType: string;
+  description: string; // 촬영 안내
   color: string;
 }[] = [
-  { key: "visionPresentation", label: "비전제시", type: "individual", activityType: "발표", color: "#14b8a6" },
-  { key: "trustBuilding", label: "신뢰형성", type: "group", activityType: "집단 토론", color: "#f59e0b" },
-  { key: "memberDevelopment", label: "구성원육성", type: "individual", activityType: "역할 연기", color: "#ef4444" },
-  { key: "rationalDecision", label: "합리적의사결정", type: "individual", activityType: "In-basket", color: "#3b82f6" },
+  {
+    key: "visionPresentation",
+    label: "비전제시",
+    type: "individual",
+    activityType: "발표",
+    description: "6명 각자 개별 발표 영상 업로드",
+    color: "#14b8a6",
+  },
+  {
+    key: "trustBuilding",
+    label: "신뢰형성",
+    type: "hybrid",
+    activityType: "집단 토론",
+    description: "개별 클로즈업(발언 분석) + 전체 와이드샷(경청 태도)",
+    color: "#f59e0b",
+  },
+  {
+    key: "memberDevelopment",
+    label: "구성원육성",
+    type: "individual",
+    activityType: "역할 연기",
+    description: "6명 각자 코칭 면담 영상 업로드",
+    color: "#ef4444",
+  },
+  {
+    key: "rationalDecision",
+    label: "합리적의사결정",
+    type: "individual",
+    activityType: "In-basket",
+    description: "6명 각자 의사결정 발표 영상 업로드",
+    color: "#3b82f6",
+  },
 ];
 
 // 빈 조 생성 헬퍼
