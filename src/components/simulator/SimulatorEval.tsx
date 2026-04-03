@@ -156,12 +156,36 @@ export default function SimulatorEval() {
         {/* 우측: 평가 리포트 */}
         <div className="space-y-4">
           {!hasScores && (
-            <div className="animate-fade-in-up bg-white border border-slate-200 rounded-xl p-10 text-center shadow-sm" style={{ animationDelay: "100ms", animationFillMode: "backwards" }}>
-              <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-coral-50 to-amber-50 flex items-center justify-center mx-auto mb-4">
-                <Target className="w-7 h-7 text-coral-500" />
+            <div className="animate-fade-in-up bg-white border border-slate-200 rounded-xl p-6 shadow-sm" style={{ animationDelay: "100ms", animationFillMode: "backwards" }}>
+              <div className="text-center mb-5">
+                <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-coral-50 to-amber-50 flex items-center justify-center mx-auto mb-3">
+                  <Target className="w-6 h-6 text-coral-500" />
+                </div>
+                <p className="text-base font-semibold text-slate-700 mb-1">8대 핵심역량 평가</p>
+                <p className="text-sm text-slate-400">영상 업로드 시 자동 분석됩니다</p>
               </div>
-              <p className="text-lg font-medium text-slate-700 mb-1">역량 평가 대기 중</p>
-              <p className="text-base text-slate-400 leading-relaxed">영상을 업로드하면<br />8대 핵심역량 분석 결과가 표시됩니다</p>
+              {/* 8대 역량 미리보기 */}
+              <div className="space-y-2">
+                {[
+                  { label: "의사소통", color: "#14b8a6" },
+                  { label: "상황인식", color: "#3b82f6" },
+                  { label: "신중한운전", color: "#8b5cf6" },
+                  { label: "팀워크", color: "#f59e0b" },
+                  { label: "의사결정", color: "#ef4444" },
+                  { label: "리더십", color: "#06b6d4" },
+                  { label: "절차준수", color: "#10b981" },
+                  { label: "비상대응", color: "#f97316" },
+                ].map((c) => (
+                  <div key={c.label} className="flex items-center gap-2">
+                    <div className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: c.color }} />
+                    <span className="text-sm text-slate-500 flex-1">{c.label}</span>
+                    <div className="w-24 h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                      <div className="h-full rounded-full bg-slate-200/60" style={{ width: "0%" }} />
+                    </div>
+                    <span className="text-xs font-mono text-slate-300 w-6 text-right">—</span>
+                  </div>
+                ))}
+              </div>
             </div>
           )}
           {/* 종합 점수 */}
