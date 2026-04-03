@@ -81,7 +81,7 @@ export default function GroupDashboard({ session, onBack, onViewMember }: GroupD
     <div className="max-w-[1440px] mx-auto px-4 md:px-6 py-8 space-y-6 animate-slide-in-right">
       {/* 헤더 */}
       <div className="flex items-center gap-3">
-        <button onClick={onBack} className="text-slate-500 hover:text-teal-600 transition-colors">
+        <button onClick={onBack} className="text-slate-500 hover:text-teal-600 transition-colors" aria-label="뒤로 가기">
           <ArrowLeft className="w-4 h-4" />
         </button>
         <div>

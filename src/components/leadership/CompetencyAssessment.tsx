@@ -94,10 +94,10 @@ function ScoreSelector({
               "w-7 h-7 rounded-md text-sm font-mono font-semibold transition-all duration-150",
               filled
                 ? tier === "high"
-                  ? "bg-teal-500/25 text-teal-300 border border-teal-500/40"
+                  ? "bg-teal-100 text-teal-700 border border-teal-300"
                   : tier === "mid"
-                    ? "bg-amber-500/25 text-amber-300 border border-amber-500/40"
-                    : "bg-red-500/25 text-red-300 border border-red-500/40"
+                    ? "bg-amber-100 text-amber-700 border border-amber-300"
+                    : "bg-red-100 text-red-600 border border-red-300"
                 : "bg-slate-50/50 text-slate-400 border border-slate-200/50 hover:border-slate-200 hover:text-slate-500"
             )}
           >

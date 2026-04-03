@@ -84,7 +84,7 @@ export default function GroupManager({
     } catch { /* */ } finally {
       setUploadingFor(null);
     }
-  }, [session, upload, isGroupType, onUpdate]);
+  }, [session, upload, onUpdate]);
 
   const goStep = useCallback((step: number) => {
     const updated = { ...session, currentStep: Math.max(0, Math.min(3, step)) };

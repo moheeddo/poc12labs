@@ -370,8 +370,6 @@ export function generateAnalysisReport(
   const competencies: CompetencySummary[] = targetKeys.map((key) => {
     const comp = LEADERSHIP_COMPETENCY_DEFS.find((d) => d.key === key);
     const items = evidenceList.filter((e) => e.competencyKey === key);
-    const scored = items.filter((e) => e.score > 0 || e.aiScore);
-
     // 평균 점수: 사용자 입력 > AI 추천
     const scores = items.map((e) => e.score > 0 ? e.score : (e.aiScore || 0)).filter((s) => s > 0);
     const avg = scores.length > 0 ? scores.reduce((a, b) => a + b, 0) / scores.length : 0;

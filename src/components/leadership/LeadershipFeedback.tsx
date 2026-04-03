@@ -3,10 +3,7 @@
 import { useState, useRef, useCallback, useEffect, useMemo } from "react";
 import {
   ArrowLeft,
-  Play,
-  Pause,
   PlayCircle,
-  Clock,
   Sparkles,
   Save,
   FileText,
@@ -18,10 +15,7 @@ import {
   Circle,
   Loader2,
   Eye,
-  Ear,
-  MessageSquare,
   Hand,
-  Smile,
   Zap,
 } from "lucide-react";
 import { useVideoSearch, useVideoAnalysis, useVideoTranscription } from "@/hooks/useTwelveLabs";
@@ -34,11 +28,9 @@ import {
 } from "@/lib/leadership-analysis";
 import type { AnalysisReportData } from "@/lib/leadership-analysis";
 import { useMultimodalPipeline } from "@/hooks/useMultimodalPipeline";
-import type { PipelineResult } from "@/hooks/useMultimodalPipeline";
-import SearchBar from "@/components/shared/SearchBar";
 import TranscriptTimeline from "./TranscriptTimeline";
 import AnalysisReport from "./AnalysisReport";
-import type { Chapter, Highlight, SearchResult, LeadershipCompetencyKey } from "@/lib/types";
+import type { Chapter, Highlight, LeadershipCompetencyKey } from "@/lib/types";
 import { formatTime, cn } from "@/lib/utils";
 
 interface LeadershipFeedbackProps {
@@ -110,10 +102,10 @@ function ScoreSelector({
               "w-6 h-6 rounded-md text-sm font-mono font-semibold transition-all duration-150",
               filled
                 ? tier === "teal"
-                  ? "bg-teal-500/25 text-teal-300 border border-teal-500/40"
+                  ? "bg-teal-100 text-teal-700 border border-teal-300"
                   : tier === "slate"
-                    ? "bg-slate-500/25 text-slate-700 border border-slate-500/40"
-                    : "bg-amber-500/25 text-amber-300 border border-amber-500/40"
+                    ? "bg-slate-100 text-slate-700 border border-slate-300"
+                    : "bg-amber-100 text-amber-700 border border-amber-300"
                 : isAiSuggested
                   ? "bg-violet-500/15 text-violet-600 border border-violet-500/30 ring-1 ring-violet-500/20"
                   : "bg-slate-50/50 text-slate-400 border border-slate-200/50 hover:border-slate-200 hover:text-slate-500"
@@ -162,12 +154,12 @@ export default function LeadershipFeedback({
   const [evidence, setEvidence] = useState<EvidenceItem[]>([]);
 
   // 멀티모달 파이프라인
-  const { progress: mmProgress, result: mmResult, error: mmError, runPipeline, channelLabels } = useMultimodalPipeline();
+  const { progress: mmProgress, result: mmResult, error: mmError, runPipeline } = useMultimodalPipeline();
   const [mmStarted, setMmStarted] = useState(false);
 
   // 재생
   const [currentTime, setCurrentTime] = useState(0);
-  const [isPlaying, setIsPlaying] = useState(false);
+  const [, setIsPlaying] = useState(false);
 
   // UI
   const [activeEvidenceId, setActiveEvidenceId] = useState<string | null>(null);
@@ -177,7 +169,9 @@ export default function LeadershipFeedback({
   const [rightTab, setRightTab] = useState<"evidence" | "transcript" | "report" | "multimodal">("multimodal");
 
   // 검색
-  const { results: searchResults, loading: searchLoading, search } = useVideoSearch();
+  // 검색 기능은 향후 UI 연동을 위해 보존
+  const { search: _search } = useVideoSearch();
+  void _search;
   const { analyze } = useVideoAnalysis();
   const { segments: transcriptSegments, loading: transcriptLoading, fetchTranscription } = useVideoTranscription();
 
@@ -371,7 +365,6 @@ export default function LeadershipFeedback({
       v.removeEventListener("seeked", onSeeked);
     };
   // 분석 완료 후 video 엘리먼트가 새로 마운트되므로 재등록
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [analysisLoading, mmProgress.phase]);
 
   // ── 핸들러 ──
@@ -380,11 +373,12 @@ export default function LeadershipFeedback({
     if (v) { v.currentTime = time; setCurrentTime(time); v.play(); }
   }, []);
 
-  const togglePlay = useCallback(() => {
-    const v = videoRef.current;
-    if (!v) return;
-    if (v.paused) { v.play(); } else { v.pause(); }
-  }, []);
+  // togglePlay는 향후 UI 버튼 연동을 위해 남겨둠 (현재 미사용)
+  // const togglePlay = useCallback(() => {
+  //   const v = videoRef.current;
+  //   if (!v) return;
+  //   if (v.paused) { v.play(); } else { v.pause(); }
+  // }, []);
 
   const handleEvidenceClick = useCallback(
     (ev: EvidenceItem) => {
@@ -449,10 +443,11 @@ export default function LeadershipFeedback({
     setTimeout(() => setSaved(false), 3000);
   }, [videoId, videoTitle, evidence]);
 
-  const handleSearch = useCallback(
-    (query: string) => search(TWELVELABS_INDEXES.leadership, query),
-    [search]
-  );
+  // handleSearch: 향후 검색 UI 연동을 위해 보존 (현재 미사용)
+  // const handleSearch = useCallback(
+  //   (query: string) => search(TWELVELABS_INDEXES.leadership, query),
+  //   [search]
+  // );
 
   // ── 계산값 ──
   const currentChapterIndex = useMemo(
@@ -465,7 +460,10 @@ export default function LeadershipFeedback({
     [chapters, evidence]
   );
 
-  const scoredCount = useMemo(() => evidence.filter((e) => e.score > 0).length, [evidence]);
+  // scoredCount는 reportData에서 사용되므로 직접 참조하지 않지만,
+  // 향후 UI 카운터에 사용될 수 있어 보존
+  const _scoredCount = useMemo(() => evidence.filter((e) => e.score > 0).length, [evidence]);
+  void _scoredCount;
 
   // 종합 리포트 데이터
   const reportData: AnalysisReportData | null = useMemo(() => {
@@ -484,7 +482,7 @@ export default function LeadershipFeedback({
         ? selectedCompetencies
         : ["visionPresentation", "trustBuilding", "memberDevelopment", "rationalDecision"]
     );
-  }, [evidence, summary]);
+  }, [evidence, summary, selectedCompetencies]);
 
   // 미평가 항목 수
   const unscoredCount = evidence.filter((e) => e.score === 0).length;
@@ -566,7 +564,6 @@ export default function LeadershipFeedback({
             {ANALYSIS_STEPS.map((step) => {
               const isDone = effectivePhase > step.phase;
               const isCurrent = effectivePhase === step.phase;
-              const isPending = effectivePhase < step.phase;
 
               return (
                 <div key={step.phase} className="flex items-start gap-4">
@@ -1068,7 +1065,6 @@ export default function LeadershipFeedback({
                 const isEvidencePlaying =
                   currentTime >= ev.timestamp && currentTime <= ev.endTime;
                 const comp = COMP_MAP[ev.competencyKey];
-                const displayScore = ev.score > 0 ? ev.score : ev.aiScore;
 
                 return (
                   <div

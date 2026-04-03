@@ -43,10 +43,10 @@ export interface CompetencyAssessmentData {
 
 // ─── 공통 4단계 색상 ───
 const LEVEL_COLORS = {
-  excellent: { color: "text-teal-300", bgColor: "bg-teal-500/10" },
-  good:     { color: "text-sky-300",   bgColor: "bg-sky-500/10" },
-  fair:     { color: "text-amber-300", bgColor: "bg-amber-500/10" },
-  poor:     { color: "text-red-300",   bgColor: "bg-red-500/10" },
+  excellent: { color: "text-teal-600", bgColor: "bg-teal-50" },
+  good:     { color: "text-sky-600",   bgColor: "bg-sky-50" },
+  fair:     { color: "text-amber-600", bgColor: "bg-amber-50" },
+  poor:     { color: "text-red-500",   bgColor: "bg-red-50" },
 };
 
 // =============================================
@@ -411,10 +411,10 @@ export const MULTIMODAL_RUBRIC: MultimodalRubricData = {
     totalFormula: "총점 = 채점 가능 항목 평균 (최대 9점)",
   },
   totalInterpretation: [
-    { range: "7.5 ~ 9.0", label: "매우 우수", color: "text-teal-400" },
-    { range: "5.5 ~ 7.4", label: "보통 이상", color: "text-sky-400" },
-    { range: "3.0 ~ 5.4", label: "보통 미만", color: "text-amber-400" },
-    { range: "0.0 ~ 2.9", label: "미흡", color: "text-red-400" },
+    { range: "7.5 ~ 9.0", label: "매우 우수", color: "text-teal-600" },
+    { range: "5.5 ~ 7.4", label: "보통 이상", color: "text-sky-600" },
+    { range: "3.0 ~ 5.4", label: "보통 미만", color: "text-amber-600" },
+    { range: "0.0 ~ 2.9", label: "미흡", color: "text-red-500" },
   ],
   items: [
     {
