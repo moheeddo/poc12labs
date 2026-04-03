@@ -1,5 +1,82 @@
 # Maintenance Log
 
+## 2026-04-04 QA 사이클 10 — 최종 정기 점검 완료
+
+### 1. 빌드 + 배포 상태
+
+| 항목 | 결과 |
+|------|------|
+| `npx tsc --noEmit` | O -- 오류 0개 |
+| `npx next build` | O -- 성공 (15개 라우트, First Load JS 102~119 kB) |
+| Vercel 배포 | 최근 배포 Ready 상태 확인 |
+
+### 2. 분석 흐름 코드 경로 최종 확인 (LeadershipFeedback.tsx `loadAnalysis`)
+
+| 단계 | analysisPhase | 동작 | graceful degradation |
+|------|---------------|------|---------------------|
+| 인덱싱 대기 | 1 | `waitForIndexing()` 최대 75회 폴링 (4초 간격) | 인덱싱 실패/타임아웃 시에도 "분석을 시도합니다" 경고 후 다음 단계 진행 |
+| 챕터 분석 | 2 | `analyze(videoId, "chapter")` | 빈 배열이면 `setChapters` 건너뜀, 역량매칭에서 전체 영상을 1개 구간으로 대체 |
+| 하이라이트 추출 | 3 | `analyze(videoId, "highlight")` | 빈 배열이면 `setHighlights` 건너뜀, 역량매칭에서 빈 배열 사용 |
+| AI 요약 | 4 | `analyze(videoId, "summary")` | 빈 문자열이면 `setSummary` 건너뜀 |
+| BARS 역량 매칭 | 5 | `matchChapterToCompetency` + `generateAIScore` + `generateAutoFeedback` | 최소 1개 evidence 생성 보장 (전체 영상 폴백) |
+| 완료 | 6 | `setAnalysisPhase(6)` + `setAnalysisLoading(false)` | -- |
+
+**결론**: waitForIndexing -> chapter -> highlight -> summary -> 역량매칭 순서 정확. 각 단계 실패 시 다음 단계로 정상 진행 (graceful degradation 확인). analysisPhase 1->2->3->4->5->6 정확히 전환.
+
+### 3. 멀티모달 파이프라인 자동 시작 + 결과 연결 (useMultimodalPipeline.ts)
+
+| 항목 | 검증 결과 |
+|------|----------|
+| 자동 시작 조건 | `analysisPhase >= 6 && !mmStarted && videoId` -- BARS 완료 후 자동 트리거 확인 |
+| 5채널 병렬 추출 | `Promise.allSettled(CHANNELS.map(...))` -- gaze/voice/fluency/posture/face 병렬 실행 |
+| ExtractedSignals 매핑 | CHANNEL_DATA_KEYS + SIGNAL_KEYS 이중 매핑으로 중첩/평탄 응답 구조 모두 처리 |
+| parseError 방어 | `channelData.parseError` 존재 시 해당 채널 건너뜀 |
+| scoreMultimodalSignals 호출 | 추출된 signals 객체 그대로 전달, 정확 |
+| Solar 보고서 요청 | `{ scoringResult: scoring, competencyLabel, scenarioText }` -- 올바른 데이터 전달 |
+| Solar 실패 시 | try/catch로 보고서 생성 실패해도 채점 결과만으로 진행 |
+| effectivePhase | BARS(1~6) + 멀티모달(6~8) + 완료(9)로 UI 진행률 정확 매핑 |
+
+### 4. 그룹 관리 -> 분석 -> 대시보드 데이터 흐름
+
+```
+GroupManager.onAnalyzeMember(memberId, memberName, videoId, videoUrl, competencyKey, scenarioText)
+  → LeadershipCoaching.setView({ type: "group-feedback", ...params })
+    → LeadershipFeedback(videoId, videoTitle, videoUrl, selectedCompetencies=[competencyKey], scenarioText)
+      → loadAnalysis() 자동 실행
+      → BARS 완료 후 멀티모달 파이프라인 자동 시작
+```
+
+**결론**: GroupManager -> LeadershipCoaching(뷰 전환) -> LeadershipFeedback(분석 실행) 경로에 데이터 끊김 없음. competencyKey, scenarioText 모두 정상 전달.
+
+### 5. 발견 이슈
+
+| # | 심각도 | 이슈 | 상태 |
+|---|--------|------|------|
+| -- | -- | 코드 수정 필요 항목 없음 | -- |
+
+### 6. 10사이클 전체 요약표
+
+| 사이클 | 날짜 | 주요 내용 | 상태 |
+|--------|------|----------|------|
+| 1 | 2026-04-03 | 다크 테마 잔여 제거, 미사용 코드 정리, 접근성, 파이프라인 검증 | 완료 |
+| 2 | 2026-04-03 | API 점검, XSS 방지, 성능 최적화(useMemo), 참조 안정성 | 완료 |
+| 3 | 2026-04-04 | PDF 대조 검증, 멀티모달 프롬프트 개선, Solar 보고서 구조화, 전사 종결 패턴 | 완료 |
+| 4 | 2026-04-04 | 엣지 케이스 방어, 빈 대시보드, 인쇄 CSS, SEO, 환경변수 | 완료 |
+| 5 | 2026-04-04 | surface-* 컬러 정규화, 차트 라이트 테마, 타입 안전성, 전체 컴포넌트 점검 | 완료 |
+| 6 | 2026-04-04 | 빌드/배포 검증, rubricurl 문서 대조, 반응형 마무리, API 로깅 전면 적용 | 완료 |
+| 7 | 2026-04-04 | 개발 서버 기능 테스트, Solar 모델명 수정, TODO 정리 | 완료 |
+| 8 | 2026-04-04 | (사이클 8은 사이클 9의 사전 작업으로 통합) | -- |
+| 9 | 2026-04-04 | Playwright E2E UI 테스트, Hydration 장애 발견/해소 | 완료 |
+| 10 | 2026-04-04 | 최종 정기 점검: 빌드/배포 확인, 분석 흐름 코드 경로 검증, 멀티모달 파이프라인 연결 검증, 그룹 데이터 흐름 검증 | **최종 완료** |
+
+### 빌드 결과
+
+- `npx tsc --noEmit`: 오류 0개
+- `npx next build`: 성공 (15개 라우트, 경고 0개)
+- Vercel: 최근 배포 Ready
+
+---
+
 ## 2026-04-04 QA 사이클 9 — Playwright E2E UI 테스트 + Hydration 장애 발견/해소
 
 ### 1. 테스트 환경
