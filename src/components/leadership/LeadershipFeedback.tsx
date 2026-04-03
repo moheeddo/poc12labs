@@ -684,16 +684,16 @@ export default function LeadershipFeedback({
           </button>
         </div>
       </div>
-      <p className="text-base text-slate-700 mb-2">{videoTitle}</p>
-
-      {/* 선택된 역량 + 상황사례 표시 */}
-      <div className="flex items-center gap-2 flex-wrap mb-4">
+      {/* 영상 제목 + 선택 역량 태그 */}
+      <div className="flex items-center gap-2 flex-wrap mb-6">
+        <p className="text-base text-slate-700">{videoTitle}</p>
+        <span className="text-slate-300">·</span>
         {competencyKeysToUse.map((key) => {
           const comp = COMP_MAP[key];
           return comp ? (
             <span
               key={key}
-              className="inline-flex items-center gap-1 text-sm font-medium px-2.5 py-1 rounded-lg"
+              className="inline-flex items-center text-xs font-medium px-2 py-0.5 rounded"
               style={{ backgroundColor: `${comp.color}15`, color: comp.color }}
             >
               {comp.label}
@@ -701,13 +701,6 @@ export default function LeadershipFeedback({
           ) : null;
         })}
       </div>
-      {scenarioText && (
-        <div className="bg-slate-50/60 border border-slate-200/30 rounded-xl p-4 mb-8">
-          <p className="text-sm text-slate-500 mb-1 font-medium">상황사례</p>
-          <p className="text-base text-slate-600 leading-relaxed whitespace-pre-line">{scenarioText}</p>
-        </div>
-      )}
-      {!scenarioText && <div className="mb-4" />}
 
       {/* ── 2단 레이아웃 ── */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
@@ -724,25 +717,15 @@ export default function LeadershipFeedback({
             />
           </div>
 
-          {/* 재생 컨트롤 + 챕터 타임라인 */}
-          <div className="bg-white/60 border border-slate-200/40 rounded-xl p-4">
-            <div className="flex items-center gap-3 mb-3">
-              <button
-                onClick={togglePlay}
-                className="w-9 h-9 rounded-full bg-teal-50 flex items-center justify-center text-teal-600 hover:bg-teal-500/25 transition-colors shrink-0"
-              >
-                {isPlaying ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4 ml-0.5" />}
-              </button>
-              <span className="text-base font-mono text-slate-700 tabular-nums min-w-[48px]">
-                {formatTime(currentTime)}
-              </span>
-              {currentChapterIndex >= 0 && (
-                <span className="text-base text-teal-600/80 truncate">
-                  {chapters[currentChapterIndex]?.title}
-                </span>
-              )}
-            </div>
-            {chapters.length > 0 && (
+          {/* 챕터 타임라인 (챕터가 있을 때만) */}
+          {chapters.length > 0 && (
+            <div className="bg-white/60 border border-slate-200/40 rounded-xl p-3">
+              <div className="flex items-center gap-2 mb-2">
+                <span className="text-xs text-slate-500 font-medium">챕터</span>
+                {currentChapterIndex >= 0 && (
+                  <span className="text-xs text-teal-600 truncate">{chapters[currentChapterIndex]?.title}</span>
+                )}
+              </div>
               <div className="flex gap-1 h-2 rounded-full overflow-hidden">
                 {chapters.map((ch, i) => {
                   const total = chapters[chapters.length - 1]?.end || 1;
@@ -764,40 +747,6 @@ export default function LeadershipFeedback({
                   );
                 })}
               </div>
-            )}
-          </div>
-
-          {/* 검색 */}
-          <SearchBar
-            placeholder="토론 장면 검색 — 반박 발언, 리더십 발휘, 코칭 사례..."
-            onSearch={handleSearch}
-            loading={searchLoading}
-            accentColor="teal"
-            suggestions={["반박 발언", "비전 발표", "갈등 조율", "코칭 피드백"]}
-          />
-
-          {/* 검색 결과 */}
-          {searchResults.length > 0 && (
-            <div className="bg-white/60 border border-slate-200/40 rounded-xl p-4 space-y-1 animate-fade-in-up">
-              <p className="text-sm text-slate-500 mb-2">검색 결과 {searchResults.length}건</p>
-              {searchResults.map((r: SearchResult, i: number) => (
-                <button
-                  key={i}
-                  onClick={() => seekTo(r.start)}
-                  className="w-full text-left flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-100/50 transition-colors group"
-                >
-                  <span className="inline-flex items-center gap-1 text-teal-600 font-mono text-sm shrink-0">
-                    <Clock className="w-3 h-3" />
-                    {formatTime(r.start)}
-                  </span>
-                  <span className="text-base text-slate-500 group-hover:text-slate-700 truncate flex-1">
-                    {r.text || r.videoTitle}
-                  </span>
-                  <span className="text-sm font-mono text-slate-400">
-                    {(r.confidence * 100).toFixed(0)}%
-                  </span>
-                </button>
-              ))}
             </div>
           )}
 
@@ -846,56 +795,43 @@ export default function LeadershipFeedback({
 
         {/* ─── 우측: 평가 근거 / 디브리핑 대본 / 종합 리포트 ─── */}
         <div className="lg:col-span-5 space-y-6">
-          {/* 탭 헤더 — 4탭 */}
+          {/* 탭 헤더 — 3탭 */}
           <div className="flex items-center gap-1 p-1 bg-white/40 border border-slate-200/30 rounded-xl">
             <button
               onClick={() => setRightTab("multimodal")}
               className={cn(
-                "flex-1 flex items-center justify-center gap-1.5 px-2.5 py-2.5 rounded-lg text-sm font-medium transition-all",
+                "flex-1 flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-lg text-sm font-medium transition-all",
                 rightTab === "multimodal"
                   ? "bg-violet-50 text-violet-600 shadow-sm"
                   : "text-slate-500 hover:text-slate-500"
               )}
             >
               <Eye className="w-3.5 h-3.5" />
-              <span className="hidden sm:inline">멀티모달</span>
+              멀티모달 분석
             </button>
             <button
               onClick={() => setRightTab("report")}
               className={cn(
-                "flex-1 flex items-center justify-center gap-1.5 px-2.5 py-2.5 rounded-lg text-sm font-medium transition-all",
+                "flex-1 flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-lg text-sm font-medium transition-all",
                 rightTab === "report"
                   ? "bg-slate-100/60 text-teal-600 shadow-sm"
                   : "text-slate-500 hover:text-slate-500"
               )}
             >
               <BarChart3 className="w-3.5 h-3.5" />
-              <span className="hidden sm:inline">BARS</span>
-            </button>
-            <button
-              onClick={() => setRightTab("evidence")}
-              className={cn(
-                "flex-1 flex items-center justify-center gap-1.5 px-2.5 py-2.5 rounded-lg text-sm font-medium transition-all",
-                rightTab === "evidence"
-                  ? "bg-slate-100/60 text-teal-600 shadow-sm"
-                  : "text-slate-500 hover:text-slate-500"
-              )}
-            >
-              <ClipboardList className="w-3.5 h-3.5" />
-              <span className="hidden sm:inline">근거</span>
-              <span className="text-xs font-mono opacity-60">{scoredCount}/{evidence.length}</span>
+              BARS 리포트
             </button>
             <button
               onClick={() => setRightTab("transcript")}
               className={cn(
-                "flex-1 flex items-center justify-center gap-1.5 px-2.5 py-2.5 rounded-lg text-sm font-medium transition-all",
+                "flex-1 flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-lg text-sm font-medium transition-all",
                 rightTab === "transcript"
                   ? "bg-slate-100/60 text-teal-600 shadow-sm"
                   : "text-slate-500 hover:text-slate-500"
               )}
             >
               <FileText className="w-3.5 h-3.5" />
-              <span className="hidden sm:inline">대본</span>
+              대본
             </button>
           </div>
 
@@ -919,8 +855,19 @@ export default function LeadershipFeedback({
                 </div>
 
                 {/* 항목별 점수 */}
-                {mmResult.scoring.items.map((item) => (
-                  <div key={item.id} className="bg-white/60 border border-slate-200/30 rounded-xl p-4 border-l-[3px] border-l-violet-400">
+                {mmResult.scoring.items.map((item, itemIdx) => (
+                  <div
+                    key={item.id}
+                    className="bg-white/60 border border-slate-200/30 rounded-xl p-4 border-l-[3px] border-l-violet-400 cursor-pointer hover:shadow-md transition-all"
+                    onClick={() => {
+                      // 항목 인덱스에 따라 영상 위치 이동 (균등 분할)
+                      const videoEl = videoRef.current;
+                      if (videoEl && videoEl.duration) {
+                        const segmentDuration = videoEl.duration / 5;
+                        seekTo(segmentDuration * itemIdx);
+                      }
+                    }}
+                  >
                     <div className="flex items-center justify-between mb-2">
                       <div>
                         <span className="text-sm font-semibold text-violet-600">{item.name}</span>
@@ -1038,15 +985,8 @@ export default function LeadershipFeedback({
             />
           )}
 
-          {/* ── 평가 근거 탭 ── */}
-          {rightTab === "evidence" && evidence.length === 0 && !analysisLoading && (
-            <div className="bg-white/40 border border-slate-200/30 rounded-xl p-8 text-center">
-              <ClipboardList className="w-10 h-10 mx-auto mb-3 text-slate-400" />
-              <p className="text-base text-slate-500 mb-1">평가 근거 없음</p>
-              <p className="text-sm text-slate-400">AI 분석이 완료되면 챕터별 평가 근거가 자동 생성됩니다</p>
-            </div>
-          )}
-          {rightTab === "evidence" && evidenceByChapter.map(({ chapter, items }, ci) => (
+          {/* ── [삭제됨: 평가 근거 탭 — 멀티모달+BARS로 대체] ── */}
+          {false && evidenceByChapter.map(({ chapter, items }, ci) => (
             <div
               key={ci}
               className="space-y-3 animate-fade-in-up"

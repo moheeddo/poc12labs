@@ -84,21 +84,51 @@ export function useMultimodalPipeline() {
         })
       );
 
-      // 결과 조합
+      // 결과 조합 — TwelveLabs 응답 구조 유연하게 처리
       const signals: ExtractedSignals = {};
       const completed: string[] = [];
+
+      // 채널 → 데이터 키 매핑
+      const CHANNEL_DATA_KEYS: Record<string, string[]> = {
+        gaze: ["gaze"],
+        voice: ["voice"],
+        fluency: ["fluency"],
+        posture: ["posture_gesture", "posture"],
+        face: ["face_head", "face"],
+      };
+      // 채널 → signals 키 매핑
+      const SIGNAL_KEYS: Record<string, keyof ExtractedSignals> = {
+        gaze: "gaze",
+        voice: "voice",
+        fluency: "fluency",
+        posture: "posture_gesture",
+        face: "face_head",
+      };
 
       extractResults.forEach((r, i) => {
         const ch = CHANNELS[i];
         if (r.status === "fulfilled" && r.value.data) {
-          const channelData = r.value.data;
-          // 채널별 데이터 매핑
-          if (ch === "gaze" && channelData.gaze) signals.gaze = channelData.gaze;
-          else if (ch === "voice" && channelData.voice) signals.voice = channelData.voice;
-          else if (ch === "fluency" && channelData.fluency) signals.fluency = channelData.fluency;
-          else if (ch === "posture" && channelData.posture_gesture) signals.posture_gesture = channelData.posture_gesture;
-          else if (ch === "face" && channelData.face_head) signals.face_head = channelData.face_head;
-          completed.push(ch);
+          let channelData = r.value.data;
+
+          // TwelveLabs 응답이 중첩 구조일 수 있음 (예: { gaze: { audience_facing_ratio: 0.72 } })
+          // 또는 평탄 구조 (예: { audience_facing_ratio: 0.72 })
+          const possibleKeys = CHANNEL_DATA_KEYS[ch] || [];
+          for (const key of possibleKeys) {
+            if (channelData[key] && typeof channelData[key] === "object") {
+              channelData = channelData[key];
+              break;
+            }
+          }
+
+          // parseError가 있으면 건너뛰기
+          if (channelData.parseError) return;
+
+          const signalKey = SIGNAL_KEYS[ch];
+          if (signalKey) {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            (signals as any)[signalKey] = channelData;
+            completed.push(ch);
+          }
         }
       });
 
