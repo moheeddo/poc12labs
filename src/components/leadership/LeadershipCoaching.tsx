@@ -104,6 +104,18 @@ export default function LeadershipCoaching() {
 
   // 업로드
   const { progress: uploadProgress, upload, uploadByUrl } = useVideoUpload();
+
+  // 업로드 중 페이지 이탈 경고
+  useEffect(() => {
+    if (!uploadProgress || uploadProgress.status === "complete" || uploadProgress.status === "error") return;
+    const handler = (e: BeforeUnloadEvent) => {
+      e.preventDefault();
+      e.returnValue = "영상 업로드가 진행 중입니다. 페이지를 나가시겠습니까?";
+    };
+    window.addEventListener("beforeunload", handler);
+    return () => window.removeEventListener("beforeunload", handler);
+  }, [uploadProgress]);
+
   const [uploadedVideoId, setUploadedVideoId] = useState<string | null>(null);
   const [uploadedFileName, setUploadedFileName] = useState("");
   const [uploadedBlobUrl, setUploadedBlobUrl] = useState<string | null>(null);
@@ -319,6 +331,8 @@ export default function LeadershipCoaching() {
               return;
             }
           }
+          // 영상이 없는 멤버 클릭 시 — 조 관리 화면으로 이동 (크래시 방지)
+          setView({ type: "group-manage", sessionId: activeGroupSession.id });
         }}
       />
     );

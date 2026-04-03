@@ -11,7 +11,7 @@ import {
   Tooltip,
   Legend,
 } from "recharts";
-import { ArrowLeft, Trophy, TrendingDown, Users } from "lucide-react";
+import { ArrowLeft, Trophy, TrendingDown, Users, AlertCircle } from "lucide-react";
 import type { GroupSession } from "@/lib/group-types";
 import { COMPETENCY_ORDER } from "@/lib/group-types";
 import { cn } from "@/lib/utils";
@@ -77,10 +77,17 @@ export default function GroupDashboard({ session, onBack, onViewMember }: GroupD
       .sort((a, b) => b.avgScore - a.avgScore);
   }, [session]);
 
+  // 분석된 멤버가 하나라도 있는지 확인
+  const hasAnyAnalysis = useMemo(() => {
+    return session.competencies.some((c) =>
+      Object.values(c.memberScores).some((s) => s?.analyzed)
+    );
+  }, [session]);
+
   return (
-    <div className="max-w-[1440px] mx-auto px-4 md:px-6 py-8 space-y-6 animate-slide-in-right">
+    <div className="max-w-[1440px] mx-auto px-4 md:px-6 py-8 space-y-6 animate-slide-in-right print:py-4 print:space-y-4">
       {/* 헤더 */}
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-3 no-print">
         <button onClick={onBack} className="text-slate-500 hover:text-teal-600 transition-colors" aria-label="뒤로 가기">
           <ArrowLeft className="w-4 h-4" />
         </button>
@@ -89,6 +96,34 @@ export default function GroupDashboard({ session, onBack, onViewMember }: GroupD
           <p className="text-sm text-slate-500">{session.members.length}명 역량 비교 · 디브리핑용</p>
         </div>
       </div>
+      {/* 인쇄용 헤더 */}
+      <div className="hidden print:block">
+        <h2 className="text-xl font-bold text-slate-900">{session.name} — 비교 대시보드</h2>
+        <p className="text-sm text-slate-500">{session.members.length}명 역량 비교 · 디브리핑용</p>
+      </div>
+
+      {/* ── 빈 상태: 분석된 멤버가 없을 때 안내 ── */}
+      {!hasAnyAnalysis && (
+        <div className="bg-amber-50/60 border border-amber-200/50 rounded-xl p-8 text-center animate-fade-in-up">
+          <div className="w-14 h-14 mx-auto mb-4 rounded-2xl bg-amber-100 flex items-center justify-center">
+            <AlertCircle className="w-7 h-7 text-amber-600" />
+          </div>
+          <h3 className="text-lg font-bold text-amber-800 mb-2">아직 분석된 데이터가 없습니다</h3>
+          <p className="text-sm text-amber-700 mb-1">
+            비교 대시보드를 보려면 먼저 역량별 영상 분석을 진행해주세요.
+          </p>
+          <p className="text-xs text-amber-600/70">
+            조 관리 화면에서 영상을 업로드하고 &ldquo;분석 시작&rdquo; 버튼을 눌러주세요.
+          </p>
+          <button
+            onClick={onBack}
+            className="mt-5 inline-flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-medium bg-amber-100 text-amber-700 hover:bg-amber-200 border border-amber-200/50 transition-colors"
+          >
+            <ArrowLeft className="w-3.5 h-3.5" />
+            조 관리로 돌아가기
+          </button>
+        </div>
+      )}
 
       {/* 종합 순위 카드 */}
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import {
   Users,
   Plus,
@@ -43,6 +43,18 @@ export default function GroupManager({
   const { progress: uploadProgress, upload } = useVideoUpload();
   const [uploadingFor, setUploadingFor] = useState<string | null>(null);
   const [scenarioText, setScenarioText] = useState("");
+
+  // 업로드 중 페이지 이탈 경고
+  useEffect(() => {
+    if (!uploadingFor) return;
+    const handler = (e: BeforeUnloadEvent) => {
+      e.preventDefault();
+      // 표준: returnValue 설정으로 브라우저 확인 대화상자 트리거
+      e.returnValue = "영상 업로드가 진행 중입니다. 페이지를 나가시겠습니까?";
+    };
+    window.addEventListener("beforeunload", handler);
+    return () => window.removeEventListener("beforeunload", handler);
+  }, [uploadingFor]);
 
   const currentComp = COMPETENCY_ORDER[session.currentStep];
   const currentState = session.competencies[session.currentStep];

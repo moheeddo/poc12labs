@@ -50,7 +50,7 @@ export default function Header({ activeTab, onTabChange }: HeaderProps) {
   };
 
   return (
-    <header className="glass sticky top-0 z-50 border-b border-slate-200/80">
+    <header className="glass sticky top-0 z-50 border-b border-slate-200/80 no-print">
       {/* 활성 서비스 상단 글로우 라인 */}
       {activeGlow ? (
         <div className={`h-[2px] bg-gradient-to-r ${activeGlow} transition-all duration-700`} />

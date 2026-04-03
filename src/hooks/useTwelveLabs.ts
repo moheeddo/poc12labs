@@ -95,7 +95,15 @@ export function useVideoUpload() {
       // 브라우저 → TwelveLabs API 직접 업로드 (서버 미경유, 크기 제한 없음)
       // 1) 서버에서 업로드 토큰 조회 (작은 JSON, Vercel 제한 없음)
       console.log(logPrefix, "업로드 토큰 조회 중...");
-      const { token } = await apiFetch<{ token: string }>("/api/tl-token");
+      let token: string;
+      try {
+        const tokenRes = await apiFetch<{ token: string }>("/api/tl-token");
+        token = tokenRes.token;
+        if (!token) throw new Error("API 키가 비어 있습니다");
+      } catch (e) {
+        const msg = e instanceof Error ? e.message : "API 키 조회 실패";
+        throw new Error(`TwelveLabs API 키 오류: ${msg}. 관리자에게 문의하세요.`);
+      }
 
       // 2) TwelveLabs API로 직접 전송
       console.log(logPrefix, "TwelveLabs API로 직접 전송 중...");
@@ -130,7 +138,13 @@ export function useVideoUpload() {
           } else {
             try {
               const err = JSON.parse(xhr.responseText);
-              reject(new Error(err.message || err.error || `HTTP ${xhr.status}`));
+              const errMsg = err.message || err.error || `HTTP ${xhr.status}`;
+              // API 키 만료/무효 시 구체적 안내
+              if (xhr.status === 401 || xhr.status === 403) {
+                reject(new Error(`TwelveLabs API 인증 실패 (${xhr.status}): API 키가 만료되었거나 유효하지 않습니다. 관리자에게 문의하세요.`));
+              } else {
+                reject(new Error(errMsg));
+              }
             } catch {
               reject(new Error(`업로드 실패 (${xhr.status})`));
             }

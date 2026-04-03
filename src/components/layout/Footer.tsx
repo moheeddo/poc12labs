@@ -12,7 +12,7 @@ const FOOTER_LINKS: { key: ServiceTab; label: string; color: string }[] = [
 
 export default function Footer({ onNavigate }: FooterProps) {
   return (
-    <footer className="border-t border-slate-200">
+    <footer className="border-t border-slate-200 no-print">
       {/* 멀티컬러 디바이더 */}
       <div className="h-px bg-gradient-to-r from-coral-500/20 via-teal-500/20 to-amber-500/20" />
 

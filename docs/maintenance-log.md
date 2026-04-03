@@ -1,5 +1,55 @@
 # Maintenance Log
 
+## 2026-04-04 QA 사이클 4 — 실사용 시나리오 E2E 검증 + 방어 코드 강화
+
+### 1. 엣지 케이스 방어 코드
+
+| 시나리오 | 파일 | 수정 내용 |
+|---------|------|----------|
+| (a) 조 생성 후 바로 비교 대시보드 클릭 | `src/components/leadership/GroupDashboard.tsx` | `hasAnyAnalysis` 플래그 추가 — 분석 데이터 없으면 "분석을 먼저 진행해주세요" 안내 + 조 관리 복귀 버튼 표시 |
+| (b) 영상 업로드 중 페이지 이탈 | `src/components/leadership/GroupManager.tsx` | `beforeunload` 이벤트 핸들러 추가 — 업로드 진행 중 페이지 이탈 시 확인 대화상자 표시 |
+| (b) 개별 분석 업로드 중 이탈 | `src/components/leadership/LeadershipCoaching.tsx` | `beforeunload` 이벤트 핸들러 추가 — uploadProgress 활성 시 이탈 경고 |
+| (c) localStorage 접근 불가/용량 초과 | `src/lib/group-store.ts` | `isStorageAvailable()` 가드 함수 추가, `QuotaExceededError` 시 최근 5개 세션만 유지 후 재시도, 저장 실패 시 console.warn |
+| (d) TwelveLabs API 키 없음/만료 | `src/hooks/useTwelveLabs.ts` | 토큰 조회 실패 시 구체적 에러 메시지("TwelveLabs API 키 오류: ... 관리자에게 문의하세요"), 401/403 응답 시 만료/무효 안내 |
+| (e) 일부만 영상 올리고 대시보드 진입 | `src/components/leadership/LeadershipCoaching.tsx` | `onViewMember` 콜백에서 영상 없는 멤버 클릭 시 조 관리 화면으로 폴백 (크래시 방지) |
+
+### 2. GroupDashboard 빈 상태 개선
+
+| 파일 | 수정 내용 |
+|------|----------|
+| `src/components/leadership/GroupDashboard.tsx` | `hasAnyAnalysis` useMemo 추가 — 분석 결과 0건이면 빈 상태 안내 카드 렌더링 (AlertCircle 아이콘 + 설명 + "조 관리로 돌아가기" 버튼) |
+
+### 3. 인쇄/PDF 최적화
+
+| 파일 | 수정 내용 |
+|------|----------|
+| `src/app/globals.css` | `@media print` 규칙 추가: header/footer/nav/.no-print 숨김, `-webkit-print-color-adjust: exact`, 페이지 브레이크 설정, glass 효과 제거, 애니메이션 비활성화, A4 @page 여백, 링크 URL 표시 |
+| `src/components/layout/Header.tsx` | `no-print` 클래스 추가 |
+| `src/components/layout/Footer.tsx` | `no-print` 클래스 추가 |
+| `src/components/leadership/GroupDashboard.tsx` | 뒤로가기 버튼 영역에 `no-print`, 인쇄 전용 헤더 `hidden print:block` 추가 |
+
+### 4. SEO / 메타데이터 개선
+
+| 파일 | 수정 내용 |
+|------|----------|
+| `src/app/layout.tsx` | `title`을 template 형식으로 변경, `authors` 추가, `robots: { index: false, follow: false }` (내부 PoC이므로 검색 인덱싱 차단), `openGraph.siteName` 추가, `twitter.title/description` 추가, `keywords`에 "리더십", "POV", "TwelveLabs" 추가 |
+
+### 5. 환경변수 안전성 검증
+
+| 검증 항목 | 결과 |
+|----------|------|
+| `.env.local`이 `.gitignore`에 포함 | O — `.env*.local` 패턴으로 포함됨 |
+| `NEXT_PUBLIC_` prefix 노출 검사 | O — src/ 전체에서 `NEXT_PUBLIC_TWELVELABS`, `NEXT_PUBLIC_*KEY`, `NEXT_PUBLIC_*SECRET`, `NEXT_PUBLIC_*TOKEN` 패턴 0건 |
+| API 키 서버사이드 전용 | O — `process.env.TWELVELABS_API_KEY`는 `/api/tl-token`, `/api/twelvelabs/*` 라우트에서만 참조 |
+| `/api/tl-token` 보안 | O — same-origin 검증 + no-cache 헤더 |
+
+### 빌드 결과
+
+- `npx tsc --noEmit`: 오류 0개
+- `npx next build`: 성공, 경고 0개
+
+---
+
 ## 2026-04-04 QA 사이클 3 — 실제 운영 고도화
 
 ### 1. standards/ 문서 대조 검증

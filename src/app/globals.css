@@ -378,3 +378,85 @@ button:focus-visible, [role="button"]:focus-visible, a:focus-visible, input:focu
 ::-webkit-scrollbar-thumb:hover {
   background: #94a3b8;
 }
+
+/* ═══════════════════════════════
+   인쇄/PDF 최적화
+   ═══════════════════════════════ */
+@media print {
+  /* 헤더, 푸터, 네비게이션 숨김 */
+  header,
+  footer,
+  nav,
+  .no-print {
+    display: none !important;
+  }
+
+  /* 배경색 유지 */
+  * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+    color-adjust: exact !important;
+  }
+
+  /* 본문 기본 설정 */
+  body {
+    background: white !important;
+    font-size: 12pt;
+    line-height: 1.5;
+    color: #1e293b;
+  }
+
+  /* 스캔라인/노이즈 텍스처 제거 */
+  .scanline-overlay::after,
+  body::before {
+    display: none !important;
+  }
+
+  /* 페이지 브레이크 설정 */
+  .page-break-before {
+    page-break-before: always;
+  }
+  .page-break-after {
+    page-break-after: always;
+  }
+
+  /* 카드/차트 영역 — 페이지 단절 방지 */
+  .bg-white,
+  [class*="rounded-xl"] {
+    page-break-inside: avoid;
+    break-inside: avoid;
+  }
+
+  /* 그림자/블러 효과 제거 (인쇄 품질) */
+  .glass,
+  .glass-subtle {
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    box-shadow: none !important;
+    background: white !important;
+    border: 1px solid #e2e8f0 !important;
+  }
+
+  /* 애니메이션 비활성화 */
+  * {
+    animation: none !important;
+    transition: none !important;
+  }
+
+  /* 여백 최적화 */
+  @page {
+    margin: 15mm;
+    size: A4;
+  }
+
+  /* 링크 URL 표시 (접근성) */
+  a[href]::after {
+    content: " (" attr(href) ")";
+    font-size: 9pt;
+    color: #64748b;
+  }
+  a[href^="#"]::after,
+  a[href^="javascript"]::after {
+    content: "";
+  }
+}
