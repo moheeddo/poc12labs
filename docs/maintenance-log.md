@@ -477,3 +477,41 @@
 
 - `npx tsc --noEmit`: 오류 0개
 - `npx next build`: 성공, 경고 0개
+
+---
+
+## 2026-04-04 QA 사이클 8 — TwelveLabs 실제 영상 E2E + Solar Pro 2 보고서 + 빌드 검증
+
+### 1. TwelveLabs 실제 영상 E2E 테스트
+
+리더십 인덱스(`69ccf4b781e81bcd08ca5487`)에서 영상 3개 확인:
+- `69cfaadbcc3ef537197acd83` — 20260317_152438.mp4
+- `69cfaac9ff83935c54b8078c` — 20260317_152552.mp4
+- `69cf80be822406b6bdfb5b7d` — 비전제시_김효정 교수.mp4
+
+| 테스트 | 대상 | 결과 |
+|--------|------|------|
+| TwelveLabs `/analyze` SSE 직접 호출 (summary) | videoId: `69cfaadb...` | O — SSE 스트리밍 정상, 한국어 3줄 요약 생성 완료 |
+| TwelveLabs `/analyze` SSE 직접 호출 (gaze JSON) | videoId: `69cfaadb...` | O — JSON 수치값 반환 (`audience_facing_ratio: 0.55`, `material_glance_ratio: 0.35`, `other_ratio: 0.10`) |
+| 개발 서버 `/api/twelvelabs/multimodal-extract` (전체 5채널) | videoId: `69cfaadb...` | O — gaze/voice/fluency/posture/face 5채널 모두 JSON 수치값 정상 추출, errors 빈 객체 |
+| 개발 서버 `/api/twelvelabs/analyze` (summary) | videoId: `69cfaadb...` | O — 5문장 한국어 요약 정상 반환 |
+
+### 2. Solar Pro 2 실제 보고서 생성 테스트
+
+| 테스트 | 결과 |
+|--------|------|
+| `POST /api/solar/report` (비전제시 채점 데이터) | O — 보고서 정상 생성 |
+| model 필드 확인 | O — `"model": "solar-pro2"` (사이클 7에서 수정한 모델명 반영 확인) |
+| 보고서 내용 품질 | O — 종합평가/항목별 세부/개선 우선순위/N/A 항목 사유 4개 섹션 구조화 |
+
+### 3. 빌드 및 타입 검증
+
+| 검증 항목 | 결과 |
+|-----------|------|
+| `npx tsc --noEmit` | O — 타입 오류 0개 |
+| `npm run build` | O — 빌드 성공, 15개 라우트 정상 생성 |
+| 개발 서버 실행 | O — `http://localhost:3000` 정상 응답 |
+
+### 4. 발견 이슈
+
+- 없음. 모든 E2E 테스트 통과, 타입 체크 및 빌드 정상.
