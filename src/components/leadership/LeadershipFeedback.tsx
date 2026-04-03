@@ -66,6 +66,18 @@ const COMP_MAP = Object.fromEntries(
   LEADERSHIP_COMPETENCY_DEFS.map((d) => [d.key, d])
 ) as Record<LeadershipCompetencyKey, (typeof LEADERSHIP_COMPETENCY_DEFS)[number]>;
 
+// ─── 분석 단계 정의 (상수, 컴포넌트 외부) ────────────
+const ANALYSIS_STEPS = [
+  { phase: 1, label: "영상 인덱싱", desc: "AI가 영상 내용을 이해하고 있습니다", icon: Sparkles },
+  { phase: 2, label: "구간 분석", desc: "영상을 의미 있는 챕터로 분할합니다", icon: FileText },
+  { phase: 3, label: "핵심 장면 추출", desc: "중요한 하이라이트를 찾고 있습니다", icon: Zap },
+  { phase: 4, label: "AI 요약", desc: "전체 내용을 요약하고 있습니다", icon: Bot },
+  { phase: 5, label: "BARS 역량 매칭", desc: "내용 기준 역량을 평가합니다", icon: ClipboardList },
+  { phase: 6, label: "시선 · 음성 · 유창성 분석", desc: "멀티모달 행동 신호를 추출합니다", icon: Eye },
+  { phase: 7, label: "자세 · 표정 분석", desc: "신체 행동 신호를 분석합니다", icon: Hand },
+  { phase: 8, label: "Solar Pro 2 보고서", desc: "AI가 종합 보고서를 생성합니다", icon: Sparkles },
+];
+
 // ─── 헬퍼 ────────────────────────────────────────
 
 function getScoreLabel(score: number) {
@@ -487,18 +499,6 @@ export default function LeadershipFeedback({
   // 미평가 항목 수
   const unscoredCount = evidence.filter((e) => e.score === 0).length;
 
-  // 분석 단계 정의
-  const ANALYSIS_STEPS = [
-    { phase: 1, label: "영상 인덱싱", desc: "AI가 영상 내용을 이해하고 있습니다", icon: Sparkles },
-    { phase: 2, label: "구간 분석", desc: "영상을 의미 있는 챕터로 분할합니다", icon: FileText },
-    { phase: 3, label: "핵심 장면 추출", desc: "중요한 하이라이트를 찾고 있습니다", icon: Zap },
-    { phase: 4, label: "AI 요약", desc: "전체 내용을 요약하고 있습니다", icon: Bot },
-    { phase: 5, label: "BARS 역량 매칭", desc: "내용 기준 역량을 평가합니다", icon: ClipboardList },
-    { phase: 6, label: "시선 · 음성 · 유창성 분석", desc: "멀티모달 행동 신호를 추출합니다", icon: Eye },
-    { phase: 7, label: "자세 · 표정 분석", desc: "신체 행동 신호를 분석합니다", icon: Hand },
-    { phase: 8, label: "Solar Pro 2 보고서", desc: "AI가 종합 보고서를 생성합니다", icon: Sparkles },
-  ];
-
   // 멀티모달 단계 매핑
   const effectivePhase = useMemo(() => {
     if (analysisPhase < 6) return analysisPhase;
@@ -510,9 +510,12 @@ export default function LeadershipFeedback({
     return 6;
   }, [analysisPhase, mmProgress]);
 
-  const competencyKeysToUse = selectedCompetencies && selectedCompetencies.length > 0
-    ? selectedCompetencies
-    : (["visionPresentation", "trustBuilding", "memberDevelopment", "rationalDecision"] as LeadershipCompetencyKey[]);
+  const competencyKeysToUse = useMemo(
+    () => selectedCompetencies && selectedCompetencies.length > 0
+      ? selectedCompetencies
+      : ["visionPresentation", "trustBuilding", "memberDevelopment", "rationalDecision"] as LeadershipCompetencyKey[],
+    [selectedCompetencies]
+  );
 
   // ── JSX ──
 
@@ -956,6 +959,11 @@ export default function LeadershipFeedback({
                         [&_hr]:my-3 [&_hr]:border-slate-200/50"
                       dangerouslySetInnerHTML={{
                         __html: mmResult.report
+                          // XSS 방지: script/iframe/on* 이벤트 핸들러 제거
+                          .replace(/<script[^>]*>[\s\S]*?<\/script>/gi, '')
+                          .replace(/<iframe[^>]*>[\s\S]*?<\/iframe>/gi, '')
+                          .replace(/\son\w+\s*=/gi, ' data-removed=')
+                          // 마크다운 → HTML 변환
                           .replace(/^### (.*$)/gm, '<h3>$1</h3>')
                           .replace(/^## (.*$)/gm, '<h2>$1</h2>')
                           .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
