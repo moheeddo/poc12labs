@@ -103,6 +103,21 @@ export async function analyzeVideo(videoId: string, type: "summary" | "chapter" 
   );
 }
 
+// 커스텀 프롬프트 기반 영상 분석 (generate with prompt)
+export async function generateWithPrompt(videoId: string, prompt: string) {
+  return tlFetch<{ data: string }>(
+    "/generate",
+    {
+      method: "POST",
+      body: JSON.stringify({
+        video_id: videoId,
+        type: "text",
+        prompt,
+      }),
+    }
+  );
+}
+
 // 영상 임베딩 생성 태스크
 export async function createEmbeddingTask(videoId: string) {
   return tlFetch<{ _id: string }>("/embed/tasks", {

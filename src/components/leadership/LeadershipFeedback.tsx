@@ -17,6 +17,12 @@ import {
   CheckCircle2,
   Circle,
   Loader2,
+  Eye,
+  Ear,
+  MessageSquare,
+  Hand,
+  Smile,
+  Zap,
 } from "lucide-react";
 import { useVideoSearch, useVideoAnalysis, useVideoTranscription } from "@/hooks/useTwelveLabs";
 import { TWELVELABS_INDEXES, LEADERSHIP_COMPETENCY_DEFS } from "@/lib/constants";
@@ -27,6 +33,8 @@ import {
   generateAnalysisReport,
 } from "@/lib/leadership-analysis";
 import type { AnalysisReportData } from "@/lib/leadership-analysis";
+import { useMultimodalPipeline } from "@/hooks/useMultimodalPipeline";
+import type { PipelineResult } from "@/hooks/useMultimodalPipeline";
 import SearchBar from "@/components/shared/SearchBar";
 import TranscriptTimeline from "./TranscriptTimeline";
 import AnalysisReport from "./AnalysisReport";
@@ -153,6 +161,10 @@ export default function LeadershipFeedback({
   // 평가 근거
   const [evidence, setEvidence] = useState<EvidenceItem[]>([]);
 
+  // 멀티모달 파이프라인
+  const { progress: mmProgress, result: mmResult, error: mmError, runPipeline, channelLabels } = useMultimodalPipeline();
+  const [mmStarted, setMmStarted] = useState(false);
+
   // 재생
   const [currentTime, setCurrentTime] = useState(0);
   const [isPlaying, setIsPlaying] = useState(false);
@@ -161,8 +173,8 @@ export default function LeadershipFeedback({
   const [activeEvidenceId, setActiveEvidenceId] = useState<string | null>(null);
   const [saved, setSaved] = useState(false);
 
-  // 우측 패널 탭 — 리포트 기본
-  const [rightTab, setRightTab] = useState<"evidence" | "transcript" | "report">("report");
+  // 우측 패널 탭 — 멀티모달 기본
+  const [rightTab, setRightTab] = useState<"evidence" | "transcript" | "report" | "multimodal">("multimodal");
 
   // 검색
   const { results: searchResults, loading: searchLoading, search } = useVideoSearch();
@@ -330,6 +342,16 @@ export default function LeadershipFeedback({
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [videoId, analyze, fetchTranscription]);
 
+  // ── 멀티모달 파이프라인 자동 시작 (BARS 분석 완료 후) ──
+  useEffect(() => {
+    if (!analysisLoading && analysisPhase >= 6 && !mmStarted && videoId) {
+      setMmStarted(true);
+      const compLabel = competencyKeysToUse.map((k) => COMP_MAP[k]?.label).filter(Boolean).join(", ");
+      runPipeline(videoId, compLabel, scenarioText);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [analysisLoading, analysisPhase, mmStarted, videoId]);
+
   // ── 비디오 시간 추적 ──
   useEffect(() => {
     const v = videoRef.current;
@@ -463,12 +485,26 @@ export default function LeadershipFeedback({
 
   // 분석 단계 정의
   const ANALYSIS_STEPS = [
-    { phase: 1, label: "영상 인덱싱", desc: "AI가 영상 내용을 이해하고 있습니다" },
-    { phase: 2, label: "구간 분석", desc: "영상을 의미 있는 챕터로 분할합니다" },
-    { phase: 3, label: "핵심 장면 추출", desc: "중요한 하이라이트를 찾고 있습니다" },
-    { phase: 4, label: "AI 요약", desc: "전체 내용을 요약하고 있습니다" },
-    { phase: 5, label: "역량 매칭 & 평가", desc: "루브릭 기준으로 역량을 평가합니다" },
+    { phase: 1, label: "영상 인덱싱", desc: "AI가 영상 내용을 이해하고 있습니다", icon: Sparkles },
+    { phase: 2, label: "구간 분석", desc: "영상을 의미 있는 챕터로 분할합니다", icon: FileText },
+    { phase: 3, label: "핵심 장면 추출", desc: "중요한 하이라이트를 찾고 있습니다", icon: Zap },
+    { phase: 4, label: "AI 요약", desc: "전체 내용을 요약하고 있습니다", icon: Bot },
+    { phase: 5, label: "BARS 역량 매칭", desc: "내용 기준 역량을 평가합니다", icon: ClipboardList },
+    { phase: 6, label: "시선 · 음성 · 유창성 분석", desc: "멀티모달 행동 신호를 추출합니다", icon: Eye },
+    { phase: 7, label: "자세 · 표정 분석", desc: "신체 행동 신호를 분석합니다", icon: Hand },
+    { phase: 8, label: "Solar Pro 2 보고서", desc: "AI가 종합 보고서를 생성합니다", icon: Sparkles },
   ];
+
+  // 멀티모달 단계 매핑
+  const effectivePhase = useMemo(() => {
+    if (analysisPhase < 6) return analysisPhase;
+    // BARS 완료 후 멀티모달 단계
+    if (mmProgress.phase === "extracting") return 6 + (mmProgress.completedChannels.length >= 3 ? 1 : 0);
+    if (mmProgress.phase === "scoring") return 7;
+    if (mmProgress.phase === "reporting") return 8;
+    if (mmProgress.phase === "done") return 9; // 전체 완료
+    return 6;
+  }, [analysisPhase, mmProgress]);
 
   const competencyKeysToUse = selectedCompetencies && selectedCompetencies.length > 0
     ? selectedCompetencies
@@ -478,8 +514,10 @@ export default function LeadershipFeedback({
 
   // ═══════════════════════════════════════
   // 분석 중 → 전체 화면 진행 상태
+  // (BARS + 멀티모달 파이프라인 모두 완료될 때까지)
   // ═══════════════════════════════════════
-  if (analysisLoading) {
+  const isFullyLoading = analysisLoading || (mmStarted && mmProgress.phase !== "done" && mmProgress.phase !== "error");
+  if (isFullyLoading) {
     return (
       <div className="max-w-[800px] mx-auto px-4 md:px-6 py-12 animate-slide-in-right">
         {/* 뒤로가기 */}
@@ -520,9 +558,9 @@ export default function LeadershipFeedback({
         <div className="bg-white border border-slate-200/40 rounded-2xl p-8 shadow-sm">
           <div className="space-y-5">
             {ANALYSIS_STEPS.map((step) => {
-              const isDone = analysisPhase > step.phase;
-              const isCurrent = analysisPhase === step.phase;
-              const isPending = analysisPhase < step.phase;
+              const isDone = effectivePhase > step.phase;
+              const isCurrent = effectivePhase === step.phase;
+              const isPending = effectivePhase < step.phase;
 
               return (
                 <div key={step.phase} className="flex items-start gap-4">
@@ -561,12 +599,12 @@ export default function LeadershipFeedback({
           <div className="mt-8">
             <div className="flex items-center justify-between text-sm text-slate-400 mb-2">
               <span>{analysisStep}</span>
-              <span className="font-mono">{Math.min(Math.round((analysisPhase / 6) * 100), 95)}%</span>
+              <span className="font-mono">{Math.min(Math.round((effectivePhase / 9) * 100), 98)}%</span>
             </div>
             <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
               <div
                 className="h-full bg-gradient-to-r from-teal-500 to-teal-400 rounded-full transition-all duration-700 ease-out"
-                style={{ width: `${Math.min((analysisPhase / 6) * 100, 95)}%` }}
+                style={{ width: `${Math.min((effectivePhase / 9) * 100, 98)}%` }}
               />
             </div>
           </div>
@@ -808,37 +846,49 @@ export default function LeadershipFeedback({
 
         {/* ─── 우측: 평가 근거 / 디브리핑 대본 / 종합 리포트 ─── */}
         <div className="lg:col-span-5 space-y-6">
-          {/* 탭 헤더 — 3탭 */}
+          {/* 탭 헤더 — 4탭 */}
           <div className="flex items-center gap-1 p-1 bg-white/40 border border-slate-200/30 rounded-xl">
             <button
-              onClick={() => setRightTab("evidence")}
+              onClick={() => setRightTab("multimodal")}
               className={cn(
-                "flex-1 flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-lg text-base font-medium transition-all",
-                rightTab === "evidence"
-                  ? "bg-slate-100/60 text-teal-600 shadow-sm"
+                "flex-1 flex items-center justify-center gap-1.5 px-2.5 py-2.5 rounded-lg text-sm font-medium transition-all",
+                rightTab === "multimodal"
+                  ? "bg-violet-50 text-violet-600 shadow-sm"
                   : "text-slate-500 hover:text-slate-500"
               )}
             >
-              <ClipboardList className="w-3.5 h-3.5" />
-              <span className="hidden sm:inline">평가 근거</span>
-              <span className="text-sm font-mono opacity-60">{scoredCount}/{evidence.length}</span>
+              <Eye className="w-3.5 h-3.5" />
+              <span className="hidden sm:inline">멀티모달</span>
             </button>
             <button
               onClick={() => setRightTab("report")}
               className={cn(
-                "flex-1 flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-lg text-base font-medium transition-all",
+                "flex-1 flex items-center justify-center gap-1.5 px-2.5 py-2.5 rounded-lg text-sm font-medium transition-all",
                 rightTab === "report"
                   ? "bg-slate-100/60 text-teal-600 shadow-sm"
                   : "text-slate-500 hover:text-slate-500"
               )}
             >
               <BarChart3 className="w-3.5 h-3.5" />
-              <span className="hidden sm:inline">종합 리포트</span>
+              <span className="hidden sm:inline">BARS</span>
+            </button>
+            <button
+              onClick={() => setRightTab("evidence")}
+              className={cn(
+                "flex-1 flex items-center justify-center gap-1.5 px-2.5 py-2.5 rounded-lg text-sm font-medium transition-all",
+                rightTab === "evidence"
+                  ? "bg-slate-100/60 text-teal-600 shadow-sm"
+                  : "text-slate-500 hover:text-slate-500"
+              )}
+            >
+              <ClipboardList className="w-3.5 h-3.5" />
+              <span className="hidden sm:inline">근거</span>
+              <span className="text-xs font-mono opacity-60">{scoredCount}/{evidence.length}</span>
             </button>
             <button
               onClick={() => setRightTab("transcript")}
               className={cn(
-                "flex-1 flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-lg text-base font-medium transition-all",
+                "flex-1 flex items-center justify-center gap-1.5 px-2.5 py-2.5 rounded-lg text-sm font-medium transition-all",
                 rightTab === "transcript"
                   ? "bg-slate-100/60 text-teal-600 shadow-sm"
                   : "text-slate-500 hover:text-slate-500"
@@ -848,6 +898,97 @@ export default function LeadershipFeedback({
               <span className="hidden sm:inline">대본</span>
             </button>
           </div>
+
+          {/* ── 멀티모달 행동분석 탭 ── */}
+          {rightTab === "multimodal" && (
+            mmResult ? (
+              <div className="space-y-4 animate-fade-in-up">
+                {/* 총점 */}
+                <div className="bg-violet-50/50 border border-violet-500/15 rounded-xl p-5 text-center">
+                  <p className="text-sm text-violet-600 font-medium mb-1">멀티모달 행동기반 총점</p>
+                  <div className="flex items-baseline justify-center gap-1.5">
+                    <span className="text-3xl font-bold font-mono text-violet-600">
+                      {mmResult.scoring.totalScore !== null ? mmResult.scoring.totalScore.toFixed(1) : "—"}
+                    </span>
+                    <span className="text-base text-slate-400">/9</span>
+                  </div>
+                  <p className="text-sm text-violet-500 mt-1">{mmResult.scoring.interpretation}</p>
+                  <p className="text-xs text-slate-400 mt-1">
+                    {mmResult.scoring.scorableItemCount}/5개 항목 채점 · {mmResult.reportModel === "solar-pro2-preview" ? "Solar Pro 2" : "로컬"} 생성
+                  </p>
+                </div>
+
+                {/* 항목별 점수 */}
+                {mmResult.scoring.items.map((item) => (
+                  <div key={item.id} className="bg-white/60 border border-slate-200/30 rounded-xl p-4 border-l-[3px] border-l-violet-400">
+                    <div className="flex items-center justify-between mb-2">
+                      <div>
+                        <span className="text-sm font-semibold text-violet-600">{item.name}</span>
+                        <span className="text-xs text-slate-400 ml-2">{item.channel}</span>
+                      </div>
+                      <span className={cn(
+                        "text-sm font-mono font-bold px-2 py-0.5 rounded",
+                        item.itemScore !== null && item.itemScore >= 7 ? "bg-teal-50 text-teal-600" :
+                        item.itemScore !== null && item.itemScore >= 5 ? "bg-amber-50 text-amber-600" :
+                        item.itemScore !== null ? "bg-red-50 text-red-500" :
+                        "bg-slate-100 text-slate-400"
+                      )}>
+                        {item.itemScore !== null ? `${item.itemScore.toFixed(1)}/9` : "N/A"}
+                      </span>
+                    </div>
+                    {/* 하위지표 */}
+                    <div className="space-y-1">
+                      {item.indicators.map((ind) => (
+                        <div key={ind.name} className="flex items-center gap-2 text-xs">
+                          <span className="text-slate-500 flex-1 truncate">{ind.label}</span>
+                          <span className="font-mono text-slate-500 w-14 text-right">
+                            {ind.value !== null ? ind.value.toFixed(2) : "—"}
+                          </span>
+                          <span className={cn(
+                            "px-1.5 py-0.5 rounded font-medium w-10 text-center",
+                            ind.judgment === "상위" ? "bg-teal-50 text-teal-600" :
+                            ind.judgment === "중상" ? "bg-sky-50 text-sky-600" :
+                            ind.judgment === "중하" ? "bg-amber-50 text-amber-600" :
+                            ind.judgment === "미흡" ? "bg-red-50 text-red-500" :
+                            "bg-slate-100 text-slate-400"
+                          )}>
+                            {ind.judgment}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                    {item.observation && (
+                      <p className="text-xs text-slate-500 mt-2 pt-2 border-t border-slate-100 leading-relaxed">{item.observation}</p>
+                    )}
+                  </div>
+                ))}
+
+                {/* Solar Pro 2 보고서 */}
+                {mmResult.report && (
+                  <div className="bg-white/60 border border-slate-200/30 rounded-xl p-5">
+                    <p className="text-sm text-slate-600 font-medium mb-3 flex items-center gap-1.5">
+                      <Sparkles className="w-3.5 h-3.5 text-violet-500" />
+                      AI 종합 보고서 {mmResult.reportModel === "solar-pro2-preview" && <span className="text-xs bg-violet-50 text-violet-500 px-1.5 py-0.5 rounded">Solar Pro 2</span>}
+                    </p>
+                    <div className="text-sm text-slate-600 leading-relaxed whitespace-pre-line prose prose-sm max-w-none">
+                      {mmResult.report}
+                    </div>
+                  </div>
+                )}
+              </div>
+            ) : mmProgress.phase === "error" ? (
+              <div className="bg-white border border-amber-200 rounded-xl p-6 text-center">
+                <p className="text-base text-amber-600 mb-1">멀티모달 분석 오류</p>
+                <p className="text-sm text-slate-400">{mmError || "행동 신호 추출에 실패했습니다"}</p>
+              </div>
+            ) : (
+              <div className="bg-white border border-violet-200/30 rounded-xl p-8 text-center">
+                <Loader2 className="w-8 h-8 mx-auto mb-3 text-violet-400 animate-spin" />
+                <p className="text-base text-violet-600 mb-1">멀티모달 행동 분석 진행 중</p>
+                <p className="text-sm text-slate-400">5채널 신호 추출 → 채점 → 보고서 생성</p>
+              </div>
+            )
+          )}
 
           {/* ── 종합 리포트 탭 ── */}
           {rightTab === "report" && (
