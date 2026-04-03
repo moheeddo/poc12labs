@@ -9,11 +9,15 @@ import { generateWithPrompt } from "@/lib/twelvelabs";
 
 // 5채널 추출 프롬프트 (rubricurl 문서 3 기반, TwelveLabs 맞춤 적응)
 const EXTRACTION_PROMPTS: Record<string, string> = {
-  gaze: `당신은 발표 영상에서 시선 행동을 분석하는 전문 평가자입니다. 아래 기준으로 발표자의 시선 행동을 관찰하고 JSON으로 출력하세요.
+  gaze: `당신은 발표 영상에서 시선 행동을 분석하는 전문 평가자입니다.
+
+[중요 규칙]
+- 반드시 순수 JSON만 출력하세요. 마크다운, 설명문, 코드블록(\`\`\`) 없이 JSON 객체만 반환합니다.
+- 모든 수치 필드에 반드시 숫자값을 넣으세요. null이나 "N/A"는 사용하지 마세요.
+- 관찰이 어려운 지표는 영상에서 보이는 단서를 바탕으로 합리적으로 추정하세요.
 
 ## 관찰 항목
-1. audience_facing_ratio: 발표자가 청중(카메라) 방향을 응시하는 비율 (0.0~1.0)
-   - 정면 ±20° 이내를 "청중 응시"로 판단
+1. audience_facing_ratio: 발표자가 청중(카메라) 방향을 응시하는 비율 (0.0~1.0). 정면 ±20° 이내를 "청중 응시"로 판단
 2. off_audience_episodes_per_min: 청중 방향에서 1초 이상 이탈한 횟수 (분당)
 3. downward_or_slide_fixation_ratio: 하방 또는 자료 응시 비율 (0.0~1.0)
 
@@ -22,12 +26,17 @@ const EXTRACTION_PROMPTS: Record<string, string> = {
 - off_audience_episodes_per_min: ≤1.5 상위 / 1.6~3.0 중상 / 3.1~5.0 중하 / >5.0 미흡
 - downward_or_slide_fixation_ratio: ≤0.15 상위 / 0.16~0.25 중상 / 0.26~0.40 중하 / >0.40 미흡
 
-## 출력 형식 (반드시 JSON만 출력)
-{"gaze":{"audience_facing_ratio":number,"off_audience_episodes_per_min":number,"downward_or_slide_fixation_ratio":number,"observation":"관찰 근거 1~2문장"}}
+## 출력 예시
+{"gaze":{"audience_facing_ratio":0.62,"off_audience_episodes_per_min":2.3,"downward_or_slide_fixation_ratio":0.18,"observation":"발표자는 청중 방향을 주로 응시하나 간헐적으로 자료를 확인하는 모습이 관찰됨"}}
 
-관찰이 어려운 지표는 null로 표기하세요.`,
+위 형식과 동일하게 JSON만 출력하세요.`,
 
-  voice: `당신은 발표 영상에서 음성 운율을 분석하는 전문 평가자입니다. 발표자의 음성 특성을 관찰하고 JSON으로 출력하세요.
+  voice: `당신은 발표 영상에서 음성 운율을 분석하는 전문 평가자입니다.
+
+[중요 규칙]
+- 반드시 순수 JSON만 출력하세요. 마크다운, 설명문, 코드블록(\`\`\`) 없이 JSON 객체만 반환합니다.
+- 모든 수치 필드에 반드시 숫자값을 넣으세요. null이나 "N/A"는 사용하지 마세요.
+- 추정이 어려운 지표는 음성 톤·강세·속도 등 단서를 바탕으로 합리적으로 추정하세요.
 
 ## 관찰 항목
 1. f0_dynamic_range_st: 음높이(F0) 변화폭 — 단조로운(좁은) vs 역동적(넓은). 반음(semitone) 단위 추정
@@ -39,12 +48,17 @@ const EXTRACTION_PROMPTS: Record<string, string> = {
 - loudness_dynamic_range_db: 5~12 상위 / 4~5 또는 12~14 중상 / 3~4 또는 14~16 중하 / <3 또는 >16 미흡
 - emphasis_bursts_per_min: 2~6 상위 / 1.0~1.9 또는 6.1~8.0 중상 / 0.5~0.9 또는 8.1~10.0 중하 / <0.5 또는 >10.0 미흡
 
-## 출력 형식 (반드시 JSON만 출력)
-{"voice":{"f0_dynamic_range_st":number,"loudness_dynamic_range_db":number,"emphasis_bursts_per_min":number,"observation":"관찰 근거 1~2문장"}}
+## 출력 예시
+{"voice":{"f0_dynamic_range_st":6.5,"loudness_dynamic_range_db":8.2,"emphasis_bursts_per_min":3.1,"observation":"발표자의 음높이 변화가 적절하며 강조 포인트에서 음량이 자연스럽게 상승함"}}
 
-추정이 어려운 지표는 null로 표기하세요.`,
+위 형식과 동일하게 JSON만 출력하세요.`,
 
-  fluency: `당신은 발표 영상에서 유창성을 분석하는 전문 평가자입니다. 발표자의 말하기 유창성을 관찰하고 JSON으로 출력하세요.
+  fluency: `당신은 발표 영상에서 유창성을 분석하는 전문 평가자입니다.
+
+[중요 규칙]
+- 반드시 순수 JSON만 출력하세요. 마크다운, 설명문, 코드블록(\`\`\`) 없이 JSON 객체만 반환합니다.
+- 모든 수치 필드에 반드시 숫자값을 넣으세요. null이나 "N/A"는 사용하지 마세요.
+- 추정이 어려운 지표는 발화 속도·멈춤·filler word 등 단서를 바탕으로 합리적으로 추정하세요.
 
 ## 관찰 항목
 1. articulation_rate_syllables_per_sec: 조음 속도 (음절/초) — 한국어 기준
@@ -56,12 +70,17 @@ const EXTRACTION_PROMPTS: Record<string, string> = {
 - filled_pauses_per_min: ≤2.0 상위 / 2.1~4.0 중상 / 4.1~6.0 중하 / >6.0 미흡
 - long_silent_pauses_per_min: ≤1.0 상위 / 1.1~2.0 중상 / 2.1~4.0 중하 / >4.0 미흡
 
-## 출력 형식 (반드시 JSON만 출력)
-{"fluency":{"articulation_rate_syllables_per_sec":number,"filled_pauses_per_min":number,"long_silent_pauses_per_min":number,"observation":"관찰 근거 1~2문장"}}
+## 출력 예시
+{"fluency":{"articulation_rate_syllables_per_sec":4.2,"filled_pauses_per_min":3.0,"long_silent_pauses_per_min":1.5,"observation":"발표자는 안정적인 조음 속도를 유지하나 간헐적으로 '음' 등의 채움말이 관찰됨"}}
 
-추정이 어려운 지표는 null로 표기하세요.`,
+위 형식과 동일하게 JSON만 출력하세요.`,
 
-  posture: `당신은 발표 영상에서 자세와 제스처를 분석하는 전문 평가자입니다. 발표자의 신체 행동을 관찰하고 JSON으로 출력하세요.
+  posture: `당신은 발표 영상에서 자세와 제스처를 분석하는 전문 평가자입니다.
+
+[중요 규칙]
+- 반드시 순수 JSON만 출력하세요. 마크다운, 설명문, 코드블록(\`\`\`) 없이 JSON 객체만 반환합니다.
+- 모든 수치 필드에 반드시 숫자값을 넣으세요. null이나 "N/A"는 사용하지 마세요.
+- 관찰이 어려운 지표는 발표자의 상체·팔·손 움직임 등 단서를 바탕으로 합리적으로 추정하세요.
 
 ## 관찰 항목
 1. open_posture_ratio: 개방적 자세 비율 (0.0~1.0) — 팔짱·손 숨김이 없고 어깨가 정면을 향한 시간 비율
@@ -73,12 +92,17 @@ const EXTRACTION_PROMPTS: Record<string, string> = {
 - purposeful_gesture_bouts_per_min: 2~8 상위 / 1.0~1.9 또는 8.1~10.0 중상 / 0.5~0.9 또는 10.1~12.0 중하 / <0.5 또는 >12.0 미흡
 - closed_or_fidget_ratio: <0.10 상위 / 0.10~0.20 중상 / 0.21~0.35 중하 / >0.35 미흡
 
-## 출력 형식 (반드시 JSON만 출력)
-{"posture_gesture":{"open_posture_ratio":number,"purposeful_gesture_bouts_per_min":number,"closed_or_fidget_ratio":number,"observation":"관찰 근거 1~2문장"}}
+## 출력 예시
+{"posture_gesture":{"open_posture_ratio":0.68,"purposeful_gesture_bouts_per_min":4.5,"closed_or_fidget_ratio":0.12,"observation":"발표자는 대체로 개방적 자세를 유지하며 강조 시 손 제스처를 적절히 활용함"}}
 
-관찰이 어려운 지표는 null로 표기하세요.`,
+위 형식과 동일하게 JSON만 출력하세요.`,
 
-  face: `당신은 발표 영상에서 표정과 머리 움직임을 분석하는 전문 평가자입니다. 발표자의 얼굴 행동을 관찰하고 JSON으로 출력하세요.
+  face: `당신은 발표 영상에서 표정과 머리 움직임을 분석하는 전문 평가자입니다.
+
+[중요 규칙]
+- 반드시 순수 JSON만 출력하세요. 마크다운, 설명문, 코드블록(\`\`\`) 없이 JSON 객체만 반환합니다.
+- 모든 수치 필드에 반드시 숫자값을 넣으세요. null이나 "N/A"는 사용하지 마세요.
+- 관찰이 어려운 지표는 표정·머리 움직임 등 단서를 바탕으로 합리적으로 추정하세요.
 
 ## 관찰 항목
 1. engaged_neutral_ratio: 주의집중 상태의 안정적 표정 유지 비율 (0.0~1.0) — 과장 없이 차분하고 집중된 표정
@@ -90,10 +114,10 @@ const EXTRACTION_PROMPTS: Record<string, string> = {
 - facial_tension_ratio: <0.10 상위 / 0.10~0.20 중상 / 0.21~0.35 중하 / >0.35 미흡
 - abrupt_head_jerk_events_per_min: ≤2.0 상위 / 2.1~4.0 중상 / 4.1~6.0 중하 / >6.0 미흡
 
-## 출력 형식 (반드시 JSON만 출력)
-{"face_head":{"engaged_neutral_ratio":number,"facial_tension_ratio":number,"abrupt_head_jerk_events_per_min":number,"observation":"관찰 근거 1~2문장"}}
+## 출력 예시
+{"face_head":{"engaged_neutral_ratio":0.72,"facial_tension_ratio":0.15,"abrupt_head_jerk_events_per_min":1.8,"observation":"발표자는 안정적인 표정을 유지하며 경미한 긴장 신호가 간헐적으로 관찰됨"}}
 
-관찰이 어려운 지표는 null로 표기하세요.`,
+위 형식과 동일하게 JSON만 출력하세요.`,
 };
 
 const VALID_CHANNELS = new Set(Object.keys(EXTRACTION_PROMPTS));

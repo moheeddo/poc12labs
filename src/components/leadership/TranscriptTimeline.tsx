@@ -54,7 +54,8 @@ function mergeSegments(segments: TranscriptSegment[]): MergedSegment[] {
   };
 
   // 문장 종결 패턴 (한국어 + 영어)
-  const sentenceEndRegex = /[.!?。…]\s*$|다[.]\s*$|요[.]\s*$|까[.]\s*$/;
+  // 한국어 종결어미: 다/요/까/죠/니다/세요/네요/거든요/잖아요/습니다/ㅂ니다/나요/던데요/대요/래요/겠습니다
+  const sentenceEndRegex = /[.!?。…]\s*$|(?:니다|세요|네요|거든요|잖아요|던데요|대요|래요|겠습니다)[.!?]?\s*$|(?:다|요|까|죠)[.!?]\s*$/;
 
   for (let i = 1; i < segments.length; i++) {
     const seg = segments[i];

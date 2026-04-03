@@ -19,16 +19,36 @@ const REPORT_SYSTEM_PROMPT = `당신은 KHNP(한국수력원자력) 인재개발
 5. 개선 우선순위는 점수가 낮은 항목 순으로 제시한다.
 6. N/A 항목은 사유를 명확히 기술한다.
 
-## 보고서 구성
-1. **종합 평가 요약** (2~3문장)
-2. **항목별 결과** (표 형식 + 행동 근거 2~4문장)
-3. **개선 우선순위** (최대 3개)
-4. **N/A 항목 사유**
+## 보고서 구성 (반드시 아래 순서와 형식을 따르세요)
+
+### 1. 종합 평가 요약
+- 2~3문장으로 전체 평가 결과를 요약합니다.
+- 총점과 해석 등급(상위/중상/중하/미흡)을 명시합니다.
+
+### 2. 항목별 세부 평가
+각 항목마다 아래 구조를 반복합니다:
+
+#### [항목명] — [점수]/9 ([등급])
+| 하위지표 | 측정값 | 판정 |
+|---------|-------|------|
+| 지표1 | 수치값 | 상위/중상/중하/미흡 |
+
+**행동 수치 근거**: 관찰된 행동 데이터를 1~2문장으로 기술합니다.
+**판정**: 해당 항목의 종합 판정을 1문장으로 기술합니다.
+**개선 방향**: 구체적인 개선 행동을 1~2문장으로 제시합니다.
+
+### 3. 개선 우선순위 (최대 3개)
+1. 가장 낮은 점수 항목부터 순서대로 번호 목록으로 작성합니다.
+2. 각 항목에 대해 구체적인 행동 변화 방안을 제시합니다.
+
+### 4. N/A 항목 사유 (해당 시)
+- N/A 항목이 있는 경우 관찰 불가 사유를 명확히 기술합니다.
 
 ## 톤 & 스타일
-- 공기업 공식 보고서에 적합한 격식체
-- 행동 관찰 기반의 객관적 서술
-- 수치 데이터를 근거로 제시
+- 공기업 공식 보고서에 적합한 격식체 (~입니다, ~됩니다, ~하였습니다)
+- 행동 관찰 기반의 객관적 서술 — 추측이나 감정적 표현 배제
+- 수치 데이터를 괄호 안에 명시하여 근거를 제시
+- 전체 분량: 400~600자 내외
 - 한국어로 작성`;
 
 export async function POST(req: NextRequest) {
@@ -92,6 +112,7 @@ function buildUserPrompt(
   const parts: string[] = [];
 
   parts.push("아래 멀티모달 행동 분석 채점 결과를 기반으로 리더십 역량평가 보고서를 작성해주세요.");
+  parts.push("시스템 프롬프트에 명시된 보고서 구성(종합 요약 → 항목별 세부 평가 → 개선 우선순위 → N/A 사유)을 반드시 따르세요.");
   parts.push("");
 
   if (competencyLabel) {
@@ -107,7 +128,11 @@ function buildUserPrompt(
   parts.push(JSON.stringify(scoringResult, null, 2));
   parts.push("```");
   parts.push("");
-  parts.push("위 데이터를 바탕으로 종합 평가 요약, 항목별 행동 근거, 개선 우선순위를 포함한 보고서를 한국어로 작성해주세요.");
+  parts.push("## 작성 요구사항");
+  parts.push("1. 각 항목에 대해 '행동 수치 근거 → 판정 → 개선 방향' 순서로 서술하세요.");
+  parts.push("2. 측정값은 반드시 괄호 안에 수치를 명시하세요 (예: 청중 응시 비율 0.62).");
+  parts.push("3. 표(markdown table)를 활용하여 하위지표별 측정값과 판정을 정리하세요.");
+  parts.push("4. 공기업 보고서 격식체(~입니다, ~하였습니다)로 작성하세요.");
 
   return parts.join("\n");
 }
@@ -126,8 +151,9 @@ function generateFallbackReport(
 
   // 종합 평가 요약
   parts.push(`## 종합 평가 요약`);
+  parts.push("");
   if (totalScore !== null) {
-    parts.push(`${competencyLabel || "리더십"} 역량에 대한 멀티모달 행동기반 평가 결과, 총점 ${totalScore.toFixed(1)}점(${interpretation})으로 산출되었습니다.`);
+    parts.push(`${competencyLabel || "리더십"} 역량에 대한 멀티모달 행동기반 평가 결과, 총점 **${totalScore.toFixed(1)}점**(${interpretation})으로 산출되었습니다.`);
   } else {
     parts.push(`채점 가능 항목이 부족하여 총점 산출이 보류되었습니다.`);
   }
@@ -137,33 +163,73 @@ function generateFallbackReport(
   const weak = scored.filter((i) => (i.itemScore || 0) < 5);
 
   if (strong.length > 0) {
-    parts.push(`${strong.map((i) => i.name).join(", ")} 항목에서 상위 수준의 행동 신호가 관찰되었습니다.`);
+    parts.push(`${strong.map((i) => `**${i.name}**(${(i.itemScore || 0).toFixed(1)}점)`).join(", ")} 항목에서 상위 수준의 행동 신호가 관찰되었습니다.`);
   }
   if (weak.length > 0) {
-    parts.push(`${weak.map((i) => i.name).join(", ")} 항목은 루브릭 기준 대비 보완이 필요합니다.`);
+    parts.push(`${weak.map((i) => `**${i.name}**(${(i.itemScore || 0).toFixed(1)}점)`).join(", ")} 항목은 루브릭 기준 대비 보완이 필요합니다.`);
   }
 
-  // 항목별 결과
+  // 항목별 세부 평가
   parts.push("");
-  parts.push(`## 항목별 결과`);
+  parts.push(`## 항목별 세부 평가`);
   items.forEach((item) => {
     const score = item.itemScore !== null ? `${item.itemScore.toFixed(1)}/9` : "N/A";
-    parts.push(`### ${item.name} (${item.channel}) — ${score}`);
+    const grade = item.itemScore !== null
+      ? item.itemScore >= 7 ? "상위" : item.itemScore >= 5 ? "중상" : item.itemScore >= 3 ? "중하" : "미흡"
+      : "산출 불가";
+    parts.push("");
+    parts.push(`### ${item.name} — ${score} (${grade})`);
+    parts.push("");
+    parts.push(`| 구분 | 내용 |`);
+    parts.push(`|------|------|`);
+    parts.push(`| 분석 채널 | ${item.channel} |`);
+    parts.push(`| 점수 | ${score} |`);
+    parts.push(`| 등급 | ${grade} |`);
     if (item.observation) {
-      parts.push(item.observation);
+      parts.push("");
+      parts.push(`**행동 수치 근거**: ${item.observation}`);
     }
     if (item.naCount > 0) {
-      parts.push(`※ ${item.naCount}개 하위지표 N/A`);
+      parts.push("");
+      parts.push(`**비고**: ${item.naCount}개 하위지표가 관찰 불가(N/A)로 처리되었습니다. 영상 화질, 카메라 각도 등의 이유로 해당 행동 신호를 충분히 포착하지 못한 것으로 판단됩니다.`);
     }
   });
 
   // 개선 우선순위
+  parts.push("");
+  parts.push(`## 개선 우선순위`);
+  parts.push("");
   if (weak.length > 0) {
-    parts.push("");
-    parts.push(`## 개선 우선순위`);
     weak.sort((a, b) => (a.itemScore || 0) - (b.itemScore || 0));
     weak.slice(0, 3).forEach((item, i) => {
-      parts.push(`${i + 1}. **${item.name}** — 해당 채널(${item.channel})의 행동 기준을 참고하여 개선 계획을 수립하세요.`);
+      const channelAdvice: Record<string, string> = {
+        gaze: "청중을 향한 시선 유지 비율을 높이고, 자료 확인 시에도 빠르게 청중 방향으로 복귀하는 연습이 권장됩니다.",
+        voice: "음높이와 음량의 변화폭을 의식적으로 넓히고, 핵심 메시지 전달 시 강조 포인트를 명확히 하는 훈련이 권장됩니다.",
+        fluency: "발화 속도를 안정적으로 유지하고, 채움말(어, 음) 사용을 줄이기 위한 사전 리허설이 권장됩니다.",
+        posture: "개방적 자세를 의식적으로 유지하고, 발화 내용과 동기화된 목적형 제스처를 활용하는 훈련이 권장됩니다.",
+        face: "안정적이고 집중된 표정을 유지하며, 불필요한 얼굴 긴장이나 머리 움직임을 줄이는 연습이 권장됩니다.",
+      };
+      const advice = channelAdvice[item.channel] || "해당 채널의 행동 기준을 참고하여 개선 계획을 수립하시기 바랍니다.";
+      parts.push(`${i + 1}. **${item.name}** (${(item.itemScore || 0).toFixed(1)}점): ${advice}`);
+    });
+  } else if (scored.length > 0) {
+    parts.push("모든 항목이 기준 이상의 수준을 보이고 있어 즉각적인 개선 대상은 없습니다. 지속적인 역량 유지를 권장합니다.");
+  } else {
+    parts.push("채점 가능 항목이 부족하여 개선 우선순위를 도출하지 못하였습니다.");
+  }
+
+  // N/A 항목 사유
+  const naItems = items.filter((i) => i.itemScore === null || i.naCount > 0);
+  if (naItems.length > 0) {
+    parts.push("");
+    parts.push(`## N/A 항목 사유`);
+    parts.push("");
+    naItems.forEach((item) => {
+      if (item.itemScore === null) {
+        parts.push(`- **${item.name}**: 해당 채널(${item.channel})의 하위지표 전체가 관찰 불가하여 점수 산출이 보류되었습니다.`);
+      } else if (item.naCount > 0) {
+        parts.push(`- **${item.name}**: ${item.naCount}개 하위지표가 N/A 처리되었으며, 나머지 지표 기반으로 점수가 산출되었습니다.`);
+      }
     });
   }
 
