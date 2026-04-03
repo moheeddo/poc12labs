@@ -131,8 +131,8 @@ export default function GroupManager({
       </div>
 
       {/* 수업 진행 스텝 */}
-      <div className="bg-white border border-slate-200/40 rounded-xl p-4">
-        <div className="flex items-center gap-2">
+      <div className="bg-white border border-slate-200/40 rounded-xl p-4 overflow-x-auto">
+        <div className="flex items-center gap-2 min-w-[480px]">
           {COMPETENCY_ORDER.map((comp, i) => {
             const isDone = i < session.currentStep;
             const isCurrent = i === session.currentStep;

@@ -1,5 +1,95 @@
 # Maintenance Log
 
+## 2026-04-04 QA 사이클 6 — 사용자 경험 마무리 + 최종 정합성 점검 (안정화 완료)
+
+### 1. 전체 빌드 + 타입 점검
+
+| 항목 | 결과 |
+|------|------|
+| `npx tsc --noEmit` | O — 오류 0개 |
+| `npx next build` | O — 성공, 경고 0개 |
+
+### 2. Vercel 배포 상태 확인
+
+| 항목 | 결과 |
+|------|------|
+| 최근 배포 | 6분 전, `Ready`, Production, 45s |
+| 이전 3건 배포 | 모두 `Ready` 상태 |
+| Error 배포 | 없음 |
+
+### 3. rubricurl 문서 1 (평가루브릭 초안) 재대조
+
+#### BARS 루브릭 (출처: PPTX)
+
+| 역량 | rubricItems 수 | 항목명 | 4단계 척도 |
+|------|---------------|--------|-----------|
+| 비전제시 | 4개 (vp-01~04) | 환경 분석 역량 / 전략-과제 정합성 / 과제의 도전성 / 발표·동기부여 | 9점·6~8점·2~5점·1점 일치 |
+| 신뢰형성 | 5개 (tb-01~05) | 갈등 상황 분석 / 대안 도출 / 적극 참여·기여 / 존중·협력 / 설득·합의 | 일치 |
+| 합리적 의사결정 | 5개 (rd-01~05) | 문제 상황 분석 / 논리적 근거 / 이해관계자 의견 수렴 / 리스크 관리 / 실행 계획 | 일치 |
+| 구성원육성 | 5개 (md-01~05) | 문제 인식·설명 / 개선 계획 구체성 / 발전적 피드백 / 심리적 안전감 조성 / 공동 대안 모색 | 일치 |
+
+#### 멀티모달 루브릭 (출처: rubricurl 문서 1)
+
+| # | 항목명 | 하위지표 3개 | 임계값 | 정합성 |
+|---|--------|-------------|--------|--------|
+| 1 | 청중 지향 시선 통제 | audience_facing_ratio / off_audience_episodes_per_min / downward_or_slide_fixation_ratio | 70%/55~69%/35~54%/35% 미만 등 | 일치 |
+| 2 | 음성 추진력과 강조 변화 | f0_dynamic_range_st / loudness_dynamic_range_db / emphasis_bursts_per_min | 4~10 ST / 5~12 dB 등 | 일치 |
+| 3 | 유창성과 전진감 | articulation_rate_syllables_per_sec / filled_pauses_per_min / long_silent_pauses_per_min | 3.5~5.8 / 2회 이하 등 | 일치 |
+| 4 | 개방적 자세와 목적형 제스처 | open_posture_ratio / purposeful_gesture_bouts_per_min / closed_or_fidget_ratio | 70% 이상 / 2~8회 등 | 일치 |
+| 5 | 표정 안정성과 머리 움직임의 절제 | engaged_neutral_ratio / facial_tension_ratio / abrupt_head_jerk_events_per_min | 75% 이상 / 10% 미만 등 | 일치 |
+
+**결론**: BARS 4역량(19항목) + 멀티모달 5항목(15하위지표) 모두 원본 문서와 정합 확인 완료. 불일치 0건.
+
+### 4. 반응형 레이아웃 최종 점검
+
+| 컴포넌트 | 점검 결과 | 수정 사항 |
+|---------|----------|----------|
+| `LeadershipFeedback.tsx` | `grid-cols-1 lg:grid-cols-12` → 모바일 1단 스택 정상 | 없음 |
+| `GroupManager.tsx` 스텝 바 | 4개 역량 가로 나열 — 320px에서 글자 심하게 압축됨 | `overflow-x-auto` + `min-w-[480px]` 추가 — 좁은 화면에서 가로 스크롤로 대응 |
+| `GroupManager.tsx` 업로드 그리드 | `grid-cols-1 sm:grid-cols-2` | 정상 (모바일 1단) |
+| `GroupDashboard.tsx` 종합 순위 | `grid-cols-2 sm:grid-cols-3 lg:grid-cols-6` | 정상 |
+| `GroupDashboard.tsx` 역량 순위 | `grid-cols-1 sm:grid-cols-2` | 정상 |
+| `GroupCreateForm` 참가자 | `space-y-2` 1열 레이아웃 | 정상 (모바일 겹침 없음) |
+| `CompetencyAssessment.tsx` 4단계 척도 | `min-w-[600px]` + `overflow-x-auto` | 정상 (모바일 가로 스크롤) |
+| `LeadershipCoaching.tsx` 세션 목록 | `grid-cols-1 sm:grid-cols-2 lg:grid-cols-3` | 정상 |
+
+### 5. 로깅 + 모니터링 포인트 강화
+
+기존에는 `upload`/`upload/status` 라우트에만 로거가 있었음. 전체 API 라우트에 `createLogger` 적용 완료.
+
+| API 라우트 | 태그 | 로그 포인트 |
+|-----------|------|-----------|
+| `/api/twelvelabs/analyze` | `API:analyze` | 시작/완료/실패 + 파라미터 검증 |
+| `/api/twelvelabs/multimodal-extract` | `API:multimodal-extract` | 단일/전체 추출 시작/완료/실패 + 성공/에러 카운트 |
+| `/api/solar/report` | `API:solar/report` | Solar API 호출/폴백/실패 + 보고서 길이 |
+| `/api/twelvelabs/search` | `API:search` | 시작/완료/실패 + 결과 수 |
+| `/api/twelvelabs/transcription` | `API:transcription` | 시작/완료/실패 + 세그먼트 수 |
+| `/api/twelvelabs/embed` | `API:embed` | 생성/조회/실패 |
+| `/api/twelvelabs/index` | `API:index` | 목록 조회/생성/실패 |
+| `/api/twelvelabs/upload` | `API:upload` | (기존) 정상 |
+| `/api/twelvelabs/upload/status` | `API:upload/status` | (기존) 정상 |
+
+`solar/report` 라우트에서 `console.error` 직접 호출 1건 → `log.error`로 교체 완료.
+
+### 6. 전체 6사이클 요약
+
+| 사이클 | 날짜 | 주요 내용 | 상태 |
+|--------|------|----------|------|
+| 1 | 2026-04-03 | 다크 테마 잔여 제거, 미사용 코드 정리, 접근성, 파이프라인 검증 | 완료 |
+| 2 | 2026-04-03 | API 점검, XSS 방지, 성능 최적화(useMemo), 참조 안정성 | 완료 |
+| 3 | 2026-04-04 | PDF 대조 검증, 멀티모달 프롬프트 개선, Solar 보고서 구조화, 전사 종결 패턴 | 완료 |
+| 4 | 2026-04-04 | 엣지 케이스 방어, 빈 대시보드, 인쇄 CSS, SEO, 환경변수 | 완료 |
+| 5 | 2026-04-04 | surface-* 컬러 정규화, 차트 라이트 테마, 타입 안전성, 전체 컴포넌트 점검 | 완료 |
+| 6 | 2026-04-04 | 빌드/배포 검증, rubricurl 문서 대조, 반응형 마무리, API 로깅 전면 적용 | **안정화 완료** |
+
+### 빌드 결과
+
+- `npx tsc --noEmit`: 오류 0개
+- `npx next build`: 성공, 경고 0개
+- Vercel: 최근 배포 모두 Ready
+
+---
+
 ## 2026-04-04 QA 사이클 5 — 실제 사이트 브라우징 + 시각적 버그 탐지 + surface 컬러 정규화
 
 ### 1. 개발 서버 + SSR 검증

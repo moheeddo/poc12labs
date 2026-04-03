@@ -1,4 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
+import { createLogger } from "@/lib/logger";
+
+const log = createLogger("API:solar/report");
 
 // =============================================
 // Solar Pro 2 보고서 생성 API
@@ -57,11 +60,13 @@ export async function POST(req: NextRequest) {
     const { scoringResult, competencyLabel, scenarioText } = body;
 
     if (!scoringResult) {
+      log.warn("scoringResult 누락");
       return NextResponse.json({ error: "scoringResult가 필요합니다" }, { status: 400 });
     }
 
     // Solar API 키가 없으면 로컬 템플릿 기반 보고서 생성
     if (!SOLAR_API_KEY) {
+      log.info("Solar API 키 없음 — 로컬 템플릿 폴백", { competencyLabel });
       const fallbackReport = generateFallbackReport(scoringResult, competencyLabel, scenarioText);
       return NextResponse.json({ report: fallbackReport, model: "local-template" });
     }
@@ -87,7 +92,7 @@ export async function POST(req: NextRequest) {
 
     if (!response.ok) {
       const error = await response.text();
-      console.error("Solar API 오류:", error);
+      log.error("Solar API 오류 — 로컬 폴백", { status: response.status, error });
       // 폴백: 로컬 템플릿
       const fallbackReport = generateFallbackReport(scoringResult, competencyLabel, scenarioText);
       return NextResponse.json({ report: fallbackReport, model: "local-template", solarError: error });
@@ -96,9 +101,11 @@ export async function POST(req: NextRequest) {
     const data = await response.json();
     const reportText = data.choices?.[0]?.message?.content || "";
 
+    log.info("Solar 보고서 생성 완료", { model: "solar-pro2-preview", length: reportText.length });
     return NextResponse.json({ report: reportText, model: "solar-pro2-preview" });
   } catch (error) {
     const message = error instanceof Error ? error.message : "보고서 생성 실패";
+    log.error("보고서 생성 실패", { error: message });
     return NextResponse.json({ error: message }, { status: 500 });
   }
 }

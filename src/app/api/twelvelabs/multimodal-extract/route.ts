@@ -1,5 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { generateWithPrompt } from "@/lib/twelvelabs";
+import { createLogger } from "@/lib/logger";
+
+const log = createLogger("API:multimodal-extract");
 
 // =============================================
 // 멀티모달 행동 신호 추출 API
@@ -129,11 +132,13 @@ export async function POST(req: NextRequest) {
     const channel = typeof body.channel === "string" ? body.channel.trim() : "";
 
     if (!videoId) {
+      log.warn("videoId 누락");
       return NextResponse.json({ error: "videoId가 필요합니다" }, { status: 400 });
     }
 
     // 단일 채널 추출
     if (channel && VALID_CHANNELS.has(channel)) {
+      log.info("단일 채널 추출 시작", { videoId, channel });
       const prompt = EXTRACTION_PROMPTS[channel];
       const result = await generateWithPrompt(videoId, prompt);
 
@@ -153,6 +158,7 @@ export async function POST(req: NextRequest) {
 
     // 전체 5채널 병렬 추출
     if (!channel || channel === "all") {
+      log.info("전체 5채널 병렬 추출 시작", { videoId });
       const channels = Object.keys(EXTRACTION_PROMPTS);
       const results = await Promise.allSettled(
         channels.map(async (ch) => {
@@ -181,15 +187,18 @@ export async function POST(req: NextRequest) {
         }
       });
 
+      log.info("전체 5채널 추출 완료", { videoId, successCount: Object.keys(extracted).length, errorCount: Object.keys(errors).length });
       return NextResponse.json({ extracted, errors });
     }
 
+    log.warn("유효하지 않은 채널", { channel });
     return NextResponse.json(
       { error: `유효하지 않은 채널: ${channel}. 유효 채널: ${[...VALID_CHANNELS].join(", ")}` },
       { status: 400 }
     );
   } catch (error) {
     const message = error instanceof Error ? error.message : "멀티모달 추출 실패";
+    log.error("멀티모달 추출 실패", { error: message });
     return NextResponse.json({ error: message }, { status: 500 });
   }
 }
