@@ -1,5 +1,28 @@
 # Maintenance Log
 
+## 2026-04-04 사이클 11 — UX 고도화
+
+### 1. 멀티모달 분석 "산출 보류" 개선 (LeadershipFeedback.tsx)
+- totalScore가 null(산출 보류)일 때 채점된 항목들의 개별 점수를 인라인으로 표시
+- "3개 이상 항목 채점 시 총점 산출 가능" 안내 메시지 추가
+- 각 항목의 observation(AI 관찰 소견)을 별도 헤더 + 배경색으로 강조 표시
+
+### 2. BARS 리포트 AI 요약 개선 (AnalysisReport.tsx)
+- reportSummary: 폰트 크기 text-sm -> text-base, 행간 leading-relaxed -> leading-[1.85]로 가독성 향상
+- aiSummary: 폰트 크기 text-sm -> text-base, 행간 leading-[1.8], 배경/테두리 강화
+- 요약이 없을 때: "AI 요약 생성 중..." 대신 "BARS 분석 완료 — 역량별 상세 결과를 확인하세요" 표시
+
+### 3. 6인 조 대시보드 역량별 평균 (GroupDashboard.tsx)
+- rankings 계산에 groupAvg(조 평균) 추가 — 점수가 있는 멤버만 대상
+- 역량별 순위 테이블 하단에 "조 평균: X.X" 행 추가 (구분선 + 점수 색상 코딩)
+
+### 빌드 결과
+
+- `npx tsc --noEmit`: 오류 0개
+- `npx next build`: 성공 (15개 라우트, 경고 0개)
+
+---
+
 ## 2026-04-04 QA 사이클 10 — 최종 정기 점검 완료
 
 ### 1. 빌드 + 배포 상태

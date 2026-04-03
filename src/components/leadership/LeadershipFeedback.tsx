@@ -859,6 +859,34 @@ export default function LeadershipFeedback({
                   <p className="text-xs text-slate-400 mt-1">
                     {mmResult.scoring.scorableItemCount}/5개 항목 채점 · {mmResult.reportModel === "solar-pro2" ? "Solar Pro 2" : "로컬"} 생성
                   </p>
+                  {/* 산출 보류 시 안내 */}
+                  {mmResult.scoring.totalScore === null && (
+                    <div className="mt-3 pt-3 border-t border-violet-200/30">
+                      <p className="text-xs text-amber-600 font-medium">
+                        3개 이상 항목이 채점되어야 총점을 산출할 수 있습니다 (현재 {mmResult.scoring.scorableItemCount}개 채점됨)
+                      </p>
+                      {/* 채점된 항목들의 개별 점수 표시 */}
+                      {mmResult.scoring.scorableItemCount > 0 && (
+                        <div className="flex items-center justify-center gap-3 mt-2 flex-wrap">
+                          {mmResult.scoring.items
+                            .filter((item) => item.itemScore !== null)
+                            .map((item) => (
+                              <span key={item.id} className="inline-flex items-center gap-1 text-xs">
+                                <span className="text-slate-500">{item.name}</span>
+                                <span className={cn(
+                                  "font-mono font-bold px-1.5 py-0.5 rounded",
+                                  item.itemScore !== null && item.itemScore >= 7 ? "bg-teal-50 text-teal-600" :
+                                  item.itemScore !== null && item.itemScore >= 5 ? "bg-amber-50 text-amber-600" :
+                                  "bg-red-50 text-red-500"
+                                )}>
+                                  {item.itemScore!.toFixed(1)}
+                                </span>
+                              </span>
+                            ))}
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </div>
 
                 {/* 항목별 점수 */}
@@ -912,7 +940,10 @@ export default function LeadershipFeedback({
                       ))}
                     </div>
                     {item.observation && (
-                      <p className="text-xs text-slate-500 mt-2 pt-2 border-t border-slate-100 leading-relaxed">{item.observation}</p>
+                      <div className="mt-2.5 pt-2.5 border-t border-violet-100/50">
+                        <p className="text-[10px] uppercase tracking-wider text-violet-500/70 font-medium mb-1">AI 관찰 소견</p>
+                        <p className="text-sm text-slate-600 leading-relaxed bg-violet-50/30 rounded-lg px-3 py-2">{item.observation}</p>
+                      </div>
                     )}
                   </div>
                 ))}

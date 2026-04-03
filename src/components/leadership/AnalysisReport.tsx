@@ -141,13 +141,20 @@ export default function AnalysisReport({ data, onSeek }: AnalysisReportProps) {
       </div>
 
       {/* ── 보고서 요약 (rubricurl 문서 4 규칙) ── */}
-      {data.reportSummary && (
-        <div className="bg-teal-50/50 border border-teal-500/15 rounded-xl p-4">
-          <p className="text-sm text-teal-600 font-medium mb-1.5 flex items-center gap-1.5">
-            <Sparkles className="w-3.5 h-3.5" />
+      {data.reportSummary ? (
+        <div className="bg-teal-50/50 border border-teal-500/15 rounded-xl p-5">
+          <p className="text-base text-teal-600 font-semibold mb-2 flex items-center gap-1.5">
+            <Sparkles className="w-4 h-4" />
             종합 평가 요약
           </p>
-          <p className="text-sm text-slate-600 leading-relaxed">{data.reportSummary}</p>
+          <p className="text-base text-slate-700 leading-[1.85]">{data.reportSummary}</p>
+        </div>
+      ) : (
+        <div className="bg-slate-50/50 border border-slate-200/30 rounded-xl p-4">
+          <p className="text-sm text-slate-500 flex items-center gap-1.5">
+            <CheckCircle2 className="w-3.5 h-3.5 text-teal-500" />
+            BARS 분석 완료 — 역량별 상세 결과를 확인하세요
+          </p>
         </div>
       )}
 
@@ -176,12 +183,12 @@ export default function AnalysisReport({ data, onSeek }: AnalysisReportProps) {
 
       {/* ── AI 분석 요약 ── */}
       {data.aiSummary && (
-        <div className="bg-white/40 border border-slate-200/30 rounded-xl p-4">
-          <p className="text-sm text-slate-500 flex items-center gap-1.5 mb-2">
-            <Sparkles className="w-3.5 h-3.5 text-teal-500/60" />
+        <div className="bg-white/60 border border-slate-200/40 rounded-xl p-5">
+          <p className="text-sm text-teal-600 font-medium flex items-center gap-1.5 mb-2">
+            <Sparkles className="w-3.5 h-3.5 text-teal-500" />
             AI 분석 요약
           </p>
-          <p className="text-sm text-slate-600 leading-relaxed">{data.aiSummary}</p>
+          <p className="text-base text-slate-600 leading-[1.8]">{data.aiSummary}</p>
         </div>
       )}
 

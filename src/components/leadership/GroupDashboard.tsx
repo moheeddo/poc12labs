@@ -60,7 +60,13 @@ export default function GroupDashboard({ session, onBack, onViewMember }: GroupD
         }))
         .sort((a, b) => b.score - a.score);
 
-      return { comp, members: scored };
+      // 조 평균 계산 (점수가 있는 멤버만)
+      const scoredMembers = scored.filter((m) => m.score > 0);
+      const groupAvg = scoredMembers.length > 0
+        ? Math.round((scoredMembers.reduce((sum, m) => sum + m.score, 0) / scoredMembers.length) * 10) / 10
+        : 0;
+
+      return { comp, members: scored, groupAvg };
     });
   }, [session]);
 
@@ -199,7 +205,7 @@ export default function GroupDashboard({ session, onBack, onViewMember }: GroupD
 
       {/* 역량별 순위 테이블 */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        {rankings.map(({ comp, members }) => (
+        {rankings.map(({ comp, members, groupAvg }) => (
           <div key={comp.key} className="bg-white border border-slate-200/40 rounded-xl p-4" style={{ borderLeftWidth: "3px", borderLeftColor: comp.color }}>
             <h4 className="text-sm font-bold mb-3" style={{ color: comp.color }}>
               {comp.label}
@@ -236,6 +242,27 @@ export default function GroupDashboard({ session, onBack, onViewMember }: GroupD
                   </span>
                 </div>
               ))}
+              {/* 조 평균 행 */}
+              <div className="flex items-center gap-2 pt-2 mt-2 border-t border-slate-100">
+                <span className="text-xs font-medium w-5 text-center text-slate-400">—</span>
+                <div className="w-3 h-3 rounded-full shrink-0 bg-slate-300" />
+                <span className="text-xs font-semibold text-slate-500 flex-1">조 평균</span>
+                <div className="w-20 h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                  <div
+                    className="h-full rounded-full transition-all duration-500"
+                    style={{
+                      width: `${(groupAvg / 9) * 100}%`,
+                      backgroundColor: groupAvg >= 7 ? "#14b8a6" : groupAvg >= 5 ? "#f59e0b" : groupAvg > 0 ? "#ef4444" : "#e2e8f0",
+                    }}
+                  />
+                </div>
+                <span className={cn(
+                  "text-xs font-mono font-bold w-8 text-right",
+                  groupAvg >= 7 ? "text-teal-600" : groupAvg >= 5 ? "text-amber-600" : groupAvg > 0 ? "text-red-500" : "text-slate-300"
+                )}>
+                  {groupAvg > 0 ? groupAvg.toFixed(1) : "—"}
+                </span>
+              </div>
             </div>
           </div>
         ))}
