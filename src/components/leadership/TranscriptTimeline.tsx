@@ -9,7 +9,6 @@ import {
   ChevronDown,
   ChevronUp,
   Star,
-  Printer,
   Download,
   Volume2,
 } from "lucide-react";
@@ -17,7 +16,7 @@ import type { TranscriptSegment } from "@/hooks/useTwelveLabs";
 import type { Chapter } from "@/lib/types";
 import { formatTime, cn } from "@/lib/utils";
 
-// ─── 화자 색상 팔레트 (6인 토론 기준) ───
+// ─── 화자 색상 팔레트 ───
 const SPEAKER_PALETTE = [
   { name: "화자 A", color: "#14b8a6", bg: "bg-teal-500/12", border: "border-teal-500/25", text: "text-teal-600", ring: "ring-teal-500/20" },
   { name: "화자 B", color: "#f59e0b", bg: "bg-amber-500/12", border: "border-amber-500/25", text: "text-amber-600", ring: "ring-amber-500/20" },
@@ -27,9 +26,90 @@ const SPEAKER_PALETTE = [
   { name: "화자 F", color: "#ec4899", bg: "bg-pink-500/12", border: "border-pink-500/25", text: "text-pink-400", ring: "ring-pink-500/20" },
 ];
 
-// 화자 할당 — 단일 화자(발표자)로 표시
-function assignSpeaker(): { name: string; palette: typeof SPEAKER_PALETTE[0] } {
-  return { name: "발표자", palette: SPEAKER_PALETTE[0] };
+// ─── 병합된 세그먼트 타입 ───
+interface MergedSegment {
+  index: number;
+  speaker: string;
+  palette: (typeof SPEAKER_PALETTE)[0];
+  start: number;
+  end: number;
+  text: string;
+  originalSegments: number[]; // 원본 세그먼트 인덱스
+}
+
+// 세그먼트 병합 로직 — 문장 단위로 레벨링
+function mergeSegments(segments: TranscriptSegment[]): MergedSegment[] {
+  if (segments.length === 0) return [];
+
+  const merged: MergedSegment[] = [];
+  let currentGroup: {
+    start: number;
+    end: number;
+    texts: string[];
+    indices: number[];
+  } = {
+    start: segments[0].start,
+    end: segments[0].end,
+    texts: [segments[0].value || ""],
+    indices: [0],
+  };
+
+  // 문장 종결 패턴 (한국어 + 영어)
+  const sentenceEndRegex = /[.!?。…]\s*$|다[.]\s*$|요[.]\s*$|까[.]\s*$/;
+
+  for (let i = 1; i < segments.length; i++) {
+    const seg = segments[i];
+    const prevText = currentGroup.texts.join(" ");
+    const timeDiff = seg.start - currentGroup.end;
+    const totalLength = prevText.length + (seg.value?.length || 0);
+
+    // 병합 조건:
+    // 1. 시간 갭이 2초 이내
+    // 2. 전체 텍스트 길이가 300자 미만
+    // 3. 이전 텍스트가 문장 종결이 아니거나, 총 길이가 60자 미만 (너무 짧은 문장 방지)
+    const shouldMerge =
+      timeDiff <= 2.0 &&
+      totalLength < 300 &&
+      (!sentenceEndRegex.test(prevText.trim()) || prevText.trim().length < 60);
+
+    if (shouldMerge) {
+      currentGroup.end = seg.end;
+      currentGroup.texts.push(seg.value || "");
+      currentGroup.indices.push(i);
+    } else {
+      // 현재 그룹 완료
+      merged.push({
+        index: merged.length,
+        speaker: "발표자",
+        palette: SPEAKER_PALETTE[0],
+        start: currentGroup.start,
+        end: currentGroup.end,
+        text: currentGroup.texts.join(" ").trim(),
+        originalSegments: currentGroup.indices,
+      });
+
+      // 새 그룹 시작
+      currentGroup = {
+        start: seg.start,
+        end: seg.end,
+        texts: [seg.value || ""],
+        indices: [i],
+      };
+    }
+  }
+
+  // 마지막 그룹 추가
+  merged.push({
+    index: merged.length,
+    speaker: "발표자",
+    palette: SPEAKER_PALETTE[0],
+    start: currentGroup.start,
+    end: currentGroup.end,
+    text: currentGroup.texts.join(" ").trim(),
+    originalSegments: currentGroup.indices,
+  });
+
+  return merged;
 }
 
 // ─── Props ───
@@ -43,55 +123,40 @@ interface TranscriptTimelineProps {
 }
 
 export default function TranscriptTimeline({
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  videoId,
+  videoId: _videoId,
   currentTime,
   chapters,
   onSeek,
   transcriptSegments,
   loading = false,
 }: TranscriptTimelineProps) {
-  const segments = useMemo(() => transcriptSegments && transcriptSegments.length > 0 ? transcriptSegments : [], [transcriptSegments]);
+  void _videoId;
+  const rawSegments = useMemo(
+    () => (transcriptSegments && transcriptSegments.length > 0 ? transcriptSegments : []),
+    [transcriptSegments]
+  );
+
+  // 문장 단위로 병합된 세그먼트
+  const segments = useMemo(() => mergeSegments(rawSegments), [rawSegments]);
+
   const scrollRef = useRef<HTMLDivElement>(null);
   const activeRef = useRef<HTMLDivElement>(null);
-  const [filterSpeaker, setFilterSpeaker] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [isCompact, setIsCompact] = useState(false);
   const [autoScroll, setAutoScroll] = useState(true);
   const [bookmarks, setBookmarks] = useState<Set<number>>(new Set());
 
-  // 화자 주석이 달린 세그먼트
-  const annotated = useMemo(() => {
-    return segments.map((seg, i) => {
-      const { name, palette } = assignSpeaker();
-      return { ...seg, index: i, speaker: name, palette };
-    });
-  }, [segments]);
-
-  // 고유 화자 목록
-  const speakers = useMemo(() => {
-    const map = new Map<string, typeof SPEAKER_PALETTE[0]>();
-    annotated.forEach((a) => {
-      if (!map.has(a.speaker)) map.set(a.speaker, a.palette);
-    });
-    return Array.from(map.entries());
-  }, [annotated]);
-
   // 필터 + 검색 적용
   const filtered = useMemo(() => {
-    let result = annotated;
-    if (filterSpeaker) result = result.filter((s) => s.speaker === filterSpeaker);
-    if (searchQuery.trim()) {
-      const q = searchQuery.toLowerCase();
-      result = result.filter((s) => s.value?.toLowerCase().includes(q));
-    }
-    return result;
-  }, [annotated, filterSpeaker, searchQuery]);
+    if (!searchQuery.trim()) return segments;
+    const q = searchQuery.toLowerCase();
+    return segments.filter((s) => s.text.toLowerCase().includes(q));
+  }, [segments, searchQuery]);
 
   // 현재 재생 중인 세그먼트
   const activeIndex = useMemo(
-    () => annotated.findIndex((s) => currentTime >= s.start && currentTime < s.end),
-    [annotated, currentTime]
+    () => segments.findIndex((s) => currentTime >= s.start && currentTime < s.end),
+    [segments, currentTime]
   );
 
   // 자동 스크롤
@@ -103,27 +168,23 @@ export default function TranscriptTimeline({
   const toggleBookmark = useCallback((index: number) => {
     setBookmarks((prev) => {
       const next = new Set(prev);
-      if (next.has(index)) next.delete(index); else next.add(index);
+      if (next.has(index)) next.delete(index);
+      else next.add(index);
       return next;
     });
   }, []);
 
   // 현재 챕터 찾기
-  const getChapterForTime = useCallback((time: number) => {
-    return chapters.find((ch) => time >= ch.start && time < ch.end);
-  }, [chapters]);
+  const getChapterForTime = useCallback(
+    (time: number) => chapters.find((ch) => time >= ch.start && time < ch.end),
+    [chapters]
+  );
 
-  // 화자별 발언 통계
-  const speakerStats = useMemo(() => {
-    const stats = new Map<string, { count: number; totalDuration: number }>();
-    annotated.forEach((seg) => {
-      const existing = stats.get(seg.speaker) || { count: 0, totalDuration: 0 };
-      existing.count++;
-      existing.totalDuration += seg.end - seg.start;
-      stats.set(seg.speaker, existing);
-    });
-    return stats;
-  }, [annotated]);
+  // 통계 정보
+  const totalDuration = useMemo(() => {
+    if (segments.length === 0) return 0;
+    return segments[segments.length - 1].end - segments[0].start;
+  }, [segments]);
 
   if (loading) {
     return (
@@ -145,8 +206,11 @@ export default function TranscriptTimeline({
             <FileText className="w-4 h-4 text-teal-600" />
           </div>
           <div>
-            <h4 className="text-base font-semibold text-slate-200">디브리핑 대본</h4>
-            <p className="text-sm text-slate-400 font-mono">{segments.length}개 발언 구간</p>
+            <h4 className="text-base font-semibold text-slate-700">디브리핑 대본</h4>
+            <p className="text-sm text-slate-400 font-mono">
+              {segments.length}개 문단 · {rawSegments.length}개 원본 구간
+              {totalDuration > 0 && ` · ${formatTime(totalDuration)}`}
+            </p>
           </div>
         </div>
         <div className="flex items-center gap-1.5">
@@ -165,58 +229,13 @@ export default function TranscriptTimeline({
             className="p-1.5 rounded-md text-slate-400 hover:text-slate-500 transition-colors"
             title={isCompact ? "상세 보기" : "간결 보기"}
           >
-            {isCompact ? <ChevronDown className="w-3.5 h-3.5" /> : <ChevronUp className="w-3.5 h-3.5" />}
-          </button>
-          <button
-            onClick={() => window.print()}
-            className="p-1.5 rounded-md text-slate-400 hover:text-slate-500 transition-colors"
-            title="인쇄"
-          >
-            <Printer className="w-3.5 h-3.5" />
+            {isCompact ? (
+              <ChevronDown className="w-3.5 h-3.5" />
+            ) : (
+              <ChevronUp className="w-3.5 h-3.5" />
+            )}
           </button>
         </div>
-      </div>
-
-      {/* ─── 화자 필터 칩 ─── */}
-      <div className="flex items-center gap-1.5 mb-3 flex-wrap">
-        <button
-          onClick={() => setFilterSpeaker(null)}
-          className={cn(
-            "inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-sm font-medium transition-all",
-            !filterSpeaker
-              ? "bg-teal-50 text-teal-600 border border-teal-500/25"
-              : "bg-white/60 text-slate-500 border border-slate-200/40 hover:text-slate-500"
-          )}
-        >
-          <Users className="w-3 h-3" />
-          전체
-        </button>
-        {speakers.map(([name, palette]) => {
-          const stats = speakerStats.get(name);
-          return (
-            <button
-              key={name}
-              onClick={() => setFilterSpeaker(filterSpeaker === name ? null : name)}
-              className={cn(
-                "inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-sm font-medium transition-all border",
-                filterSpeaker === name
-                  ? `${palette.bg} ${palette.text} ${palette.border}`
-                  : "bg-white/40 text-slate-500 border-slate-200/30 hover:text-slate-500"
-              )}
-            >
-              <span
-                className="w-2 h-2 rounded-full shrink-0"
-                style={{ backgroundColor: palette.color }}
-              />
-              {name}
-              {stats && (
-                <span className="text-[9px] font-mono opacity-60">
-                  {stats.count}
-                </span>
-              )}
-            </button>
-          );
-        })}
       </div>
 
       {/* ─── 인라인 검색 ─── */}
@@ -236,42 +255,17 @@ export default function TranscriptTimeline({
         )}
       </div>
 
-      {/* ─── 화자별 통계 미니 바 ─── */}
-      {!isCompact && (
-        <div className="mb-4 p-3 bg-white/30 border border-slate-200/20 rounded-xl">
-          <p className="text-sm uppercase tracking-wider text-slate-400 mb-2">발언량 분석</p>
-          <div className="space-y-1.5">
-            {speakers.map(([name, palette]) => {
-              const stats = speakerStats.get(name);
-              if (!stats) return null;
-              const totalDur = Array.from(speakerStats.values()).reduce((a, b) => a + b.totalDuration, 0);
-              const pct = totalDur > 0 ? (stats.totalDuration / totalDur) * 100 : 0;
-              return (
-                <div key={name} className="flex items-center gap-2">
-                  <span className={cn("text-sm font-medium w-14 truncate", palette.text)}>
-                    {name}
-                  </span>
-                  <div className="flex-1 h-1.5 bg-slate-50/60 rounded-full overflow-hidden">
-                    <div
-                      className="h-full rounded-full transition-all duration-500"
-                      style={{ width: `${pct}%`, backgroundColor: palette.color }}
-                    />
-                  </div>
-                  <span className="text-[9px] font-mono text-slate-400 w-10 text-right">
-                    {formatTime(stats.totalDuration)}
-                  </span>
-                  <span className="text-[9px] font-mono text-slate-400 w-8 text-right">
-                    {pct.toFixed(0)}%
-                  </span>
-                </div>
-              );
-            })}
+      {/* ─── 전사 타임라인 (문장 단위 병합) ─── */}
+      <div ref={scrollRef} className="flex-1 overflow-y-auto space-y-1 pr-1 scrollbar-thin">
+        {filtered.length === 0 && !loading && (
+          <div className="py-8 text-center">
+            <FileText className="w-8 h-8 mx-auto mb-2 text-slate-300" />
+            <p className="text-sm text-slate-400">
+              {searchQuery ? "검색 결과가 없습니다" : "전사 데이터가 없습니다"}
+            </p>
           </div>
-        </div>
-      )}
+        )}
 
-      {/* ─── 전사 타임라인 ─── */}
-      <div ref={scrollRef} className="flex-1 overflow-y-auto space-y-0.5 pr-1 scrollbar-thin">
         {filtered.map((seg, fi) => {
           const isActive = activeIndex >= 0 && seg.index === activeIndex;
           const isBookmarked = bookmarks.has(seg.index);
@@ -280,6 +274,7 @@ export default function TranscriptTimeline({
           const prevSeg = fi > 0 ? filtered[fi - 1] : null;
           const prevChapter = prevSeg ? getChapterForTime(prevSeg.start) : null;
           const showChapterBoundary = chapter && (!prevChapter || chapter.title !== prevChapter.title);
+          const duration = seg.end - seg.start;
 
           return (
             <div key={seg.index}>
@@ -294,94 +289,84 @@ export default function TranscriptTimeline({
                 </div>
               )}
 
-              {/* 발언 카드 */}
+              {/* 문단 카드 */}
               <div
                 ref={isActive ? activeRef : undefined}
                 className={cn(
-                  "group relative flex gap-3 px-3 py-2.5 rounded-xl transition-all duration-200 cursor-pointer",
+                  "group relative rounded-xl transition-all duration-200 cursor-pointer",
                   isActive
-                    ? "bg-teal-500/8 ring-1 ring-teal-500/20"
-                    : "hover:bg-white/50",
-                  isBookmarked && !isActive && "bg-amber-500/5"
+                    ? "bg-teal-50/60 ring-1 ring-teal-500/20 shadow-sm"
+                    : "hover:bg-slate-50/60",
+                  isBookmarked && !isActive && "bg-amber-50/30"
                 )}
                 onClick={() => onSeek(seg.start)}
               >
-                {/* 타임라인 도트 + 라인 */}
-                <div className="flex flex-col items-center pt-1 shrink-0 w-5">
-                  <div
-                    className={cn(
-                      "w-2.5 h-2.5 rounded-full border-2 transition-all",
-                      isActive
-                        ? "border-teal-400 bg-teal-400 shadow-[0_0_8px_rgba(20,184,166,0.4)]"
-                        : `border-slate-200 group-hover:border-slate-500`
-                    )}
-                    style={!isActive ? { borderColor: seg.palette.color + "40" } : undefined}
-                  />
-                  {fi < filtered.length - 1 && (
-                    <div className="w-px flex-1 mt-1 bg-slate-100/30" />
-                  )}
-                </div>
-
-                {/* 콘텐츠 */}
-                <div className="flex-1 min-w-0">
-                  {/* 화자 + 타임스탬프 */}
-                  <div className="flex items-center gap-2 mb-1">
-                    <span
-                      className={cn("text-sm font-semibold", seg.palette.text)}
-                    >
-                      {seg.speaker}
-                    </span>
+                <div className="px-4 py-3">
+                  {/* 타임스탬프 헤더 */}
+                  <div className="flex items-center gap-2 mb-2">
                     <button
-                      onClick={(e) => { e.stopPropagation(); onSeek(seg.start); }}
-                      className="inline-flex items-center gap-0.5 text-sm font-mono text-slate-400 hover:text-teal-600 transition-colors"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onSeek(seg.start);
+                      }}
+                      className="inline-flex items-center gap-1 text-teal-600 font-mono text-sm hover:text-teal-500 transition-colors"
                     >
-                      <PlayCircle className="w-3 h-3" />
+                      <PlayCircle className="w-3.5 h-3.5" />
                       {formatTime(seg.start)}
                     </button>
+                    <span className="text-slate-300">—</span>
+                    <span className="text-sm font-mono text-slate-400">{formatTime(seg.end)}</span>
+
+                    {!isCompact && (
+                      <span className="text-[10px] font-mono text-slate-400 bg-slate-100/60 px-1.5 py-0.5 rounded">
+                        {duration >= 60
+                          ? `${Math.floor(duration / 60)}분 ${Math.round(duration % 60)}초`
+                          : `${Math.round(duration)}초`}
+                      </span>
+                    )}
+
                     {isActive && (
-                      <span className="inline-flex items-center gap-1 text-[9px] text-teal-600 font-medium animate-pulse">
+                      <span className="inline-flex items-center gap-1 text-[10px] text-teal-600 font-medium animate-pulse">
                         <div className="w-1.5 h-1.5 rounded-full bg-teal-400" />
                         재생 중
                       </span>
                     )}
+
+                    {/* 북마크 버튼 */}
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        toggleBookmark(seg.index);
+                      }}
+                      className={cn(
+                        "ml-auto shrink-0 p-1 rounded-md transition-all",
+                        isBookmarked
+                          ? "opacity-100"
+                          : "opacity-0 group-hover:opacity-100"
+                      )}
+                    >
+                      <Star
+                        className={cn(
+                          "w-3.5 h-3.5 transition-colors",
+                          isBookmarked
+                            ? "text-amber-600 fill-amber-400"
+                            : "text-slate-300 hover:text-amber-600"
+                        )}
+                      />
+                    </button>
                   </div>
 
-                  {/* 발언 텍스트 */}
+                  {/* 본문 텍스트 — 문장 단위 병합으로 가독성 향상 */}
                   <p
                     className={cn(
-                      "text-base leading-relaxed transition-colors",
-                      isActive ? "text-slate-200" : "text-slate-500",
-                      isCompact && "line-clamp-1"
+                      "text-[15px] leading-[1.8] transition-colors",
+                      isActive ? "text-slate-800 font-medium" : "text-slate-600",
+                      isCompact && "line-clamp-2"
                     )}
                   >
-                    {searchQuery ? highlightText(seg.value, searchQuery) : seg.value}
+                    {searchQuery ? highlightText(seg.text, searchQuery) : seg.text}
                   </p>
-
-                  {/* 발언 길이 표시 */}
-                  {!isCompact && (
-                    <div className="flex items-center gap-3 mt-1.5">
-                      <span className="text-[9px] font-mono text-slate-300">
-                        {(seg.end - seg.start).toFixed(0)}초
-                      </span>
-                    </div>
-                  )}
                 </div>
-
-                {/* 북마크 */}
-                <button
-                  onClick={(e) => { e.stopPropagation(); toggleBookmark(seg.index); }}
-                  className={cn(
-                    "shrink-0 p-1 rounded-md transition-all opacity-0 group-hover:opacity-100",
-                    isBookmarked && "opacity-100"
-                  )}
-                >
-                  <Star
-                    className={cn(
-                      "w-3.5 h-3.5 transition-colors",
-                      isBookmarked ? "text-amber-600 fill-amber-400" : "text-slate-300 hover:text-amber-600"
-                    )}
-                  />
-                </button>
               </div>
             </div>
           );
@@ -394,16 +379,17 @@ export default function TranscriptTimeline({
           <div className="flex items-center justify-between mb-2">
             <p className="text-sm uppercase tracking-wider text-amber-500/60 flex items-center gap-1">
               <Star className="w-3 h-3 fill-amber-400 text-amber-600" />
-              핵심 발언 {bookmarks.size}건
+              핵심 구간 {bookmarks.size}건
             </p>
             <button
               onClick={() => {
                 const text = Array.from(bookmarks)
                   .sort()
                   .map((i) => {
-                    const s = annotated[i];
-                    return `[${formatTime(s.start)}] ${s.speaker}: ${s.value}`;
+                    const s = segments[i];
+                    return s ? `[${formatTime(s.start)}~${formatTime(s.end)}]\n${s.text}` : "";
                   })
+                  .filter(Boolean)
                   .join("\n\n");
                 navigator.clipboard.writeText(text);
               }}
@@ -414,21 +400,22 @@ export default function TranscriptTimeline({
             </button>
           </div>
           <div className="space-y-1 max-h-28 overflow-y-auto">
-            {Array.from(bookmarks).sort().map((i) => {
-              const s = annotated[i];
-              if (!s) return null;
-              return (
-                <button
-                  key={i}
-                  onClick={() => onSeek(s.start)}
-                  className="w-full text-left flex items-center gap-2 px-2 py-1 rounded-md hover:bg-white/40 transition-colors"
-                >
-                  <span className="text-sm font-mono text-teal-600">{formatTime(s.start)}</span>
-                  <span className={cn("text-sm font-medium", s.palette.text)}>{s.speaker}</span>
-                  <span className="text-sm text-slate-500 truncate flex-1">{s.value}</span>
-                </button>
-              );
-            })}
+            {Array.from(bookmarks)
+              .sort()
+              .map((i) => {
+                const s = segments[i];
+                if (!s) return null;
+                return (
+                  <button
+                    key={i}
+                    onClick={() => onSeek(s.start)}
+                    className="w-full text-left flex items-center gap-2 px-2 py-1 rounded-md hover:bg-slate-50/60 transition-colors"
+                  >
+                    <span className="text-sm font-mono text-teal-600">{formatTime(s.start)}</span>
+                    <span className="text-sm text-slate-600 truncate flex-1">{s.text}</span>
+                  </button>
+                );
+              })}
           </div>
         </div>
       )}
@@ -439,13 +426,16 @@ export default function TranscriptTimeline({
 // 검색어 하이라이트 헬퍼
 function highlightText(text: string, query: string) {
   if (!text || !query.trim()) return text ?? "";
-  const regex = new RegExp(`(${query.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")})`, "gi");
+  const regex = new RegExp(
+    `(${query.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")})`,
+    "gi"
+  );
   const parts = text.split(regex);
   return (
     <>
       {parts.map((part, i) =>
         regex.test(part) ? (
-          <mark key={i} className="bg-teal-500/25 text-teal-300 rounded-sm px-0.5">
+          <mark key={i} className="bg-teal-100 text-teal-700 rounded-sm px-0.5">
             {part}
           </mark>
         ) : (

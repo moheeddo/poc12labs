@@ -537,7 +537,7 @@ export default function CompetencyAssessment({ data, onBack }: CompetencyAssessm
                   <div className="flex items-center justify-between mb-1">
                     <div className="flex items-center gap-2">
                       <span className="text-sm font-mono font-bold text-slate-500">{String(idx + 1).padStart(2, "0")}</span>
-                      <h3 className="text-base font-semibold text-slate-200">{item.criteria}</h3>
+                      <h3 className="text-base font-semibold text-slate-700">{item.criteria}</h3>
                       <span className="text-sm px-2 py-0.5 rounded bg-slate-100/50 text-slate-500">{item.subLabel}</span>
                     </div>
                     {itemScore.score > 0 && (
@@ -621,7 +621,7 @@ export default function CompetencyAssessment({ data, onBack }: CompetencyAssessm
                   <div className="flex items-center justify-between mb-1">
                     <div className="flex items-center gap-2">
                       <span className="text-sm font-mono font-bold text-violet-600/70">{String(item.number).padStart(2, "0")}</span>
-                      <h3 className="text-base font-semibold text-slate-200">{item.criteria}</h3>
+                      <h3 className="text-base font-semibold text-slate-700">{item.criteria}</h3>
                     </div>
                     {itemResult?.score !== null && itemResult?.score !== undefined && (
                       <span className={cn(

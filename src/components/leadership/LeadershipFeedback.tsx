@@ -34,6 +34,8 @@ interface LeadershipFeedbackProps {
   videoId: string;
   videoTitle: string;
   videoUrl?: string;
+  selectedCompetencies?: LeadershipCompetencyKey[];
+  scenarioText?: string;
   onBack: () => void;
 }
 
@@ -130,6 +132,8 @@ export default function LeadershipFeedback({
   videoId,
   videoTitle,
   videoUrl,
+  selectedCompetencies,
+  scenarioText,
   onBack,
 }: LeadershipFeedbackProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -234,9 +238,9 @@ export default function LeadershipFeedback({
         // (기존 라운드-로빈 → 지능형 매칭으로 완전 교체)
         // ═══════════════════════════════════════════
         setAnalysisStep("AI 역량 매칭 및 자동 평가 중...");
-        const competencyKeys: LeadershipCompetencyKey[] = [
-          "visionPresentation", "trustBuilding", "memberDevelopment", "rationalDecision",
-        ];
+        const competencyKeys: LeadershipCompetencyKey[] = selectedCompetencies && selectedCompetencies.length > 0
+          ? selectedCompetencies
+          : ["visionPresentation", "trustBuilding", "memberDevelopment", "rationalDecision"];
         const generatedEvidence: EvidenceItem[] = [];
         const chaptersToUse = parsed.length > 0 ? parsed : [];
         const highlightsToUse = parsedHl.length > 0 ? parsedHl : [];
@@ -310,6 +314,7 @@ export default function LeadershipFeedback({
     loadAnalysis();
     fetchTranscription(TWELVELABS_INDEXES.leadership, videoId);
     return () => { cancelled = true; };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [videoId, analyze, fetchTranscription]);
 
   // ── 비디오 시간 추적 ──
@@ -434,7 +439,9 @@ export default function LeadershipFeedback({
         aiScore: e.aiScore,
       })),
       summary,
-      ["visionPresentation", "trustBuilding", "memberDevelopment", "rationalDecision"]
+      selectedCompetencies && selectedCompetencies.length > 0
+        ? selectedCompetencies
+        : ["visionPresentation", "trustBuilding", "memberDevelopment", "rationalDecision"]
     );
   }, [evidence, summary]);
 
@@ -482,7 +489,33 @@ export default function LeadershipFeedback({
           </button>
         </div>
       </div>
-      <p className="text-base text-slate-700 mb-8">{videoTitle}</p>
+      <p className="text-base text-slate-700 mb-2">{videoTitle}</p>
+
+      {/* 선택된 역량 + 상황사례 표시 */}
+      <div className="flex items-center gap-2 flex-wrap mb-4">
+        {(selectedCompetencies && selectedCompetencies.length > 0
+          ? selectedCompetencies
+          : (["visionPresentation", "trustBuilding", "memberDevelopment", "rationalDecision"] as LeadershipCompetencyKey[])
+        ).map((key) => {
+          const comp = COMP_MAP[key];
+          return comp ? (
+            <span
+              key={key}
+              className="inline-flex items-center gap-1 text-sm font-medium px-2.5 py-1 rounded-lg"
+              style={{ backgroundColor: `${comp.color}15`, color: comp.color }}
+            >
+              {comp.label}
+            </span>
+          ) : null;
+        })}
+      </div>
+      {scenarioText && (
+        <div className="bg-slate-50/60 border border-slate-200/30 rounded-xl p-4 mb-8">
+          <p className="text-sm text-slate-500 mb-1 font-medium">상황사례</p>
+          <p className="text-base text-slate-600 leading-relaxed whitespace-pre-line">{scenarioText}</p>
+        </div>
+      )}
+      {!scenarioText && <div className="mb-4" />}
 
       {/* ── 2단 레이아웃 ── */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
@@ -735,7 +768,7 @@ export default function LeadershipFeedback({
                   </span>
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-base text-slate-200 font-medium leading-tight truncate">
+                  <p className="text-base text-slate-700 font-medium leading-tight truncate">
                     {chapter.title}
                   </p>
                   <p className="text-sm font-mono text-slate-400">

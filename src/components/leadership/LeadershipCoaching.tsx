@@ -6,16 +6,16 @@ import {
   TrendingUp,
   PlayCircle,
   Video,
-  Shield,
-  BookOpen,
+  Upload,
+  FileText,
   ArrowLeft,
   ChevronRight,
   Target,
   Scale,
   GraduationCap,
-  Lock,
-  ClipboardCheck,
   MessageCircle,
+  Sparkles,
+  CheckCircle2,
 } from "lucide-react";
 import {
   LineChart,
@@ -29,43 +29,49 @@ import {
 } from "recharts";
 import VideoUploader from "@/components/shared/VideoUploader";
 import ChartTooltip from "@/components/shared/ChartTooltip";
-import SearchBar from "@/components/shared/SearchBar";
 import ScoreCard from "./ScoreCard";
 import LeadershipFeedback from "./LeadershipFeedback";
-import CompetencyAssessment from "./CompetencyAssessment";
-import { useVideoSearch, useVideoUpload } from "@/hooks/useTwelveLabs";
+import { useVideoUpload } from "@/hooks/useTwelveLabs";
 import {
   TWELVELABS_INDEXES,
-  JOB_LEVEL_LABELS,
   LEADERSHIP_COMPETENCY_DEFS,
-  getCompetenciesForLevel,
 } from "@/lib/constants";
-import {
-  DEPARTMENT_HEAD_ASSESSMENTS,
-  ASSESSMENT_BY_KEY,
-} from "@/lib/leadership-rubric-data";
-import type { CompetencyAssessmentData } from "@/lib/leadership-rubric-data";
-import type { SpeakerScore, JobLevel, LeadershipCompetencyKey } from "@/lib/types";
+import type { SpeakerScore, LeadershipCompetencyKey } from "@/lib/types";
 
-// ─── 아이콘 매핑 ───
+// ─── 역량 아이콘 매핑 ───
 const COMPETENCY_ICONS: Record<string, React.ElementType> = {
-  Target,
-  Scale,
-  GraduationCap,
-  Handshake: MessageCircle,
+  visionPresentation: Target,
+  trustBuilding: MessageCircle,
+  memberDevelopment: GraduationCap,
+  rationalDecision: Scale,
 };
 
-// ─── 뷰 상태 타입 ───
+// ─── 1-3직급 역량 4개 ───
+const EVALUATION_COMPETENCIES: LeadershipCompetencyKey[] = [
+  "visionPresentation",
+  "trustBuilding",
+  "memberDevelopment",
+  "rationalDecision",
+];
+
+// ─── 뷰 상태 ───
 type ViewState =
-  | { type: "level-select" }
-  | { type: "competency-list"; level: JobLevel }
-  | { type: "assessment"; level: JobLevel; data: CompetencyAssessmentData }
-  | { type: "feedback"; videoId: string; videoTitle: string; videoUrl?: string }
-  | { type: "overview"; level: JobLevel };
+  | { type: "main" }
+  | {
+      type: "feedback";
+      videoId: string;
+      videoTitle: string;
+      videoUrl?: string;
+      selectedCompetencies: LeadershipCompetencyKey[];
+      scenarioText: string;
+    }
+  | { type: "history" };
 
 // 성장 추이 데이터 (실제 연동 시 API에서 조회)
-function generateGrowthData(level: JobLevel) {
-  const competencies = getCompetenciesForLevel(level);
+function generateGrowthData() {
+  const competencies = LEADERSHIP_COMPETENCY_DEFS.filter((d) =>
+    EVALUATION_COMPETENCIES.includes(d.key)
+  );
   return ["1월", "2월", "3월", "4월", "5월"].map((month, mi) => {
     const row: Record<string, string | number> = { month };
     competencies.forEach((comp) => {
@@ -75,22 +81,8 @@ function generateGrowthData(level: JobLevel) {
   });
 }
 
-// 분석 완료 영상 (실제 연동 시 API에서 조회)
-const ANALYZED_VIDEOS: { videoId: string; title: string; date: string; level: JobLevel }[] = [];
-
-// 평가항목 카드 데이터 (부장/2직급)
-const ASSESSMENT_CARDS = DEPARTMENT_HEAD_ASSESSMENTS.map((a) => ({
-  key: a.key,
-  label: a.label,
-  icon: a.icon,
-  color: a.color,
-  scenario: a.scenario,
-  rubricCount: a.rubricItems.length,
-}));
-
 export default function LeadershipCoaching() {
-  // 뷰 상태 관리 (계층 내비게이션)
-  const [view, setView] = useState<ViewState>({ type: "level-select" });
+  const [view, setView] = useState<ViewState>({ type: "main" });
 
   // 업로드
   const { progress: uploadProgress, upload, uploadByUrl } = useVideoUpload();
@@ -98,13 +90,19 @@ export default function LeadershipCoaching() {
   const [uploadedFileName, setUploadedFileName] = useState("");
   const [uploadedBlobUrl, setUploadedBlobUrl] = useState<string | null>(null);
 
-  // 참가자 데이터 — localStorage에서 evidence 기반 자동 복원
-  const [speakers, setSpeakers] = useState<SpeakerScore[]>([]);
-  const [periodFilter, setPeriodFilter] = useState<"3개월" | "6개월" | "1년">("6개월");
-  const [growthData] = useState(() => generateGrowthData(2));
-  const { loading, search } = useVideoSearch();
+  // 상황사례 입력
+  const [scenarioText, setScenarioText] = useState("");
 
-  // localStorage에서 저장된 evidence를 읽어 SpeakerScore 생성
+  // 역량 선택 (복수 선택 가능)
+  const [selectedCompetencies, setSelectedCompetencies] = useState<Set<LeadershipCompetencyKey>>(
+    new Set()
+  );
+
+  // 히스토리 데이터
+  const [speakers, setSpeakers] = useState<SpeakerScore[]>([]);
+  const [growthData] = useState(() => generateGrowthData());
+
+  // localStorage에서 저장된 evidence를 읽어 히스토리 생성
   useEffect(() => {
     try {
       const keys = Object.keys(localStorage).filter((k) => k.startsWith("evidence-"));
@@ -116,20 +114,20 @@ export default function LeadershipCoaching() {
         const data = JSON.parse(raw);
         if (!data.evidence || !Array.isArray(data.evidence)) return;
 
-        // evidence에서 역량별 점수 집계
         const competencyScores: Record<string, number[]> = {};
         const strengths: string[] = [];
         const improvements: string[] = [];
 
-        data.evidence.forEach((ev: { competencyKey: string; score: number; aiScore?: number; feedback?: string }) => {
-          const score = ev.score > 0 ? ev.score : (ev.aiScore || 0);
-          if (score > 0) {
-            if (!competencyScores[ev.competencyKey]) competencyScores[ev.competencyKey] = [];
-            competencyScores[ev.competencyKey].push(score);
+        data.evidence.forEach(
+          (ev: { competencyKey: string; score: number; aiScore?: number }) => {
+            const score = ev.score > 0 ? ev.score : ev.aiScore || 0;
+            if (score > 0) {
+              if (!competencyScores[ev.competencyKey]) competencyScores[ev.competencyKey] = [];
+              competencyScores[ev.competencyKey].push(score);
+            }
           }
-        });
+        );
 
-        // 점수가 있는 경우만 SpeakerScore 생성
         const scoreEntries = Object.entries(competencyScores);
         if (scoreEntries.length === 0) return;
 
@@ -137,14 +135,19 @@ export default function LeadershipCoaching() {
         let totalSum = 0;
         let totalCount = 0;
 
-        scoreEntries.forEach(([key, vals]) => {
+        scoreEntries.forEach(([k, vals]) => {
           const avg = vals.reduce((a, b) => a + b, 0) / vals.length;
-          scores[key as LeadershipCompetencyKey] = Math.round(avg * 10) / 10;
+          scores[k as LeadershipCompetencyKey] = Math.round(avg * 10) / 10;
           totalSum += avg;
           totalCount++;
-
-          if (avg >= 7) strengths.push(`${LEADERSHIP_COMPETENCY_DEFS.find((d) => d.key === key)?.label || key} 우수`);
-          else if (avg < 5) improvements.push(`${LEADERSHIP_COMPETENCY_DEFS.find((d) => d.key === key)?.label || key} 개선 필요`);
+          if (avg >= 7)
+            strengths.push(
+              `${LEADERSHIP_COMPETENCY_DEFS.find((d) => d.key === k)?.label || k} 우수`
+            );
+          else if (avg < 5)
+            improvements.push(
+              `${LEADERSHIP_COMPETENCY_DEFS.find((d) => d.key === k)?.label || k} 개선 필요`
+            );
         });
 
         allSpeakers.push({
@@ -159,7 +162,6 @@ export default function LeadershipCoaching() {
         });
       });
 
-      // 점수 내림차순 정렬
       allSpeakers.sort((a, b) => b.totalScore - a.totalScore);
       if (allSpeakers.length > 0) setSpeakers(allSpeakers);
     } catch {
@@ -167,357 +169,123 @@ export default function LeadershipCoaching() {
     }
   }, [view]);
 
-  // 현재 직급 (뷰에서 추출)
-  const currentLevel: JobLevel = useMemo(() => {
-    if (view.type === "competency-list" || view.type === "assessment" || view.type === "overview") return view.level;
-    return 2;
-  }, [view]);
-
-  const currentCompetencies = getCompetenciesForLevel(currentLevel);
-
-  // 요약 통계
-  const avgScore = speakers.length
-    ? (speakers.reduce((sum, s) => sum + s.totalScore, 0) / speakers.length).toFixed(1)
-    : "0.0";
-  const topScorer = speakers.length ? speakers[0].speakerName : "-";
-
-  // 핸들러
-  const handleUpload = useCallback(async (file: File) => {
-    setUploadedFileName(file.name);
-    // 브라우저 내 재생용 blob URL 생성
-    const blobUrl = URL.createObjectURL(file);
-    setUploadedBlobUrl(blobUrl);
-    try {
-      const videoId = await upload(TWELVELABS_INDEXES.leadership, file);
-      setUploadedVideoId(videoId);
-    } catch { /* useVideoUpload 내부 처리 */ }
-  }, [upload]);
-
-  const handleUrlUpload = useCallback(async (url: string) => {
-    const fileName = url.split("/").pop() || "영상";
-    setUploadedFileName(fileName);
-    try {
-      const videoId = await uploadByUrl(TWELVELABS_INDEXES.leadership, url, fileName);
-      setUploadedVideoId(videoId);
-    } catch { /* useVideoUpload 내부 처리 */ }
-  }, [uploadByUrl]);
-
-  const handleSearch = useCallback(
-    (query: string) => { search(TWELVELABS_INDEXES.leadership, query); },
-    [search]
+  // 역량 정의 (평가 대상 4개)
+  const competencyDefs = useMemo(
+    () => LEADERSHIP_COMPETENCY_DEFS.filter((d) => EVALUATION_COMPETENCIES.includes(d.key)),
+    []
   );
 
-  // ═══════════════════════════════════════════
+  // 핸들러
+  const handleUpload = useCallback(
+    async (file: File) => {
+      setUploadedFileName(file.name);
+      const blobUrl = URL.createObjectURL(file);
+      setUploadedBlobUrl(blobUrl);
+      try {
+        const videoId = await upload(TWELVELABS_INDEXES.leadership, file);
+        setUploadedVideoId(videoId);
+      } catch {
+        /* useVideoUpload 내부 처리 */
+      }
+    },
+    [upload]
+  );
+
+  const handleUrlUpload = useCallback(
+    async (url: string) => {
+      const fileName = url.split("/").pop() || "영상";
+      setUploadedFileName(fileName);
+      try {
+        const videoId = await uploadByUrl(TWELVELABS_INDEXES.leadership, url, fileName);
+        setUploadedVideoId(videoId);
+      } catch {
+        /* useVideoUpload 내부 처리 */
+      }
+    },
+    [uploadByUrl]
+  );
+
+  const toggleCompetency = useCallback((key: LeadershipCompetencyKey) => {
+    setSelectedCompetencies((prev) => {
+      const next = new Set(prev);
+      if (next.has(key)) next.delete(key);
+      else next.add(key);
+      return next;
+    });
+  }, []);
+
+  const selectAllCompetencies = useCallback(() => {
+    setSelectedCompetencies(new Set(EVALUATION_COMPETENCIES));
+  }, []);
+
+  const canStartAnalysis = uploadedVideoId && selectedCompetencies.size > 0;
+
+  const handleStartAnalysis = useCallback(() => {
+    if (!uploadedVideoId) return;
+    setView({
+      type: "feedback",
+      videoId: uploadedVideoId,
+      videoTitle: uploadedFileName,
+      videoUrl: uploadedBlobUrl || undefined,
+      selectedCompetencies: Array.from(selectedCompetencies),
+      scenarioText,
+    });
+  }, [uploadedVideoId, uploadedFileName, uploadedBlobUrl, selectedCompetencies, scenarioText]);
+
+  // ═══════════════════════════════════════
   // 피드백 뷰
-  // ═══════════════════════════════════════════
+  // ═══════════════════════════════════════
   if (view.type === "feedback") {
     return (
       <LeadershipFeedback
         videoId={view.videoId}
         videoTitle={view.videoTitle}
         videoUrl={view.videoUrl}
-        onBack={() => setView({ type: "level-select" })}
+        selectedCompetencies={view.selectedCompetencies}
+        scenarioText={view.scenarioText}
+        onBack={() => setView({ type: "main" })}
       />
     );
   }
 
-  // ═══════════════════════════════════════════
-  // 역량 상세 평가 뷰
-  // ═══════════════════════════════════════════
-  if (view.type === "assessment") {
+  // ═══════════════════════════════════════
+  // 히스토리 뷰
+  // ═══════════════════════════════════════
+  if (view.type === "history") {
+    const avgScore = speakers.length
+      ? (speakers.reduce((sum, s) => sum + s.totalScore, 0) / speakers.length).toFixed(1)
+      : "0.0";
+    const topScorer = speakers.length ? speakers[0].speakerName : "-";
+
     return (
-      <CompetencyAssessment
-        data={view.data}
-        onBack={() => setView({ type: "competency-list", level: view.level })}
-      />
-    );
-  }
-
-  // ═══════════════════════════════════════════
-  // 메인 레이아웃
-  // ═══════════════════════════════════════════
-  return (
-    <div className="max-w-[1440px] mx-auto px-4 md:px-6 py-8 space-y-8 animate-slide-in-right">
-      {/* 헤더 */}
-      <div>
-        <h2 className="text-2xl font-bold text-teal-600 tracking-tight">리더십코칭 역량진단</h2>
-        <p className="text-lg text-slate-500 mt-1.5">
-          KHNP 전직급 리더십 역량 정의 및 행동지표 기준 · 9점 척도 평가
-        </p>
-      </div>
-
-      {/* ── 브레드크럼 내비게이션 ── */}
-      {(view.type === "competency-list" || view.type === "overview") && (
-        <div className="flex items-center gap-2 text-base">
+      <div className="max-w-[1440px] mx-auto px-4 md:px-6 py-8 space-y-8 animate-slide-in-right">
+        <div className="flex items-center gap-3">
           <button
-            onClick={() => setView({ type: "level-select" })}
-            className="text-slate-500 hover:text-teal-600 transition-colors"
-          >
-            직급 선택
-          </button>
-          <ChevronRight className="w-3.5 h-3.5 text-slate-400" />
-          <span className="text-teal-600 font-medium">{JOB_LEVEL_LABELS[currentLevel]}</span>
-          {view.type === "overview" && (
-            <>
-              <ChevronRight className="w-3.5 h-3.5 text-slate-400" />
-              <span className="text-slate-700 font-medium">종합 분석</span>
-            </>
-          )}
-        </div>
-      )}
-
-      {/* ═══════════════════════════════════════
-           직급 선택 뷰
-         ═══════════════════════════════════════ */}
-      {view.type === "level-select" && (
-        <div className="space-y-6">
-          <div className="flex items-center gap-2 mb-2">
-            <Shield className="w-4 h-4 text-teal-600" />
-            <h3 className="text-base font-medium text-slate-700">평가 대상 직급을 선택하세요</h3>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            {([1, 2, 3, 4] as JobLevel[]).map((level) => {
-              const isActive = level === 2; // 프로토타입: 2직급만 활성
-              const competencies = getCompetenciesForLevel(level);
-              return (
-                <button
-                  key={level}
-                  onClick={() => isActive && setView({ type: "competency-list", level })}
-                  disabled={!isActive}
-                  className={`relative text-left rounded-xl p-5 border transition-all duration-200 group ${
-                    isActive
-                      ? "bg-white border-teal-500/30 hover:border-teal-300 hover:bg-white cursor-pointer shadow-sm hover:shadow-lg hover:shadow-teal-500/5"
-                      : "bg-white/30 border-slate-200/30 cursor-not-allowed opacity-50"
-                  }`}
-                >
-                  {!isActive && (
-                    <div className="absolute top-3 right-3">
-                      <Lock className="w-3.5 h-3.5 text-slate-400" />
-                    </div>
-                  )}
-                  <div className="flex items-center gap-2 mb-3">
-                    <div className={`w-8 h-8 rounded-lg flex items-center justify-center text-base font-bold font-mono ${
-                      isActive ? "bg-teal-50 text-teal-600" : "bg-slate-100 text-slate-400"
-                    }`}>
-                      {level}
-                    </div>
-                    <div>
-                      <p className={`text-base font-semibold ${isActive ? "text-slate-900" : "text-slate-400"}`}>
-                        {JOB_LEVEL_LABELS[level]}
-                      </p>
-                      {!isActive && <p className="text-[11px] text-slate-400">준비 중</p>}
-                    </div>
-                  </div>
-                  <div className="space-y-1.5">
-                    {competencies.map((comp) => (
-                      <div key={comp.key} className="flex items-center gap-1.5">
-                        <div className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: isActive ? comp.color : "#475569" }} />
-                        <span className={`text-sm ${isActive ? "text-slate-500" : "text-slate-400"}`}>{comp.label}</span>
-                      </div>
-                    ))}
-                  </div>
-                  {isActive && (
-                    <div className="mt-4 flex items-center gap-1 text-sm text-teal-600/70 group-hover:text-teal-600 transition-colors">
-                      <ClipboardCheck className="w-3.5 h-3.5" />
-                      평가 시작하기
-                      <ChevronRight className="w-3 h-3" />
-                    </div>
-                  )}
-                </button>
-              );
-            })}
-          </div>
-
-          {/* 영상 업로드 / 검색 */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-            <VideoUploader onUpload={handleUpload} onUrlUpload={handleUrlUpload} progress={uploadProgress} accentColor="teal" />
-            <SearchBar
-              placeholder="비전 발표, 갈등 조율, 면담 코칭, 의사결정 등..."
-              onSearch={handleSearch}
-              loading={loading}
-              accentColor="teal"
-              suggestions={["비전 발표", "갈등 조율 장면", "코칭 면담", "의사결정 순간", "합의 도출"]}
-            />
-          </div>
-
-          {/* 업로드 완료 시 */}
-          {uploadedVideoId && (
-            <div className="animate-fade-in-up bg-white border border-teal-500/20 rounded-xl p-5 flex items-center gap-4">
-              <div className="w-10 h-10 rounded-lg bg-teal-50 flex items-center justify-center shrink-0">
-                <Video className="w-5 h-5 text-teal-600" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-base text-slate-900 font-medium truncate">{uploadedFileName}</p>
-                <p className="text-sm text-slate-500">업로드 완료 — AI 분석 후 구간별 피드백을 작성할 수 있습니다</p>
-              </div>
-              <button
-                onClick={() => setView({ type: "feedback", videoId: uploadedVideoId, videoTitle: uploadedFileName, videoUrl: uploadedBlobUrl || undefined })}
-                className="flex items-center gap-2 px-4 py-2.5 rounded-lg bg-teal-600 hover:bg-teal-500 text-white text-base font-medium hover:scale-105 active:scale-95 transition-all duration-200 shrink-0"
-              >
-                <PlayCircle className="w-4 h-4" />
-                영상 리뷰 & 피드백
-              </button>
-            </div>
-          )}
-
-          {/* 분석 완료 영상 */}
-          <div>
-            <h3 className="text-base font-medium text-slate-700 mb-3 flex items-center gap-2">
-              <Video className="w-4 h-4" /> 분석 완료 영상
-            </h3>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              {ANALYZED_VIDEOS.map((video, i) => (
-                <button
-                  key={video.videoId}
-                  onClick={() => setView({ type: "feedback", videoId: video.videoId, videoTitle: video.title })}
-                  className="animate-fade-in-up bg-white border border-slate-200/40 rounded-xl p-4 text-left hover:border-teal-500/20 hover:bg-white transition-all duration-200 group"
-                  style={{ animationDelay: `${i * 80}ms`, animationFillMode: "backwards" }}
-                >
-                  <div className="flex items-center gap-3">
-                    <div className="w-12 h-8 rounded bg-slate-100 flex items-center justify-center shrink-0">
-                      <PlayCircle className="w-5 h-5 text-slate-400 group-hover:text-teal-600 transition-colors duration-200" />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-base text-slate-900 truncate group-hover:text-teal-600 transition-colors duration-200">{video.title}</p>
-                      <p className="text-sm text-slate-400 font-mono">{video.date} · {JOB_LEVEL_LABELS[video.level]}</p>
-                    </div>
-                    <span className="text-sm text-slate-400 group-hover:text-teal-600 transition-colors duration-200">→</span>
-                  </div>
-                </button>
-              ))}
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* ═══════════════════════════════════════
-           평가항목 목록 뷰 (직급 선택 후)
-         ═══════════════════════════════════════ */}
-      {view.type === "competency-list" && (
-        <div className="space-y-6">
-          {/* 뒤로 + 종합분석 */}
-          <div className="flex items-center justify-between">
-            <button
-              onClick={() => setView({ type: "level-select" })}
-              className="flex items-center gap-1.5 text-base text-slate-500 hover:text-teal-600 transition-colors"
-            >
-              <ArrowLeft className="w-4 h-4" />
-              직급 선택으로
-            </button>
-            <button
-              onClick={() => setView({ type: "overview", level: view.level })}
-              className="flex items-center gap-2 text-sm text-slate-500 hover:text-teal-600 transition-colors px-3 py-1.5 rounded-lg border border-slate-200/40 hover:border-teal-500/30"
-            >
-              <TrendingUp className="w-3.5 h-3.5" />
-              종합 분석 보기
-            </button>
-          </div>
-
-          {/* 직급 정보 + 평가역량 */}
-          <div className="bg-white border border-slate-200/40 rounded-xl p-5">
-            <div className="flex items-center gap-3 mb-4">
-              <div className="w-10 h-10 rounded-xl bg-teal-50 flex items-center justify-center text-lg font-bold font-mono text-teal-600">
-                {view.level}
-              </div>
-              <div>
-                <h3 className="text-lg font-semibold text-slate-900">{JOB_LEVEL_LABELS[view.level]}</h3>
-                <p className="text-sm text-slate-500">{ASSESSMENT_CARDS.length}개 평가항목 · BARS + 멀티모달 행동기반 루브릭</p>
-              </div>
-            </div>
-          </div>
-
-          {/* 평가항목 카드 그리드 */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            {ASSESSMENT_CARDS.map((card, idx) => {
-              const IconComp = COMPETENCY_ICONS[card.icon] || Target;
-              const assessmentData = ASSESSMENT_BY_KEY[card.key];
-              return (
-                <button
-                  key={card.key}
-                  onClick={() => assessmentData && setView({ type: "assessment", level: view.level, data: assessmentData })}
-                  className="animate-fade-in-up text-left rounded-xl p-5 bg-white border border-slate-200/40 hover:border-opacity-60 transition-all duration-200 group shadow-sm hover:shadow-lg"
-                  style={{
-                    animationDelay: `${idx * 100}ms`,
-                    animationFillMode: "backwards",
-                    borderLeftWidth: "3px",
-                    borderLeftColor: card.color,
-                    // hover 시 border 컬러
-                  }}
-                >
-                  <div className="flex items-start gap-3">
-                    <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0" style={{ backgroundColor: `${card.color}15` }}>
-                      <IconComp className="w-5 h-5" style={{ color: card.color }} />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 mb-1">
-                        <h4 className="text-base font-semibold text-slate-900 group-hover:text-teal-600 transition-colors">{card.label}</h4>
-                        <span className="text-[11px] font-mono text-slate-400 px-1.5 py-0.5 bg-slate-100 rounded">
-                          {card.rubricCount}항목
-                        </span>
-                      </div>
-                      <p className="text-sm text-slate-500 leading-relaxed mb-3">{card.scenario.activityType}</p>
-                      <p className="text-sm text-slate-500/70 leading-relaxed line-clamp-2">{card.scenario.title}</p>
-                    </div>
-                    <ChevronRight className="w-4 h-4 text-slate-400 group-hover:text-teal-600 transition-colors shrink-0 mt-1" />
-                  </div>
-                  {/* 루브릭 버전 태그 */}
-                  <div className="flex items-center gap-2 mt-4 pt-3 border-t border-slate-200/30">
-                    <span className="text-[11px] px-2 py-0.5 rounded bg-teal-50 text-teal-600/70 font-medium">BARS 역량평가</span>
-                    <span className="text-[11px] px-2 py-0.5 rounded bg-violet-50 text-violet-600 font-medium">멀티모달 행동기반</span>
-                  </div>
-                </button>
-              );
-            })}
-          </div>
-
-          {/* 9점 척도 안내 */}
-          <div className="bg-white border border-slate-200/30 rounded-xl p-5">
-            <h3 className="text-base font-medium text-slate-500 mb-3 flex items-center gap-2">
-              <BookOpen className="w-4 h-4" /> 9점 척도 평가 기준
-            </h3>
-            <div className="grid grid-cols-5 gap-2 text-center">
-              {[
-                { range: "8-9점", label: "탁월", color: "text-teal-600", bg: "bg-teal-50" },
-                { range: "7점", label: "우수", color: "text-teal-600/70", bg: "bg-teal-500/5" },
-                { range: "5-6점", label: "보통", color: "text-amber-600", bg: "bg-amber-500/10" },
-                { range: "3-4점", label: "미흡", color: "text-red-600/70", bg: "bg-red-500/5" },
-                { range: "1-2점", label: "부족", color: "text-red-600", bg: "bg-red-500/10" },
-              ].map((g) => (
-                <div key={g.range} className={`${g.bg} rounded-lg p-2`}>
-                  <p className={`text-sm font-mono font-bold ${g.color}`}>{g.range}</p>
-                  <p className={`text-sm mt-0.5 ${g.color}`}>{g.label}</p>
-                </div>
-              ))}
-            </div>
-            <p className="text-sm text-slate-400 mt-3">
-              ※ KHNP 전직급 리더십 역량 정의 및 행동지표 기준 · 개선루브릭(BARS) + 멀티모달 행동기반 루브릭 적용
-            </p>
-          </div>
-        </div>
-      )}
-
-      {/* ═══════════════════════════════════════
-           종합 분석(overview) 뷰 — 참가자 점수, 성장추이
-         ═══════════════════════════════════════ */}
-      {view.type === "overview" && (
-        <div className="space-y-8">
-          <button
-            onClick={() => setView({ type: "competency-list", level: view.level })}
+            onClick={() => setView({ type: "main" })}
             className="flex items-center gap-1.5 text-base text-slate-500 hover:text-teal-600 transition-colors"
           >
             <ArrowLeft className="w-4 h-4" />
-            평가항목으로
+            돌아가기
           </button>
+          <ChevronRight className="w-3.5 h-3.5 text-slate-400" />
+          <h2 className="text-xl font-bold text-teal-600">평가 이력 & 성장 추이</h2>
+        </div>
 
-          {/* 발표자 스코어카드 */}
-          <div>
-            <h3 className="text-base font-medium text-slate-700 mb-3 flex items-center gap-2">
-              <Users className="w-4 h-4" /> 참가자별 역량 평가 ({speakers.length}명)
-            </h3>
-            <p className="text-sm text-slate-500 font-mono mb-3">
-              평균 점수: {avgScore}점 (9점 만점) | 최고 점수자: {topScorer} | 척도: KHNP 9점 척도
-            </p>
+        {/* 평가 이력 스코어카드 */}
+        <div>
+          <h3 className="text-base font-medium text-slate-700 mb-3 flex items-center gap-2">
+            <Users className="w-4 h-4" /> 평가 이력 ({speakers.length}건)
+          </h3>
+          <p className="text-sm text-slate-500 font-mono mb-3">
+            평균 점수: {avgScore}점 (9점 만점) | 최고 점수: {topScorer}
+          </p>
+          {speakers.length === 0 ? (
+            <div className="bg-white border border-slate-200/30 rounded-xl p-8 text-center">
+              <Video className="w-10 h-10 mx-auto mb-3 text-slate-300" />
+              <p className="text-base text-slate-500">아직 평가 이력이 없습니다</p>
+              <p className="text-sm text-slate-400 mt-1">영상을 업로드하고 분석을 시작해보세요</p>
+            </div>
+          ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
               {speakers.map((speaker, i) => (
                 <div
@@ -529,67 +297,267 @@ export default function LeadershipCoaching() {
                 </div>
               ))}
             </div>
-          </div>
+          )}
+        </div>
 
-          {/* 역량 성장 추이 */}
-          <div className="bg-white border border-slate-200/40 rounded-xl p-5 transition-all duration-300" role="img" aria-label="최근 5개월 역량 성장 추이 라인 차트">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-base font-medium text-slate-700 flex items-center gap-2">
-                <TrendingUp className="w-4 h-4" /> 역량 성장 추이 (최근 5개월 · 9점 척도)
-              </h3>
-              <div className="flex items-center gap-1.5">
-                {(["3개월", "6개월", "1년"] as const).map((period) => (
-                  <button
-                    key={period}
-                    onClick={() => setPeriodFilter(period)}
-                    className={`rounded-lg px-3 py-1 text-sm font-medium transition-all duration-200 ${
-                      periodFilter === period
-                        ? "bg-teal-50 text-teal-600 border border-teal-500/30 shadow-sm shadow-teal-500/10"
-                        : "bg-slate-100 text-slate-500 border border-transparent hover:border-slate-300 hover:text-slate-700"
-                    }`}
-                  >
-                    {period}
-                  </button>
+        {/* 성장 추이 차트 */}
+        {speakers.length > 0 && (
+          <div className="bg-white border border-slate-200/40 rounded-xl p-5">
+            <h3 className="text-base font-medium text-slate-700 mb-4 flex items-center gap-2">
+              <TrendingUp className="w-4 h-4" /> 역량 성장 추이 (최근 5개월 · 9점 척도)
+            </h3>
+            <ResponsiveContainer width="100%" height={280}>
+              <LineChart data={growthData}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
+                <XAxis dataKey="month" tick={{ fill: "#475569", fontSize: 11 }} />
+                <YAxis domain={[0, 9]} ticks={[0, 3, 5, 7, 9]} tick={{ fill: "#475569", fontSize: 11 }} />
+                <Tooltip cursor={{ fill: "rgba(0,0,0,0.03)" }} content={<ChartTooltip unit="점" />} />
+                <Legend wrapperStyle={{ fontSize: "11px" }} />
+                {competencyDefs.map((comp, idx) => (
+                  <Line
+                    key={comp.key}
+                    type="monotone"
+                    dataKey={comp.label}
+                    stroke={comp.color}
+                    strokeWidth={2}
+                    dot={{ r: 3 }}
+                    activeDot={{ r: 5, strokeWidth: 2, stroke: "#ffffff" }}
+                    animationBegin={100 + idx * 100}
+                    animationDuration={600}
+                  />
                 ))}
+              </LineChart>
+            </ResponsiveContainer>
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  // ═══════════════════════════════════════
+  // 메인 뷰 — 영상 업로드 + 상황사례 + 역량 선택
+  // ═══════════════════════════════════════
+  return (
+    <div className="max-w-[1440px] mx-auto px-4 md:px-6 py-8 space-y-8 animate-slide-in-right">
+      {/* 헤더 */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="text-2xl font-bold text-teal-600 tracking-tight">리더십코칭 역량진단</h2>
+          <p className="text-lg text-slate-500 mt-1.5">
+            발표·토론 영상을 업로드하고 상황사례를 입력하면 AI가 역량을 분석합니다
+          </p>
+        </div>
+        {speakers.length > 0 && (
+          <button
+            onClick={() => setView({ type: "history" })}
+            className="flex items-center gap-2 text-sm text-slate-500 hover:text-teal-600 transition-colors px-3 py-1.5 rounded-lg border border-slate-200/40 hover:border-teal-500/30"
+          >
+            <TrendingUp className="w-3.5 h-3.5" />
+            평가 이력 ({speakers.length}건)
+          </button>
+        )}
+      </div>
+
+      {/* ── 2단 레이아웃: 영상 업로드 | 상황사례 + 역량 선택 ── */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* 좌측: 영상 업로드 */}
+        <div className="space-y-4">
+          <h3 className="text-base font-semibold text-slate-700 flex items-center gap-2">
+            <Upload className="w-4 h-4 text-teal-600" />
+            1단계: 발표·토론 영상 업로드
+          </h3>
+
+          {!uploadedVideoId ? (
+            <VideoUploader
+              onUpload={handleUpload}
+              onUrlUpload={handleUrlUpload}
+              progress={uploadProgress}
+              accentColor="teal"
+            />
+          ) : (
+            <div className="bg-white border border-teal-500/20 rounded-xl p-5 space-y-3">
+              {/* 업로드된 영상 미리보기 */}
+              {uploadedBlobUrl && (
+                <div className="rounded-xl overflow-hidden border border-slate-200/40 bg-black">
+                  <video
+                    src={uploadedBlobUrl}
+                    controls
+                    className="w-full aspect-video bg-black"
+                  />
+                </div>
+              )}
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-lg bg-teal-50 flex items-center justify-center shrink-0">
+                  <CheckCircle2 className="w-5 h-5 text-teal-600" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-base text-slate-900 font-medium truncate">
+                    {uploadedFileName}
+                  </p>
+                  <p className="text-sm text-teal-600">업로드 완료 — AI 인덱싱 진행 중</p>
+                </div>
+                <button
+                  onClick={() => {
+                    setUploadedVideoId(null);
+                    setUploadedFileName("");
+                    setUploadedBlobUrl(null);
+                  }}
+                  className="text-sm text-slate-400 hover:text-slate-600 transition-colors"
+                >
+                  다시 업로드
+                </button>
               </div>
             </div>
-            <div className="overflow-x-auto -mx-4 px-4">
-              <div className="min-w-[400px]">
-                <ResponsiveContainer width="100%" height={280}>
-                  <LineChart data={growthData}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
-                    <XAxis dataKey="month" tick={{ fill: "#475569", fontSize: 11 }} />
-                    <YAxis domain={[0, 9]} ticks={[0, 3, 5, 7, 9]} tick={{ fill: "#475569", fontSize: 11 }} />
-                    <Tooltip
-                      cursor={{ fill: 'rgba(0,0,0,0.03)' }}
-                      content={<ChartTooltip unit="점" />}
-                    />
-                    <Legend
-                      wrapperStyle={{ fontSize: "11px" }}
-                      formatter={(value, entry) => (
-                        <span style={{ color: entry.color }}>{value}</span>
-                      )}
-                    />
-                    {currentCompetencies.map((comp, idx) => (
-                      <Line
-                        key={comp.key}
-                        type="monotone"
-                        dataKey={comp.label}
-                        stroke={comp.color}
-                        strokeWidth={2}
-                        dot={{ r: 3 }}
-                        activeDot={{ r: 5, strokeWidth: 2, stroke: "#ffffff" }}
-                        animationBegin={100 + idx * 100}
-                        animationDuration={600}
-                      />
-                    ))}
-                  </LineChart>
-                </ResponsiveContainer>
-              </div>
-            </div>
+          )}
+        </div>
+
+        {/* 우측: 상황사례 입력 */}
+        <div className="space-y-4">
+          <h3 className="text-base font-semibold text-slate-700 flex items-center gap-2">
+            <FileText className="w-4 h-4 text-teal-600" />
+            2단계: 상황사례 입력 (선택)
+          </h3>
+          <div className="bg-white border border-slate-200/40 rounded-xl p-5 space-y-3">
+            <p className="text-sm text-slate-500">
+              평가 대상 영상의 상황사례를 입력하면 더 정확한 분석이 가능합니다.
+            </p>
+            <textarea
+              value={scenarioText}
+              onChange={(e) => setScenarioText(e.target.value)}
+              placeholder={`예시:\n• 신재생에너지 분야 전략 수립 TFT 발표 영상\n• 부서 간 설비 교체 일정 갈등 조율 회의\n• 회의 비효율성 문제에 대한 1:1 코칭 면담\n• 3건의 긴급사안 우선순위 결정 회의`}
+              className="w-full bg-slate-50/60 border border-slate-200/40 rounded-lg px-4 py-3 text-base text-slate-900 placeholder:text-slate-400 outline-none focus:border-teal-500/30 focus:ring-1 focus:ring-teal-500/15 transition-all resize-none leading-relaxed"
+              rows={6}
+            />
+            <p className="text-sm text-slate-400">
+              * 상황사례를 입력하지 않아도 영상만으로 분석이 가능합니다
+            </p>
           </div>
         </div>
+      </div>
+
+      {/* ── 3단계: 평가 역량 선택 ── */}
+      <div className="space-y-4">
+        <div className="flex items-center justify-between">
+          <h3 className="text-base font-semibold text-slate-700 flex items-center gap-2">
+            <Target className="w-4 h-4 text-teal-600" />
+            3단계: 평가 역량 선택
+          </h3>
+          <button
+            onClick={selectAllCompetencies}
+            className="text-sm text-teal-600 hover:text-teal-500 transition-colors"
+          >
+            전체 선택
+          </button>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          {competencyDefs.map((comp, idx) => {
+            const IconComp = COMPETENCY_ICONS[comp.key] || Target;
+            const isSelected = selectedCompetencies.has(comp.key);
+
+            return (
+              <button
+                key={comp.key}
+                onClick={() => toggleCompetency(comp.key)}
+                className={`animate-fade-in-up text-left rounded-xl p-5 border-2 transition-all duration-200 group ${
+                  isSelected
+                    ? "bg-white shadow-lg"
+                    : "bg-white/60 border-slate-200/40 hover:border-slate-300 hover:bg-white"
+                }`}
+                style={{
+                  animationDelay: `${idx * 80}ms`,
+                  animationFillMode: "backwards",
+                  borderColor: isSelected ? comp.color : undefined,
+                }}
+              >
+                <div className="flex items-start gap-3">
+                  <div
+                    className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 transition-colors"
+                    style={{ backgroundColor: `${comp.color}15` }}
+                  >
+                    <IconComp className="w-5 h-5" style={{ color: comp.color }} />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 mb-1">
+                      <h4
+                        className="text-base font-semibold transition-colors"
+                        style={{ color: isSelected ? comp.color : "#334155" }}
+                      >
+                        {comp.label}
+                      </h4>
+                      {isSelected && (
+                        <CheckCircle2 className="w-4 h-4 shrink-0" style={{ color: comp.color }} />
+                      )}
+                    </div>
+                    <p className="text-sm text-slate-500 leading-relaxed line-clamp-2">
+                      {comp.definition}
+                    </p>
+                  </div>
+                </div>
+
+                {/* 루브릭 수 + 활동유형 태그 */}
+                {comp.rubric && (
+                  <div className="flex items-center gap-2 mt-3 pt-3 border-t border-slate-200/30">
+                    <span className="text-[11px] px-2 py-0.5 rounded bg-teal-50 text-teal-600/70 font-medium">
+                      BARS {comp.rubric.length}항목
+                    </span>
+                  </div>
+                )}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* ── 분석 시작 버튼 ── */}
+      <div className="flex justify-center pt-2">
+        <button
+          onClick={handleStartAnalysis}
+          disabled={!canStartAnalysis}
+          className={`flex items-center gap-3 px-8 py-4 rounded-2xl text-lg font-semibold transition-all duration-300 ${
+            canStartAnalysis
+              ? "bg-teal-600 hover:bg-teal-500 text-white shadow-xl shadow-teal-500/20 hover:shadow-2xl hover:shadow-teal-500/30 hover:scale-[1.02] active:scale-[0.98]"
+              : "bg-slate-100 text-slate-400 cursor-not-allowed"
+          }`}
+        >
+          <Sparkles className="w-5 h-5" />
+          AI 역량 분석 시작
+          {selectedCompetencies.size > 0 && (
+            <span className="text-sm opacity-80">({selectedCompetencies.size}개 역량)</span>
+          )}
+        </button>
+      </div>
+
+      {/* 안내 */}
+      {!canStartAnalysis && (
+        <p className="text-center text-sm text-slate-400">
+          {!uploadedVideoId
+            ? "영상을 업로드하고 평가할 역량을 선택해주세요"
+            : "평가할 역량을 1개 이상 선택해주세요"}
+        </p>
       )}
+
+      {/* ── 9점 척도 안내 ── */}
+      <div className="bg-white border border-slate-200/30 rounded-xl p-5">
+        <h3 className="text-base font-medium text-slate-500 mb-3">9점 척도 평가 기준</h3>
+        <div className="grid grid-cols-5 gap-2 text-center">
+          {[
+            { range: "8-9점", label: "탁월", color: "text-teal-600", bg: "bg-teal-50" },
+            { range: "7점", label: "우수", color: "text-teal-600/70", bg: "bg-teal-500/5" },
+            { range: "5-6점", label: "보통", color: "text-amber-600", bg: "bg-amber-500/10" },
+            { range: "3-4점", label: "미흡", color: "text-red-600/70", bg: "bg-red-500/5" },
+            { range: "1-2점", label: "부족", color: "text-red-600", bg: "bg-red-500/10" },
+          ].map((g) => (
+            <div key={g.range} className={`${g.bg} rounded-lg p-2`}>
+              <p className={`text-sm font-mono font-bold ${g.color}`}>{g.range}</p>
+              <p className={`text-sm mt-0.5 ${g.color}`}>{g.label}</p>
+            </div>
+          ))}
+        </div>
+        <p className="text-sm text-slate-400 mt-3">
+          ※ KHNP 전직급 리더십 역량 정의 및 행동지표 기준 · 개선루브릭(BARS) 적용
+        </p>
+      </div>
     </div>
   );
 }
