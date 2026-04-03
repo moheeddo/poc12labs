@@ -1,5 +1,48 @@
 # Maintenance Log
 
+## 2026-04-04 사이클 13 — QA 테스트 (리더십 탭 + 6인 조 폼 + 대시보드)
+
+### 테스트 범위
+- 리더십코칭 역량진단 탭 전체 레이아웃
+- 6인 조 생성 폼 세부 확인
+- 대시보드 전체 스크롤
+- 반응형 768px 테스트
+- 콘솔 에러 수집
+
+### 발견 및 수정된 버그
+
+#### [수정됨] 비활성 버튼 cursor 오류 (심각도: 중)
+- 위치: globals.css + LeadershipCoaching.tsx
+- 증상: `disabled` 속성이 true인 "AI 역량 분석 시작" 버튼에서 `cursor: pointer`가 표시됨
+- 원인: globals.css에서 `button { cursor: pointer }` 전역 규칙이 Tailwind `cursor-not-allowed`보다 우선 적용
+- 수정: `button:disabled { cursor: not-allowed }` 규칙 추가 (globals.css 109행)
+
+### 정상 확인 항목
+1. 리더십 탭: 1단계/2단계/3단계 흐름 명확, 역량 카드 4개 정상 배치
+2. "6인 조 관리" 버튼: 우측 상단에 teal 색상으로 눈에 잘 띔 (117x36px)
+3. 6인 조 생성 폼: 6명 입력 필드 1열 배치, select 직급 겹침 없음 (수직 간격 26px 균일)
+4. 대시보드: 서비스 카드 3개, 빠른 시작 3단계, 최근 활동 영역 모두 정상
+5. 반응형 768px: 네비게이션 오버플로우 없음, 레이아웃 적절히 리플로우
+6. 콘솔 에러: 모든 탭 순환 시 0개
+7. 접근성: aria-label/alt 누락 없음, 색상 대비 적절
+
+### 스크린샷
+- capture/qa13-leadership.png (리더십 탭 전체)
+- capture/qa13-leadership-top.png (리더십 상단 클로즈업)
+- capture/qa13-leadership-bottom.png (리더십 하단)
+- capture/qa13-leadership-fixed.png (수정 후 재확인)
+- capture/qa13-group-form.png (6인 조 생성 폼)
+- capture/qa13-group-form-bottom.png (폼 하단)
+- capture/qa13-dashboard-full.png (대시보드 전체)
+- capture/qa13-dashboard-top.png (대시보드 상단)
+- capture/qa13-dashboard-768.png (대시보드 768px)
+- capture/qa13-leadership-768.png (리더십 768px)
+- capture/qa13-group-form-768.png (6인 조 폼 768px)
+- capture/qa13-simulator.png (시뮬레이터 탭)
+- capture/qa13-pov.png (POV 탭)
+
+---
+
 ## 2026-04-04 사이클 12 — 마지막 UX 폴리시
 
 ### 1. 로딩 스켈레톤 개선 (LeadershipFeedback.tsx)
