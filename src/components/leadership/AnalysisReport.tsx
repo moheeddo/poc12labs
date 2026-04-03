@@ -174,45 +174,6 @@ export default function AnalysisReport({ data, onSeek }: AnalysisReportProps) {
         </div>
       )}
 
-      {/* ── 레이더 차트 ── */}
-      {hasScores && (
-        <div className="bg-white/40 border border-slate-200/30 rounded-xl p-4">
-          <p className="text-sm text-slate-500 mb-3 flex items-center gap-1.5">
-            <Sparkles className="w-3.5 h-3.5 text-teal-500/60" />
-            역량 프로파일 (9점 척도)
-          </p>
-          <div className="flex justify-center">
-            <ResponsiveContainer width="100%" height={420}>
-              <RadarChart data={radarData} cx="50%" cy="50%" outerRadius="80%">
-                <PolarGrid stroke="#e2e8f0" />
-                <PolarAngleAxis
-                  dataKey="subject"
-                  tick={{ fill: "#475569", fontSize: 12, fontWeight: 500 }}
-                />
-                <PolarRadiusAxis
-                  domain={[0, 9]}
-                  tickCount={4}
-                  tick={{ fill: "#475569", fontSize: 9 }}
-                  axisLine={false}
-                />
-                <Radar
-                  name="점수"
-                  dataKey="score"
-                  stroke="#14b8a6"
-                  fill="#14b8a6"
-                  fillOpacity={0.2}
-                  strokeWidth={2}
-                  dot={{ r: 4, fill: "#14b8a6", strokeWidth: 0 }}
-                  animationBegin={200}
-                  animationDuration={800}
-                />
-                <Tooltip content={<RadarTooltipContent />} />
-              </RadarChart>
-            </ResponsiveContainer>
-          </div>
-        </div>
-      )}
-
       {/* ── AI 분석 요약 ── */}
       {data.aiSummary && (
         <div className="bg-white/40 border border-slate-200/30 rounded-xl p-4">
@@ -220,47 +181,67 @@ export default function AnalysisReport({ data, onSeek }: AnalysisReportProps) {
             <Sparkles className="w-3.5 h-3.5 text-teal-500/60" />
             AI 분석 요약
           </p>
-          <p className="text-base text-slate-500 leading-relaxed">{data.aiSummary}</p>
+          <p className="text-sm text-slate-600 leading-relaxed">{data.aiSummary}</p>
         </div>
       )}
 
-      {/* ── 강점 / 개선점 ── */}
-      {(data.topStrengths.length > 0 || data.topImprovements.length > 0) && (
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          {data.topStrengths.length > 0 && (
-            <div className="bg-teal-500/5 border border-teal-500/15 rounded-xl p-4">
-              <div className="flex items-center gap-2 mb-3">
-                <TrendingUp className="w-4 h-4 text-teal-600" />
-                <p className="text-sm font-medium text-teal-600">강점</p>
+      {/* ── 강점/개선 + 레이더 (좌:강점개선, 우:차트 컴팩트) ── */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        {/* 강점 */}
+        <div className="bg-teal-500/5 border border-teal-500/15 rounded-xl p-3">
+          <div className="flex items-center gap-1.5 mb-2">
+            <TrendingUp className="w-3.5 h-3.5 text-teal-600" />
+            <p className="text-xs font-medium text-teal-600">강점</p>
+          </div>
+          <div className="space-y-1.5">
+            {data.topStrengths.length > 0 ? data.topStrengths.map((s, i) => (
+              <div key={i} className="flex items-start gap-1.5">
+                <CheckCircle2 className="w-3 h-3 text-teal-500/60 shrink-0 mt-0.5" />
+                <p className="text-xs text-slate-600 leading-relaxed">{s}</p>
               </div>
-              <div className="space-y-2">
-                {data.topStrengths.map((s, i) => (
-                  <div key={i} className="flex items-start gap-2">
-                    <CheckCircle2 className="w-3.5 h-3.5 text-teal-500/60 shrink-0 mt-0.5" />
-                    <p className="text-sm text-slate-500 leading-relaxed">{s}</p>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-          {data.topImprovements.length > 0 && (
-            <div className="bg-amber-500/5 border border-amber-500/15 rounded-xl p-4">
-              <div className="flex items-center gap-2 mb-3">
-                <AlertTriangle className="w-4 h-4 text-amber-600" />
-                <p className="text-sm font-medium text-amber-600">개선 포인트</p>
-              </div>
-              <div className="space-y-2">
-                {data.topImprovements.map((s, i) => (
-                  <div key={i} className="flex items-start gap-2">
-                    <AlertTriangle className="w-3.5 h-3.5 text-amber-500/60 shrink-0 mt-0.5" />
-                    <p className="text-sm text-slate-500 leading-relaxed">{s}</p>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
+            )) : <p className="text-xs text-slate-400">분석 후 표시됩니다</p>}
+          </div>
         </div>
-      )}
+
+        {/* 개선 */}
+        <div className="bg-amber-500/5 border border-amber-500/15 rounded-xl p-3">
+          <div className="flex items-center gap-1.5 mb-2">
+            <AlertTriangle className="w-3.5 h-3.5 text-amber-600" />
+            <p className="text-xs font-medium text-amber-600">개선 포인트</p>
+          </div>
+          <div className="space-y-1.5">
+            {data.topImprovements.length > 0 ? data.topImprovements.map((s, i) => (
+              <div key={i} className="flex items-start gap-1.5">
+                <AlertTriangle className="w-3 h-3 text-amber-500/60 shrink-0 mt-0.5" />
+                <p className="text-xs text-slate-600 leading-relaxed">{s}</p>
+              </div>
+            )) : <p className="text-xs text-slate-400">분석 후 표시됩니다</p>}
+          </div>
+        </div>
+
+        {/* 레이더 차트 (컴팩트) */}
+        {hasScores && (
+          <div className="bg-white/40 border border-slate-200/30 rounded-xl p-2">
+            <ResponsiveContainer width="100%" height={180}>
+              <RadarChart data={radarData} cx="50%" cy="50%" outerRadius="70%">
+                <PolarGrid stroke="#e2e8f0" />
+                <PolarAngleAxis dataKey="subject" tick={{ fill: "#475569", fontSize: 9 }} />
+                <PolarRadiusAxis domain={[0, 9]} tickCount={3} tick={false} axisLine={false} />
+                <Radar
+                  name="점수"
+                  dataKey="score"
+                  stroke="#14b8a6"
+                  fill="#14b8a6"
+                  fillOpacity={0.2}
+                  strokeWidth={2}
+                  dot={{ r: 3, fill: "#14b8a6", strokeWidth: 0 }}
+                />
+                <Tooltip content={<RadarTooltipContent />} />
+              </RadarChart>
+            </ResponsiveContainer>
+          </div>
+        )}
+      </div>
 
       {/* ── 역량별 상세 ── */}
       <div className="space-y-3">
@@ -320,12 +301,30 @@ export default function AnalysisReport({ data, onSeek }: AnalysisReportProps) {
                   BARS 루브릭 판정 ({c.rubricScores[0]?.levelLabel})
                 </p>
                 {c.rubricScores.map((rs, i) => (
-                  <div key={i} className="flex items-start gap-2">
+                  <div key={i} className="flex items-start gap-2 group/rubric">
                     <span className="text-[10px] font-mono text-slate-400 mt-0.5 shrink-0 w-4">{i + 1}.</span>
                     <div className="flex-1 min-w-0">
-                      <span className="text-xs font-medium text-slate-600">{rs.criteria}</span>
-                      <span className="text-[10px] text-slate-400 ml-1">({rs.subLabel})</span>
+                      <div className="flex items-center gap-1.5 flex-wrap">
+                        <span className="text-xs font-medium text-slate-600">{rs.criteria}</span>
+                        <span className="text-[10px] text-slate-400">({rs.subLabel})</span>
+                        {/* 타임스탬프 근거 클릭 버튼 */}
+                        {rs.evidenceTimestamp !== undefined && rs.evidenceTimestamp > 0 && onSeek && (
+                          <button
+                            onClick={() => onSeek(rs.evidenceTimestamp!)}
+                            className="inline-flex items-center gap-0.5 text-[10px] font-mono text-teal-600 bg-teal-50 hover:bg-teal-100 rounded px-1 py-0.5 transition-colors"
+                          >
+                            <PlayCircle className="w-2.5 h-2.5" />
+                            {formatTime(rs.evidenceTimestamp)}
+                          </button>
+                        )}
+                      </div>
                       <p className="text-xs text-slate-500 leading-relaxed mt-0.5">{rs.levelDescription}</p>
+                      {/* 근거 요약 */}
+                      {rs.evidenceText && (
+                        <p className="text-[10px] text-teal-600/70 mt-1 leading-relaxed italic">
+                          근거: &ldquo;{rs.evidenceText}&rdquo;
+                        </p>
+                      )}
                     </div>
                   </div>
                 ))}

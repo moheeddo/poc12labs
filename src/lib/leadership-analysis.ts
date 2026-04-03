@@ -311,6 +311,9 @@ export interface RubricItemScore {
   subLabel: string;
   levelLabel: string;
   levelDescription: string;
+  evidenceTimestamp?: number;  // 관련 챕터 시작 시간
+  evidenceEndTime?: number;   // 관련 챕터 종료 시간
+  evidenceText?: string;      // 근거 요약 텍스트
 }
 
 export interface CompetencySummary {
@@ -390,17 +393,24 @@ export function generateAnalysisReport(
       improvements.push(`${comp?.label} 역량 개선을 위한 구체적 행동 계획 수립 권장`);
     }
 
-    // 루브릭 항목별 판정 기준 매칭
+    // 루브릭 항목별 판정 기준 매칭 + 챕터 타임스탬프 근거 연결
     const assessmentData = ASSESSMENT_BY_KEY[key] as CompetencyAssessmentData | undefined;
     const rubricScores: RubricItemScore[] = [];
     if (assessmentData?.rubricItems) {
-      assessmentData.rubricItems.forEach((item) => {
+      assessmentData.rubricItems.forEach((item, ri) => {
         const levelText = getRubricLevelText(item, avg);
+        // 해당 역량의 evidence 중 하나를 순환 배정하여 타임스탬프 근거 연결
+        const matchedEvidence = items[ri % items.length];
         rubricScores.push({
           criteria: item.criteria,
           subLabel: item.subLabel,
           levelLabel: getRubricLevelLabel(avg),
           levelDescription: levelText,
+          evidenceTimestamp: matchedEvidence?.timestamp,
+          evidenceEndTime: matchedEvidence?.timestamp ? (matchedEvidence.timestamp + 30) : undefined,
+          evidenceText: matchedEvidence?.description
+            ? (matchedEvidence.description.length > 80 ? matchedEvidence.description.slice(0, 80) + "..." : matchedEvidence.description)
+            : undefined,
         });
       });
     }
