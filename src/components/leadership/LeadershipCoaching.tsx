@@ -32,11 +32,15 @@ import VideoUploader from "@/components/shared/VideoUploader";
 import ChartTooltip from "@/components/shared/ChartTooltip";
 import ScoreCard from "./ScoreCard";
 import LeadershipFeedback from "./LeadershipFeedback";
+import GroupManager, { GroupCreateForm } from "./GroupManager";
+import GroupDashboard from "./GroupDashboard";
 import { useVideoUpload } from "@/hooks/useTwelveLabs";
 import {
   TWELVELABS_INDEXES,
   LEADERSHIP_COMPETENCY_DEFS,
 } from "@/lib/constants";
+import { loadAllSessions, saveSession } from "@/lib/group-store";
+import type { GroupSession } from "@/lib/group-types";
 import type { SpeakerScore, LeadershipCompetencyKey } from "@/lib/types";
 
 // ─── 역량 아이콘 매핑 ───
@@ -66,7 +70,11 @@ type ViewState =
       selectedCompetencies: LeadershipCompetencyKey[];
       scenarioText: string;
     }
-  | { type: "history" };
+  | { type: "history" }
+  | { type: "group-create" }
+  | { type: "group-manage"; sessionId: string }
+  | { type: "group-dashboard"; sessionId: string }
+  | { type: "group-feedback"; sessionId: string; memberId: string; memberName: string; videoId: string; videoUrl?: string; competencyKey: LeadershipCompetencyKey };
 
 // 성장 추이 데이터 (실제 연동 시 API에서 조회)
 function generateGrowthData() {
@@ -84,6 +92,16 @@ function generateGrowthData() {
 
 export default function LeadershipCoaching() {
   const [view, setView] = useState<ViewState>({ type: "main" });
+
+  // 조 세션 관리
+  const [groupSessions, setGroupSessions] = useState<GroupSession[]>([]);
+  useEffect(() => { setGroupSessions(loadAllSessions()); }, [view]);
+  const activeGroupSession = useMemo(() => {
+    if (view.type === "group-manage" || view.type === "group-dashboard" || view.type === "group-feedback") {
+      return groupSessions.find((s) => s.id === view.sessionId) || null;
+    }
+    return null;
+  }, [view, groupSessions]);
 
   // 업로드
   const { progress: uploadProgress, upload, uploadByUrl } = useVideoUpload();
@@ -234,7 +252,95 @@ export default function LeadershipCoaching() {
   }, [uploadedVideoId, uploadedFileName, uploadedBlobUrl, selectedCompetencies, scenarioText]);
 
   // ═══════════════════════════════════════
-  // 피드백 뷰
+  // 조 생성 뷰
+  // ═══════════════════════════════════════
+  if (view.type === "group-create") {
+    return (
+      <GroupCreateForm
+        onSubmit={(session) => {
+          saveSession(session);
+          setView({ type: "group-manage", sessionId: session.id });
+        }}
+        onCancel={() => setView({ type: "main" })}
+      />
+    );
+  }
+
+  // ═══════════════════════════════════════
+  // 조 관리 뷰 (영상 업로드 + 순차 진행)
+  // ═══════════════════════════════════════
+  if (view.type === "group-manage" && activeGroupSession) {
+    return (
+      <GroupManager
+        session={activeGroupSession}
+        onUpdate={(updated) => {
+          saveSession(updated);
+          setGroupSessions((prev) => prev.map((s) => (s.id === updated.id ? updated : s)));
+        }}
+        onBack={() => setView({ type: "main" })}
+        onViewDashboard={() => setView({ type: "group-dashboard", sessionId: activeGroupSession.id })}
+        onAnalyzeMember={(memberId, memberName, videoId, videoUrl, competencyKey) =>
+          setView({
+            type: "group-feedback",
+            sessionId: activeGroupSession.id,
+            memberId,
+            memberName,
+            videoId,
+            videoUrl,
+            competencyKey: (competencyKey as LeadershipCompetencyKey) || "visionPresentation",
+          })
+        }
+      />
+    );
+  }
+
+  // ═══════════════════════════════════════
+  // 조 비교 대시보드
+  // ═══════════════════════════════════════
+  if (view.type === "group-dashboard" && activeGroupSession) {
+    return (
+      <GroupDashboard
+        session={activeGroupSession}
+        onBack={() => setView({ type: "group-manage", sessionId: activeGroupSession.id })}
+        onViewMember={(memberId) => {
+          // 해당 멤버의 첫 번째 분석된 영상으로 이동
+          for (const comp of activeGroupSession.competencies) {
+            const video = comp.memberVideos[memberId];
+            if (video) {
+              setView({
+                type: "group-feedback",
+                sessionId: activeGroupSession.id,
+                memberId,
+                memberName: activeGroupSession.members.find((m) => m.id === memberId)?.name || "",
+                videoId: video.videoId,
+                videoUrl: video.blobUrl,
+                competencyKey: comp.competencyKey,
+              });
+              return;
+            }
+          }
+        }}
+      />
+    );
+  }
+
+  // ═══════════════════════════════════════
+  // 조 멤버 피드백 뷰
+  // ═══════════════════════════════════════
+  if (view.type === "group-feedback") {
+    return (
+      <LeadershipFeedback
+        videoId={view.videoId}
+        videoTitle={`${view.memberName} — ${LEADERSHIP_COMPETENCY_DEFS.find((d) => d.key === view.competencyKey)?.label || ""}`}
+        videoUrl={view.videoUrl}
+        selectedCompetencies={[view.competencyKey]}
+        onBack={() => setView({ type: "group-manage", sessionId: view.sessionId })}
+      />
+    );
+  }
+
+  // ═══════════════════════════════════════
+  // 피드백 뷰 (개별 분석)
   // ═══════════════════════════════════════
   if (view.type === "feedback") {
     return (
@@ -348,15 +454,57 @@ export default function LeadershipCoaching() {
             발표·토론 영상을 업로드하고 상황사례를 입력하면 AI가 역량을 분석합니다
           </p>
         </div>
-        {speakers.length > 0 && (
+        <div className="flex items-center gap-2">
           <button
-            onClick={() => setView({ type: "history" })}
-            className="flex items-center gap-2 text-sm text-slate-500 hover:text-teal-600 transition-colors px-3 py-1.5 rounded-lg border border-slate-200/40 hover:border-teal-500/30"
+            onClick={() => setView({ type: "group-create" })}
+            className="flex items-center gap-2 text-sm font-medium text-white bg-teal-600 hover:bg-teal-500 px-4 py-2 rounded-lg shadow-sm transition-colors"
           >
-            <TrendingUp className="w-3.5 h-3.5" />
-            평가 이력 ({speakers.length}건)
+            <Users className="w-3.5 h-3.5" />
+            6인 조 관리
           </button>
-        )}
+          {speakers.length > 0 && (
+            <button
+              onClick={() => setView({ type: "history" })}
+              className="flex items-center gap-2 text-sm text-slate-500 hover:text-teal-600 transition-colors px-3 py-1.5 rounded-lg border border-slate-200/40 hover:border-teal-500/30"
+            >
+              <TrendingUp className="w-3.5 h-3.5" />
+              이력
+            </button>
+          )}
+        </div>
+      </div>
+
+      {/* ── 기존 조 세션 목록 ── */}
+      {groupSessions.length > 0 && (
+        <div className="bg-white border border-teal-200/30 rounded-xl p-4">
+          <p className="text-xs uppercase tracking-wider text-slate-400 mb-3">진행 중인 조</p>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+            {groupSessions.map((gs) => (
+              <button
+                key={gs.id}
+                onClick={() => setView({ type: "group-manage", sessionId: gs.id })}
+                className="text-left p-3 rounded-lg bg-teal-50/50 border border-teal-200/30 hover:border-teal-300 hover:shadow-sm transition-all"
+              >
+                <p className="text-sm font-semibold text-teal-700">{gs.name}</p>
+                <p className="text-xs text-slate-500 mt-0.5">
+                  {gs.members.length}명 · {gs.members.map((m) => m.name).join(", ")}
+                </p>
+                <p className="text-[10px] text-teal-600 mt-1">
+                  {gs.currentStep + 1}/4 역량 진행 중
+                </p>
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* ── 개별 분석 영역 (기존) ── */}
+      <div className="relative">
+        <div className="flex items-center gap-3 mb-4">
+          <div className="h-px flex-1 bg-slate-200/60" />
+          <span className="text-xs text-slate-400 font-medium uppercase tracking-wider">또는 개별 분석</span>
+          <div className="h-px flex-1 bg-slate-200/60" />
+        </div>
       </div>
 
       {/* ── 2단 레이아웃: 영상 업로드 | 상황사례 + 역량 선택 ── */}
