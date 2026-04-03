@@ -327,14 +327,23 @@ export interface CompetencySummary {
   activityType?: string;            // 활동유형
 }
 
+export interface ImprovementPriority {
+  rank: number;
+  item: string;
+  suggestion: string;
+}
+
 export interface AnalysisReportData {
   overallScore: number;
+  overallInterpretation: string;     // 매우 우수 / 보통 이상 / 보통 미만 / 미흡
   competencies: CompetencySummary[];
   totalEvidenceCount: number;
   scoredCount: number;
   aiSummary: string;
   topStrengths: string[];
   topImprovements: string[];
+  improvementPriorities: ImprovementPriority[]; // 개선 우선순위 (최대 3개)
+  reportSummary: string;             // 보고서 요약 (2~3문장)
 }
 
 interface EvidenceForReport {
@@ -413,13 +422,55 @@ export function generateAnalysisReport(
     ? Math.round((allScores.reduce((a, b) => a + b, 0) / allScores.length) * 10) / 10
     : 0;
 
+  // 총점 해석 (rubricurl 문서 4 기준)
+  function interpretScore(score: number): string {
+    if (score >= 7.5) return "매우 우수";
+    if (score >= 5.5) return "보통 이상";
+    if (score >= 3.0) return "보통 미만";
+    if (score > 0) return "미흡";
+    return "산출 보류";
+  }
+
+  // 개선 우선순위 (점수 낮은 항목 순, 최대 3개) — rubricurl 문서 4 보고서 생성 규칙
+  const improvementPriorities: ImprovementPriority[] = competencies
+    .filter((c) => c.avgScore > 0 && c.avgScore < 7.5)
+    .sort((a, b) => a.avgScore - b.avgScore)
+    .slice(0, 3)
+    .map((c, i) => {
+      const assessData = ASSESSMENT_BY_KEY[c.key] as CompetencyAssessmentData | undefined;
+      const topRubric = assessData?.rubricItems?.[0];
+      const excellentDesc = topRubric?.levels[0]?.description || "";
+      return {
+        rank: i + 1,
+        item: c.label,
+        suggestion: excellentDesc
+          ? `${topRubric?.criteria} 항목의 9점 수준을 목표로: ${excellentDesc}`
+          : `${c.label} 역량의 상위 수준 행동 기준 참고하여 개선 계획 수립`,
+      };
+    });
+
+  // 보고서 요약 (2~3문장, 행동 중심 — 금지 표현 제외)
+  const scoredComps = competencies.filter((c) => c.avgScore > 0);
+  const strongComps = scoredComps.filter((c) => c.avgScore >= 7);
+  const weakComps = scoredComps.filter((c) => c.avgScore < 5);
+  let reportSummary = `전체 ${scoredComps.length}개 역량에 대한 평가 결과, 종합 점수는 ${overallScore.toFixed(1)}점(${interpretScore(overallScore)})입니다.`;
+  if (strongComps.length > 0) {
+    reportSummary += ` ${strongComps.map((c) => c.label).join(", ")} 역량에서 상위 수준의 행동이 관찰되었습니다.`;
+  }
+  if (weakComps.length > 0) {
+    reportSummary += ` ${weakComps.map((c) => c.label).join(", ")} 역량은 루브릭 기준 대비 보완이 필요합니다.`;
+  }
+
   return {
     overallScore,
+    overallInterpretation: interpretScore(overallScore),
     competencies,
     totalEvidenceCount: evidenceList.length,
     scoredCount: evidenceList.filter((e) => e.score > 0).length,
     aiSummary: summary,
     topStrengths: competencies.flatMap((c) => c.strengths),
     topImprovements: competencies.flatMap((c) => c.improvements),
+    improvementPriorities,
+    reportSummary,
   };
 }

@@ -103,7 +103,7 @@ export default function AnalysisReport({ data }: AnalysisReportProps) {
             </div>
             {hasScores && (
               <p className={cn("text-sm font-medium mt-1", getScoreColor(data.overallScore))}>
-                {getScoreLabel(data.overallScore)}
+                {data.overallInterpretation || getScoreLabel(data.overallScore)}
               </p>
             )}
           </div>
@@ -131,6 +131,40 @@ export default function AnalysisReport({ data }: AnalysisReportProps) {
           </div>
         </div>
       </div>
+
+      {/* ── 보고서 요약 (rubricurl 문서 4 규칙) ── */}
+      {data.reportSummary && (
+        <div className="bg-teal-50/50 border border-teal-500/15 rounded-xl p-4">
+          <p className="text-sm text-teal-600 font-medium mb-1.5 flex items-center gap-1.5">
+            <Sparkles className="w-3.5 h-3.5" />
+            종합 평가 요약
+          </p>
+          <p className="text-sm text-slate-600 leading-relaxed">{data.reportSummary}</p>
+        </div>
+      )}
+
+      {/* ── 개선 우선순위 (최대 3개) ── */}
+      {data.improvementPriorities && data.improvementPriorities.length > 0 && (
+        <div className="bg-amber-50/50 border border-amber-500/15 rounded-xl p-4">
+          <p className="text-sm text-amber-700 font-medium mb-2 flex items-center gap-1.5">
+            <AlertTriangle className="w-3.5 h-3.5" />
+            개선 우선순위
+          </p>
+          <div className="space-y-2">
+            {data.improvementPriorities.map((p) => (
+              <div key={p.rank} className="flex items-start gap-2">
+                <span className="text-xs font-mono font-bold text-amber-600 bg-amber-100 rounded px-1.5 py-0.5 shrink-0">
+                  {p.rank}
+                </span>
+                <div>
+                  <span className="text-sm font-medium text-slate-700">{p.item}</span>
+                  <p className="text-xs text-slate-500 leading-relaxed mt-0.5">{p.suggestion}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* ── 레이더 차트 ── */}
       {hasScores && (
