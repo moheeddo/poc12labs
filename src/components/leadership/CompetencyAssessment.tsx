@@ -137,16 +137,18 @@ function BarsRubricTable({
         {isExpanded ? <ChevronUp className="w-3.5 h-3.5 text-slate-500" /> : <ChevronDown className="w-3.5 h-3.5 text-slate-500" />}
       </button>
       {isExpanded && (
-        <div className="grid grid-cols-4 gap-px bg-slate-100/30">
-          {item.levels.map((level, li) => (
-            <div key={li} className={cn("p-3 text-sm leading-relaxed", level.bgColor)}>
-              <div className="flex items-center gap-1.5 mb-1.5">
-                <span className={cn("font-bold font-mono", level.color)}>{level.range}</span>
+        <div className="overflow-x-auto">
+          <div className="grid grid-cols-4 gap-px bg-slate-100/30 min-w-[600px]">
+            {item.levels.map((level, li) => (
+              <div key={li} className={cn("p-3 text-sm leading-relaxed", level.bgColor)}>
+                <div className="flex items-center gap-1.5 mb-1.5">
+                  <span className={cn("font-bold font-mono", level.color)}>{level.range}</span>
+                </div>
+                <p className="text-sm font-medium text-slate-500 mb-1">{level.label}</p>
+                <p className="text-sm leading-[1.5] text-slate-700/80">{level.description}</p>
               </div>
-              <p className="text-sm font-medium text-slate-500 mb-1">{level.label}</p>
-              <p className="text-sm leading-[1.5] text-slate-700/80">{level.description}</p>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
       )}
     </div>
@@ -176,9 +178,9 @@ function MultimodalIndicatorTable({
       </div>
 
       {/* 하위지표 테이블 */}
-      <div className="rounded-lg overflow-hidden border border-slate-200/40">
+      <div className="rounded-lg overflow-x-auto border border-slate-200/40">
         {/* 헤더 */}
-        <div className="grid grid-cols-[1fr_repeat(4,80px)] bg-white/80 px-3 py-2 text-sm font-medium text-slate-500">
+        <div className="grid grid-cols-[1fr_repeat(4,80px)] bg-white/80 px-3 py-2 text-sm font-medium text-slate-500 min-w-[480px]">
           <span>하위지표</span>
           <span className="text-center text-teal-600/70">상위 (3)</span>
           <span className="text-center text-sky-400/70">중상 (2)</span>

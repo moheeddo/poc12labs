@@ -514,17 +514,17 @@ export default function LeadershipCoaching() {
       }`}>
         {!canStartAnalysis && (
           <div className="mb-4">
-            <div className="flex items-center justify-center gap-6 text-sm">
+            <div className="flex items-center justify-center gap-3 sm:gap-6 text-sm flex-wrap">
               <span className={`flex items-center gap-1.5 ${uploadedVideoId ? "text-teal-600" : "text-slate-400"}`}>
                 {uploadedVideoId ? <CheckCircle2 className="w-4 h-4" /> : <Circle className="w-4 h-4" />}
                 영상 업로드
               </span>
-              <span className="text-slate-300">→</span>
+              <span className="text-slate-300 hidden sm:inline">→</span>
               <span className={`flex items-center gap-1.5 ${selectedCompetencies.size > 0 ? "text-teal-600" : "text-slate-400"}`}>
                 {selectedCompetencies.size > 0 ? <CheckCircle2 className="w-4 h-4" /> : <Circle className="w-4 h-4" />}
                 역량 선택
               </span>
-              <span className="text-slate-300">→</span>
+              <span className="text-slate-300 hidden sm:inline">→</span>
               <span className="flex items-center gap-1.5 text-slate-400">
                 <Circle className="w-4 h-4" />
                 AI 분석
@@ -535,7 +535,7 @@ export default function LeadershipCoaching() {
         <button
           onClick={handleStartAnalysis}
           disabled={!canStartAnalysis}
-          className={`inline-flex items-center gap-3 px-10 py-4 rounded-2xl text-lg font-semibold transition-all duration-300 ${
+          className={`inline-flex items-center gap-3 px-6 sm:px-10 py-3.5 sm:py-4 rounded-2xl text-base sm:text-lg font-semibold transition-all duration-300 ${
             canStartAnalysis
               ? "bg-teal-600 hover:bg-teal-500 text-white shadow-xl shadow-teal-500/20 hover:shadow-2xl hover:shadow-teal-500/30 hover:scale-[1.02] active:scale-[0.98]"
               : "bg-slate-200/80 text-slate-400 cursor-not-allowed"
@@ -552,7 +552,7 @@ export default function LeadershipCoaching() {
       {/* ── 9점 척도 안내 ── */}
       <div className="bg-white border border-slate-200/30 rounded-xl p-5">
         <h3 className="text-base font-medium text-slate-500 mb-3">9점 척도 평가 기준</h3>
-        <div className="grid grid-cols-5 gap-2 text-center">
+        <div className="grid grid-cols-3 sm:grid-cols-5 gap-2 text-center">
           {[
             { range: "8-9점", label: "탁월", color: "text-teal-600", bg: "bg-teal-50" },
             { range: "7점", label: "우수", color: "text-teal-600/70", bg: "bg-teal-500/5" },
