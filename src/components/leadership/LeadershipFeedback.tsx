@@ -251,7 +251,10 @@ export default function LeadershipFeedback({
           ? selectedCompetencies
           : ["visionPresentation", "trustBuilding", "memberDevelopment", "rationalDecision"];
         const generatedEvidence: EvidenceItem[] = [];
-        const chaptersToUse = parsed.length > 0 ? parsed : [];
+        // 챕터가 없으면 영상 전체를 하나의 구간으로 대체
+        const chaptersToUse: Chapter[] = parsed.length > 0
+          ? parsed
+          : [{ title: summaryText ? "영상 전체 분석" : videoTitle, start: 0, end: 300 }];
         const highlightsToUse = parsedHl.length > 0 ? parsedHl : [];
 
         // 사용된 역량 추적 (다양성 확보)
@@ -851,13 +854,33 @@ export default function LeadershipFeedback({
             reportData ? (
               <AnalysisReport data={reportData} />
             ) : (
-              <div className="bg-white border border-slate-200/30 rounded-xl p-8 text-center">
+              <div className="bg-white border border-slate-200/30 rounded-xl p-8 text-center space-y-4">
                 <BarChart3 className="w-10 h-10 mx-auto mb-3 text-slate-300" />
-                <p className="text-base text-slate-500 mb-1">리포트 생성 대기 중</p>
-                <p className="text-sm text-slate-400">
-                  AI 분석이 완료되면 역량별 점수와 피드백이 자동 생성됩니다.
-                  <br />평가 근거 탭에서 수동 점수를 입력하면 리포트에 반영됩니다.
+                <p className="text-base text-slate-500 mb-1">
+                  {analysisError ? "분석 중 오류 발생" : "리포트 데이터 없음"}
                 </p>
+                <p className="text-sm text-slate-400">
+                  {analysisError
+                    ? analysisError
+                    : evidence.length === 0
+                      ? "영상 분석에서 챕터/하이라이트를 추출하지 못했습니다."
+                      : "평가 근거 탭에서 점수를 입력하면 리포트에 반영됩니다."}
+                </p>
+                {/* 분석 상태 디버그 */}
+                <div className="text-xs text-slate-400 font-mono space-y-0.5 pt-2 border-t border-slate-100">
+                  <p>챕터: {chapters.length}개 · 하이라이트: {highlights.length}개 · 요약: {summary ? "있음" : "없음"}</p>
+                  <p>평가근거: {evidence.length}개 · 전사: {transcriptSegments?.length || 0}개</p>
+                </div>
+                {/* AI 추천 일괄 적용 버튼 */}
+                {evidence.length > 0 && unscoredCount > 0 && (
+                  <button
+                    onClick={() => { applyAllAIScores(); }}
+                    className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium bg-violet-50 text-violet-600 border border-violet-500/20 hover:bg-violet-500/20 transition-all"
+                  >
+                    <Wand2 className="w-4 h-4" />
+                    AI 추천 점수 적용하여 리포트 생성
+                  </button>
+                )}
               </div>
             )
           )}
