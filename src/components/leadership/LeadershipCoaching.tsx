@@ -74,7 +74,7 @@ type ViewState =
   | { type: "group-create" }
   | { type: "group-manage"; sessionId: string }
   | { type: "group-dashboard"; sessionId: string }
-  | { type: "group-feedback"; sessionId: string; memberId: string; memberName: string; videoId: string; videoUrl?: string; competencyKey: LeadershipCompetencyKey };
+  | { type: "group-feedback"; sessionId: string; memberId: string; memberName: string; videoId: string; videoUrl?: string; competencyKey: LeadershipCompetencyKey; scenarioText?: string };
 
 // 성장 추이 데이터 (실제 연동 시 API에서 조회)
 function generateGrowthData() {
@@ -279,7 +279,7 @@ export default function LeadershipCoaching() {
         }}
         onBack={() => setView({ type: "main" })}
         onViewDashboard={() => setView({ type: "group-dashboard", sessionId: activeGroupSession.id })}
-        onAnalyzeMember={(memberId, memberName, videoId, videoUrl, competencyKey) =>
+        onAnalyzeMember={(memberId, memberName, videoId, videoUrl, competencyKey, scenarioText) =>
           setView({
             type: "group-feedback",
             sessionId: activeGroupSession.id,
@@ -288,6 +288,7 @@ export default function LeadershipCoaching() {
             videoId,
             videoUrl,
             competencyKey: (competencyKey as LeadershipCompetencyKey) || "visionPresentation",
+            scenarioText,
           })
         }
       />
@@ -334,6 +335,7 @@ export default function LeadershipCoaching() {
         videoTitle={`${view.memberName} — ${LEADERSHIP_COMPETENCY_DEFS.find((d) => d.key === view.competencyKey)?.label || ""}`}
         videoUrl={view.videoUrl}
         selectedCompetencies={[view.competencyKey]}
+        scenarioText={view.scenarioText}
         onBack={() => setView({ type: "group-manage", sessionId: view.sessionId })}
       />
     );
