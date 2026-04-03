@@ -5,6 +5,8 @@
 
 import type { Chapter, Highlight, LeadershipCompetencyKey } from "./types";
 import { LEADERSHIP_COMPETENCY_DEFS } from "./constants";
+import { ASSESSMENT_BY_KEY } from "./leadership-rubric-data";
+import type { CompetencyAssessmentData, ImprovedRubricItem } from "./leadership-rubric-data";
 
 // ─── 역량별 키워드 사전 (원전 맥락 내재화) ───
 
@@ -216,7 +218,25 @@ export function generateAIScore(
 // ─── 자동 피드백 생성 ───
 
 /**
- * 역량 + 점수 + 챕터 내용을 기반으로 평가 피드백을 자동 생성
+ * 루브릭 기반 점수 구간 판정 텍스트 추출
+ */
+function getRubricLevelText(rubricItem: ImprovedRubricItem, score: number): string {
+  if (score >= 9) return rubricItem.levels[0]?.description || "";
+  if (score >= 6) return rubricItem.levels[1]?.description || "";
+  if (score >= 2) return rubricItem.levels[2]?.description || "";
+  return rubricItem.levels[3]?.description || "";
+}
+
+function getRubricLevelLabel(score: number): string {
+  if (score >= 9) return "매우 우수 (9점)";
+  if (score >= 6) return "보통 이상 (6~8점)";
+  if (score >= 2) return "보통 미만 (2~5점)";
+  return "미흡 (1점)";
+}
+
+/**
+ * 역량 + 점수 + 챕터 내용 + 루브릭 기준을 종합하여 평가 피드백 생성
+ * standards/ 폴더의 KHNP 개선루브릭 기반 BARS 판정 기준 포함
  */
 export function generateAutoFeedback(
   competencyKey: LeadershipCompetencyKey,
@@ -230,40 +250,68 @@ export function generateAutoFeedback(
 
   const label = comp.label;
   const hlTexts = highlights.map((h) => h.text).filter(Boolean);
+  const assessmentData = ASSESSMENT_BY_KEY[competencyKey] as CompetencyAssessmentData | undefined;
+  const rubricItems = assessmentData?.rubricItems || [];
 
-  // 점수 구간별 템플릿
+  // ── 헤더: 역량명 + 종합 판정 ──
+  const parts: string[] = [];
+
   if (score >= 8) {
-    return `[${label}] 탁월한 수준입니다. ${
-      hlTexts.length > 0
-        ? `"${hlTexts[0]}" 등 핵심 장면에서 ${label} 역량이 명확히 관찰됩니다.`
-        : `해당 구간에서 ${label} 관련 행동이 적극적으로 발휘되었습니다.`
-    }${matchedKeywords.length > 0 ? ` 특히 ${matchedKeywords.slice(0, 2).join(", ")} 측면이 두드러집니다.` : ""}`;
+    parts.push(`[${label}] 탁월한 수준 (${score}/9점)`);
+    if (hlTexts.length > 0) {
+      parts.push(`"${hlTexts[0]}" 등 핵심 장면에서 ${label} 역량이 명확히 관찰됩니다.`);
+    }
+    if (matchedKeywords.length > 0) {
+      parts.push(`특히 ${matchedKeywords.slice(0, 3).join(", ")} 측면이 두드러집니다.`);
+    }
+  } else if (score >= 6) {
+    parts.push(`[${label}] 양호한 수준이나 일부 보완 필요 (${score}/9점)`);
+    if (hlTexts.length > 0) {
+      parts.push(`"${hlTexts[0]}" 장면에서 기본적인 ${label} 역량이 확인됩니다.`);
+    }
+  } else if (score >= 4) {
+    parts.push(`[${label}] 보통 수준 — 역량 발휘가 제한적 (${score}/9점)`);
+  } else {
+    parts.push(`[${label}] 개선 필요 — 역량 관련 행동이 충분히 관찰되지 않음 (${score}/9점)`);
   }
 
-  if (score >= 6) {
-    return `[${label}] 양호한 수준이나 일부 보완이 필요합니다. ${
-      hlTexts.length > 0
-        ? `"${hlTexts[0]}" 장면에서 기본적인 ${label} 역량이 확인됩니다.`
-        : `${label} 관련 행동이 관찰되나, 보다 적극적인 발휘가 기대됩니다.`
-    } 루브릭 상위 수준의 행동 기준을 참고하여 향상 포인트를 확인하세요.`;
+  // ── 루브릭 항목별 판정 기준 ──
+  if (rubricItems.length > 0) {
+    parts.push("");
+    parts.push(`■ ${label} BARS 루브릭 판정 기준 (${getRubricLevelLabel(score)}):`);
+    rubricItems.forEach((item, i) => {
+      const levelText = getRubricLevelText(item, score);
+      parts.push(`  ${i + 1}. ${item.criteria} (${item.subLabel}): ${levelText}`);
+    });
   }
 
-  if (score >= 4) {
-    return `[${label}] 보통 수준입니다. ${label} 역량의 발휘가 제한적으로 관찰됩니다. ${
-      comp.rubric && comp.rubric.length > 0
-        ? `"${comp.rubric[0].criteria}" 기준의 상위 레벨 행동을 참고하여 개선점을 도출하세요.`
-        : "구체적인 행동 변화 계획을 수립하는 것이 권장됩니다."
-    }`;
+  // ── 상황사례 참조 ──
+  if (assessmentData?.scenario) {
+    parts.push("");
+    parts.push(`※ 평가 상황: ${assessmentData.scenario.title} (${assessmentData.scenario.activityType})`);
   }
 
-  return `[${label}] 개선이 필요한 수준입니다. 해당 구간에서 ${label} 관련 행동이 충분히 관찰되지 않았습니다. ${
-    comp.rubric && comp.rubric.length > 0
-      ? `루브릭의 "${comp.rubric[0].criteria}" 항목을 참고하여 구체적인 행동 개선 계획을 수립하세요.`
-      : "역량 정의와 행동지표를 참고하여 실천 계획을 세워보세요."
-  }`;
+  // ── 개선 방향 ──
+  if (score < 8 && rubricItems.length > 0) {
+    parts.push("");
+    const topItem = rubricItems[0];
+    const excellentLevel = topItem.levels[0]?.description || "";
+    if (excellentLevel) {
+      parts.push(`▶ 향상 방향: "${topItem.criteria}" 항목의 9점 수준 — ${excellentLevel}`);
+    }
+  }
+
+  return parts.join("\n");
 }
 
 // ─── 종합 분석 결과 생성 ───
+
+export interface RubricItemScore {
+  criteria: string;
+  subLabel: string;
+  levelLabel: string;
+  levelDescription: string;
+}
 
 export interface CompetencySummary {
   key: LeadershipCompetencyKey;
@@ -274,6 +322,9 @@ export interface CompetencySummary {
   topHighlight: string;
   strengths: string[];
   improvements: string[];
+  rubricScores: RubricItemScore[];  // 루브릭 항목별 판정
+  scenario?: string;                // 상황사례
+  activityType?: string;            // 활동유형
 }
 
 export interface AnalysisReportData {
@@ -326,6 +377,21 @@ export function generateAnalysisReport(
       improvements.push(`${comp?.label} 역량 개선을 위한 구체적 행동 계획 수립 권장`);
     }
 
+    // 루브릭 항목별 판정 기준 매칭
+    const assessmentData = ASSESSMENT_BY_KEY[key] as CompetencyAssessmentData | undefined;
+    const rubricScores: RubricItemScore[] = [];
+    if (assessmentData?.rubricItems) {
+      assessmentData.rubricItems.forEach((item) => {
+        const levelText = getRubricLevelText(item, avg);
+        rubricScores.push({
+          criteria: item.criteria,
+          subLabel: item.subLabel,
+          levelLabel: getRubricLevelLabel(avg),
+          levelDescription: levelText,
+        });
+      });
+    }
+
     return {
       key,
       label: comp?.label || key,
@@ -335,6 +401,9 @@ export function generateAnalysisReport(
       topHighlight: topHl.length > 60 ? topHl.slice(0, 60) + "..." : topHl,
       strengths,
       improvements,
+      rubricScores,
+      scenario: assessmentData?.scenario.title,
+      activityType: assessmentData?.scenario.activityType,
     };
   });
 

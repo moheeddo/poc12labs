@@ -247,11 +247,38 @@ export default function AnalysisReport({ data }: AnalysisReportProps) {
                 {c.avgScore > 0 ? `${c.avgScore.toFixed(1)}/9` : "미평가"}
               </div>
             </div>
+            {/* 상황사례 + 활동유형 */}
+            {c.scenario && (
+              <p className="text-xs text-slate-400 mb-2">
+                {c.scenario} · {c.activityType}
+              </p>
+            )}
+
             {c.topHighlight && (
-              <p className="text-sm text-slate-500 leading-relaxed line-clamp-2">
+              <p className="text-sm text-slate-500 leading-relaxed line-clamp-2 mb-2">
                 {c.topHighlight}
               </p>
             )}
+
+            {/* 루브릭 항목별 판정 기준 (BARS) */}
+            {c.rubricScores.length > 0 && (
+              <div className="mt-2 pt-2 border-t border-slate-200/20 space-y-1.5">
+                <p className="text-[10px] uppercase tracking-wider text-slate-400 font-medium">
+                  BARS 루브릭 판정 ({c.rubricScores[0]?.levelLabel})
+                </p>
+                {c.rubricScores.map((rs, i) => (
+                  <div key={i} className="flex items-start gap-2">
+                    <span className="text-[10px] font-mono text-slate-400 mt-0.5 shrink-0 w-4">{i + 1}.</span>
+                    <div className="flex-1 min-w-0">
+                      <span className="text-xs font-medium text-slate-600">{rs.criteria}</span>
+                      <span className="text-[10px] text-slate-400 ml-1">({rs.subLabel})</span>
+                      <p className="text-xs text-slate-500 leading-relaxed mt-0.5">{rs.levelDescription}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+
             {(c.strengths.length > 0 || c.improvements.length > 0) && (
               <div className="mt-2 pt-2 border-t border-slate-200/30 flex flex-wrap gap-2">
                 {c.strengths.map((s, i) => (
