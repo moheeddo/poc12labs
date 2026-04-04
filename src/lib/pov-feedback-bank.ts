@@ -100,7 +100,7 @@ export function addTemplate(
 }
 
 /** 템플릿 사용 — useCount 증가 + lastUsedAt 갱신 */
-export function useTemplate(id: string): FeedbackTemplate | null {
+export function incrementTemplateUsage(id: string): FeedbackTemplate | null {
   const bank = readBank();
   const tmpl = bank.find((t) => t.id === id);
   if (!tmpl) return null;

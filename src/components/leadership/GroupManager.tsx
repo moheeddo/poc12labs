@@ -85,7 +85,7 @@ export default function GroupManager({
   const { progress: uploadProgress, upload } = useVideoUpload();
   const [uploadingFor, setUploadingFor] = useState<string | null>(null);
   const [scenarioText, setScenarioText] = useState("");
-  const [tipOpen, setTipOpen] = useState(false);
+  const [tipOpen, setTipOpen] = useState(true);
 
   // ── 메모 기능 상태 ──
   const [editingNoteFor, setEditingNoteFor] = useState<string | null>(null);
@@ -785,7 +785,7 @@ export default function GroupManager({
         <div className="flex items-center justify-between mt-6 pt-4 border-t border-slate-200/30">
           <button onClick={() => goStep(session.currentStep - 1)} disabled={session.currentStep === 0} className="text-sm text-slate-500 hover:text-slate-700 disabled:opacity-30 transition-colors">&larr; 이전 역량</button>
           <div className="text-sm text-slate-400">{uploadedCount}/{totalExpected}건 업로드</div>
-          <button onClick={() => goStep(session.currentStep + 1)} disabled={session.currentStep >= 3} className="text-sm font-medium text-teal-600 hover:text-teal-500 disabled:opacity-30 transition-colors">다음 역량 &rarr;</button>
+          <button onClick={() => goStep(session.currentStep + 1)} disabled={session.currentStep >= 3} className="text-sm font-semibold text-white bg-teal-600 hover:bg-teal-500 disabled:bg-slate-200 disabled:text-slate-400 px-4 py-2 rounded-lg shadow-sm transition-all active:scale-[0.97]">다음 역량 &rarr;</button>
         </div>
       </div>
     </div>

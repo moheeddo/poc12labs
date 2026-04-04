@@ -7,7 +7,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import {
   listTemplates,
   addTemplate,
-  useTemplate,
+  incrementTemplateUsage,
   deleteTemplate,
   initializeBank,
 } from '@/lib/pov-feedback-bank';
@@ -23,7 +23,7 @@ export async function POST(req: NextRequest) {
 
   // 사용 카운트 증가
   if (body.action === 'use') {
-    const result = useTemplate(body.id);
+    const result = incrementTemplateUsage(body.id);
     if (!result) {
       return NextResponse.json({ error: '템플릿 없음' }, { status: 404 });
     }
