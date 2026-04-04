@@ -4,7 +4,7 @@ import { useState, useCallback, useMemo, useEffect } from "react";
 import {
   Shield, GitCompare, Star, AlertTriangle, ChevronRight,
   FileText, CheckCircle2, XCircle, Clock, Activity, BookOpen, Eye,
-  Users, Brain, Zap, ClipboardCheck, BarChart3, ArrowLeft, Loader2,
+  Users, Brain, Zap, ClipboardCheck, BarChart3, ArrowLeft,
   ChevronDown, Sparkles, MessageSquare,
 } from "lucide-react";
 import {
@@ -15,14 +15,20 @@ import {
 import VideoUploader from "@/components/shared/VideoUploader";
 import ChartTooltip from "@/components/shared/ChartTooltip";
 import PovReviewSession from "@/components/pov/PovReviewSession";
+import AnalysisProgress from "@/components/pov/AnalysisProgress";
+import StepsTimeline from "@/components/pov/StepsTimeline";
+import HandObjectTimeline from "@/components/pov/HandObjectTimeline";
+import ComparisonView from "@/components/pov/ComparisonView";
+import GoldStandardManager from "@/components/pov/GoldStandardManager";
 import { useVideoUpload } from "@/hooks/useTwelveLabs";
+import { usePovAnalysis } from "@/hooks/usePovAnalysis";
 import { TWELVELABS_INDEXES } from "@/lib/constants";
 import {
   HPO_PROCEDURES, OPERATOR_FUNDAMENTALS, HPO_TOOLS,
   getGradeForScore, SYSTEM_COLORS, getCriticalSteps,
   type Procedure,
 } from "@/lib/pov-standards";
-import type { PovEvaluationReport, StepEvaluation, HpoToolEvaluation, FundamentalScore, SopDeviation } from "@/lib/types";
+import type { PovEvaluationReport, StepEvaluation, HpoToolEvaluation, FundamentalScore, SopDeviation, GoldStandard, DetectedStep } from "@/lib/types";
 import { formatTime, cn } from "@/lib/utils";
 
 // ── 데모 리포트 생성 (실제 구현 시 TwelveLabs API 호출 결과로 대체) ──
@@ -123,14 +129,29 @@ export default function PovAnalysis() {
   const [selectedProcedure, setSelectedProcedure] = useState<Procedure | null>(null);
   const [report, setReport] = useState<PovEvaluationReport | null>(null);
   const [expandedSections, setExpandedSections] = useState<Set<string>>(new Set());
-  const [reportTab, setReportTab] = useState<"overview" | "steps" | "hpo" | "fundamentals">("overview");
+  const [reportTab, setReportTab] = useState<"overview" | "steps" | "handObject" | "hpo" | "comparison" | "fundamentals">("overview");
   const [videoUrl, setVideoUrl] = useState<string | null>(null); // 브라우저 내 재생용 로컬 URL
   const { progress: uploadProgress, upload, uploadByUrl } = useVideoUpload();
+
+  // 실제 분석 파이프라인 훅
+  const analysis = usePovAnalysis();
+  const [selectedGoldStandard, setSelectedGoldStandard] = useState<GoldStandard | null>(null);
+  const [currentTime, setCurrentTime] = useState(0);
+  const [videoDuration, setVideoDuration] = useState(0);
+  const [seekTime, setSeekTime] = useState<number | null>(null);
 
   // 컴포넌트 언마운트 시 blob URL 해제
   useEffect(() => {
     return () => { if (videoUrl) URL.revokeObjectURL(videoUrl); };
   }, [videoUrl]);
+
+  // 실제 분석 완료 시 리포트 전환
+  useEffect(() => {
+    if (analysis.status === 'complete' && analysis.report) {
+      setReport(analysis.report);
+      setPhase('report');
+    }
+  }, [analysis.status, analysis.report]);
 
   // 절차 선택
   const handleSelectProcedure = useCallback((proc: Procedure) => {
@@ -146,41 +167,56 @@ export default function PovAnalysis() {
     if (videoUrl) URL.revokeObjectURL(videoUrl);
     const localUrl = URL.createObjectURL(file);
     setVideoUrl(localUrl);
+    // 영상 길이 추출
+    const tempVideo = document.createElement("video");
+    tempVideo.preload = "metadata";
+    tempVideo.src = localUrl;
+    tempVideo.onloadedmetadata = () => { setVideoDuration(tempVideo.duration); };
     setPhase("analyzing");
     try {
-      await upload(TWELVELABS_INDEXES.pov, file);
-      // 실제로는 여기서 /api/twelvelabs/pov-analyze 호출
-      // 데모: 2초 후 리포트 생성
-      await new Promise((r) => setTimeout(r, 2000));
-      const demoReport = generateDemoReport(selectedProcedure);
-      setReport(demoReport);
-      setPhase("report");
+      const videoId = await upload(TWELVELABS_INDEXES.pov, file);
+      if (videoId) {
+        // 실제 TwelveLabs 분석 파이프라인 시작
+        analysis.startAnalysis(videoId, selectedProcedure.id, selectedGoldStandard?.id);
+      } else {
+        // videoId 없으면 데모 폴백
+        await new Promise((r) => setTimeout(r, 2000));
+        const demoReport = generateDemoReport(selectedProcedure);
+        setReport(demoReport);
+        setPhase("report");
+      }
     } catch {
-      // 에러 발생 시에도 데모 리포트 생성 (POC)
+      // 업로드 에러 발생 시 데모 리포트 폴백 (POC)
       await new Promise((r) => setTimeout(r, 1500));
       const demoReport = generateDemoReport(selectedProcedure);
       setReport(demoReport);
       setPhase("report");
     }
-  }, [selectedProcedure, upload, videoUrl]);
+  }, [selectedProcedure, upload, videoUrl, analysis, selectedGoldStandard]);
 
   // URL 기반 업로드
   const handleUrlUpload = useCallback(async (url: string) => {
     if (!selectedProcedure) return;
     setPhase("analyzing");
     try {
-      await uploadByUrl(TWELVELABS_INDEXES.pov, url);
-      await new Promise((r) => setTimeout(r, 2000));
-      const demoReport = generateDemoReport(selectedProcedure);
-      setReport(demoReport);
-      setPhase("report");
+      const videoId = await uploadByUrl(TWELVELABS_INDEXES.pov, url);
+      if (videoId) {
+        // 실제 TwelveLabs 분석 파이프라인 시작
+        analysis.startAnalysis(videoId, selectedProcedure.id, selectedGoldStandard?.id);
+      } else {
+        await new Promise((r) => setTimeout(r, 2000));
+        const demoReport = generateDemoReport(selectedProcedure);
+        setReport(demoReport);
+        setPhase("report");
+      }
     } catch {
+      // 업로드 에러 발생 시 데모 리포트 폴백 (POC)
       await new Promise((r) => setTimeout(r, 1500));
       const demoReport = generateDemoReport(selectedProcedure);
       setReport(demoReport);
       setPhase("report");
     }
-  }, [selectedProcedure, uploadByUrl]);
+  }, [selectedProcedure, uploadByUrl, analysis, selectedGoldStandard]);
 
   // 뒤로가기
   const handleBack = useCallback(() => {
@@ -391,6 +427,16 @@ export default function PovAnalysis() {
             </div>
           </div>
 
+          {/* 골드스탠다드(숙련자 기준영상) 선택 */}
+          {selectedProcedure && (
+            <GoldStandardManager
+              procedureId={selectedProcedure.id}
+              currentVideoId={uploadProgress?.videoId}
+              currentScore={report?.overallScore}
+              onSelect={(gs) => setSelectedGoldStandard(gs)}
+            />
+          )}
+
           {/* 영상 업로드 */}
           <VideoUploader onUpload={handleUpload} onUrlUpload={handleUrlUpload} progress={uploadProgress} accentColor="amber" />
         </div>
@@ -398,28 +444,28 @@ export default function PovAnalysis() {
 
       {/* ════════ Phase 3: AI 분석 중 ════════ */}
       {phase === "analyzing" && (
-        <div className="flex flex-col items-center justify-center min-h-[400px] animate-fade-in-up">
-          <div className="relative">
-            <div className="w-20 h-20 rounded-full border-2 border-amber-500/20 flex items-center justify-center">
-              <Loader2 className="w-10 h-10 text-amber-600 animate-spin" />
+        <div className="animate-fade-in-up">
+          <AnalysisProgress
+            progress={analysis.progress}
+            stages={analysis.stages}
+            status={analysis.status}
+            error={analysis.error}
+          />
+          {/* 분석 오류 시 데모 폴백 버튼 */}
+          {analysis.status === "error" && selectedProcedure && (
+            <div className="flex justify-center mt-4">
+              <button
+                onClick={() => {
+                  const demoReport = generateDemoReport(selectedProcedure);
+                  setReport(demoReport);
+                  setPhase("report");
+                }}
+                className="px-4 py-2 rounded-lg bg-amber-500/15 hover:bg-amber-500/25 text-amber-600 text-sm font-medium border border-amber-200 transition-all"
+              >
+                데모 리포트로 계속 진행
+              </button>
             </div>
-            <div className="absolute -top-1 -right-1 w-6 h-6 rounded-full bg-amber-500/20 flex items-center justify-center">
-              <Sparkles className="w-3.5 h-3.5 text-amber-600" />
-            </div>
-          </div>
-          <h3 className="text-lg font-semibold text-slate-800 mt-6">AI 평가 분석 진행 중</h3>
-          <p className="text-base text-slate-500 mt-2 text-center max-w-md">
-            TwelveLabs Video AI가 POV 영상을 분석하여<br />
-            표준지침-3035-01 및 표준운영-2035A 기준으로 평가합니다
-          </p>
-          <div className="flex items-center gap-6 mt-8 text-sm text-slate-500">
-            {["절차 수행 분석", "HPO 기법 탐지", "역량 평가 산출"].map((label, i) => (
-              <div key={label} className="flex items-center gap-1.5 animate-pulse" style={{ animationDelay: `${i * 500}ms` }}>
-                <div className="w-2 h-2 rounded-full bg-amber-500/40" />
-                {label}
-              </div>
-            ))}
-          </div>
+          )}
         </div>
       )}
 
@@ -450,10 +496,12 @@ export default function PovAnalysis() {
           {/* 리포트 서브탭 */}
           <div className="flex gap-1 border-b border-slate-200 overflow-x-auto scrollbar-hide">
             {[
-              { key: "overview" as const, label: "종합 개요", icon: <BarChart3 className="w-3.5 h-3.5" /> },
-              { key: "steps" as const, label: "절차 수행", icon: <ClipboardCheck className="w-3.5 h-3.5" /> },
-              { key: "hpo" as const, label: "HPO 기법", icon: <Shield className="w-3.5 h-3.5" /> },
-              { key: "fundamentals" as const, label: "기본수칙 역량", icon: <Brain className="w-3.5 h-3.5" /> },
+              { key: "overview" as const, label: "종합", icon: <BarChart3 className="w-3.5 h-3.5" /> },
+              { key: "steps" as const, label: "절차 타임라인", icon: <ClipboardCheck className="w-3.5 h-3.5" /> },
+              { key: "handObject" as const, label: "손-물체", icon: <Eye className="w-3.5 h-3.5" /> },
+              { key: "hpo" as const, label: "HPO", icon: <Shield className="w-3.5 h-3.5" /> },
+              { key: "comparison" as const, label: "숙련자 비교", icon: <GitCompare className="w-3.5 h-3.5" /> },
+              { key: "fundamentals" as const, label: "기본수칙", icon: <Brain className="w-3.5 h-3.5" /> },
             ].map((tab) => (
               <button
                 key={tab.key}
@@ -473,14 +521,62 @@ export default function PovAnalysis() {
             <OverviewTab report={report} procedure={selectedProcedure!} />
           )}
 
-          {/* 절차 수행 상세 */}
-          {reportTab === "steps" && (
-            <StepsTab report={report} procedure={selectedProcedure!} />
+          {/* 절차 타임라인 — 실제 분석 결과가 있으면 StepsTimeline, 없으면 기존 StepsTab 폴백 */}
+          {reportTab === "steps" && report && selectedProcedure && (
+            report.sequenceAlignment ? (
+              <StepsTimeline
+                detectedSteps={report.stepEvaluations.map((se): DetectedStep => ({
+                  stepId: se.stepId,
+                  status: se.status === "skipped" ? "fail" : se.status,
+                  confidence: se.confidence,
+                  timestamp: se.timestamp || 0,
+                  endTime: (se.timestamp || 0) + 25,
+                  searchScore: se.confidence / 100,
+                }))}
+                alignment={report.sequenceAlignment}
+                procedure={selectedProcedure}
+                videoDuration={videoDuration || 600}
+                onSeek={(time) => setSeekTime(time)}
+              />
+            ) : (
+              <StepsTab report={report} procedure={selectedProcedure} />
+            )
+          )}
+
+          {/* 손-물체 분석 */}
+          {reportTab === "handObject" && report && (
+            <HandObjectTimeline
+              events={report.handObjectEvents || []}
+              currentTime={currentTime}
+              onSeek={(time) => setSeekTime(time)}
+            />
           )}
 
           {/* HPO 기법 적용도 */}
           {reportTab === "hpo" && (
             <HpoTab report={report} />
+          )}
+
+          {/* 숙련자 비교 */}
+          {reportTab === "comparison" && report && (
+            <ComparisonView
+              comparison={report.embeddingComparison}
+              goldStandard={selectedGoldStandard}
+              onRegisterGoldStandard={() => {
+                // 현재 영상을 골드스탠다드로 등록
+                if (selectedProcedure && report.videoId) {
+                  fetch('/api/twelvelabs/gold-standard', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                      procedureId: selectedProcedure.id,
+                      videoId: report.videoId,
+                      averageScore: report.overallScore,
+                    }),
+                  }).catch(() => { /* 등록 실패 무시 (POC) */ });
+                }
+              }}
+            />
           )}
 
           {/* 기본수칙 역량 */}
