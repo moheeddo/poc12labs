@@ -1,5 +1,81 @@
 # Maintenance Log
 
+## 2026-04-05 — POV 영상분석 AI 파이프라인 구현
+
+### 개요
+
+데모 데이터 기반이던 POV 분석 탭(Tab 3)을 TwelveLabs Marengo/Pegasus 실제 API 기반 6단계 AI 분석 파이프라인으로 전면 교체. 글로벌 수준의 1인칭 시점 훈련 평가 시스템 구축.
+
+### 아키텍처
+
+```
+[POV 영상 업로드] → [TwelveLabs 인덱싱 (Marengo 3.0)]
+    │
+    ▼
+[AI 분석 파이프라인 — 6개 모듈]
+  3A. SOP 단계 검출 (Marengo Search × 영어 쿼리 템플릿)
+  3B. 손-물체 상호작용 분석 (Pegasus Analyze)
+  3C. 시퀀스 매칭 (DTW 알고리즘)
+  3D. HPO 도구 적용 검증 (Marengo Search × 11개 도구)
+  3E. 임베딩 유사도 비교 (Marengo Embed × 골드스탠다드)
+  3F. 종합 스코어링 (가중 합산 → S~F 등급)
+    │
+    ▼
+[평가관 대시보드 — 6탭 리포트]
+  종합 | 절차 타임라인 | 손-물체 | HPO | 숙련자 비교 | 기본수칙
+    │
+    ▼
+[디브리핑 세션 — AI 판정 오버라이드 + 모범사례 등록]
+```
+
+### 생성 파일 (19개)
+
+| 구분 | 파일 | 역할 |
+|------|------|------|
+| 엔진 | `src/lib/pov-dtw.ts` | DTW 시퀀스 매칭 (SWAP/SKIP/INSERT 이탈 탐지) |
+| 엔진 | `src/lib/pov-scoring.ts` | 종합 스코어링 (절차 40% + HPO 30% + 기본수칙 20% + 유사도 10%) |
+| 엔진 | `src/lib/pov-query-templates.ts` | 한국어 SOP → 영어 자연어 쿼리 자동 변환 |
+| 엔진 | `src/lib/pov-gold-standard.ts` | 골드스탠다드 영상 관리 (JSON CRUD) |
+| 엔진 | `src/lib/pov-analysis-engine.ts` | 6단계 파이프라인 오케스트레이터 |
+| API | `src/app/api/twelvelabs/pov-analyze/route.ts` | 분석 트리거 |
+| API | `src/app/api/twelvelabs/pov-analyze/status/route.ts` | 진행 상태 폴링 |
+| API | `src/app/api/twelvelabs/gold-standard/route.ts` | 골드스탠다드 CRUD |
+| 훅 | `src/hooks/usePovAnalysis.ts` | 분석 시작 + 3초 폴링 + 완료 감지 |
+| 훅 | `src/hooks/useGoldStandard.ts` | 골드스탠다드 CRUD |
+| UI | `src/components/pov/AnalysisProgress.tsx` | 원형 프로그레스 + 6단계 상태 |
+| UI | `src/components/pov/StepsTimeline.tsx` | SOP 시퀀스 타임라인 시각화 |
+| UI | `src/components/pov/HandObjectTimeline.tsx` | 손-물체 이벤트 타임라인 |
+| UI | `src/components/pov/ComparisonView.tsx` | 숙련자 비교 + 유사도 히트맵 |
+| UI | `src/components/pov/GoldStandardManager.tsx` | 골드스탠다드 등록/관리 UI |
+| 테스트 | `src/__tests__/pov-dtw.test.ts` | DTW 7개 테스트 |
+| 테스트 | `src/__tests__/pov-scoring.test.ts` | 스코어링 9개 테스트 |
+| 테스트 | `src/__tests__/pov-query-templates.test.ts` | 쿼리 4개 테스트 |
+| 데이터 | `data/gold-standards.json` | 골드스탠다드 저장소 |
+
+### 수정 파일
+
+| 파일 | 변경 |
+|------|------|
+| `src/lib/types.ts` | 12개 새 인터페이스 (DetectedStep, HandObjectEvent, SequenceAlignment 등) |
+| `src/lib/twelvelabs.ts` | 임베딩 API 함수 추가 (getVideoEmbedding, getSegmentedEmbeddings) |
+| `src/components/pov/PovAnalysis.tsx` | 데모→실제 분석 연동, 6탭 리포트, 골드스탠다드 선택 |
+| `src/components/pov/PovReviewSession.tsx` | AI 판정 오버라이드 + 모범사례 등록 |
+
+### 검증 결과
+
+| 항목 | 결과 |
+|------|------|
+| Jest 단위 테스트 | 20/20 통과 (DTW 7 + 스코어링 9 + 쿼리 4) |
+| TypeScript 컴파일 | 오류 없음 |
+| Next.js 빌드 | 성공 |
+
+### 설계 문서
+
+- 스펙: `docs/superpowers/specs/2026-04-05-pov-analysis-system-design.md`
+- 구현 계획: `docs/superpowers/plans/2026-04-05-pov-analysis-pipeline.md`
+
+---
+
 ## 2026-04-04 사이클 28 — 완성도 검증 + 빌드 경고 해소 + 코드 리뷰
 
 ### 1. 빌드 + 타입 검증
