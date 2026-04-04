@@ -5,7 +5,7 @@ import {
   AlertTriangle, CheckCircle2, XCircle, Clock,
   MessageSquare, Flag, ChevronDown, ChevronRight, ArrowLeft,
   Play, Filter, Plus, Trash2, Sparkles,
-  BarChart3, Send, BookOpen, FileText, Tv2,
+  BarChart3, Send, BookOpen, FileText, Tv2, BookMarked,
 } from "lucide-react";
 import VideoPlayer from "@/components/shared/VideoPlayer";
 import {
@@ -20,6 +20,7 @@ import DebriefingGuide, {
 import HandoffDocument from "@/components/pov/HandoffDocument";
 import InstructorNotes from "@/components/pov/InstructorNotes";
 import CoachingOverlay from "@/components/pov/CoachingOverlay";
+import FeedbackBank from "@/components/pov/FeedbackBank";
 
 // ── 타입 ─────────────────────────────────────
 
@@ -816,11 +817,21 @@ const ReviewItem = forwardRef<HTMLDivElement, {
   const isLowConfidence = evalItem.confidence < 60;
   const [showFeedback, setShowFeedback] = useState(!!feedback || isActive);
   const [showOverride, setShowOverride] = useState(false);
+  // HPO-16: 피드백 뱅크 팝업 표시 여부
+  const [showFeedbackBank, setShowFeedbackBank] = useState(false);
 
   // active 될 때 피드백 입력란 자동 열기
   useEffect(() => {
     if (isActive) setShowFeedback(true);
   }, [isActive]);
+
+  // 피드백 뱅크에서 선택한 텍스트를 기존 피드백에 이어붙이기
+  const appendFeedback = useCallback((text: string) => {
+    const current = feedback.trimEnd();
+    onFeedbackChange(current ? `${current}\n${text}` : text);
+    setShowFeedbackBank(false);
+    setShowFeedback(true);
+  }, [feedback, onFeedbackChange]);
 
   return (
     <div
@@ -994,13 +1005,41 @@ const ReviewItem = forwardRef<HTMLDivElement, {
           </button>
         ) : (
           <div className="space-y-2 animate-fade-in-up">
-            <textarea
-              value={feedback}
-              onChange={(e) => onFeedbackChange(e.target.value)}
-              placeholder="강사 피드백을 입력하세요..."
-              rows={2}
-              className="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400 focus:border-blue-500/40 focus:outline-none focus:ring-1 focus:ring-blue-500/20 resize-y transition-colors"
-            />
+            {/* 피드백 텍스트에어리어 + 뱅크 버튼 */}
+            <div className="relative">
+              <textarea
+                value={feedback}
+                onChange={(e) => onFeedbackChange(e.target.value)}
+                placeholder="강사 피드백을 입력하세요..."
+                rows={2}
+                className="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 pr-8 text-sm text-slate-900 placeholder:text-slate-400 focus:border-blue-500/40 focus:outline-none focus:ring-1 focus:ring-blue-500/20 resize-y transition-colors"
+              />
+              {/* HPO-16: 피드백 뱅크 열기 버튼 */}
+              <button
+                onClick={() => setShowFeedbackBank((v) => !v)}
+                className={cn(
+                  "absolute top-2 right-2 p-1 rounded-md transition-colors",
+                  showFeedbackBank
+                    ? "text-amber-500 bg-amber-50"
+                    : "text-slate-300 hover:text-amber-500 hover:bg-amber-50",
+                )}
+                title="피드백 뱅크"
+                aria-label="피드백 뱅크 열기"
+              >
+                <BookMarked className="w-3.5 h-3.5" />
+              </button>
+            </div>
+
+            {/* HPO-16: 피드백 뱅크 팝업 */}
+            {showFeedbackBank && (
+              <div className="relative z-10">
+                <FeedbackBank
+                  onInsert={appendFeedback}
+                  onClose={() => setShowFeedbackBank(false)}
+                />
+              </div>
+            )}
+
             <div className="flex items-center gap-2">
               <button
                 onClick={onToggleDiscussed}
