@@ -38,9 +38,32 @@ export default function GoldStandardManager({
     }
   }, [procedureId, fetchStandards]);
 
-  // 골드스탠다드 등록 조건: 현재 영상 존재 + 점수 85점 이상
-  const canRegister =
-    !!currentVideoId && typeof currentScore === 'number' && currentScore >= 85;
+  // ── 추천 로직 인라인 (suggestGoldStandardCandidate 기준과 동일) ──
+  const isCandidate = currentScore !== undefined && currentScore >= 85;
+  const isAlreadyRegistered = !!currentVideoId && standards.some(gs => gs.videoId === currentVideoId);
+  const bestScore = standards.length > 0 ? Math.max(...standards.map(gs => gs.averageScore)) : 0;
+  const isBest = currentScore !== undefined && currentScore > bestScore;
+
+  // 최종 등록 가능 여부
+  const canRegister = !!currentVideoId && isCandidate && !isAlreadyRegistered;
+
+  // 추천 배지 텍스트 결정
+  function getRecommendationBadge(): { label: string; className: string } | null {
+    if (!currentVideoId || currentScore === undefined) return null;
+    if (isAlreadyRegistered) {
+      return { label: '이미 등록됨', className: 'bg-zinc-700 text-zinc-400' };
+    }
+    if (!isCandidate) return null; // 85점 미달 — 배지 없음
+    if (isBest) {
+      return { label: '최고 점수 — 골드스탠다드 추천', className: 'bg-emerald-900/60 text-emerald-400 border border-emerald-700/50' };
+    }
+    return {
+      label: `등록 가능 (기존 최고: ${bestScore}점)`,
+      className: 'bg-yellow-900/60 text-yellow-400 border border-yellow-700/50',
+    };
+  }
+
+  const badge = getRecommendationBadge();
 
   async function handleRegister() {
     if (!currentVideoId || currentScore == null) return;
@@ -64,25 +87,34 @@ export default function GoldStandardManager({
           <span className="text-xs text-zinc-500 font-normal">({standards.length}건)</span>
         </h3>
 
-        {canRegister && (
-          <button
-            onClick={handleRegister}
-            className="px-3 py-1.5 bg-amber-600 hover:bg-amber-500 text-white text-xs font-medium rounded-lg transition-colors flex items-center gap-1.5"
-          >
-            <span>+</span>
-            <span>현재 영상 등록</span>
-            <span className="font-mono opacity-80">({currentScore}점)</span>
-          </button>
-        )}
+        <div className="flex items-center gap-2">
+          {/* 추천 배지 */}
+          {badge && (
+            <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${badge.className}`}>
+              {badge.label}
+            </span>
+          )}
 
-        {!canRegister && currentVideoId && (
-          <div className="text-xs text-zinc-600">
-            등록 가능 점수: 85점 이상
-            {typeof currentScore === 'number' && (
+          {/* 등록 버튼 */}
+          {canRegister && (
+            <button
+              onClick={handleRegister}
+              className="px-3 py-1.5 bg-amber-600 hover:bg-amber-500 text-white text-xs font-medium rounded-lg transition-colors flex items-center gap-1.5"
+            >
+              <span>+</span>
+              <span>현재 영상 등록</span>
+              <span className="font-mono opacity-80">({currentScore}점)</span>
+            </button>
+          )}
+
+          {/* 점수 미달 안내 */}
+          {!canRegister && !isAlreadyRegistered && currentVideoId && typeof currentScore === 'number' && currentScore < 85 && (
+            <div className="text-xs text-zinc-600">
+              등록 가능 점수: 85점 이상
               <span className="ml-1 font-mono text-zinc-500">(현재 {currentScore}점)</span>
-            )}
-          </div>
-        )}
+            </div>
+          )}
+        </div>
       </div>
 
       {/* ── 골드스탠다드 목록 ── */}

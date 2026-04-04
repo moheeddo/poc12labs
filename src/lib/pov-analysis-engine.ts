@@ -30,7 +30,7 @@ import {
   applyGradeOverride,
 } from './pov-scoring';
 import { HPO_PROCEDURES } from './pov-standards';
-import { getGoldStandard } from './pov-gold-standard';
+import { getGoldStandard, getBestGoldStandard, getOrFetchEmbeddings } from './pov-gold-standard';
 import { TWELVELABS_INDEXES } from './constants';
 import { createLogger } from './logger';
 
@@ -103,6 +103,17 @@ async function runPipeline(job: AnalysisJob): Promise<void> {
   const procedure = HPO_PROCEDURES.find((p) => p.id === job.procedureId);
   if (!procedure) {
     throw new Error(`절차 ID '${job.procedureId}'를 찾을 수 없습니다.`);
+  }
+
+  // goldStandardId 미지정 시 해당 절차의 최고 점수 골드스탠다드 자동 선택
+  if (!job.goldStandardId) {
+    const best = getBestGoldStandard(job.procedureId);
+    if (best) {
+      job.goldStandardId = best.id;
+      log.info('골드스탠다드 자동 선택', { goldStandardId: best.id, averageScore: best.averageScore });
+    } else {
+      log.info('자동 선택할 골드스탠다드 없음 — 임베딩 비교 단계 건너뜀');
+    }
   }
 
   const indexId = TWELVELABS_INDEXES.pov;
@@ -320,25 +331,32 @@ async function runPipeline(job: AnalysisJob): Promise<void> {
 
   if (job.goldStandardId) {
     const goldStandard = getGoldStandard(job.goldStandardId);
-    if (goldStandard && goldStandard.embeddings && goldStandard.embeddings.length > 0) {
+    if (goldStandard) {
       try {
-        // 피평가자 영상의 임베딩 추출 (10초 단위)
+        // 골드스탠다드 임베딩: 캐시 우선, 미스 시 API 호출 후 캐시 저장
         const durationSec = estimateDuration(detectedSteps);
         apiCallCount++;
-        const traineeEmbeddings = await getSegmentedEmbeddings(job.videoId, durationSec, 10);
+        const goldEmbeddings = await getOrFetchEmbeddings(goldStandard, durationSec);
 
-        embeddingComparison = compareEmbeddings(
-          goldStandard.embeddings,
-          traineeEmbeddings.map((seg) => seg.embedding),
-          traineeEmbeddings
-        );
+        if (goldEmbeddings.length > 0) {
+          // 피평가자 영상의 임베딩 추출 (10초 단위)
+          const traineeEmbeddings = await getSegmentedEmbeddings(job.videoId, durationSec, 10);
 
-        log.info('임베딩 비교 완료', { avgSimilarity: embeddingComparison.averageSimilarity });
+          embeddingComparison = compareEmbeddings(
+            goldEmbeddings,
+            traineeEmbeddings.map((seg) => seg.embedding),
+            traineeEmbeddings
+          );
+
+          log.info('임베딩 비교 완료', { avgSimilarity: embeddingComparison.averageSimilarity });
+        } else {
+          log.warn('골드스탠다드 임베딩 추출 실패, 임베딩 비교 건너뜀', { goldStandardId: job.goldStandardId });
+        }
       } catch (err) {
         log.warn('임베딩 비교 실패', { error: String(err) });
       }
     } else {
-      log.warn('골드스탠다드 임베딩 없음, 임베딩 비교 건너뜀', { goldStandardId: job.goldStandardId });
+      log.warn('골드스탠다드를 찾을 수 없음, 임베딩 비교 건너뜀', { goldStandardId: job.goldStandardId });
     }
   }
 
