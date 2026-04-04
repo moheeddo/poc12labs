@@ -106,7 +106,7 @@ export default function CommunicationPanel({ analysis, onSeek }: Props) {
       <div className="border border-slate-200 rounded-xl p-8 text-center bg-slate-50">
         <Mic className="w-8 h-8 text-slate-300 mx-auto mb-3" />
         <p className="text-sm text-slate-500">의사소통 분석 결과가 없습니다.</p>
-        <p className="text-xs text-slate-400 mt-1">영상 분석 후 "의사소통 분석" 버튼을 클릭하세요.</p>
+        <p className="text-xs text-slate-400 mt-1">영상 분석 후 의사소통 분석 버튼을 클릭하세요.</p>
       </div>
     );
   }
