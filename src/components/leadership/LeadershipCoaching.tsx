@@ -525,26 +525,24 @@ export default function LeadershipCoaching() {
   // ═══════════════════════════════════════
   return (
     <div className="max-w-[1440px] mx-auto px-4 md:px-6 py-8 space-y-8 animate-slide-in-right">
-      {/* 헤더 */}
+      {/* 헤더 — 컴팩트 + 조 관리 강화 */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>
-          <h2 className="text-2xl font-bold text-teal-600 tracking-tight">리더십코칭 역량진단</h2>
-          <p className="text-base sm:text-lg text-slate-500 mt-1.5">
-            발표·토론 영상을 업로드하고 상황사례를 입력하면 AI가 역량을 분석합니다
-          </p>
+          <h2 className="text-xl font-bold text-teal-600 tracking-tight">리더십코칭 역량진단</h2>
+          <p className="text-sm text-slate-500 mt-0.5">발표·토론 영상 AI 역량 분석</p>
         </div>
         <div className="flex items-center gap-2 shrink-0">
           <button
             onClick={() => setView({ type: "group-create" })}
-            className="flex items-center gap-2 text-sm font-medium text-white bg-teal-600 hover:bg-teal-500 px-4 py-2 rounded-lg shadow-sm transition-colors whitespace-nowrap"
+            className="flex items-center gap-2 text-sm font-semibold text-white bg-teal-600 hover:bg-teal-500 px-5 py-2.5 rounded-xl shadow-md shadow-teal-500/15 hover:shadow-lg transition-all active:scale-[0.97] whitespace-nowrap"
           >
-            <Users className="w-3.5 h-3.5" />
-            6인 조 관리
+            <Users className="w-4 h-4" />
+            수업 시작 (6인 조)
           </button>
           {speakers.length > 0 && (
             <button
               onClick={() => setView({ type: "history" })}
-              className="flex items-center gap-2 text-sm text-slate-500 hover:text-teal-600 transition-colors px-3 py-1.5 rounded-lg border border-slate-200/40 hover:border-teal-500/30 whitespace-nowrap"
+              className="flex items-center gap-1.5 text-sm text-slate-500 hover:text-teal-600 transition-colors px-3 py-1.5 rounded-lg border border-slate-200/40 hover:border-teal-500/30 whitespace-nowrap"
             >
               <TrendingUp className="w-3.5 h-3.5" />
               이력
@@ -553,52 +551,69 @@ export default function LeadershipCoaching() {
         </div>
       </div>
 
-      {/* ── 기존 조 세션 목록 ── */}
+      {/* ── 진행 중인 조 세션 목록 ── */}
       {groupSessions.length > 0 && (
-        <div className="bg-white border border-teal-200/30 rounded-xl p-4">
-          <p className="text-xs uppercase tracking-wider text-slate-400 mb-3">진행 중인 조</p>
+        <div className="bg-gradient-to-br from-teal-50/60 to-emerald-50/30 border border-teal-200/30 rounded-xl p-4">
+          <div className="flex items-center justify-between mb-3">
+            <p className="text-xs uppercase tracking-wider text-teal-600 font-medium">진행 중인 조</p>
+            <button
+              onClick={() => setView({ type: "group-create" })}
+              className="text-xs text-teal-600 hover:text-teal-500 transition-colors"
+            >
+              + 새 조 만들기
+            </button>
+          </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-            {groupSessions.map((gs) => (
-              <div
-                key={gs.id}
-                className="relative group/card text-left p-3 rounded-lg bg-teal-50/50 border border-teal-200/30 hover:border-teal-300 hover:shadow-sm transition-all"
-              >
-                <button
+            {groupSessions.map((gs) => {
+              const totalAnalyzed = gs.competencies.reduce(
+                (sum, c) => sum + Object.values(c.memberScores).filter((s) => s?.analyzed).length, 0
+              );
+              const totalExpected = gs.members.length * Math.max(gs.competencies.length, 1);
+              const pct = totalExpected > 0 ? Math.round((totalAnalyzed / totalExpected) * 100) : 0;
+
+              return (
+                <div
+                  key={gs.id}
+                  className="relative group/card text-left p-4 rounded-xl bg-white border border-teal-200/30 hover:border-teal-300 hover:shadow-md transition-all cursor-pointer"
                   onClick={() => setView({ type: "group-manage", sessionId: gs.id })}
-                  className="w-full text-left"
+                  role="button"
+                  tabIndex={0}
+                  onKeyDown={(e) => { if (e.key === "Enter") setView({ type: "group-manage", sessionId: gs.id }); }}
                 >
-                  <p className="text-sm font-semibold text-teal-700 pr-7">{gs.name}</p>
-                  <p className="text-xs text-slate-500 mt-0.5">
+                  <div className="flex items-center justify-between mb-1.5">
+                    <p className="text-sm font-bold text-teal-700 pr-7">{gs.name}</p>
+                    <span className="text-[10px] font-mono text-teal-600 bg-teal-50 px-1.5 py-0.5 rounded">
+                      {gs.currentStep + 1}/4
+                    </span>
+                  </div>
+                  <p className="text-xs text-slate-500 mb-2">
                     {gs.members.length}명 · {gs.members.map((m) => m.name).join(", ")}
                   </p>
-                  <p className="text-[10px] text-teal-600 mt-1">
-                    {gs.currentStep + 1}/4 역량 진행 중
-                    {(() => {
-                      const totalAnalyzed = gs.competencies.reduce(
-                        (sum, c) => sum + Object.values(c.memberScores).filter((s) => s?.analyzed).length,
-                        0
-                      );
-                      return totalAnalyzed > 0 ? ` · ${totalAnalyzed}건 분석완료` : "";
-                    })()}
-                  </p>
-                </button>
-                {/* 삭제 버튼 */}
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    if (window.confirm(`"${gs.name}" 조를 삭제하시겠습니까?\n모든 영상 및 분석 데이터가 삭제됩니다.`)) {
-                      deleteSession(gs.id);
-                      setGroupSessions((prev) => prev.filter((s) => s.id !== gs.id));
-                    }
-                  }}
-                  className="absolute top-2.5 right-2.5 p-1.5 rounded-md text-slate-400 opacity-0 group-hover/card:opacity-100 hover:text-red-500 hover:bg-red-50 transition-all"
-                  aria-label={`${gs.name} 조 삭제`}
-                  title="조 삭제"
-                >
-                  <Trash2 className="w-3.5 h-3.5" />
-                </button>
-              </div>
-            ))}
+                  <div className="flex items-center gap-2">
+                    <div className="flex-1 h-1.5 bg-teal-100 rounded-full overflow-hidden">
+                      <div className="h-full bg-teal-500 rounded-full transition-all duration-500" style={{ width: `${pct}%` }} />
+                    </div>
+                    <span className="text-[10px] font-mono text-teal-600 w-10 text-right">
+                      {totalAnalyzed > 0 ? `${totalAnalyzed}건` : "대기"}
+                    </span>
+                  </div>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      if (window.confirm(`"${gs.name}" 조를 삭제하시겠습니까?\n모든 영상 및 분석 데이터가 삭제됩니다.`)) {
+                        deleteSession(gs.id);
+                        setGroupSessions((prev) => prev.filter((s) => s.id !== gs.id));
+                      }
+                    }}
+                    className="absolute top-3 right-3 p-1.5 rounded-md text-slate-400 opacity-0 group-hover/card:opacity-100 hover:text-red-500 hover:bg-red-50 transition-all"
+                    aria-label={`${gs.name} 조 삭제`}
+                    title="조 삭제"
+                  >
+                    <Trash2 className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+              );
+            })}
           </div>
         </div>
       )}
@@ -680,10 +695,10 @@ export default function LeadershipCoaching() {
               onChange={(e) => setScenarioText(e.target.value)}
               placeholder={`예시:\n• 신재생에너지 분야 전략 수립 TFT 발표 영상\n• 부서 간 설비 교체 일정 갈등 조율 회의\n• 회의 비효율성 문제에 대한 1:1 코칭 면담\n• 3건의 긴급사안 우선순위 결정 회의`}
               className="w-full bg-slate-50/60 border border-slate-200/40 rounded-lg px-4 py-3 text-base text-slate-900 placeholder:text-slate-400 outline-none focus:border-teal-500/30 focus:ring-1 focus:ring-teal-500/15 transition-all resize-none leading-relaxed"
-              rows={6}
+              rows={3}
             />
-            <p className="text-sm text-slate-400">
-              * 상황사례를 입력하지 않아도 영상만으로 분석이 가능합니다
+            <p className="text-xs text-slate-400">
+              * 미입력 시 영상만으로 분석
             </p>
           </div>
         </div>
@@ -802,11 +817,11 @@ export default function LeadershipCoaching() {
         </button>
       </div>
 
-      {/* ── 분석 서브탭 (심층 분석 뷰) ── */}
-      <div className="space-y-4">
-        <h3 className="text-base font-semibold text-slate-700 flex items-center gap-2">
-          <Sparkles className="w-4 h-4 text-teal-600" />
-          심층 분석 뷰
+      {/* ── 분석 서브탭 (심층 분석 뷰) — 분석 이력이 있을 때만 표시 ── */}
+      {speakers.length > 0 && (<div className="space-y-4">
+        <h3 className="text-sm font-semibold text-slate-700 flex items-center gap-2">
+          <Sparkles className="w-3.5 h-3.5 text-teal-600" />
+          심층 분석
         </h3>
         {/* 서브탭 내비게이션 — 행 1: 핵심 분석 */}
         <div className="space-y-1">
@@ -900,29 +915,33 @@ export default function LeadershipCoaching() {
             <HRConnectorPanel onImport={() => {}} />
           </div>
         )}
-      </div>
+      </div>)}
 
-      {/* ── 9점 척도 안내 ── */}
-      <div className="bg-white border border-slate-200/30 rounded-xl p-5">
-        <h3 className="text-base font-medium text-slate-500 mb-3">9점 척도 평가 기준</h3>
-        <div className="grid grid-cols-3 sm:grid-cols-5 gap-2 text-center">
-          {[
-            { range: "8-9점", label: "탁월", color: "text-teal-600", bg: "bg-teal-50" },
-            { range: "7점", label: "우수", color: "text-teal-600/70", bg: "bg-teal-500/5" },
-            { range: "5-6점", label: "보통", color: "text-amber-600", bg: "bg-amber-500/10" },
-            { range: "3-4점", label: "미흡", color: "text-red-600/70", bg: "bg-red-500/5" },
-            { range: "1-2점", label: "부족", color: "text-red-600", bg: "bg-red-500/10" },
-          ].map((g) => (
-            <div key={g.range} className={`${g.bg} rounded-lg p-2`}>
-              <p className={`text-sm font-mono font-bold ${g.color}`}>{g.range}</p>
-              <p className={`text-sm mt-0.5 ${g.color}`}>{g.label}</p>
-            </div>
-          ))}
+      {/* ── 9점 척도 안내 (접기/펼치기) ── */}
+      <details className="group">
+        <summary className="flex items-center gap-2 cursor-pointer text-xs text-slate-400 hover:text-slate-600 transition-colors select-none list-none py-1">
+          <div className="h-px flex-1 bg-slate-200/40" />
+          <span>9점 척도 기준 ▾</span>
+          <div className="h-px flex-1 bg-slate-200/40" />
+        </summary>
+        <div className="bg-white border border-slate-200/30 rounded-xl p-4 mt-2">
+          <div className="grid grid-cols-5 gap-2 text-center">
+            {[
+              { range: "8-9", label: "탁월", color: "text-teal-600", bg: "bg-teal-50" },
+              { range: "7", label: "우수", color: "text-teal-600/70", bg: "bg-teal-500/5" },
+              { range: "5-6", label: "보통", color: "text-amber-600", bg: "bg-amber-500/10" },
+              { range: "3-4", label: "미흡", color: "text-red-600/70", bg: "bg-red-500/5" },
+              { range: "1-2", label: "부족", color: "text-red-600", bg: "bg-red-500/10" },
+            ].map((g) => (
+              <div key={g.range} className={`${g.bg} rounded-lg py-1.5 px-1`}>
+                <p className={`text-xs font-mono font-bold ${g.color}`}>{g.range}</p>
+                <p className={`text-[10px] ${g.color}`}>{g.label}</p>
+              </div>
+            ))}
+          </div>
+          <p className="text-[10px] text-slate-400 mt-2 text-center">※ KHNP 역량 정의 · BARS 적용</p>
         </div>
-        <p className="text-sm text-slate-400 mt-3">
-          ※ KHNP 전직급 리더십 역량 정의 및 행동지표 기준 · 개선루브릭(BARS) 적용
-        </p>
-      </div>
+      </details>
     </div>
   );
 }

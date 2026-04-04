@@ -1,5 +1,19 @@
 # Maintenance Log
 
+## 2026-04-05 사이클 3 — HPO 교수자 관점 2차 개선 (4개)
+
+| # | 기능 | 핵심 산출물 |
+|---|------|-------------|
+| HPO-6 | 코호트 분석 | `pov-cohort-analytics.ts` + `CohortAnalytics.tsx` — 절차별 성과 히트맵, 취약단계 Top10, HPO 적용률, 개입 권고 자동 생성 |
+| HPO-7 | 역량 기반 진행 모델 | `pov-competency-progression.ts` + `CompetencyProgression.tsx` — 4단계 숙달(초보→전문가), 역량별 연습 가이드, 선행조건, 훈련 처방 |
+| HPO-8 | 학습목표 매트릭스 | `pov-learning-objectives.ts` + `LearningObjectivesMatrix.tsx` — 절차↔역량↔HPO 매핑, 사전 목표 안내 + 사후 달성도 |
+| HPO-9 | 교수자 캘리브레이션 | `pov-instructor-notes.ts` + `InstructorNotes.tsx` + `CalibrationDashboard.tsx` — AI 오버라이드 추적, 공유 노트, 정확도 게이지 |
+
+### 검증
+- 38/38 테스트 통과, TypeScript 오류 0, Next.js 빌드 성공
+
+---
+
 ## 2026-04-05 사이클 2 — HPO 교수자 관점 5개 개선
 
 ### 구현 내용
