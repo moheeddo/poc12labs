@@ -6,6 +6,7 @@ import {
   FileText, CheckCircle2, XCircle, Clock, Activity, BookOpen, Eye,
   Users, Brain, Zap, ClipboardCheck, BarChart3, ArrowLeft,
   ChevronDown, Sparkles, MessageSquare, Settings, History, TrendingUp, Scale,
+  Printer,
 } from "lucide-react";
 import {
   RadarChart, Radar, PolarGrid, PolarAngleAxis, PolarRadiusAxis,
@@ -30,6 +31,8 @@ import CalibrationDashboard from "@/components/pov/CalibrationDashboard";
 import SelfReflection from "@/components/pov/SelfReflection";
 import ReflectionComparison from "@/components/pov/ReflectionComparison";
 import type { SelfReflectionData } from "@/components/pov/SelfReflection";
+import PrintableReport from "@/components/pov/PrintableReport";
+import BenchmarkDashboard from "@/components/pov/BenchmarkDashboard";
 import { useVideoUpload } from "@/hooks/useTwelveLabs";
 import { usePovAnalysis } from "@/hooks/usePovAnalysis";
 import { TWELVELABS_INDEXES } from "@/lib/constants";
@@ -159,6 +162,10 @@ export default function PovAnalysis() {
   const [showCohort, setShowCohort] = useState(false);
   // 캘리브레이션 대시보드 표시 여부
   const [showCalibration, setShowCalibration] = useState(false);
+  // 상세 리포트 인쇄 모달 표시 여부
+  const [showPrintReport, setShowPrintReport] = useState(false);
+  // 교육과정 효과 벤치마킹 대시보드 표시 여부
+  const [showBenchmark, setShowBenchmark] = useState(false);
   // 셀프 리플렉션 위저드 표시 여부
   const [showReflection, setShowReflection] = useState(false);
   // 셀프 리플렉션 데이터 (제출 후 보관)
@@ -317,6 +324,12 @@ export default function PovAnalysis() {
 
           {/* SOP 쿼리 관리 + 분석 이력 + 진행 추이 + 캘리브레이션 진입점 */}
           <div className="flex justify-end gap-2">
+            <button
+              onClick={() => setShowBenchmark(true)}
+              className="text-xs text-zinc-500 hover:text-zinc-300 flex items-center gap-1 px-2.5 py-1.5 rounded-lg hover:bg-zinc-800/60 transition-colors"
+            >
+              <BarChart3 className="w-3.5 h-3.5" /> 교육과정 효과
+            </button>
             <button
               onClick={() => setShowCalibration(true)}
               className="text-xs text-zinc-500 hover:text-zinc-300 flex items-center gap-1 px-2.5 py-1.5 rounded-lg hover:bg-zinc-800/60 transition-colors"
@@ -562,12 +575,20 @@ export default function PovAnalysis() {
                 분석 결과를 기반으로 영상을 돌려보며 미흡사항을 피드백하고 종합 강평을 진행합니다
               </p>
             </div>
-            <button
-              onClick={() => setPhase("review")}
-              className="shrink-0 flex items-center gap-2 px-5 py-2.5 rounded-lg bg-amber-500/15 hover:bg-amber-500/25 text-amber-600 text-base font-semibold border border-amber-200 transition-all hover:scale-[1.02] active:scale-[0.98]"
-            >
-              <MessageSquare className="w-4 h-4" /> 강평 세션 열기
-            </button>
+            <div className="flex items-center gap-2 shrink-0">
+              <button
+                onClick={() => setShowPrintReport(true)}
+                className="flex items-center gap-2 px-3.5 py-2 rounded-lg bg-zinc-100 hover:bg-zinc-200 text-zinc-700 text-sm font-medium border border-zinc-200 transition-all"
+              >
+                <Printer className="w-4 h-4" /> 상세 리포트 인쇄
+              </button>
+              <button
+                onClick={() => setPhase("review")}
+                className="flex items-center gap-2 px-5 py-2.5 rounded-lg bg-amber-500/15 hover:bg-amber-500/25 text-amber-600 text-base font-semibold border border-amber-200 transition-all hover:scale-[1.02] active:scale-[0.98]"
+              >
+                <MessageSquare className="w-4 h-4" /> 강평 세션 열기
+              </button>
+            </div>
           </div>
 
           {/* 종합 스코어 헤더 */}
@@ -716,6 +737,20 @@ export default function PovAnalysis() {
       {/* 캘리브레이션 대시보드 */}
       {showCalibration && (
         <CalibrationDashboard onClose={() => setShowCalibration(false)} />
+      )}
+
+      {/* 상세 리포트 인쇄 모달 */}
+      {showPrintReport && report && selectedProcedure && (
+        <PrintableReport
+          report={report}
+          procedure={selectedProcedure}
+          onClose={() => setShowPrintReport(false)}
+        />
+      )}
+
+      {/* 교육과정 효과 벤치마킹 대시보드 */}
+      {showBenchmark && (
+        <BenchmarkDashboard onClose={() => setShowBenchmark(false)} />
       )}
     </div>
   );
