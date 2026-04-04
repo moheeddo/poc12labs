@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect } from "react";
 import { ArrowUpRight, BarChart3, ChevronRight, Clock, ClipboardCheck, Film, ScanSearch, TrendingUp, UploadCloud, Users, FileText } from "lucide-react";
 import type { ServiceTab } from "@/lib/types";
 import { SERVICE_TABS, LEADERSHIP_COMPETENCY_DEFS } from "@/lib/constants";
@@ -46,7 +46,7 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
   // localStorage에서 최근 활동 데이터 수집
   const [activities, setActivities] = useState<RecentActivity[]>([]);
   const [evidenceCount, setEvidenceCount] = useState(0);
-  const [groupCount, setGroupCount] = useState(0);
+  const [_groupCount, setGroupCount] = useState(0);
   const [avgScore, setAvgScore] = useState<number | null>(null);
   const [lastActivityTime, setLastActivityTime] = useState<number | null>(null);
 

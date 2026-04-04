@@ -1,5 +1,39 @@
 # Maintenance Log
 
+## 2026-04-04 사이클 28 — 완성도 검증 + 빌드 경고 해소 + 코드 리뷰
+
+### 1. 빌드 + 타입 검증
+
+| 검증 항목 | 결과 |
+|-----------|------|
+| `npx tsc --noEmit` | O — 타입 오류 0개 |
+| `npx next build` | O — 빌드 성공, 15개 라우트 정상 생성, 경고 0개 |
+| Vercel 최신 배포 | O — Production Ready (25분 전 배포) |
+
+### 2. ESLint 경고 해소 (3건 → 0건)
+
+| 파일 | 경고 내용 | 수정 |
+|------|----------|------|
+| `src/components/dashboard/Dashboard.tsx` | `groupCount` 미사용 변수 | `_groupCount`로 변경 (향후 대시보드 조 수 표시용 보존) |
+| `src/components/dashboard/Dashboard.tsx` | `useMemo` 미사용 import | import에서 제거 |
+| `src/components/leadership/GroupManager.tsx` | `Check` 미사용 import | import에서 제거 |
+
+### 3. 코드 품질 점검 결과
+
+| 점검 항목 | 결과 | 비고 |
+|-----------|------|------|
+| TypeScript `any` 타입 남용 | O — 없음 | GroupManager, GroupDashboard, LeadershipCoaching 3개 파일 모두 적절한 타입 사용 |
+| React Hook 의존성 누락 | O — 없음 | useCallback, useEffect, useMemo 의존성 배열 정상 |
+| memberNotes undefined 안전성 | O — 안전 | 모든 접근 시 `session.memberNotes?.` 옵셔널 체이닝 사용, 스프레드 시 `(session.memberNotes \|\| {})` 폴백 |
+| heatmapData 0점 색상 | O — 회색 | `bg-slate-100 text-slate-300` + "-" 표시 정상 |
+| MemberReportModal 인쇄 시 메모 | O — 포함 | `data.note` 존재 시 "평가자 코멘트" 섹션으로 인쇄 본문에 포함 |
+
+### 4. 발견 이슈
+
+- 없음. ESLint 경고 3건 해소, 버그 미발견, 빌드 정상.
+
+---
+
 ## 2026-04-04 사이클 27 — 개인별 피드백 메모 + 스텝 바 미니 요약 팝오버
 
 ### 구현 내용 (우선순위: B > A)

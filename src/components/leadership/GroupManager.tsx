@@ -19,7 +19,6 @@ import {
   MessageSquarePlus,
   MessageSquareText,
   X,
-  Check,
 } from "lucide-react";
 import { useVideoUpload } from "@/hooks/useTwelveLabs";
 import { TWELVELABS_INDEXES } from "@/lib/constants";
