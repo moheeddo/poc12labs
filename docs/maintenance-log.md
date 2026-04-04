@@ -1,5 +1,37 @@
 # Maintenance Log
 
+## 2026-04-04 사이클 25 — 분석 결과 자동 반영 + 상태 배지 + 진행률 바
+
+### 구현 내용 (우선순위: B > A > C)
+
+#### B. 분석 결과 → GroupSession 자동 반영 (핵심)
+- LeadershipFeedback에 `onAnalysisComplete` 콜백 prop 추가
+- 분석 완료 시(BARS + 멀티모달) evidence에서 역량별 점수 집계 → overallScore, bars, multimodal 산출
+- LeadershipCoaching의 group-feedback 뷰에서 콜백 수신 → GroupSession.competencies[].memberScores에 자동 저장
+- 이로 인해 대시보드 히트맵/레이더/순위가 실제 데이터로 채워짐
+
+#### A. 분석 상태 배지 + 역량별 진행률 바
+- GroupManager 멤버 카드: 기존 CheckCircle2 아이콘 → "미분석" / "N.N/9" 텍스트 배지로 교체
+- individual / hybrid 두 타입 모두 적용
+- 분석 전: 주황색 "미분석" 배지 + 주황색 분석 시작 버튼
+- 분석 후: teal/amber 점수 배지 + "결과 보기" 버튼
+- 현재 역량 섹션 상단에 분석 진행률 바 추가 (N/6명 분석 완료)
+- 수업 진행 스텝 바에도 각 역량별 분석 인원수 표시 ("발표 · 3/6명")
+
+#### C. 조 목록 세션 카드 분석 현황 표시
+- LeadershipCoaching 메인 화면의 기존 조 카드에 "N건 분석완료" 정보 추가
+
+### 검증
+- npx tsc --noEmit: 통과
+- npx next build: 통과
+
+### 변경 파일
+- src/components/leadership/LeadershipFeedback.tsx — onAnalysisComplete 콜백, AnalysisCompletePayload 타입 export
+- src/components/leadership/LeadershipCoaching.tsx — group-feedback 뷰에서 콜백 연결, 조 목록 분석 현황
+- src/components/leadership/GroupManager.tsx — 상태 배지, 진행률 바, 스텝 바 분석 인원수
+
+---
+
 ## 2026-04-04 사이클 24 — 조 관리 UX 개선 (삭제 + 관찰 팁 + 대시보드 활동)
 
 ### 구현 내용

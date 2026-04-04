@@ -33,6 +33,14 @@ import AnalysisReport from "./AnalysisReport";
 import type { Chapter, Highlight, LeadershipCompetencyKey } from "@/lib/types";
 import { formatTime, cn } from "@/lib/utils";
 
+// 분석 완료 시 조 세션에 자동 반영할 점수 데이터
+export interface AnalysisCompletePayload {
+  videoId: string;
+  overallScore: number;
+  bars: Record<string, number>;
+  multimodal?: number;
+}
+
 interface LeadershipFeedbackProps {
   videoId: string;
   videoTitle: string;
@@ -40,6 +48,8 @@ interface LeadershipFeedbackProps {
   selectedCompetencies?: LeadershipCompetencyKey[];
   scenarioText?: string;
   onBack: () => void;
+  /** 분석 완료 시 조 세션에 점수를 자동 반영하기 위한 콜백 */
+  onAnalysisComplete?: (payload: AnalysisCompletePayload) => void;
 }
 
 // 평가 근거 항목 — AI 추천 점수/피드백 포함
@@ -153,6 +163,7 @@ export default function LeadershipFeedback({
   selectedCompetencies,
   scenarioText,
   onBack,
+  onAnalysisComplete,
 }: LeadershipFeedbackProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
 
@@ -368,7 +379,8 @@ export default function LeadershipFeedback({
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [analysisLoading, analysisPhase, mmStarted, videoId]);
 
-  // ── 분석 완료 시 자동 저장 + 토스트 ──
+  // ── 분석 완료 시 자동 저장 + 토스트 + 조 세션 자동 반영 ──
+  const [analysisReported, setAnalysisReported] = useState(false);
   useEffect(() => {
     // 전체 분석 완료 (BARS + 멀티모달) 후 evidence가 있으면 자동 저장
     const isFullyDone = !analysisLoading && analysisPhase >= 6
@@ -380,6 +392,39 @@ export default function LeadershipFeedback({
       );
       setAutoSaveToast(true);
       setTimeout(() => setAutoSaveToast(false), 4000);
+
+      // 조 세션에 점수 자동 반영 (최초 1회만)
+      if (onAnalysisComplete && !analysisReported) {
+        setAnalysisReported(true);
+        // evidence에서 역량별 점수 집계
+        const competencyScores: Record<string, number[]> = {};
+        evidence.forEach((ev) => {
+          const score = ev.score > 0 ? ev.score : ev.aiScore;
+          if (score > 0) {
+            if (!competencyScores[ev.competencyKey]) competencyScores[ev.competencyKey] = [];
+            competencyScores[ev.competencyKey].push(score);
+          }
+        });
+        // 역량별 평균 bars
+        const bars: Record<string, number> = {};
+        let totalSum = 0;
+        let totalCount = 0;
+        Object.entries(competencyScores).forEach(([key, scores]) => {
+          const avg = scores.reduce((a, b) => a + b, 0) / scores.length;
+          bars[key] = Math.round(avg * 10) / 10;
+          totalSum += avg;
+          totalCount++;
+        });
+        const overallScore = totalCount > 0 ? Math.round((totalSum / totalCount) * 10) / 10 : 0;
+        // 멀티모달 점수 (scoring.totalScore: 0~9 or null)
+        const multimodalScore = mmResult?.scoring?.totalScore ?? undefined;
+        onAnalysisComplete({
+          videoId,
+          overallScore,
+          bars,
+          multimodal: multimodalScore,
+        });
+      }
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [analysisLoading, analysisPhase, mmProgress.phase, evidence.length]);

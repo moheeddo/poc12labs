@@ -108,6 +108,11 @@ export default function GroupManager({
     return session.members.every((m) => !!c.memberVideos[m.id]);
   }).length;
 
+  // 현재 역량 분석 완료 인원수 (진행률 바용)
+  const analyzedCount = session.members.filter(
+    (m) => currentState?.memberScores[m.id]?.analyzed
+  ).length;
+
   const individualCount = session.members.filter((m) => currentState?.memberVideos[m.id]).length;
   const hasGroupVideo = !!currentState?.sharedVideoId;
   const uploadedCount = isGroupType
@@ -176,6 +181,10 @@ export default function GroupManager({
           {COMPETENCY_ORDER.map((comp, i) => {
             const isDone = i < session.currentStep;
             const isCurrent = i === session.currentStep;
+            const stepState = session.competencies[i];
+            const stepAnalyzed = session.members.filter(
+              (m) => stepState?.memberScores[m.id]?.analyzed
+            ).length;
             return (
               <div key={comp.key} className="flex items-center flex-1">
                 <button
@@ -193,7 +202,14 @@ export default function GroupManager({
                   </div>
                   <div className="min-w-0">
                     <p className={cn("text-xs font-semibold truncate", isCurrent ? "text-slate-800" : "text-slate-500")}>{comp.label}</p>
-                    <p className="text-[10px] text-slate-400 truncate">{comp.activityType}</p>
+                    <p className="text-[10px] text-slate-400 truncate">
+                      {comp.activityType}
+                      {stepAnalyzed > 0 && (
+                        <span className="ml-1 text-teal-600 font-medium">
+                          · {stepAnalyzed}/{session.members.length}명
+                        </span>
+                      )}
+                    </p>
                   </div>
                 </button>
                 {i < 3 && <ChevronRight className="w-3 h-3 text-slate-300 shrink-0 mx-1" />}
@@ -232,6 +248,27 @@ export default function GroupManager({
             <p className="text-sm text-slate-500">{currentComp.description}</p>
           </div>
         </div>
+
+        {/* 분석 진행률 바 */}
+        {individualCount > 0 && (
+          <div className="mb-4 bg-slate-50/60 border border-slate-200/30 rounded-xl p-3">
+            <div className="flex items-center justify-between text-sm mb-2">
+              <span className="text-slate-600 font-medium">분석 진행률</span>
+              <span className="text-slate-500 font-mono text-xs">
+                {analyzedCount}/{session.members.length}명 분석 완료
+              </span>
+            </div>
+            <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
+              <div
+                className="h-full rounded-full transition-all duration-500"
+                style={{
+                  width: `${session.members.length > 0 ? (analyzedCount / session.members.length) * 100 : 0}%`,
+                  backgroundColor: currentComp.color,
+                }}
+              />
+            </div>
+          </div>
+        )}
 
         {/* 평가자를 위한 관찰 포인트 팁 (접이식) */}
         {OBSERVATION_TIPS[currentComp.key as LeadershipCompetencyKey]?.length > 0 && (
@@ -334,13 +371,16 @@ export default function GroupManager({
                           <p className="text-sm font-bold text-slate-800">{member.name}</p>
                           <p className="text-xs text-slate-400">{member.position}</p>
                         </div>
-                        {score?.analyzed && <span className="text-xs font-mono font-bold text-amber-600 bg-amber-50 px-2 py-0.5 rounded">{score.overallScore.toFixed(1)}/9</span>}
-                        {hasVideo && !score?.analyzed && <CheckCircle2 className="w-4 h-4 text-amber-500" />}
+                        {score?.analyzed ? (
+                          <span className="text-xs font-mono font-bold text-amber-600 bg-amber-50 px-2 py-0.5 rounded-md border border-amber-200/50">{score.overallScore.toFixed(1)}/9</span>
+                        ) : hasVideo ? (
+                          <span className="text-[10px] font-medium text-orange-600 bg-orange-50 px-2 py-0.5 rounded-md border border-orange-200/50">미분석</span>
+                        ) : null}
                       </div>
                       {hasVideo ? (
                         <div className="space-y-2">
                           <p className="text-xs text-slate-500 truncate">{videoInfo.fileName}</p>
-                          <button onClick={() => onAnalyzeMember(member.id, member.name, videoInfo.videoId, videoInfo.blobUrl, currentComp.key, scenarioText)} className="w-full flex items-center justify-center gap-1.5 text-sm font-medium py-2.5 rounded-lg bg-amber-50 text-amber-600 hover:bg-amber-100 border border-amber-200/50 transition-colors">
+                          <button onClick={() => onAnalyzeMember(member.id, member.name, videoInfo.videoId, videoInfo.blobUrl, currentComp.key, scenarioText)} className={cn("w-full flex items-center justify-center gap-1.5 text-sm font-medium py-2.5 rounded-lg border transition-colors", score?.analyzed ? "bg-amber-50 text-amber-600 hover:bg-amber-100 border-amber-200/50" : "bg-orange-50 text-orange-600 hover:bg-orange-100 border-orange-200/50")}>
                             <Play className="w-3.5 h-3.5" />{score?.analyzed ? "결과 보기" : "발언 분석"}
                           </button>
                         </div>
@@ -435,14 +475,15 @@ export default function GroupManager({
                       <p className="text-sm font-bold text-slate-800">{member.name}</p>
                       <p className="text-xs text-slate-400">{member.position}</p>
                     </div>
-                    {score?.analyzed && (
-                      <span className="text-xs font-mono font-bold text-teal-600 bg-teal-50 px-2 py-0.5 rounded">
+                    {score?.analyzed ? (
+                      <span className="text-xs font-mono font-bold text-teal-600 bg-teal-50 px-2 py-0.5 rounded-md border border-teal-200/50">
                         {score.overallScore.toFixed(1)}/9
                       </span>
-                    )}
-                    {hasVideo && !score?.analyzed && (
-                      <CheckCircle2 className="w-4 h-4 text-teal-500" />
-                    )}
+                    ) : hasVideo ? (
+                      <span className="text-[10px] font-medium text-amber-600 bg-amber-50 px-2 py-0.5 rounded-md border border-amber-200/50">
+                        미분석
+                      </span>
+                    ) : null}
                   </div>
 
                   {hasVideo ? (
@@ -450,7 +491,12 @@ export default function GroupManager({
                       <p className="text-xs text-slate-500 truncate">{videoInfo.fileName}</p>
                       <button
                         onClick={() => onAnalyzeMember(member.id, member.name, videoInfo.videoId, videoInfo.blobUrl, currentComp.key, scenarioText)}
-                        className="w-full flex items-center justify-center gap-1.5 text-sm font-medium py-2.5 rounded-lg bg-teal-50 text-teal-600 hover:bg-teal-100 border border-teal-200/50 transition-colors"
+                        className={cn(
+                          "w-full flex items-center justify-center gap-1.5 text-sm font-medium py-2.5 rounded-lg border transition-colors",
+                          score?.analyzed
+                            ? "bg-teal-50 text-teal-600 hover:bg-teal-100 border-teal-200/50"
+                            : "bg-amber-50 text-amber-600 hover:bg-amber-100 border-amber-200/50"
+                        )}
                       >
                         <Play className="w-3.5 h-3.5" />
                         {score?.analyzed ? "결과 보기" : "분석 시작"}

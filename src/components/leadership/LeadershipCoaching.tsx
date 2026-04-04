@@ -351,6 +351,27 @@ export default function LeadershipCoaching() {
         selectedCompetencies={[view.competencyKey]}
         scenarioText={view.scenarioText}
         onBack={() => setView({ type: "group-manage", sessionId: view.sessionId })}
+        onAnalysisComplete={(payload) => {
+          // 분석 결과를 GroupSession.competencies[].memberScores에 자동 반영
+          const sess = groupSessions.find((s) => s.id === view.sessionId);
+          if (!sess) return;
+          const updated = { ...sess, competencies: sess.competencies.map((c) => ({ ...c })) };
+          const compIdx = updated.competencies.findIndex((c) => c.competencyKey === view.competencyKey);
+          if (compIdx < 0) return;
+          const comp = { ...updated.competencies[compIdx] };
+          comp.memberScores = {
+            ...comp.memberScores,
+            [view.memberId]: {
+              overallScore: payload.overallScore,
+              bars: payload.bars,
+              multimodal: payload.multimodal,
+              analyzed: true,
+            },
+          };
+          updated.competencies[compIdx] = comp;
+          saveSession(updated);
+          setGroupSessions((prev) => prev.map((s) => (s.id === updated.id ? updated : s)));
+        }}
       />
     );
   }
@@ -510,6 +531,13 @@ export default function LeadershipCoaching() {
                   </p>
                   <p className="text-[10px] text-teal-600 mt-1">
                     {gs.currentStep + 1}/4 역량 진행 중
+                    {(() => {
+                      const totalAnalyzed = gs.competencies.reduce(
+                        (sum, c) => sum + Object.values(c.memberScores).filter((s) => s?.analyzed).length,
+                        0
+                      );
+                      return totalAnalyzed > 0 ? ` · ${totalAnalyzed}건 분석완료` : "";
+                    })()}
                   </p>
                 </button>
                 {/* 삭제 버튼 */}
