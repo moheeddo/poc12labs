@@ -7,6 +7,7 @@ import type { PovEvaluationReport } from '@/lib/types';
 import {
   X, Trash2, TrendingUp, Clock, FileText, ChevronDown,
 } from 'lucide-react';
+import ExportMenu from '@/components/pov/ExportMenu';
 import {
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip,
   ResponsiveContainer,
@@ -86,12 +87,15 @@ export default function AnalysisHistory({ procedureId, onViewReport, onClose }: 
               ({entries.length}건)
             </span>
           </div>
-          <button
-            onClick={onClose}
-            className="p-1.5 rounded-lg hover:bg-slate-100 text-slate-400 hover:text-slate-600 transition-colors"
-          >
-            <X className="w-5 h-5" />
-          </button>
+          <div className="flex items-center gap-2">
+            <ExportMenu />
+            <button
+              onClick={onClose}
+              className="p-1.5 rounded-lg hover:bg-slate-100 text-slate-400 hover:text-slate-600 transition-colors"
+            >
+              <X className="w-5 h-5" />
+            </button>
+          </div>
         </div>
 
         {/* ── 필터 ── */}

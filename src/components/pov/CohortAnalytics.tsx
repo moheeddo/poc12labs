@@ -15,6 +15,7 @@ import {
   X, Users, AlertTriangle, TrendingUp, TrendingDown,
   Minus, ShieldAlert, Target, BarChart3, Activity,
 } from 'lucide-react';
+import ExportMenu from '@/components/pov/ExportMenu';
 import type {
   CohortMetrics,
   ProcedureMetric,
@@ -99,12 +100,15 @@ export default function CohortAnalytics({ onClose }: Props) {
             <h2 className="text-lg font-semibold text-slate-800">코호트 분석</h2>
             <span className="text-xs text-slate-400 font-normal">전체 훈련생 대상 체계적 약점 탐지</span>
           </div>
-          <button
-            onClick={onClose}
-            className="p-1.5 rounded-lg hover:bg-slate-100 text-slate-400 hover:text-slate-600 transition-colors"
-          >
-            <X className="w-5 h-5" />
-          </button>
+          <div className="flex items-center gap-2">
+            <ExportMenu />
+            <button
+              onClick={onClose}
+              className="p-1.5 rounded-lg hover:bg-slate-100 text-slate-400 hover:text-slate-600 transition-colors"
+            >
+              <X className="w-5 h-5" />
+            </button>
+          </div>
         </div>
 
         {/* ── 본문 ── */}

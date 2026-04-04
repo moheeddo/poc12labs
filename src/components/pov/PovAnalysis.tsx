@@ -32,6 +32,7 @@ import SelfReflection from "@/components/pov/SelfReflection";
 import ReflectionComparison from "@/components/pov/ReflectionComparison";
 import type { SelfReflectionData } from "@/components/pov/SelfReflection";
 import PrintableReport from "@/components/pov/PrintableReport";
+import ExportMenu from "@/components/pov/ExportMenu";
 import BenchmarkDashboard from "@/components/pov/BenchmarkDashboard";
 import TimeAnalysis from "@/components/pov/TimeAnalysis";
 import TraineePortfolio from "@/components/pov/TraineePortfolio";
@@ -586,6 +587,7 @@ export default function PovAnalysis() {
               </p>
             </div>
             <div className="flex items-center gap-2 shrink-0">
+              <ExportMenu report={report} />
               <button
                 onClick={() => setShowPrintReport(true)}
                 className="flex items-center gap-2 px-3.5 py-2 rounded-lg bg-zinc-100 hover:bg-zinc-200 text-zinc-700 text-sm font-medium border border-zinc-200 transition-all"
