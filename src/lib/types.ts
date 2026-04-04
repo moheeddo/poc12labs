@@ -270,6 +270,17 @@ export interface PovEvaluationReport {
   strengths: string[];
   improvements: string[];
   summary: string;
+  // AI 파이프라인 분석 결과 (선택적)
+  handObjectEvents?: HandObjectEvent[];
+  sequenceAlignment?: SequenceAlignment;
+  hpoResults?: HpoToolResult[];
+  embeddingComparison?: EmbeddingComparison;
+  analysisMetadata?: {
+    analyzedAt: string;
+    pipelineVersion: string;
+    totalApiCalls: number;
+    processingTimeMs: number;
+  };
 }
 
 // =============================================
@@ -315,4 +326,120 @@ export interface Toast {
   type: "success" | "error" | "info" | "warning";
   title: string;
   message?: string;
+}
+
+// =============================================
+// POV 분석 파이프라인 타입
+// =============================================
+
+export interface DetectedStep {
+  stepId: string;
+  status: 'pass' | 'fail' | 'partial';
+  confidence: number;
+  timestamp: number;
+  endTime: number;
+  searchScore: number;
+  thumbnailUrl?: string;
+}
+
+export interface HandObjectEvent {
+  stepId: string;
+  timestamp: number;
+  endTime: number;
+  heldObject: string;
+  targetEquipment: string;
+  actionType: string;
+  stateBefore: string;
+  stateAfter: string;
+  matchesSOP: boolean;
+  confidence: number;
+  rawDescription: string;
+}
+
+export interface AlignmentPair {
+  sopIndex: number;
+  detectedIndex: number | null;
+  cost: number;
+}
+
+export interface SequenceAlignment {
+  sopSequence: string[];
+  detectedSequence: string[];
+  alignmentPath: AlignmentPair[];
+  deviations: PovSopDeviation[];
+  complianceScore: number;
+  criticalDeviations: number;
+}
+
+export interface PovSopDeviation {
+  type: 'swap' | 'skip' | 'insert' | 'delay';
+  stepIds: string[];
+  timestamp?: number;
+  severity: 'critical' | 'major' | 'minor';
+  description: string;
+}
+
+export interface HpoToolResult {
+  toolId: string;
+  toolName: string;
+  category: 'fundamental' | 'conditional';
+  detected: boolean;
+  detectionCount: number;
+  timestamps: number[];
+  confidence: number;
+}
+
+export interface SegmentSimilarity {
+  expertStart: number;
+  expertEnd: number;
+  traineeStart: number;
+  traineeEnd: number;
+  similarity: number;
+}
+
+export interface EmbeddingComparison {
+  segmentPairs: SegmentSimilarity[];
+  averageSimilarity: number;
+  gapSegments: SegmentSimilarity[];
+  heatmapData: number[];
+}
+
+export interface GoldStandard {
+  id: string;
+  procedureId: string;
+  videoId: string;
+  registeredBy: string;
+  registeredAt: string;
+  segmentRange?: { start: number; end: number };
+  averageScore: number;
+  embeddings?: number[][];
+}
+
+export interface AnalysisJob {
+  id: string;
+  videoId: string;
+  procedureId: string;
+  goldStandardId?: string;
+  status: 'indexing' | 'analyzing' | 'scoring' | 'complete' | 'error';
+  progress: number;
+  stages: {
+    stepDetection: StageStatus;
+    handObject: StageStatus;
+    sequenceMatch: StageStatus;
+    hpoVerification: StageStatus;
+    embeddingComparison: StageStatus;
+    scoring: StageStatus;
+  };
+  result?: PovEvaluationReport;
+  error?: string;
+}
+
+export type StageStatus = 'pending' | 'running' | 'done' | 'error';
+
+export interface StepQueryTemplate {
+  stepId: string;
+  sopText: string;
+  actionQuery: string;
+  objectQuery: string;
+  stateQuery: string;
 }
