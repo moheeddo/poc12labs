@@ -33,6 +33,7 @@ import { HPO_PROCEDURES } from './pov-standards';
 import { getGoldStandard, getBestGoldStandard, getOrFetchEmbeddings } from './pov-gold-standard';
 import { TWELVELABS_INDEXES } from './constants';
 import { createLogger } from './logger';
+import { getCachedReport, cacheReport } from './pov-analysis-cache';
 
 const log = createLogger('PovAnalysisEngine');
 
@@ -44,6 +45,29 @@ const BATCH_SIZE = 5;
 
 // ── 파이프라인 버전 ─────────────────────────────
 const PIPELINE_VERSION = '1.0.0';
+
+// ── Rate-limited 배치 유틸리티 ──────────────────
+/**
+ * 아이템을 batchSize 단위로 묶어 병렬 처리
+ * 배치 간 200ms 대기로 TwelveLabs 429 에러 방지
+ */
+async function rateLimitedBatch<T, R>(
+  items: T[],
+  batchSize: number,
+  fn: (item: T) => Promise<R>
+): Promise<PromiseSettledResult<R>[]> {
+  const results: PromiseSettledResult<R>[] = [];
+  for (let i = 0; i < items.length; i += batchSize) {
+    const batch = items.slice(i, i + batchSize);
+    const batchResults = await Promise.allSettled(batch.map(fn));
+    results.push(...batchResults);
+    // 배치 간 200ms 대기 (rate limit 방지)
+    if (i + batchSize < items.length) {
+      await new Promise<void>((resolve) => setTimeout(resolve, 200));
+    }
+  }
+  return results;
+}
 
 // ── 공개 API ────────────────────────────────────
 
@@ -63,6 +87,31 @@ export async function startAnalysis(
   goldStandardId?: string
 ): Promise<string> {
   const jobId = `pov-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+
+  // ── 캐시 체크: 동일 영상+절차 조합이 이미 분석된 경우 즉시 반환 ──
+  const cachedReport = getCachedReport(videoId, procedureId);
+  if (cachedReport) {
+    log.info('캐시 히트 — 파이프라인 스킵', { jobId, videoId, procedureId });
+    const cachedJob: AnalysisJob = {
+      id: jobId,
+      videoId,
+      procedureId,
+      goldStandardId,
+      status: 'complete',
+      progress: 100,
+      stages: {
+        stepDetection: 'done',
+        handObject: 'done',
+        sequenceMatch: 'done',
+        hpoVerification: 'done',
+        embeddingComparison: 'done',
+        scoring: 'done',
+      },
+      result: cachedReport,
+    };
+    jobStore.set(jobId, cachedJob);
+    return jobId;
+  }
 
   const job: AnalysisJob = {
     id: jobId,
@@ -134,54 +183,41 @@ async function runPipeline(job: AnalysisJob): Promise<void> {
     sopText: qt.sopText,
   }));
 
-  // 배치 처리: 5건씩 병렬 요청
-  for (let i = 0; i < allApiCalls.length; i += BATCH_SIZE) {
-    const batch = allApiCalls.slice(i, i + BATCH_SIZE);
-    const results = await Promise.allSettled(
-      batch.map(async (call) => {
-        // actionQuery로 검색 (가장 핵심적인 쿼리)
-        apiCallCount++;
-        const response = await searchVideos(indexId, call.actionQuery);
-        return { ...call, response };
-      })
-    );
+  // 배치 처리: 5건씩 병렬 요청, 배치 간 200ms 대기 (rate limit 방지)
+  const stepDetectionResults = await rateLimitedBatch(
+    allApiCalls,
+    BATCH_SIZE,
+    async (call) => {
+      // actionQuery로 검색 (가장 핵심적인 쿼리)
+      apiCallCount++;
+      const response = await searchVideos(indexId, call.actionQuery);
+      return { ...call, response };
+    }
+  );
 
-    for (const result of results) {
-      if (result.status === 'fulfilled') {
-        const { stepId, response } = result.value;
-        const clips = response.data || [];
+  stepDetectionResults.forEach((result, idx) => {
+    if (result.status === 'fulfilled') {
+      const { stepId, response } = result.value;
+      const clips = response.data || [];
 
-        // 해당 videoId에 해당하는 클립만 필터링
-        const relevantClips = clips.filter((c) => c.video_id === job.videoId);
+      // 해당 videoId에 해당하는 클립만 필터링
+      const relevantClips = clips.filter((c) => c.video_id === job.videoId);
 
-        if (relevantClips.length > 0) {
-          // 가장 높은 신뢰도의 클립 사용
-          const bestClip = relevantClips[0]; // API는 신뢰도 순 정렬
-          const confidence = parseConfidence(bestClip.confidence);
+      if (relevantClips.length > 0) {
+        // 가장 높은 신뢰도의 클립 사용
+        const bestClip = relevantClips[0]; // API는 신뢰도 순 정렬
+        const confidence = parseConfidence(bestClip.confidence);
 
-          detectedSteps.push({
-            stepId,
-            status: confidence >= 70 ? 'pass' : confidence >= 40 ? 'partial' : 'fail',
-            confidence,
-            timestamp: bestClip.start,
-            endTime: bestClip.end,
-            searchScore: confidence,
-          });
-        } else {
-          // 검출 실패
-          detectedSteps.push({
-            stepId,
-            status: 'fail',
-            confidence: 0,
-            timestamp: 0,
-            endTime: 0,
-            searchScore: 0,
-          });
-        }
+        detectedSteps.push({
+          stepId,
+          status: confidence >= 70 ? 'pass' : confidence >= 40 ? 'partial' : 'fail',
+          confidence,
+          timestamp: bestClip.start,
+          endTime: bestClip.end,
+          searchScore: confidence,
+        });
       } else {
-        // API 오류 — 해당 스텝은 실패로 처리하고 계속 진행
-        const stepId = batch[results.indexOf(result)]?.stepId ?? 'unknown';
-        log.warn('단계 검출 실패', { stepId, error: result.reason });
+        // 검출 실패
         detectedSteps.push({
           stepId,
           status: 'fail',
@@ -191,11 +227,23 @@ async function runPipeline(job: AnalysisJob): Promise<void> {
           searchScore: 0,
         });
       }
+    } else {
+      // API 오류 — 해당 스텝은 실패로 처리하고 계속 진행
+      const stepId = allApiCalls[idx]?.stepId ?? 'unknown';
+      log.warn('단계 검출 실패', { stepId, error: result.reason });
+      detectedSteps.push({
+        stepId,
+        status: 'fail',
+        confidence: 0,
+        timestamp: 0,
+        endTime: 0,
+        searchScore: 0,
+      });
     }
+  });
 
-    // 진행률 업데이트 (5~25% 구간)
-    job.progress = 5 + Math.round(((i + batch.length) / allApiCalls.length) * 20);
-  }
+  // 진행률 업데이트 (5~25% 구간)
+  job.progress = 25;
 
   updateStage(job, 'stepDetection', 'done');
   log.info('단계 검출 완료', { detected: detectedSteps.filter((s) => s.status !== 'fail').length, total: detectedSteps.length });
@@ -210,32 +258,31 @@ async function runPipeline(job: AnalysisJob): Promise<void> {
   const passedSteps = detectedSteps.filter((s) => s.status !== 'fail' && s.timestamp > 0);
 
   if (passedSteps.length > 0) {
-    // 배치 처리: 5건씩 Pegasus 분석
-    for (let i = 0; i < passedSteps.length; i += BATCH_SIZE) {
-      const batch = passedSteps.slice(i, i + BATCH_SIZE);
-      const results = await Promise.allSettled(
-        batch.map(async (step) => {
-          apiCallCount++;
-          const prompt = buildHandObjectPrompt(step);
-          const response = await generateWithPrompt(job.videoId, prompt);
-          return { stepId: step.stepId, timestamp: step.timestamp, endTime: step.endTime, text: response.data };
-        })
-      );
-
-      for (const result of results) {
-        if (result.status === 'fulfilled') {
-          const event = parseHandObjectResponse(result.value);
-          if (event) {
-            handObjectEvents.push(event);
-          }
-        } else {
-          log.warn('손-물체 분석 실패', { error: result.reason });
-        }
+    // 배치 처리: 5건씩 Pegasus 분석, 배치 간 200ms 대기 (rate limit 방지)
+    const handObjectResults = await rateLimitedBatch(
+      passedSteps,
+      BATCH_SIZE,
+      async (step) => {
+        apiCallCount++;
+        const prompt = buildHandObjectPrompt(step);
+        const response = await generateWithPrompt(job.videoId, prompt);
+        return { stepId: step.stepId, timestamp: step.timestamp, endTime: step.endTime, text: response.data };
       }
+    );
 
-      job.progress = 28 + Math.round(((i + batch.length) / passedSteps.length) * 12);
+    for (const result of handObjectResults) {
+      if (result.status === 'fulfilled') {
+        const event = parseHandObjectResponse(result.value);
+        if (event) {
+          handObjectEvents.push(event);
+        }
+      } else {
+        log.warn('손-물체 분석 실패', { error: result.reason });
+      }
     }
   }
+
+  job.progress = 40;
 
   updateStage(job, 'handObject', 'done');
   log.info('손-물체 분석 완료', { eventCount: handObjectEvents.length });
@@ -275,50 +322,50 @@ async function runPipeline(job: AnalysisJob): Promise<void> {
   const hpoQueries = getHpoQueries();
   const hpoResults: HpoToolResult[] = [];
 
-  for (let i = 0; i < hpoQueries.length; i += BATCH_SIZE) {
-    const batch = hpoQueries.slice(i, i + BATCH_SIZE);
-    const results = await Promise.allSettled(
-      batch.map(async (hq) => {
-        apiCallCount++;
-        const response = await searchVideos(indexId, hq.searchQuery);
-        return { hq, response };
-      })
-    );
+  // 배치 처리: 5건씩 병렬 요청, 배치 간 200ms 대기 (rate limit 방지)
+  const hpoQueryResults = await rateLimitedBatch(
+    hpoQueries,
+    BATCH_SIZE,
+    async (hq) => {
+      apiCallCount++;
+      const response = await searchVideos(indexId, hq.searchQuery);
+      return { hq, response };
+    }
+  );
 
-    for (const result of results) {
-      if (result.status === 'fulfilled') {
-        const { hq, response } = result.value;
-        const clips = (response.data || []).filter((c) => c.video_id === job.videoId);
-        const detected = clips.length > 0;
-        const bestConfidence = detected ? parseConfidence(clips[0].confidence) : 0;
+  hpoQueryResults.forEach((result, idx) => {
+    if (result.status === 'fulfilled') {
+      const { hq, response } = result.value;
+      const clips = (response.data || []).filter((c) => c.video_id === job.videoId);
+      const detected = clips.length > 0;
+      const bestConfidence = detected ? parseConfidence(clips[0].confidence) : 0;
 
+      hpoResults.push({
+        toolId: hq.toolId,
+        toolName: hq.toolLabel,
+        category: hq.category,
+        detected,
+        detectionCount: clips.length,
+        timestamps: clips.map((c) => c.start),
+        confidence: bestConfidence,
+      });
+    } else {
+      const hq = hpoQueries[idx];
+      if (hq) {
         hpoResults.push({
           toolId: hq.toolId,
           toolName: hq.toolLabel,
           category: hq.category,
-          detected,
-          detectionCount: clips.length,
-          timestamps: clips.map((c) => c.start),
-          confidence: bestConfidence,
+          detected: false,
+          detectionCount: 0,
+          timestamps: [],
+          confidence: 0,
         });
-      } else {
-        const hq = batch[results.indexOf(result)];
-        if (hq) {
-          hpoResults.push({
-            toolId: hq.toolId,
-            toolName: hq.toolLabel,
-            category: hq.category,
-            detected: false,
-            detectionCount: 0,
-            timestamps: [],
-            confidence: 0,
-          });
-        }
       }
     }
+  });
 
-    job.progress = 52 + Math.round(((i + batch.length) / hpoQueries.length) * 13);
-  }
+  job.progress = 65;
 
   updateStage(job, 'hpoVerification', 'done');
   log.info('HPO 검증 완료', { total: hpoResults.length, detected: hpoResults.filter((r) => r.detected).length });
@@ -464,6 +511,9 @@ async function runPipeline(job: AnalysisJob): Promise<void> {
       processingTimeMs,
     },
   };
+
+  // 분석 결과 캐시 저장 (동일 영상 재분석 방지)
+  cacheReport(job.videoId, job.procedureId, report, PIPELINE_VERSION);
 
   job.result = report;
   job.status = 'complete';
