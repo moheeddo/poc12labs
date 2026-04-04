@@ -4,6 +4,8 @@ import type { DetectedStep, SequenceAlignment, PovSopDeviation, HpoToolResult, F
 import type { Procedure, ProcedureStep } from '@/lib/pov-standards';
 import { generateStepRubric, explainJudgment } from '@/lib/pov-rubrics';
 import { RCA_LABELS } from '@/lib/pov-rca';
+import { findRelatedIncidents } from '@/lib/pov-incident-library';
+import { IncidentCard } from '@/components/pov/IncidentLibrary';
 
 interface Props {
   detectedSteps: DetectedStep[];
@@ -365,6 +367,24 @@ export default function StepsTimeline({
               </div>
             ))}
           </div>
+
+          {/* HPO-22: 관련 사고 사례 자동 연계 */}
+          {(() => {
+            const deviationTypes = alignment.deviations.map((d) => d.type);
+            const relatedIncidents = findRelatedIncidents(deviationTypes);
+            if (relatedIncidents.length === 0) return null;
+            return (
+              <div className="mt-3 p-3 bg-red-500/5 border border-red-500/20 rounded-lg">
+                <p className="text-xs font-semibold text-red-400 mb-2">관련 사고 사례</p>
+                <div className="flex flex-col gap-2">
+                  {relatedIncidents.slice(0, 2).map((inc) => (
+                    <IncidentCard key={inc.id} incident={inc} compact />
+                  ))}
+                </div>
+              </div>
+            );
+          })()}
+
           <div className="mt-3 text-xs text-zinc-500">
             절차 준수율:{' '}
             <span className="font-mono text-zinc-300">{alignment.complianceScore.toFixed(1)}%</span>

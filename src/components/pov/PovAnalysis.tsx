@@ -39,6 +39,8 @@ import TimeAnalysis from "@/components/pov/TimeAnalysis";
 import TraineePortfolio from "@/components/pov/TraineePortfolio";
 import ExecutiveSummary from "@/components/pov/ExecutiveSummary";
 import CommunicationPanel from "@/components/pov/CommunicationPanel";
+import MicroLearning from "@/components/pov/MicroLearning";
+import IncidentLibrary from "@/components/pov/IncidentLibrary";
 import { useVideoUpload } from "@/hooks/useTwelveLabs";
 import { usePovAnalysis } from "@/hooks/usePovAnalysis";
 import { TWELVELABS_INDEXES } from "@/lib/constants";
@@ -188,6 +190,8 @@ export default function PovAnalysis() {
   // HPO-21: 의사소통 분석 결과 + 로딩 상태
   const [commAnalysis, setCommAnalysis] = useState<CommunicationAnalysis | null>(null);
   const [commLoading, setCommLoading] = useState(false);
+  // HPO-22: 사고 사례 라이브러리 모달 표시 여부
+  const [showIncidentLibrary, setShowIncidentLibrary] = useState(false);
 
   // 컴포넌트 언마운트 시 blob URL 해제
   useEffect(() => {
@@ -626,6 +630,14 @@ export default function PovAnalysis() {
             </div>
             <div className="flex items-center gap-2 shrink-0">
               <ExportMenu report={report} />
+              {/* HPO-22: 사고 사례 라이브러리 버튼 */}
+              <button
+                onClick={() => setShowIncidentLibrary(true)}
+                className="flex items-center gap-2 px-3.5 py-2 rounded-lg bg-red-50 hover:bg-red-100 text-red-600 text-sm font-medium border border-red-200 transition-all"
+                title="관련 사고 사례 보기"
+              >
+                <BookOpen className="w-4 h-4" /> 사고 사례
+              </button>
               <button
                 onClick={() => setShowPrintReport(true)}
                 className="flex items-center gap-2 px-3.5 py-2 rounded-lg bg-zinc-100 hover:bg-zinc-200 text-zinc-700 text-sm font-medium border border-zinc-200 transition-all"
@@ -869,6 +881,14 @@ export default function PovAnalysis() {
       {/* HPO-20: 경영진 요약 대시보드 모달 */}
       {showExecutive && (
         <ExecutiveSummary onClose={() => setShowExecutive(false)} />
+      )}
+
+      {/* HPO-22: 사고 사례 연계 라이브러리 모달 */}
+      {showIncidentLibrary && (
+        <IncidentLibrary
+          report={report ?? undefined}
+          onClose={() => setShowIncidentLibrary(false)}
+        />
       )}
 
       {/* 평가 일정 캘린더 모달 */}
@@ -1265,6 +1285,9 @@ function FundamentalsTab({ report }: { report: PovEvaluationReport }) {
           </div>
         );
       })}
+
+      {/* HPO-23: 마이크로 러닝 추천 (약점 역량 기반) */}
+      <MicroLearning fundamentalScores={report.fundamentalScores} />
 
     </div>
   );
