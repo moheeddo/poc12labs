@@ -225,3 +225,48 @@ export async function uploadVideo(indexId: string, fileBuffer: ArrayBuffer, file
   log.info("단일 파일 업로드 완료", { taskId: data._id });
   return data;
 }
+
+/**
+ * 영상 세그먼트의 임베딩 벡터를 추출한다.
+ */
+export async function getVideoEmbedding(
+  videoId: string, startSec: number, endSec: number
+): Promise<number[]> {
+  const res = await fetch(`${API_URL}/embed`, {
+    method: 'POST',
+    headers: { 'x-api-key': API_KEY, 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      video_id: videoId,
+      video_embedding_scope: { start_offset_sec: startSec, end_offset_sec: endSec },
+    }),
+  });
+  if (!res.ok) throw new Error(`Embed API error: ${res.status}`);
+  const data = await res.json();
+  return data.video_embedding?.segments?.[0]?.embeddings_float ?? [];
+}
+
+/**
+ * 영상 전체를 segmentSec 간격으로 나눠 임베딩 배열을 반환한다.
+ */
+export async function getSegmentedEmbeddings(
+  videoId: string, durationSec: number, segmentSec: number = 10
+): Promise<{ start: number; end: number; embedding: number[] }[]> {
+  const segments: { start: number; end: number; embedding: number[] }[] = [];
+  const promises: Promise<void>[] = [];
+  for (let start = 0; start < durationSec; start += segmentSec) {
+    const end = Math.min(start + segmentSec, durationSec);
+    const idx = segments.length;
+    segments.push({ start, end, embedding: [] });
+    promises.push(
+      getVideoEmbedding(videoId, start, end)
+        .then(emb => { segments[idx].embedding = emb; })
+        .catch(() => { segments[idx].embedding = []; })
+    );
+    if (promises.length >= 10) {
+      await Promise.allSettled(promises);
+      promises.length = 0;
+    }
+  }
+  if (promises.length > 0) await Promise.allSettled(promises);
+  return segments;
+}
