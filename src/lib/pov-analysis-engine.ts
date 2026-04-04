@@ -30,6 +30,7 @@ import {
   getGrade,
   applyGradeOverride,
 } from './pov-scoring';
+import { analyzeRootCause } from './pov-rca';
 import { HPO_PROCEDURES } from './pov-standards';
 import { getGoldStandard, getBestGoldStandard, getOrFetchEmbeddings } from './pov-gold-standard';
 import { TWELVELABS_INDEXES } from './constants';
@@ -427,6 +428,11 @@ async function runPipeline(job: AnalysisJob): Promise<void> {
   }
 
   job.progress = 88;
+
+  // ── RCA: 이탈 근본원인 분석 ─────────────────
+  sequenceAlignment.deviations.forEach((dev) => {
+    dev.rootCause = analyzeRootCause(dev, detectedSteps, hpoResults, fundamentalScores);
+  });
 
   // 점수 계산
   const rawProcedureScore = calculateProcedureScore(

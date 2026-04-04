@@ -380,6 +380,13 @@ export interface PovSopDeviation {
   timestamp?: number;
   severity: 'critical' | 'major' | 'minor';
   description: string;
+  rootCause?: {
+    category: 'knowledgeGap' | 'attentionLapse' | 'procedureUnclear' | 'hpoMissing' | 'techniqueError' | 'unknown';
+    evidence: string;
+    remediation: string;
+    relatedFundamental?: string;  // 관련 운전원 기본수칙 ID
+    relatedHpoTool?: string;     // 관련 HPO 도구 ID
+  };
 }
 
 export interface HpoToolResult {
