@@ -5,7 +5,7 @@ import {
   Shield, GitCompare, Star, AlertTriangle, ChevronRight,
   FileText, CheckCircle2, XCircle, Clock, Activity, BookOpen, Eye,
   Users, Brain, Zap, ClipboardCheck, BarChart3, ArrowLeft,
-  ChevronDown, Sparkles, MessageSquare, Settings,
+  ChevronDown, Sparkles, MessageSquare, Settings, History,
 } from "lucide-react";
 import {
   RadarChart, Radar, PolarGrid, PolarAngleAxis, PolarRadiusAxis,
@@ -21,6 +21,7 @@ import HandObjectTimeline from "@/components/pov/HandObjectTimeline";
 import ComparisonView from "@/components/pov/ComparisonView";
 import GoldStandardManager from "@/components/pov/GoldStandardManager";
 import SopManager from "@/components/pov/SopManager";
+import AnalysisHistory from "@/components/pov/AnalysisHistory";
 import { useVideoUpload } from "@/hooks/useTwelveLabs";
 import { usePovAnalysis } from "@/hooks/usePovAnalysis";
 import { TWELVELABS_INDEXES } from "@/lib/constants";
@@ -142,6 +143,8 @@ export default function PovAnalysis() {
   const [seekTime, setSeekTime] = useState<number | null>(null);
   // SOP 관리 모달 표시 여부
   const [showSopManager, setShowSopManager] = useState(false);
+  // 분석 이력 모달 표시 여부
+  const [showHistory, setShowHistory] = useState(false);
 
   // 컴포넌트 언마운트 시 blob URL 해제
   useEffect(() => {
@@ -293,8 +296,14 @@ export default function PovAnalysis() {
             </div>
           </div>
 
-          {/* SOP 쿼리 관리 진입점 */}
-          <div className="flex justify-end">
+          {/* SOP 쿼리 관리 + 분석 이력 진입점 */}
+          <div className="flex justify-end gap-2">
+            <button
+              onClick={() => setShowHistory(true)}
+              className="text-xs text-slate-500 hover:text-slate-700 flex items-center gap-1 px-2.5 py-1.5 rounded-lg hover:bg-slate-100 transition-colors"
+            >
+              <History className="w-3.5 h-3.5" /> 분석 이력
+            </button>
             <button
               onClick={() => setShowSopManager(true)}
               className="text-xs text-slate-500 hover:text-slate-700 flex items-center gap-1 px-2.5 py-1.5 rounded-lg hover:bg-slate-100 transition-colors"
@@ -613,6 +622,21 @@ export default function PovAnalysis() {
       {/* SOP 관리 모달 */}
       {showSopManager && (
         <SopManager onClose={() => setShowSopManager(false)} />
+      )}
+
+      {showHistory && (
+        <AnalysisHistory
+          procedureId={selectedProcedure?.id}
+          onViewReport={(histReport) => {
+            setReport(histReport);
+            setShowHistory(false);
+            // 이력에서 선택한 리포트의 절차를 찾아 설정
+            const matchProc = HPO_PROCEDURES.find(p => p.id === histReport.procedureId);
+            if (matchProc) setSelectedProcedure(matchProc);
+            setPhase("report");
+          }}
+          onClose={() => setShowHistory(false)}
+        />
       )}
     </div>
   );

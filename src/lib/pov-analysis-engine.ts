@@ -35,6 +35,7 @@ import { getGoldStandard, getBestGoldStandard, getOrFetchEmbeddings } from './po
 import { TWELVELABS_INDEXES } from './constants';
 import { createLogger } from './logger';
 import { getCachedReport, cacheReport } from './pov-analysis-cache';
+import { saveReport as saveReportToHistory } from './pov-analysis-history';
 
 const log = createLogger('PovAnalysisEngine');
 
@@ -521,6 +522,14 @@ async function runPipeline(job: AnalysisJob): Promise<void> {
 
   // 분석 결과 캐시 저장 (동일 영상 재분석 방지)
   cacheReport(job.videoId, job.procedureId, report, PIPELINE_VERSION);
+
+  // 분석 이력 영속 저장 (서버 재시작 후에도 유지)
+  try {
+    saveReportToHistory(report);
+    log.info('분석 이력 저장 완료', { reportId: report.id, procedureId: report.procedureId });
+  } catch (err) {
+    log.warn('분석 이력 저장 실패 (분석 결과에는 영향 없음)', { error: err });
+  }
 
   job.result = report;
   job.status = 'complete';
