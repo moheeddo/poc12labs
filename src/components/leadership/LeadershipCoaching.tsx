@@ -39,7 +39,7 @@ import {
   TWELVELABS_INDEXES,
   LEADERSHIP_COMPETENCY_DEFS,
 } from "@/lib/constants";
-import { loadAllSessions, saveSession, deleteSession } from "@/lib/group-store";
+import { loadAllSessions, loadSession as loadSessionFromStore, saveSession, deleteSession } from "@/lib/group-store";
 import type { GroupSession } from "@/lib/group-types";
 import type { SpeakerScore, LeadershipCompetencyKey } from "@/lib/types";
 
@@ -353,7 +353,8 @@ export default function LeadershipCoaching() {
         onBack={() => setView({ type: "group-manage", sessionId: view.sessionId })}
         onAnalysisComplete={(payload) => {
           // 분석 결과를 GroupSession.competencies[].memberScores에 자동 반영
-          const sess = groupSessions.find((s) => s.id === view.sessionId);
+          // stale 클로저 방지: localStorage에서 최신 세션을 직접 로드
+          const sess = loadSessionFromStore(view.sessionId);
           if (!sess) return;
           const updated = { ...sess, competencies: sess.competencies.map((c) => ({ ...c })) };
           const compIdx = updated.competencies.findIndex((c) => c.competencyKey === view.competencyKey);
@@ -370,7 +371,8 @@ export default function LeadershipCoaching() {
           };
           updated.competencies[compIdx] = comp;
           saveSession(updated);
-          setGroupSessions((prev) => prev.map((s) => (s.id === updated.id ? updated : s)));
+          // 상태도 즉시 갱신 — 뒤로가기 시 최신 점수가 보이도록
+          setGroupSessions(loadAllSessions());
         }}
       />
     );

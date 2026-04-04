@@ -386,9 +386,11 @@ export default function LeadershipFeedback({
     const isFullyDone = !analysisLoading && analysisPhase >= 6
       && (!mmStarted || mmProgress.phase === "done" || mmProgress.phase === "error");
     if (isFullyDone && evidence.length > 0 && !autoSaveToast) {
+      // 선택된 역량 키도 함께 저장 (대시보드 표시용)
+      const primaryCompetency = selectedCompetencies?.[0] || (evidence[0]?.competencyKey ?? "");
       localStorage.setItem(
         `evidence-${videoId}`,
-        JSON.stringify({ videoId, videoTitle, evidence, savedAt: new Date().toISOString(), autoSaved: true })
+        JSON.stringify({ videoId, videoTitle, competencyKey: primaryCompetency, evidence, savedAt: new Date().toISOString(), autoSaved: true })
       );
       setAutoSaveToast(true);
       setTimeout(() => setAutoSaveToast(false), 4000);
@@ -518,13 +520,14 @@ export default function LeadershipFeedback({
   }, []);
 
   const handleSave = useCallback(() => {
+    const primaryCompetency = selectedCompetencies?.[0] || (evidence[0]?.competencyKey ?? "");
     localStorage.setItem(
       `evidence-${videoId}`,
-      JSON.stringify({ videoId, videoTitle, evidence, savedAt: new Date().toISOString() })
+      JSON.stringify({ videoId, videoTitle, competencyKey: primaryCompetency, evidence, savedAt: new Date().toISOString() })
     );
     setSaved(true);
     setTimeout(() => setSaved(false), 3000);
-  }, [videoId, videoTitle, evidence]);
+  }, [videoId, videoTitle, evidence, selectedCompetencies]);
 
   // handleSearch: 향후 검색 UI 연동을 위해 보존 (현재 미사용)
   // const handleSearch = useCallback(

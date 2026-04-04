@@ -1,5 +1,39 @@
 # Maintenance Log
 
+## 2026-04-04 사이클 26 — 점수 즉시 반영 + 개별 분석 대시보드 연동 + 일괄 분석 안내
+
+### 구현 내용 (우선순위: 2 > 1 > 3)
+
+#### 2. 분석 완료 후 뒤로가기 시 점수 즉시 반영 (최우선)
+- onAnalysisComplete 콜백에서 stale 클로저 문제 해결
+- 기존: `groupSessions.find()` — 클로저 시점의 오래된 상태 참조 가능
+- 개선: `loadSessionFromStore(sessionId)` — localStorage에서 최신 세션을 직접 로드
+- 갱신 후 `setGroupSessions(loadAllSessions())` — 전체 상태를 최신으로 동기화
+- 뒤로가기 시 GroupManager에 전달되는 session props가 확실히 최신 점수를 포함
+
+#### 1. 개별 분석 결과 대시보드 반영 보장
+- LeadershipFeedback 자동 저장/수동 저장 시 `competencyKey`를 최상위 레벨에도 저장
+- Dashboard에서 evidence 읽기 시 최상위 `competencyKey` 또는 배열 내 첫 항목에서 fallback 추출
+- 개별 분석 모드의 결과가 대시보드 "최근 활동"에 정확한 역량명과 함께 표시
+
+#### 3. 전체 일괄 분석 안내 버튼
+- GroupManager에 "전체 분석 시작 (N명)" 안내 카드 추가
+- 영상이 업로드되었지만 미분석인 멤버가 2명 이상일 때 표시
+- "첫 번째 분석" 버튼: 미분석 멤버 중 첫 번째를 자동 선택하여 분석 화면 진입
+- 미분석 멤버 목록을 태그로 표시하여 한눈에 확인 가능
+
+### 검증
+- npx tsc --noEmit: 통과
+- npx next build: 통과
+
+### 변경 파일
+- src/components/leadership/LeadershipCoaching.tsx — stale 클로저 방지, loadSessionFromStore 사용
+- src/components/leadership/LeadershipFeedback.tsx — competencyKey 최상위 저장, selectedCompetencies deps 추가
+- src/components/dashboard/Dashboard.tsx — competencyKey fallback 로직 개선
+- src/components/leadership/GroupManager.tsx — 전체 일괄 분석 안내 UI 추가
+
+---
+
 ## 2026-04-04 사이클 25 — 분석 결과 자동 반영 + 상태 배지 + 진행률 바
 
 ### 구현 내용 (우선순위: B > A > C)

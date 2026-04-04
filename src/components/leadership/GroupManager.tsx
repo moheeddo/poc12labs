@@ -540,11 +540,55 @@ export default function GroupManager({
           </div>
         )}
 
+        {/* 전체 일괄 분석 안내 버튼 — 영상 올린 미분석 멤버가 2명 이상일 때 표시 */}
+        {(() => {
+          const unanalyzedWithVideo = session.members.filter((m) => {
+            const hasVideo = !!currentState?.memberVideos[m.id];
+            const isAnalyzed = currentState?.memberScores[m.id]?.analyzed;
+            return hasVideo && !isAnalyzed;
+          });
+          if (unanalyzedWithVideo.length < 2) return null;
+          return (
+            <div className="mt-4 bg-teal-50/60 border border-teal-200/40 rounded-xl p-4 animate-fade-in-up">
+              <div className="flex items-center justify-between gap-3">
+                <div className="flex items-center gap-2.5">
+                  <Play className="w-4 h-4 text-teal-600" />
+                  <div>
+                    <p className="text-sm font-semibold text-teal-700">전체 분석 시작 ({unanalyzedWithVideo.length}명)</p>
+                    <p className="text-xs text-teal-600/70 mt-0.5">각 멤버 카드의 &ldquo;분석 시작&rdquo; 버튼을 순서대로 클릭하세요</p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => {
+                    // 첫 번째 미분석 멤버의 분석 시작
+                    const first = unanalyzedWithVideo[0];
+                    const videoInfo = currentState?.memberVideos[first.id];
+                    if (videoInfo) {
+                      onAnalyzeMember(first.id, first.name, videoInfo.videoId, videoInfo.blobUrl, currentComp.key, scenarioText);
+                    }
+                  }}
+                  className="flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-medium bg-teal-600 text-white hover:bg-teal-500 transition-colors shrink-0"
+                >
+                  <Play className="w-3.5 h-3.5" />
+                  첫 번째 분석
+                </button>
+              </div>
+              <div className="mt-3 flex flex-wrap gap-1.5">
+                {unanalyzedWithVideo.map((m, i) => (
+                  <span key={m.id} className="text-xs bg-white text-teal-700 px-2 py-0.5 rounded-md border border-teal-200/50">
+                    {i + 1}. {m.name}
+                  </span>
+                ))}
+              </div>
+            </div>
+          );
+        })()}
+
         {/* 진행 버튼 */}
         <div className="flex items-center justify-between mt-6 pt-4 border-t border-slate-200/30">
-          <button onClick={() => goStep(session.currentStep - 1)} disabled={session.currentStep === 0} className="text-sm text-slate-500 hover:text-slate-700 disabled:opacity-30 transition-colors">← 이전 역량</button>
+          <button onClick={() => goStep(session.currentStep - 1)} disabled={session.currentStep === 0} className="text-sm text-slate-500 hover:text-slate-700 disabled:opacity-30 transition-colors">&larr; 이전 역량</button>
           <div className="text-sm text-slate-400">{uploadedCount}/{totalExpected}건 업로드</div>
-          <button onClick={() => goStep(session.currentStep + 1)} disabled={session.currentStep >= 3} className="text-sm font-medium text-teal-600 hover:text-teal-500 disabled:opacity-30 transition-colors">다음 역량 →</button>
+          <button onClick={() => goStep(session.currentStep + 1)} disabled={session.currentStep >= 3} className="text-sm font-medium text-teal-600 hover:text-teal-500 disabled:opacity-30 transition-colors">다음 역량 &rarr;</button>
         </div>
       </div>
     </div>

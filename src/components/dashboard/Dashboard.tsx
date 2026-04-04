@@ -67,7 +67,8 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
         try {
           const data = JSON.parse(raw);
           const videoTitle = data.videoTitle || "영상";
-          const competencyKey = data.competencyKey || "";
+          // 최상위 competencyKey 또는 evidence 배열 내 첫 번째 항목에서 추출
+          const competencyKey = data.competencyKey || (data.evidence?.[0]?.competencyKey) || "";
           const compLabel = LEADERSHIP_COMPETENCY_DEFS.find((d) => d.key === competencyKey)?.label || "";
           // 타임스탬프 추출 (evidence-{videoId} 형태이므로 저장 시점을 추정)
           const ts = data.savedAt ? new Date(data.savedAt).getTime() : Date.now() - Math.random() * 3600000;
