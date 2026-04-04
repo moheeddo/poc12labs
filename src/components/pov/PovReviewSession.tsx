@@ -60,6 +60,42 @@ export default function PovReviewSession({
     new Set(procedure.sections.map((s) => s.id))
   );
 
+  // ── AI 판정 오버라이드 상태 ──
+  const [overrides, setOverrides] = useState<Record<string, {
+    originalStatus: string;
+    newStatus: string;
+    reason: string;
+  }>>({});
+
+  // 오버라이드 상태 변경
+  const updateOverrideStatus = useCallback((stepId: string, originalStatus: string, newStatus: string) => {
+    setOverrides((prev) => ({
+      ...prev,
+      [stepId]: {
+        originalStatus,
+        newStatus,
+        reason: prev[stepId]?.reason || "",
+      },
+    }));
+  }, []);
+
+  // 오버라이드 사유 변경
+  const updateOverrideReason = useCallback((stepId: string, reason: string) => {
+    setOverrides((prev) => {
+      if (!prev[stepId]) return prev;
+      return { ...prev, [stepId]: { ...prev[stepId], reason } };
+    });
+  }, []);
+
+  // 오버라이드 제거 (원래 판정으로 복원)
+  const clearOverride = useCallback((stepId: string) => {
+    setOverrides((prev) => {
+      const next = { ...prev };
+      delete next[stepId];
+      return next;
+    });
+  }, []);
+
   // 항목 스크롤 ref
   const itemRefs = useRef<Record<string, HTMLDivElement | null>>({});
 
@@ -119,37 +155,61 @@ export default function PovReviewSession({
     setActionItems((prev) => prev.filter((_, i) => i !== index));
   }, []);
 
-  // ── 미흡 항목 (빠른 이동용) ──
-  const issueItems = useMemo(() =>
-    report.stepEvaluations.filter((e) => e.status === "fail" || e.status === "partial"),
-    [report.stepEvaluations]
-  );
+  // ── 미흡 항목 (빠른 이동용, 신뢰도 < 60 우선 정렬) ──
+  const issueItems = useMemo(() => {
+    const items = report.stepEvaluations.filter((e) => {
+      const ov = overrides[e.stepId];
+      const effStatus = ov ? ov.newStatus : e.status;
+      return effStatus === "fail" || effStatus === "partial";
+    });
+    // 신뢰도 낮은 항목(인간 검토 필요)을 먼저 표시
+    return items.sort((a, b) => {
+      const aLow = a.confidence < 60 ? 0 : 1;
+      const bLow = b.confidence < 60 ? 0 : 1;
+      return aLow - bLow;
+    });
+  }, [report.stepEvaluations, overrides]);
+
+  // ── 실효 상태 계산 (오버라이드 반영) ──
+  const getEffectiveStatus = useCallback((evalItem: StepEvaluation): StepEvaluation["status"] => {
+    const ov = overrides[evalItem.stepId];
+    if (ov) return ov.newStatus as StepEvaluation["status"];
+    return evalItem.status;
+  }, [overrides]);
 
   // ── 필터링된 항목 ──
   const getFilteredEvals = useCallback((sectionStepIds: string[]) => {
     return report.stepEvaluations.filter((e) => {
       if (!sectionStepIds.includes(e.stepId)) return false;
+      const effStatus = getEffectiveStatus(e);
       switch (filter) {
-        case "fail": return e.status === "fail";
-        case "partial": return e.status === "partial";
-        case "undiscussed": return !discussedSteps.has(e.stepId) && (e.status === "fail" || e.status === "partial");
+        case "fail": return effStatus === "fail";
+        case "partial": return effStatus === "partial";
+        case "undiscussed": return !discussedSteps.has(e.stepId) && (effStatus === "fail" || effStatus === "partial");
         case "flagged": return flaggedSteps.has(e.stepId);
         default: return true;
       }
     });
-  }, [report.stepEvaluations, filter, discussedSteps, flaggedSteps]);
+  }, [report.stepEvaluations, filter, discussedSteps, flaggedSteps, getEffectiveStatus]);
 
   // ── 통계 ──
   const stats = useMemo(() => {
     const total = report.stepEvaluations.length;
-    const failCount = report.stepEvaluations.filter((e) => e.status === "fail").length;
-    const partialCount = report.stepEvaluations.filter((e) => e.status === "partial").length;
+    const overrideCount = Object.keys(overrides).length;
+    const failCount = report.stepEvaluations.filter((e) => {
+      const ov = overrides[e.stepId];
+      return (ov ? ov.newStatus : e.status) === "fail";
+    }).length;
+    const partialCount = report.stepEvaluations.filter((e) => {
+      const ov = overrides[e.stepId];
+      return (ov ? ov.newStatus : e.status) === "partial";
+    }).length;
     const issueCount = failCount + partialCount;
     const discussed = discussedSteps.size;
     const flagged = flaggedSteps.size;
     const feedbackCount = Object.values(feedbacks).filter((f) => f.trim()).length;
-    return { total, failCount, partialCount, issueCount, discussed, flagged, feedbackCount };
-  }, [report.stepEvaluations, discussedSteps, flaggedSteps, feedbacks]);
+    return { total, failCount, partialCount, issueCount, discussed, flagged, feedbackCount, overrideCount };
+  }, [report.stepEvaluations, overrides, discussedSteps, flaggedSteps, feedbacks]);
 
   const gradeInfo = getGradeForScore(report.overallScore);
 
@@ -351,10 +411,14 @@ export default function PovReviewSession({
                           isDiscussed={discussedSteps.has(evalItem.stepId)}
                           isFlagged={flaggedSteps.has(evalItem.stepId)}
                           feedback={feedbacks[evalItem.stepId] || ""}
+                          override={overrides[evalItem.stepId]}
                           onSeek={(time) => seekTo(time, evalItem.stepId)}
                           onFeedbackChange={(text) => updateFeedback(evalItem.stepId, text)}
                           onToggleDiscussed={() => toggleDiscussed(evalItem.stepId)}
                           onToggleFlagged={() => toggleFlagged(evalItem.stepId)}
+                          onOverrideStatus={(newStatus) => updateOverrideStatus(evalItem.stepId, evalItem.status, newStatus)}
+                          onOverrideReason={(reason) => updateOverrideReason(evalItem.stepId, reason)}
+                          onClearOverride={() => clearOverride(evalItem.stepId)}
                           ref={(el) => { itemRefs.current[evalItem.stepId] = el; }}
                         />
                       ))}
@@ -458,6 +522,37 @@ export default function PovReviewSession({
             </div>
           </div>
         )}
+
+        {/* 모범사례 등록 추천 (85점 이상) */}
+        {report.overallScore >= 85 && (
+          <div className="mt-6 p-4 rounded-xl bg-emerald-500/5 border border-emerald-500/20">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-emerald-400 font-semibold">모범사례 등록 추천</p>
+                <p className="text-xs text-zinc-400">이 영상은 등급 {report.grade}로 골드스탠다드 후보입니다.</p>
+              </div>
+              <button
+                onClick={async () => {
+                  try {
+                    await fetch('/api/twelvelabs/gold-standard', {
+                      method: 'POST',
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify({
+                        procedureId: report.procedureId,
+                        videoId: report.videoId,
+                        averageScore: report.overallScore,
+                      }),
+                    });
+                    alert('골드스탠다드로 등록되었습니다.');
+                  } catch { alert('등록 실패'); }
+                }}
+                className="px-4 py-2 bg-emerald-500/20 border border-emerald-500/40 rounded-lg text-emerald-400 text-sm hover:bg-emerald-500/30 transition-colors"
+              >
+                골드스탠다드로 등록
+              </button>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* ── 하단 액션 바 ── */}
@@ -539,16 +634,29 @@ const ReviewItem = forwardRef<HTMLDivElement, {
   isDiscussed: boolean;
   isFlagged: boolean;
   feedback: string;
+  override?: { originalStatus: string; newStatus: string; reason: string };
   onSeek: (time: number) => void;
   onFeedbackChange: (text: string) => void;
   onToggleDiscussed: () => void;
   onToggleFlagged: () => void;
+  onOverrideStatus: (newStatus: string) => void;
+  onOverrideReason: (reason: string) => void;
+  onClearOverride: () => void;
 }>(function ReviewItem(
-  { evalItem, isActive, isDiscussed, isFlagged, feedback, onSeek, onFeedbackChange, onToggleDiscussed, onToggleFlagged },
+  {
+    evalItem, isActive, isDiscussed, isFlagged, feedback, override,
+    onSeek, onFeedbackChange, onToggleDiscussed, onToggleFlagged,
+    onOverrideStatus, onOverrideReason, onClearOverride,
+  },
   ref,
 ) {
-  const cfg = STATUS_CFG[evalItem.status];
+  // 실효 상태: 오버라이드 적용 시 해당 상태 사용
+  const effectiveStatus = (override?.newStatus ?? evalItem.status) as keyof typeof STATUS_CFG;
+  const cfg = STATUS_CFG[effectiveStatus] ?? STATUS_CFG[evalItem.status];
+  const isOverridden = !!override;
+  const isLowConfidence = evalItem.confidence < 60;
   const [showFeedback, setShowFeedback] = useState(!!feedback || isActive);
+  const [showOverride, setShowOverride] = useState(false);
 
   // active 될 때 피드백 입력란 자동 열기
   useEffect(() => {
@@ -562,6 +670,7 @@ const ReviewItem = forwardRef<HTMLDivElement, {
         "px-4 py-3 transition-all duration-300",
         isActive && "bg-amber-500/5 ring-1 ring-inset ring-amber-500/20",
         isDiscussed && !isActive && "bg-teal-500/[0.02]",
+        isOverridden && "bg-violet-500/[0.03]",
       )}
     >
       {/* 상단: 상태 + 설명 + 타임스탬프 */}
@@ -570,7 +679,28 @@ const ReviewItem = forwardRef<HTMLDivElement, {
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 flex-wrap mb-0.5">
             <span className="font-mono text-sm text-amber-500/60">{evalItem.stepId}</span>
-            <span className={cn("text-sm px-1.5 py-0.5 rounded", cfg.bg, cfg.color)}>{cfg.label}</span>
+            {/* 원래 판정 표시 (오버라이드 시 취소선) */}
+            {isOverridden ? (
+              <>
+                <span className={cn("text-sm px-1.5 py-0.5 rounded opacity-40 line-through", STATUS_CFG[evalItem.status as keyof typeof STATUS_CFG]?.bg, STATUS_CFG[evalItem.status as keyof typeof STATUS_CFG]?.color)}>
+                  {STATUS_CFG[evalItem.status as keyof typeof STATUS_CFG]?.label}
+                </span>
+                <span className={cn("text-sm px-1.5 py-0.5 rounded", cfg.bg, cfg.color)}>
+                  {cfg.label}
+                </span>
+                <span className="text-sm px-1.5 py-0.5 rounded bg-violet-500/10 text-violet-400">
+                  수동 조정
+                </span>
+              </>
+            ) : (
+              <span className={cn("text-sm px-1.5 py-0.5 rounded", cfg.bg, cfg.color)}>{cfg.label}</span>
+            )}
+            {/* 신뢰도 낮음 경고 */}
+            {isLowConfidence && !isOverridden && (
+              <span className="text-sm px-1.5 py-0.5 rounded bg-orange-500/10 text-orange-400 flex items-center gap-0.5">
+                <AlertTriangle className="w-2.5 h-2.5" /> 검토 필요
+              </span>
+            )}
             {isDiscussed && (
               <span className="text-sm px-1.5 py-0.5 rounded bg-teal-50 text-teal-600 flex items-center gap-0.5">
                 <CheckCircle2 className="w-2.5 h-2.5" /> 논의완료
@@ -587,6 +717,13 @@ const ReviewItem = forwardRef<HTMLDivElement, {
             <p className="text-sm text-red-400/70 mt-1 flex items-start gap-1">
               <Sparkles className="w-3 h-3 mt-0.5 shrink-0" />
               {evalItem.note}
+            </p>
+          )}
+          {/* 오버라이드 사유 표시 */}
+          {isOverridden && override?.reason && (
+            <p className="text-sm text-violet-400/70 mt-1 flex items-start gap-1">
+              <MessageSquare className="w-3 h-3 mt-0.5 shrink-0" />
+              {override.reason}
             </p>
           )}
         </div>
@@ -607,14 +744,73 @@ const ReviewItem = forwardRef<HTMLDivElement, {
               {formatTime(evalItem.timestamp)}
             </button>
           )}
-          <span className="text-sm text-slate-400">
+          <span className={cn(
+            "text-sm",
+            isLowConfidence ? "text-orange-400 font-medium" : "text-slate-400",
+          )}>
             신뢰도 {evalItem.confidence}%
           </span>
         </div>
       </div>
 
+      {/* AI 판정 오버라이드 패널 */}
+      {showOverride && (
+        <div className="mt-2 ml-7 p-3 rounded-lg bg-violet-500/5 border border-violet-500/20 space-y-2 animate-fade-in-up">
+          <p className="text-sm text-violet-400 font-medium flex items-center gap-1.5">
+            <AlertTriangle className="w-3 h-3" /> AI 판정 수동 조정
+          </p>
+          <div className="flex items-center gap-2">
+            <label className="text-sm text-slate-500 w-12 shrink-0">판정:</label>
+            <select
+              value={override?.newStatus ?? evalItem.status}
+              onChange={(e) => onOverrideStatus(e.target.value)}
+              className="flex-1 bg-white border border-slate-200 rounded-md px-2 py-1 text-sm text-slate-700 focus:outline-none focus:border-violet-500/40"
+            >
+              <option value="pass">적합 (pass)</option>
+              <option value="partial">부분적합 (partial)</option>
+              <option value="fail">부적합 (fail)</option>
+              <option value="skipped">미수행 (skipped)</option>
+            </select>
+            {isOverridden && (
+              <button
+                onClick={() => { onClearOverride(); setShowOverride(false); }}
+                className="px-2 py-1 rounded-md text-sm text-red-400 hover:bg-red-500/10 border border-red-500/20 transition-colors"
+              >
+                원래대로
+              </button>
+            )}
+          </div>
+          <div>
+            <input
+              type="text"
+              value={override?.reason ?? ""}
+              onChange={(e) => {
+                if (!override) onOverrideStatus(evalItem.status);
+                onOverrideReason(e.target.value);
+              }}
+              placeholder="조정 사유를 입력하세요..."
+              className="w-full bg-white border border-slate-200 rounded-md px-2 py-1 text-sm text-slate-700 placeholder:text-slate-400 focus:outline-none focus:border-violet-500/40"
+            />
+          </div>
+        </div>
+      )}
+
       {/* 하단: 피드백 입력 + 토글 버튼 */}
       <div className="mt-2 ml-7">
+        {/* AI 오버라이드 버튼 */}
+        <button
+          onClick={() => setShowOverride((v) => !v)}
+          className={cn(
+            "mb-1.5 text-sm flex items-center gap-1 transition-colors",
+            showOverride || isOverridden
+              ? "text-violet-400 hover:text-violet-500"
+              : "text-slate-400/60 hover:text-violet-400",
+          )}
+        >
+          <AlertTriangle className="w-3 h-3" />
+          {isOverridden ? "판정 조정됨 (수정)" : "AI 판정 조정"}
+        </button>
+
         {/* 피드백 토글 */}
         {!showFeedback ? (
           <button
