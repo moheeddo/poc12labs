@@ -1,5 +1,37 @@
 # Maintenance Log
 
+## 2026-04-04 사이클 22 — 빌드 검증 + MemberReportModal 기능 점검/수정
+
+### 1. 빌드 + 타입 검증
+- `npx tsc --noEmit`: 통과 (0 errors)
+- `npx next build`: 통과 (15 라우트 정상)
+- Vercel 프로젝트 연결 확인 완료
+
+### 2. GroupDashboard MemberReportModal 코드 검증 결과
+- **MemberReportModal 정의**: 정상 (65~288행, 독립 함수 컴포넌트)
+- **인쇄 시 body 클래스**: `print-member-report-active` 추가/제거 정상 (useEffect cleanup 확인)
+- **모달 닫기 cleanup**: `onClose` 콜백으로 `setReportMemberId(null)` 정상
+- **ESC 키 닫기**: 미구현 발견 → **수정 완료** (keydown 이벤트 리스너 추가)
+
+### 3. 인쇄 CSS 셀렉터 수정
+- **문제**: `body.print-member-report-active > *:not(.print-member-report-overlay)` 셀렉터가 Next.js `#__next` 중첩 구조에서 작동 불가 — 모달이 body 직접 자식이 아니므로 `#__next` 전체가 숨겨짐
+- **수정**: `visibility: hidden/visible` 기반 방식으로 변경 — 모든 요소를 숨기고 `.print-member-report-overlay`와 그 자식만 visible로 복원
+- 이 방식은 DOM 중첩 깊이에 무관하게 안전하게 작동
+
+### 4. 파일 크기 점검
+| 파일 | 행 수 | 판단 |
+|------|-------|------|
+| GroupDashboard.tsx | 689 | 적정 (모달 포함) |
+| LeadershipFeedback.tsx | 1437 | 다소 큼 (리팩토링 후보) |
+| GroupManager.tsx | 550 | 적정 |
+| globals.css | 659 | 적정 |
+
+### 5. 변경 파일
+- `src/components/leadership/GroupDashboard.tsx` — ESC 키 닫기 useEffect 추가 (9행 추가)
+- `src/app/globals.css` — 인쇄 모달 CSS 셀렉터 수정 (visibility 기반으로 변경)
+
+---
+
 ## 2026-04-04 사이클 21 — 조 대시보드 PDF 보고서 고도화
 
 ### 1. 전체 보고서 인쇄 레이아웃 강화
