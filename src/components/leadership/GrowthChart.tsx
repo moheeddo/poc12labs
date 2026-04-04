@@ -98,32 +98,11 @@ function CustomTooltip({ active, payload, label }: {
 
 // ─── 메인 컴포넌트 ───
 export default function GrowthChart({ timeline, loading = false }: GrowthChartProps) {
-  // 로딩
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center py-16">
-        <div className="flex flex-col items-center gap-3">
-          <div className="w-8 h-8 border-2 border-teal-500/30 border-t-teal-400 rounded-full animate-spin" />
-          <p className="text-sm text-slate-500">성장 데이터 로딩 중...</p>
-        </div>
-      </div>
-    );
-  }
-
-  // 데이터 없음 또는 포인트 부족
-  if (!timeline || timeline.dataPoints.length < 2) {
-    return (
-      <div className="flex flex-col items-center justify-center py-16 gap-3">
-        <AlertCircle className="w-10 h-10 text-slate-600" />
-        <p className="text-sm text-slate-500">2회 이상 평가 데이터가 필요합니다</p>
-        {timeline && timeline.dataPoints.length === 1 && (
-          <p className="text-xs text-slate-600">현재 1회 데이터만 있습니다</p>
-        )}
-      </div>
-    );
-  }
-
-  const { dataPoints, trends, plateauCompetencies, breakthroughCompetencies, employeeName } = timeline;
+  // 훅은 조건문 전에 모두 선언 (Rules of Hooks)
+  const dataPoints = timeline?.dataPoints ?? [];
+  const trends = timeline?.trends ?? [];
+  const plateauCompetencies = timeline?.plateauCompetencies ?? [];
+  const breakthroughCompetencies = timeline?.breakthroughCompetencies ?? [];
 
   // recharts용 데이터 변환
   const chartData = useMemo(
@@ -152,6 +131,33 @@ export default function GrowthChart({ timeline, loading = false }: GrowthChartPr
     }
     return m;
   }, [trends]);
+
+  // 로딩
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-16">
+        <div className="flex flex-col items-center gap-3">
+          <div className="w-8 h-8 border-2 border-teal-500/30 border-t-teal-400 rounded-full animate-spin" />
+          <p className="text-sm text-slate-500">성장 데이터 로딩 중...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // 데이터 없음 또는 포인트 부족
+  if (!timeline || dataPoints.length < 2) {
+    return (
+      <div className="flex flex-col items-center justify-center py-16 gap-3">
+        <AlertCircle className="w-10 h-10 text-slate-600" />
+        <p className="text-sm text-slate-500">2회 이상 평가 데이터가 필요합니다</p>
+        {timeline && dataPoints.length === 1 && (
+          <p className="text-xs text-slate-600">현재 1회 데이터만 있습니다</p>
+        )}
+      </div>
+    );
+  }
+
+  const { employeeName } = timeline;
 
   return (
     <div className="space-y-6">

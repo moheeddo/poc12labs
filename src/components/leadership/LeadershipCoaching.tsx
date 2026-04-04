@@ -42,6 +42,26 @@ import {
 import { loadAllSessions, loadSession as loadSessionFromStore, saveSession, deleteSession } from "@/lib/group-store";
 import type { GroupSession } from "@/lib/group-types";
 import type { SpeakerScore, LeadershipCompetencyKey } from "@/lib/types";
+import ConsentForm from "./ConsentForm";
+import HRConnectorPanel from "./HRConnectorPanel";
+import EvidenceMapView from "./EvidenceMapView";
+import DerailerDashboard from "./DerailerDashboard";
+import BEITimeline from "./BEITimeline";
+import GrowthChart from "./GrowthChart";
+import ValidationConsole from "./ValidationConsole";
+import FairnessMonitor from "./FairnessMonitor";
+import ISOAuditView from "./ISOAuditView";
+import IntegratedReport from "./IntegratedReport";
+import { useEvidence } from "@/hooks/useEvidence";
+import { useDerailer } from "@/hooks/useDerailer";
+import { useBEI } from "@/hooks/useBEI";
+import { useGrowth } from "@/hooks/useGrowth";
+import { useValidation } from "@/hooks/useValidation";
+import { useFairness } from "@/hooks/useFairness";
+import { useCompliance } from "@/hooks/useCompliance";
+import { migrateFromLocalStorage } from "@/lib/assessment-store";
+import { setAuditPersistence } from "@/lib/audit-logger";
+import { addAuditEntry } from "@/lib/assessment-store";
 
 // ─── 역량 아이콘 매핑 ───
 const COMPETENCY_ICONS: Record<string, React.ElementType> = {
@@ -92,6 +112,26 @@ function generateGrowthData() {
 
 export default function LeadershipCoaching() {
   const [view, setView] = useState<ViewState>({ type: "main" });
+
+  // 분석 서브탭 상태
+  const [analysisSubTab, setAnalysisSubTab] = useState<
+    "competency" | "evidence" | "derailer" | "bei" | "growth" | "validation" | "fairness" | "iso" | "report" | "consent"
+  >("competency");
+
+  // 새 모듈 훅
+  const evidence = useEvidence();
+  const derailer = useDerailer();
+  const bei = useBEI();
+  const growth = useGrowth();
+  const validation = useValidation();
+  const fairness = useFairness();
+  const compliance = useCompliance();
+
+  // IndexedDB 마이그레이션 + 감사 로거 연결
+  useEffect(() => {
+    migrateFromLocalStorage();
+    setAuditPersistence((entry) => addAuditEntry(entry).then(() => void 0));
+  }, []);
 
   // 조 세션 관리
   const [groupSessions, setGroupSessions] = useState<GroupSession[]>([]);
@@ -760,6 +800,106 @@ export default function LeadershipCoaching() {
             <span className="text-sm opacity-80">({selectedCompetencies.size}개 역량)</span>
           )}
         </button>
+      </div>
+
+      {/* ── 분석 서브탭 (심층 분석 뷰) ── */}
+      <div className="space-y-4">
+        <h3 className="text-base font-semibold text-slate-700 flex items-center gap-2">
+          <Sparkles className="w-4 h-4 text-teal-600" />
+          심층 분석 뷰
+        </h3>
+        {/* 서브탭 내비게이션 — 행 1: 핵심 분석 */}
+        <div className="space-y-1">
+          <div className="flex flex-wrap gap-1 p-1 rounded-lg bg-slate-50/60 border border-slate-200/40">
+            {[
+              { key: "competency", label: "역량평가", color: "teal" },
+              { key: "evidence", label: "증거맵", color: "teal" },
+              { key: "derailer", label: "탈선탐지", color: "orange" },
+              { key: "bei", label: "BEI", color: "purple" },
+              { key: "growth", label: "성장추이", color: "blue" },
+              { key: "validation", label: "타당화", color: "slate" },
+              { key: "fairness", label: "공정성", color: "rose" },
+              { key: "iso", label: "ISO감사", color: "slate" },
+              { key: "report", label: "통합리포트", color: "teal" },
+              { key: "consent", label: "동의/HR", color: "slate" },
+            ].map((tab) => {
+              const colorMap: Record<string, string> = {
+                teal: "bg-teal-500/20 text-teal-600",
+                orange: "bg-orange-500/20 text-orange-600",
+                purple: "bg-purple-500/20 text-purple-600",
+                blue: "bg-blue-500/20 text-blue-600",
+                rose: "bg-rose-500/20 text-rose-600",
+                slate: "bg-slate-200 text-slate-600",
+              };
+              return (
+                <button
+                  key={tab.key}
+                  onClick={() => setAnalysisSubTab(tab.key as typeof analysisSubTab)}
+                  className={`px-3 py-1.5 text-xs rounded-md transition-colors font-medium ${
+                    analysisSubTab === tab.key
+                      ? colorMap[tab.color]
+                      : "text-slate-400 hover:text-slate-600"
+                  }`}
+                >
+                  {tab.label}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* 서브탭 콘텐츠 */}
+        {analysisSubTab === "competency" && (
+          <div className="bg-white border border-slate-200/30 rounded-xl p-5 text-center text-slate-400 text-sm">
+            영상을 업로드하고 역량을 선택한 뒤 AI 분석을 시작하면 역량 평가 결과가 표시됩니다.
+          </div>
+        )}
+        {analysisSubTab === "evidence" && (
+          <EvidenceMapView evidenceMap={evidence.evidenceMap} loading={evidence.loading} />
+        )}
+        {analysisSubTab === "derailer" && (
+          <DerailerDashboard profile={derailer.profile} loading={derailer.loading} />
+        )}
+        {analysisSubTab === "bei" && (
+          <BEITimeline analysis={bei.analysis} loading={bei.loading} />
+        )}
+        {analysisSubTab === "growth" && (
+          <GrowthChart timeline={growth.timeline} loading={growth.loading} />
+        )}
+        {analysisSubTab === "validation" && (
+          <ValidationConsole
+            report={validation.report}
+            norms={validation.norms}
+            loading={validation.loading}
+          />
+        )}
+        {analysisSubTab === "fairness" && (
+          <FairnessMonitor report={fairness.report} loading={fairness.loading} />
+        )}
+        {analysisSubTab === "iso" && (
+          <ISOAuditView auditEntries={[]} consents={[]} loading={compliance.loading} />
+        )}
+        {analysisSubTab === "report" && (
+          <IntegratedReport
+            competencyScores={{}}
+            competencyLabels={{}}
+            evidenceMaps={evidence.evidenceMap ? [evidence.evidenceMap] : []}
+            derailerProfile={derailer.profile}
+            beiAnalysis={bei.analysis}
+            triangulatedScores={compliance.triangulated ?? undefined}
+            normTable={validation.norms}
+          />
+        )}
+        {analysisSubTab === "consent" && (
+          <div className="space-y-4">
+            <ConsentForm
+              participantId="solo-user"
+              sessionId="main"
+              onComplete={() => {}}
+            />
+            <HRConnectorPanel onImport={() => {}} />
+          </div>
+        )}
       </div>
 
       {/* ── 9점 척도 안내 ── */}
