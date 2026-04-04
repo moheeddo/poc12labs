@@ -1,6 +1,9 @@
 'use client';
-import type { DetectedStep, SequenceAlignment, PovSopDeviation } from '@/lib/types';
+import { useState } from 'react';
+import type { DetectedStep, SequenceAlignment, PovSopDeviation, HpoToolResult, FundamentalScore } from '@/lib/types';
 import type { Procedure, ProcedureStep } from '@/lib/pov-standards';
+import { generateStepRubric, explainJudgment } from '@/lib/pov-rubrics';
+import { RCA_LABELS } from '@/lib/pov-rca';
 
 interface Props {
   detectedSteps: DetectedStep[];
@@ -8,6 +11,10 @@ interface Props {
   procedure: Procedure;
   videoDuration: number;
   onSeek: (time: number) => void;
+  /** HPO 도구 결과 (RCA 표시용 — 없으면 RCA 미표시) */
+  hpoResults?: HpoToolResult[];
+  /** 기본수칙 역량 (RCA 표시용 — 없으면 RCA 미표시) */
+  fundamentalScores?: FundamentalScore[];
 }
 
 // 절차의 모든 스텝을 평탄화하여 반환
@@ -32,6 +39,17 @@ function statusColor(status: DetectedStep['status'] | 'skipped'): string {
     case 'partial': return 'bg-amber-500';
     case 'skipped': return 'bg-zinc-600';
     default:        return 'bg-zinc-600';
+  }
+}
+
+// 상태별 텍스트 색상 (루브릭 패널용)
+function statusTextColor(status: string): string {
+  switch (status) {
+    case 'pass':    return 'text-emerald-400';
+    case 'partial': return 'text-amber-400';
+    case 'fail':    return 'text-red-400';
+    case 'skipped': return 'text-zinc-500';
+    default:        return 'text-zinc-500';
   }
 }
 
@@ -91,11 +109,26 @@ export default function StepsTimeline({
     alignment.deviations.flatMap((d) => d.stepIds)
   );
 
+  // 루브릭 토글 상태
+  const [expandedRubrics, setExpandedRubrics] = useState<Set<string>>(new Set());
+
+  const toggleRubric = (stepId: string) => {
+    setExpandedRubrics((prev) => {
+      const next = new Set(prev);
+      if (next.has(stepId)) {
+        next.delete(stepId);
+      } else {
+        next.add(stepId);
+      }
+      return next;
+    });
+  };
+
   const duration = videoDuration > 0 ? videoDuration : 1;
 
   return (
     <div className="flex flex-col gap-4">
-      {/* ── 타임라인 테이블 ── */}
+      {/* -- 타임라인 테이블 -- */}
       <div className="overflow-x-auto rounded-lg border border-zinc-700">
         <table className="w-full text-sm">
           <thead>
@@ -106,12 +139,13 @@ export default function StepsTimeline({
               <th className="px-3 py-2 text-center w-20">상태</th>
               <th className="px-3 py-2 text-center w-20">신뢰도</th>
               <th className="px-3 py-2 text-center w-20">이탈</th>
+              <th className="px-3 py-2 text-center w-10">루브릭</th>
             </tr>
           </thead>
           <tbody>
             {allSteps.map((step) => {
               const detected = detectedMap.get(step.id);
-              const status = detected ? detected.status : 'skipped';
+              const status: DetectedStep['status'] | 'skipped' = detected ? detected.status : 'skipped';
               const hasDeviation = deviationStepIds.has(step.id);
               const rowBg = hasDeviation
                 ? 'bg-red-950/40 hover:bg-red-950/60'
@@ -125,22 +159,31 @@ export default function StepsTimeline({
                 ? `${Math.max(1, ((detected.endTime - detected.timestamp) / duration) * 100)}%`
                 : '0%';
 
+              // 루브릭 생성
+              const rubric = generateStepRubric(step);
+              const isExpanded = expandedRubrics.has(step.id);
+
               return (
                 <tr
                   key={step.id}
-                  className={`border-b border-zinc-800 cursor-pointer transition-colors ${rowBg}`}
-                  onClick={() => detected && onSeek(detected.timestamp)}
+                  className={`border-b border-zinc-800 transition-colors ${rowBg}`}
                 >
                   {/* 스텝 ID + 중요 여부 */}
-                  <td className="px-3 py-2 font-mono text-zinc-400 whitespace-nowrap">
+                  <td
+                    className="px-3 py-2 font-mono text-zinc-400 whitespace-nowrap cursor-pointer"
+                    onClick={() => detected && onSeek(detected.timestamp)}
+                  >
                     {step.isCritical && (
-                      <span className="text-yellow-400 mr-1" title="중요 단계">★</span>
+                      <span className="text-yellow-400 mr-1" title="중요 단계">&#9733;</span>
                     )}
                     {step.id}
                   </td>
 
                   {/* 설명 */}
-                  <td className="px-3 py-2 text-zinc-200 text-xs leading-snug">
+                  <td
+                    className="px-3 py-2 text-zinc-200 text-xs leading-snug cursor-pointer"
+                    onClick={() => detected && onSeek(detected.timestamp)}
+                  >
                     <span>{step.description}</span>
                     {step.equipment && (
                       <span className="ml-1 text-zinc-500 font-mono">({step.equipment})</span>
@@ -148,7 +191,10 @@ export default function StepsTimeline({
                   </td>
 
                   {/* 타임라인 바 */}
-                  <td className="px-3 py-2">
+                  <td
+                    className="px-3 py-2 cursor-pointer"
+                    onClick={() => detected && onSeek(detected.timestamp)}
+                  >
                     <div className="relative h-4 bg-zinc-800 rounded overflow-hidden">
                       {detected && (
                         <div
@@ -181,6 +227,21 @@ export default function StepsTimeline({
                       <span className="inline-block w-2 h-2 rounded-full bg-red-400" title="이탈 발생" />
                     )}
                   </td>
+
+                  {/* 루브릭 토글 버튼 */}
+                  <td className="px-3 py-2 text-center">
+                    <button
+                      onClick={() => toggleRubric(step.id)}
+                      className={`inline-flex items-center justify-center w-5 h-5 rounded-full text-xs font-bold transition-colors ${
+                        isExpanded
+                          ? 'bg-blue-600 text-white'
+                          : 'bg-zinc-700 text-zinc-400 hover:bg-zinc-600 hover:text-zinc-200'
+                      }`}
+                      title="판정 기준(루브릭) 보기"
+                    >
+                      ?
+                    </button>
+                  </td>
                 </tr>
               );
             })}
@@ -188,7 +249,63 @@ export default function StepsTimeline({
         </table>
       </div>
 
-      {/* ── 이탈 요약 섹션 ── */}
+      {/* -- 루브릭 패널 (테이블 아래에 표시) -- */}
+      {Array.from(expandedRubrics).map((stepId) => {
+        const step = allSteps.find((s) => s.id === stepId);
+        if (!step) return null;
+
+        const rubric = generateStepRubric(step);
+        const detected = detectedMap.get(stepId);
+        const detectedStatus: DetectedStep['status'] | 'skipped' = detected ? detected.status : 'skipped';
+
+        return (
+          <div
+            key={`rubric-${stepId}`}
+            className="rounded-lg border border-zinc-700 bg-zinc-900/80 px-4 py-3 space-y-2"
+          >
+            <div className="flex items-center justify-between">
+              <p className="text-xs font-semibold text-zinc-400">
+                {stepId} 판정 기준 (루브릭)
+                {rubric.isCritical && (
+                  <span className="ml-2 text-yellow-400">&#9733; 핵심단계</span>
+                )}
+                <span className="ml-2 text-zinc-600 font-normal">장비유형: {rubric.equipmentType}</span>
+              </p>
+              <button
+                onClick={() => toggleRubric(stepId)}
+                className="text-zinc-500 hover:text-zinc-300 text-xs"
+              >
+                닫기
+              </button>
+            </div>
+
+            {rubric.levels.map((level) => (
+              <div
+                key={level.status}
+                className={`flex gap-2 text-xs p-2 rounded ${
+                  level.status === detectedStatus
+                    ? 'bg-zinc-800 border border-zinc-700'
+                    : ''
+                }`}
+              >
+                <span className={`w-16 font-semibold flex-shrink-0 ${statusTextColor(level.status)}`}>
+                  {level.label}
+                </span>
+                <span className="text-zinc-400 flex-1">{level.description}</span>
+                <span className="text-zinc-600 flex-shrink-0">증거: {level.evidence.join(', ')}</span>
+              </div>
+            ))}
+
+            {detected && (
+              <p className="text-[10px] text-blue-400 bg-blue-500/5 p-2 rounded whitespace-pre-line">
+                AI 판정: {explainJudgment(step, detected.status, detected.confidence / 100, detected.searchScore / 100)}
+              </p>
+            )}
+          </div>
+        );
+      })}
+
+      {/* -- 이탈 요약 섹션 -- */}
       {alignment.deviations.length > 0 && (
         <div className="rounded-lg border border-red-800/60 bg-red-950/20 p-4">
           <h3 className="text-sm font-semibold text-red-400 mb-3 flex items-center gap-2">
@@ -199,27 +316,52 @@ export default function StepsTimeline({
             {alignment.deviations.map((dev, i) => (
               <div
                 key={i}
-                className="flex items-start gap-3 text-xs text-zinc-300 bg-zinc-900/50 rounded px-3 py-2"
+                className="flex flex-col gap-1 text-xs text-zinc-300 bg-zinc-900/50 rounded px-3 py-2"
               >
-                <DeviationTypeBadge type={dev.type} />
-                <div className="flex-1">
-                  <span className="text-zinc-200">{dev.description}</span>
-                  <div className="mt-0.5 text-zinc-500 font-mono">
-                    스텝: {dev.stepIds.join(', ')}
-                    {dev.timestamp != null && ` | ${formatTime(dev.timestamp)}`}
+                <div className="flex items-start gap-3">
+                  <DeviationTypeBadge type={dev.type} />
+                  <div className="flex-1">
+                    <span className="text-zinc-200">{dev.description}</span>
+                    <div className="mt-0.5 text-zinc-500 font-mono">
+                      스텝: {dev.stepIds.join(', ')}
+                      {dev.timestamp != null && ` | ${formatTime(dev.timestamp)}`}
+                    </div>
                   </div>
+                  <span
+                    className={`text-xs px-1.5 py-0.5 rounded border font-medium ${
+                      dev.severity === 'critical'
+                        ? 'border-red-600 text-red-400'
+                        : dev.severity === 'major'
+                        ? 'border-orange-600 text-orange-400'
+                        : 'border-yellow-700 text-yellow-500'
+                    }`}
+                  >
+                    {dev.severity === 'critical' ? '심각' : dev.severity === 'major' ? '주요' : '경미'}
+                  </span>
                 </div>
-                <span
-                  className={`text-xs px-1.5 py-0.5 rounded border font-medium ${
-                    dev.severity === 'critical'
-                      ? 'border-red-600 text-red-400'
-                      : dev.severity === 'major'
-                      ? 'border-orange-600 text-orange-400'
-                      : 'border-yellow-700 text-yellow-500'
-                  }`}
-                >
-                  {dev.severity === 'critical' ? '심각' : dev.severity === 'major' ? '주요' : '경미'}
-                </span>
+
+                {/* RCA 근본원인 분석 */}
+                {dev.rootCause && (
+                  <div className="mt-1 pl-6 text-[10px] space-y-0.5">
+                    <p className="text-zinc-400">
+                      <span className="text-amber-400 font-semibold">원인: </span>
+                      {RCA_LABELS[dev.rootCause.category]} — {dev.rootCause.evidence}
+                    </p>
+                    <p className="text-emerald-400">
+                      <span className="font-semibold">개선: </span>{dev.rootCause.remediation}
+                    </p>
+                    {dev.rootCause.relatedHpoTool && (
+                      <p className="text-blue-400">
+                        <span className="font-semibold">관련 HPO: </span>{dev.rootCause.relatedHpoTool}
+                      </p>
+                    )}
+                    {dev.rootCause.relatedFundamental && (
+                      <p className="text-purple-400">
+                        <span className="font-semibold">관련 기본수칙: </span>{dev.rootCause.relatedFundamental}
+                      </p>
+                    )}
+                  </div>
+                )}
               </div>
             ))}
           </div>
