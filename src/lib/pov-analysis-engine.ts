@@ -26,6 +26,7 @@ import {
   calculateHpoScore,
   calculateFundamentalsScore,
   calculateOverallScore,
+  calculateQualityAdjustedScore,
   getGrade,
   applyGradeOverride,
 } from './pov-scoring';
@@ -427,11 +428,17 @@ async function runPipeline(job: AnalysisJob): Promise<void> {
   job.progress = 88;
 
   // 점수 계산
-  const procedureScore = calculateProcedureScore(
+  const rawProcedureScore = calculateProcedureScore(
     detectedSteps,
     procedure.totalSteps,
     sequenceAlignment.criticalDeviations
   );
+
+  // 품질 가중 절차 점수: 손-물체 이벤트의 평균 qualityScore를 20% 반영
+  const procedureScore = calculateQualityAdjustedScore(rawProcedureScore, handObjectEvents, 0.2);
+  if (procedureScore !== rawProcedureScore) {
+    log.info('품질 조정 절차 점수 적용', { rawProcedureScore, adjustedProcedureScore: procedureScore });
+  }
 
   const hpoScore = calculateHpoScore(hpoResults);
   const fundamentalsAvg = calculateFundamentalsScore(fundamentalScores);
@@ -599,20 +606,28 @@ function estimateDuration(steps: DetectedStep[]): number {
 
 // ── 손-물체 분석 프롬프트 / 파싱 ────────────────
 
-/** 특정 단계에 대한 손-물체 상호작용 분석 프롬프트 생성 */
+/** 특정 단계에 대한 손-물체 상호작용 분석 프롬프트 생성 (품질 평가 포함) */
 function buildHandObjectPrompt(step: DetectedStep): string {
-  return `Analyze the video segment from ${step.timestamp.toFixed(1)}s to ${step.endTime.toFixed(1)}s.
-Focus on the operator's hand-object interactions. Respond in JSON format:
-{
-  "heldObject": "what the operator is holding (e.g., valve handle, tool, procedure document)",
-  "targetEquipment": "the equipment or component being operated on",
-  "actionType": "the type of action (e.g., turning, pressing, checking, reading)",
-  "stateBefore": "state of the equipment before the action",
-  "stateAfter": "state of the equipment after the action",
-  "matchesSOP": true/false,
-  "confidence": 0-100
-}
-Only respond with the JSON object, no additional text.`;
+  return `This is a first-person POV video of a nuclear power plant operator.
+For the segment from ${step.timestamp.toFixed(1)}s to ${step.endTime.toFixed(1)}s, analyze in detail:
+
+1. What tool/object is the operator holding? (wrench, checklist, bare hands, radio, etc.)
+2. What equipment are they interacting with? (valve VG-003, pump panel, gauge, etc.)
+3. Equipment state BEFORE the action? (closed, off, normal range, etc.)
+4. Equipment state AFTER the action? (open, on, above threshold, etc.)
+5. Action type? (turn_valve, check_gauge, press_button, write_record, etc.)
+6. Does the action match standard operating procedure? (true/false)
+7. Confidence level of this analysis? (0-100)
+8. QUALITY ASSESSMENT (0-100): How precisely and completely was the action performed?
+   - 100: Perfect execution, deliberate and complete
+   - 80: Correct but slightly rushed
+   - 60: Correct but incomplete (e.g., valve not fully opened)
+   - 40: Attempted but significant errors
+   - 20: Incorrect technique or wrong equipment
+9. COACHING FEEDBACK: One specific improvement suggestion in Korean.
+
+Respond ONLY in JSON:
+{"heldObject":"...","targetEquipment":"...","stateBefore":"...","stateAfter":"...","actionType":"...","matchesSOP":true/false,"confidence":N,"qualityScore":N,"qualityFeedback":"..."}`;
 }
 
 /** Pegasus 응답에서 HandObjectEvent 파싱 */
@@ -639,6 +654,11 @@ function parseHandObjectResponse(data: {
       matchesSOP: parsed.matchesSOP ?? false,
       confidence: typeof parsed.confidence === 'number' ? parsed.confidence : 50,
       rawDescription: data.text,
+      // 품질 평가 필드 (고도화된 Pegasus 프롬프트 응답)
+      qualityScore: typeof parsed.qualityScore === 'number' ? parsed.qualityScore : undefined,
+      qualityFeedback: typeof parsed.qualityFeedback === 'string' && parsed.qualityFeedback
+        ? parsed.qualityFeedback
+        : undefined,
     };
   } catch {
     log.warn('손-물체 응답 파싱 실패', { stepId: data.stepId });

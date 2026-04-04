@@ -340,6 +340,7 @@ export interface DetectedStep {
   endTime: number;
   searchScore: number;
   thumbnailUrl?: string;
+  qualityAnalysis?: string;    // Pegasus 품질 분석 텍스트
 }
 
 export interface HandObjectEvent {
@@ -354,6 +355,8 @@ export interface HandObjectEvent {
   matchesSOP: boolean;
   confidence: number;
   rawDescription: string;
+  qualityScore?: number;       // 0-100, 조작 품질 점수
+  qualityFeedback?: string;    // 코칭 코멘트 ("밸브를 끝까지 열지 않음" 등)
 }
 
 export interface AlignmentPair {

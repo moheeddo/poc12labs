@@ -96,3 +96,20 @@ export function applyGradeOverride(grade: string, criticalDeviations: number): s
   if (criticalDeviations >= 3 && ['S', 'A', 'B', 'C'].includes(grade)) return 'D';
   return grade;
 }
+
+/**
+ * 품질 가중 절차 점수: 기존 pass/fail 비율에 평균 qualityScore를 블렌딩
+ * - qualityWeight: 0이면 기존과 동일, 0.3이면 품질이 30% 반영
+ * - qualityScore 데이터가 없으면 원점수를 그대로 반환
+ */
+export function calculateQualityAdjustedScore(
+  baseScore: number,
+  handObjectEvents: { qualityScore?: number }[],
+  qualityWeight: number = 0.2  // 기본 20% 반영
+): number {
+  const scored = handObjectEvents.filter(e => e.qualityScore !== undefined);
+  // 품질 데이터 없으면 원점수 유지
+  if (scored.length === 0) return baseScore;
+  const avgQuality = scored.reduce((sum, e) => sum + (e.qualityScore || 0), 0) / scored.length;
+  return Math.round(baseScore * (1 - qualityWeight) + avgQuality * qualityWeight);
+}

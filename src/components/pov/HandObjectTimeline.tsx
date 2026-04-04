@@ -103,6 +103,31 @@ export default function HandObjectTimeline({ events, currentTime, onSeek }: Prop
                 </span>
               </div>
 
+              {/* 품질 점수 + 코칭 코멘트 */}
+              {activeEvent.qualityScore !== undefined && (
+                <div className="flex flex-col gap-1.5 rounded bg-zinc-800 px-3 py-2">
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs text-zinc-500">조작 품질</span>
+                    <span
+                      className={`text-xs font-bold px-2 py-0.5 rounded ${
+                        activeEvent.qualityScore >= 90
+                          ? 'bg-emerald-500/20 text-emerald-400'
+                          : activeEvent.qualityScore >= 70
+                          ? 'bg-amber-500/20 text-amber-400'
+                          : 'bg-red-500/20 text-red-400'
+                      }`}
+                    >
+                      {activeEvent.qualityScore}점
+                    </span>
+                  </div>
+                  {activeEvent.qualityFeedback && (
+                    <div className="text-[11px] text-zinc-400 italic leading-relaxed">
+                      {activeEvent.qualityFeedback}
+                    </div>
+                  )}
+                </div>
+              )}
+
               {/* 원시 설명 */}
               {activeEvent.rawDescription && (
                 <div className="text-xs text-zinc-500 leading-relaxed bg-zinc-800/50 rounded px-3 py-2">
@@ -197,6 +222,28 @@ export default function HandObjectTimeline({ events, currentTime, onSeek }: Prop
                       <span className="text-red-400 font-mono">{event.stateBefore}</span>
                       <span>→</span>
                       <span className="text-emerald-400 font-mono">{event.stateAfter}</span>
+                    </div>
+                  )}
+
+                  {/* 품질 배지 + 코칭 코멘트 */}
+                  {event.qualityScore !== undefined && (
+                    <div className="flex items-center gap-1.5 mt-1">
+                      <span
+                        className={`text-[10px] px-1.5 py-0.5 rounded ${
+                          event.qualityScore >= 90
+                            ? 'bg-emerald-500/20 text-emerald-400'
+                            : event.qualityScore >= 70
+                            ? 'bg-amber-500/20 text-amber-400'
+                            : 'bg-red-500/20 text-red-400'
+                        }`}
+                      >
+                        품질 {event.qualityScore}
+                      </span>
+                      {event.qualityFeedback && (
+                        <span className="text-[9px] text-zinc-500 italic truncate max-w-[200px]">
+                          {event.qualityFeedback}
+                        </span>
+                      )}
                     </div>
                   )}
 
