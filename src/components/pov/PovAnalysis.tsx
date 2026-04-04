@@ -5,7 +5,7 @@ import {
   Shield, GitCompare, Star, AlertTriangle, ChevronRight,
   FileText, CheckCircle2, XCircle, Clock, Activity, BookOpen, Eye,
   Users, Brain, Zap, ClipboardCheck, BarChart3, ArrowLeft,
-  ChevronDown, Sparkles, MessageSquare, Settings, History,
+  ChevronDown, Sparkles, MessageSquare, Settings, History, TrendingUp,
 } from "lucide-react";
 import {
   RadarChart, Radar, PolarGrid, PolarAngleAxis, PolarRadiusAxis,
@@ -22,6 +22,7 @@ import ComparisonView from "@/components/pov/ComparisonView";
 import GoldStandardManager from "@/components/pov/GoldStandardManager";
 import SopManager from "@/components/pov/SopManager";
 import AnalysisHistory from "@/components/pov/AnalysisHistory";
+import TraineeProgressDashboard from "@/components/pov/TraineeProgressDashboard";
 import { useVideoUpload } from "@/hooks/useTwelveLabs";
 import { usePovAnalysis } from "@/hooks/usePovAnalysis";
 import { TWELVELABS_INDEXES } from "@/lib/constants";
@@ -145,6 +146,8 @@ export default function PovAnalysis() {
   const [showSopManager, setShowSopManager] = useState(false);
   // 분석 이력 모달 표시 여부
   const [showHistory, setShowHistory] = useState(false);
+  // 진행 추이 대시보드 표시 여부
+  const [showProgress, setShowProgress] = useState(false);
 
   // 컴포넌트 언마운트 시 blob URL 해제
   useEffect(() => {
@@ -296,8 +299,14 @@ export default function PovAnalysis() {
             </div>
           </div>
 
-          {/* SOP 쿼리 관리 + 분석 이력 진입점 */}
+          {/* SOP 쿼리 관리 + 분석 이력 + 진행 추이 진입점 */}
           <div className="flex justify-end gap-2">
+            <button
+              onClick={() => setShowProgress(true)}
+              className="text-xs text-zinc-500 hover:text-zinc-300 flex items-center gap-1 px-2.5 py-1.5 rounded-lg hover:bg-zinc-800/60 transition-colors"
+            >
+              <TrendingUp className="w-3.5 h-3.5" /> 진행 추이
+            </button>
             <button
               onClick={() => setShowHistory(true)}
               className="text-xs text-slate-500 hover:text-slate-700 flex items-center gap-1 px-2.5 py-1.5 rounded-lg hover:bg-slate-100 transition-colors"
@@ -637,6 +646,11 @@ export default function PovAnalysis() {
           }}
           onClose={() => setShowHistory(false)}
         />
+      )}
+
+      {/* 역량 진행 추이 대시보드 */}
+      {showProgress && (
+        <TraineeProgressDashboard onClose={() => setShowProgress(false)} />
       )}
     </div>
   );
