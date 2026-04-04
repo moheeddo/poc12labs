@@ -6,7 +6,7 @@ import {
   FileText, CheckCircle2, XCircle, Clock, Activity, BookOpen, Eye,
   Users, Brain, Zap, ClipboardCheck, BarChart3, ArrowLeft,
   ChevronDown, Sparkles, MessageSquare, Settings, History, TrendingUp, Scale,
-  Printer,
+  Printer, UserCircle,
 } from "lucide-react";
 import {
   RadarChart, Radar, PolarGrid, PolarAngleAxis, PolarRadiusAxis,
@@ -33,6 +33,8 @@ import ReflectionComparison from "@/components/pov/ReflectionComparison";
 import type { SelfReflectionData } from "@/components/pov/SelfReflection";
 import PrintableReport from "@/components/pov/PrintableReport";
 import BenchmarkDashboard from "@/components/pov/BenchmarkDashboard";
+import TimeAnalysis from "@/components/pov/TimeAnalysis";
+import TraineePortfolio from "@/components/pov/TraineePortfolio";
 import { useVideoUpload } from "@/hooks/useTwelveLabs";
 import { usePovAnalysis } from "@/hooks/usePovAnalysis";
 import { TWELVELABS_INDEXES } from "@/lib/constants";
@@ -142,7 +144,7 @@ export default function PovAnalysis() {
   const [selectedProcedure, setSelectedProcedure] = useState<Procedure | null>(null);
   const [report, setReport] = useState<PovEvaluationReport | null>(null);
   const [expandedSections, setExpandedSections] = useState<Set<string>>(new Set());
-  const [reportTab, setReportTab] = useState<"overview" | "steps" | "handObject" | "hpo" | "comparison" | "fundamentals">("overview");
+  const [reportTab, setReportTab] = useState<"overview" | "steps" | "handObject" | "hpo" | "comparison" | "fundamentals" | "time">("overview");
   const [videoUrl, setVideoUrl] = useState<string | null>(null); // 브라우저 내 재생용 로컬 URL
   const { progress: uploadProgress, upload, uploadByUrl } = useVideoUpload();
 
@@ -170,6 +172,8 @@ export default function PovAnalysis() {
   const [showReflection, setShowReflection] = useState(false);
   // 셀프 리플렉션 데이터 (제출 후 보관)
   const [selfReflection, setSelfReflection] = useState<SelfReflectionData | null>(null);
+  // 훈련생 포트폴리오 표시 여부
+  const [showPortfolio, setShowPortfolio] = useState(false);
 
   // 컴포넌트 언마운트 시 blob URL 해제
   useEffect(() => {
@@ -324,6 +328,12 @@ export default function PovAnalysis() {
 
           {/* SOP 쿼리 관리 + 분석 이력 + 진행 추이 + 캘리브레이션 진입점 */}
           <div className="flex justify-end gap-2">
+            <button
+              onClick={() => setShowPortfolio(true)}
+              className="text-xs text-zinc-500 hover:text-zinc-300 flex items-center gap-1 px-2.5 py-1.5 rounded-lg hover:bg-zinc-800/60 transition-colors"
+            >
+              <UserCircle className="w-3.5 h-3.5" /> 훈련생 관리
+            </button>
             <button
               onClick={() => setShowBenchmark(true)}
               className="text-xs text-zinc-500 hover:text-zinc-300 flex items-center gap-1 px-2.5 py-1.5 rounded-lg hover:bg-zinc-800/60 transition-colors"
@@ -603,6 +613,7 @@ export default function PovAnalysis() {
               { key: "hpo" as const, label: "HPO", icon: <Shield className="w-3.5 h-3.5" /> },
               { key: "comparison" as const, label: "숙련자 비교", icon: <GitCompare className="w-3.5 h-3.5" /> },
               { key: "fundamentals" as const, label: "기본수칙", icon: <Brain className="w-3.5 h-3.5" /> },
+              { key: "time" as const, label: "시간 분석", icon: <Clock className="w-3.5 h-3.5" /> },
             ].map((tab) => (
               <button
                 key={tab.key}
@@ -690,6 +701,11 @@ export default function PovAnalysis() {
           {reportTab === "fundamentals" && (
             <FundamentalsTab report={report} />
           )}
+
+          {/* HPO-15: 수행 시간 분석 */}
+          {reportTab === "time" && selectedProcedure && (
+            <TimeAnalysis report={report} procedure={selectedProcedure} />
+          )}
         </div>
       )}
 
@@ -751,6 +767,20 @@ export default function PovAnalysis() {
       {/* 교육과정 효과 벤치마킹 대시보드 */}
       {showBenchmark && (
         <BenchmarkDashboard onClose={() => setShowBenchmark(false)} />
+      )}
+
+      {/* 훈련생 포트폴리오 모달 */}
+      {showPortfolio && (
+        <TraineePortfolio
+          onClose={() => setShowPortfolio(false)}
+          onViewReport={(histReport) => {
+            setReport(histReport);
+            setShowPortfolio(false);
+            const matchProc = HPO_PROCEDURES.find(p => p.id === histReport.procedureId);
+            if (matchProc) setSelectedProcedure(matchProc);
+            setPhase("report");
+          }}
+        />
       )}
     </div>
   );
