@@ -281,6 +281,22 @@ export interface PovEvaluationReport {
     totalApiCalls: number;
     processingTimeMs: number;
   };
+  // HPO-21: 의사소통 분석 결과 (온디맨드 분석 후 채워짐)
+  communicationAnalysis?: {
+    events: {
+      timestamp: number;
+      endTime: number;
+      type: string;
+      speaker: string;
+      content: string;
+      quality: number;
+    }[];
+    threeWayCount: number;
+    reportCount: number;
+    totalSpeakingTime: number;
+    communicationScore: number;
+    feedback: string[];
+  };
 }
 
 // =============================================

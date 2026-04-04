@@ -6,7 +6,7 @@ import {
   FileText, CheckCircle2, XCircle, Clock, Activity, BookOpen, Eye,
   Users, Brain, Zap, ClipboardCheck, BarChart3, ArrowLeft,
   ChevronDown, Sparkles, MessageSquare, Settings, History, TrendingUp, Scale,
-  Printer, UserCircle, Calendar,
+  Printer, UserCircle, Calendar, Briefcase, Mic, Loader2,
 } from "lucide-react";
 import {
   RadarChart, Radar, PolarGrid, PolarAngleAxis, PolarRadiusAxis,
@@ -37,6 +37,8 @@ import BenchmarkDashboard from "@/components/pov/BenchmarkDashboard";
 import EvaluationSchedule from "@/components/pov/EvaluationSchedule";
 import TimeAnalysis from "@/components/pov/TimeAnalysis";
 import TraineePortfolio from "@/components/pov/TraineePortfolio";
+import ExecutiveSummary from "@/components/pov/ExecutiveSummary";
+import CommunicationPanel from "@/components/pov/CommunicationPanel";
 import { useVideoUpload } from "@/hooks/useTwelveLabs";
 import { usePovAnalysis } from "@/hooks/usePovAnalysis";
 import { TWELVELABS_INDEXES } from "@/lib/constants";
@@ -46,6 +48,7 @@ import {
   type Procedure,
 } from "@/lib/pov-standards";
 import type { PovEvaluationReport, StepEvaluation, HpoToolEvaluation, FundamentalScore, SopDeviation, GoldStandard, DetectedStep } from "@/lib/types";
+import type { CommunicationAnalysis } from "@/lib/pov-communication-analysis";
 import { formatTime, cn } from "@/lib/utils";
 
 // ── 데모 리포트 생성 (실제 구현 시 TwelveLabs API 호출 결과로 대체) ──
@@ -180,6 +183,11 @@ export default function PovAnalysis() {
   const [showSchedule, setShowSchedule] = useState(false);
   // 지연된 일정 수 (헤더 배지용)
   const [overdueCount, setOverdueCount] = useState(0);
+  // HPO-20: 경영진 요약 대시보드 표시 여부
+  const [showExecutive, setShowExecutive] = useState(false);
+  // HPO-21: 의사소통 분석 결과 + 로딩 상태
+  const [commAnalysis, setCommAnalysis] = useState<CommunicationAnalysis | null>(null);
+  const [commLoading, setCommLoading] = useState(false);
 
   // 컴포넌트 언마운트 시 blob URL 해제
   useEffect(() => {
@@ -364,6 +372,12 @@ export default function PovAnalysis() {
               className="text-xs text-zinc-500 hover:text-zinc-300 flex items-center gap-1 px-2.5 py-1.5 rounded-lg hover:bg-zinc-800/60 transition-colors"
             >
               <BarChart3 className="w-3.5 h-3.5" /> 교육과정 효과
+            </button>
+            <button
+              onClick={() => setShowExecutive(true)}
+              className="text-xs text-zinc-500 hover:text-zinc-300 flex items-center gap-1 px-2.5 py-1.5 rounded-lg hover:bg-zinc-800/60 transition-colors"
+            >
+              <Briefcase className="w-3.5 h-3.5" /> 경영진 보고
             </button>
             <button
               onClick={() => setShowCalibration(true)}
@@ -723,9 +737,52 @@ export default function PovAnalysis() {
             />
           )}
 
-          {/* 기본수칙 역량 */}
+          {/* 기본수칙 역량 + 의사소통 분석 (HPO-21) */}
           {reportTab === "fundamentals" && (
-            <FundamentalsTab report={report} />
+            <div className="space-y-4">
+              <FundamentalsTab report={report} />
+              {/* HPO-21: 의사소통 분석 서브섹션 */}
+              <div className="border border-slate-200 rounded-xl overflow-hidden">
+                <div className="px-4 py-3 bg-slate-50 border-b border-slate-200 flex items-center justify-between">
+                  <h3 className="text-sm font-semibold text-slate-700 flex items-center gap-2">
+                    <Mic className="w-4 h-4 text-blue-500" />
+                    음성/의사소통 분석
+                  </h3>
+                  {!commAnalysis && (
+                    <button
+                      onClick={async () => {
+                        if (!report.videoId || commLoading) return;
+                        setCommLoading(true);
+                        try {
+                          const res = await fetch('/api/twelvelabs/pov-communication', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ videoId: report.videoId }),
+                          });
+                          const data = await res.json() as CommunicationAnalysis;
+                          setCommAnalysis(data);
+                        } catch { /* 실패 무시 */ }
+                        finally { setCommLoading(false); }
+                      }}
+                      disabled={commLoading || !report.videoId || report.videoId === 'demo-video-id'}
+                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-blue-500/10 hover:bg-blue-500/20 text-blue-600 text-xs font-medium border border-blue-200 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      {commLoading ? (
+                        <><Loader2 className="w-3.5 h-3.5 animate-spin" /> 분석 중...</>
+                      ) : (
+                        <><Mic className="w-3.5 h-3.5" /> 의사소통 분석 실행</>
+                      )}
+                    </button>
+                  )}
+                </div>
+                <div className="p-4">
+                  <CommunicationPanel
+                    analysis={commAnalysis ?? undefined}
+                    onSeek={(time) => setSeekTime(time)}
+                  />
+                </div>
+              </div>
+            </div>
           )}
 
           {/* HPO-15: 수행 시간 분석 */}
@@ -807,6 +864,11 @@ export default function PovAnalysis() {
             setPhase("report");
           }}
         />
+      )}
+
+      {/* HPO-20: 경영진 요약 대시보드 모달 */}
+      {showExecutive && (
+        <ExecutiveSummary onClose={() => setShowExecutive(false)} />
       )}
 
       {/* 평가 일정 캘린더 모달 */}
