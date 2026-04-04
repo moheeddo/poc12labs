@@ -111,9 +111,9 @@ export default function GroupManager({
   return (
     <div className="max-w-[1200px] mx-auto px-4 md:px-6 py-8 space-y-6 animate-slide-in-right">
       {/* 헤더 */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div className="flex items-center gap-3">
-          <button onClick={onBack} className="text-slate-500 hover:text-teal-600 transition-colors">
+          <button onClick={onBack} className="text-slate-500 hover:text-teal-600 transition-colors" aria-label="뒤로 가기">
             <ArrowLeft className="w-4 h-4" />
           </button>
           <div>
@@ -123,7 +123,7 @@ export default function GroupManager({
         </div>
         <button
           onClick={onViewDashboard}
-          className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium bg-teal-50 text-teal-600 border border-teal-500/20 hover:bg-teal-100 transition-colors"
+          className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium bg-teal-50 text-teal-600 border border-teal-500/20 hover:bg-teal-100 transition-colors whitespace-nowrap self-start sm:self-auto"
         >
           <BarChart3 className="w-4 h-4" />
           비교 대시보드

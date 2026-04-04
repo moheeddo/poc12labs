@@ -462,17 +462,17 @@ export default function LeadershipCoaching() {
   return (
     <div className="max-w-[1440px] mx-auto px-4 md:px-6 py-8 space-y-8 animate-slide-in-right">
       {/* 헤더 */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>
           <h2 className="text-2xl font-bold text-teal-600 tracking-tight">리더십코칭 역량진단</h2>
-          <p className="text-lg text-slate-500 mt-1.5">
+          <p className="text-base sm:text-lg text-slate-500 mt-1.5">
             발표·토론 영상을 업로드하고 상황사례를 입력하면 AI가 역량을 분석합니다
           </p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 shrink-0">
           <button
             onClick={() => setView({ type: "group-create" })}
-            className="flex items-center gap-2 text-sm font-medium text-white bg-teal-600 hover:bg-teal-500 px-4 py-2 rounded-lg shadow-sm transition-colors"
+            className="flex items-center gap-2 text-sm font-medium text-white bg-teal-600 hover:bg-teal-500 px-4 py-2 rounded-lg shadow-sm transition-colors whitespace-nowrap"
           >
             <Users className="w-3.5 h-3.5" />
             6인 조 관리
@@ -480,7 +480,7 @@ export default function LeadershipCoaching() {
           {speakers.length > 0 && (
             <button
               onClick={() => setView({ type: "history" })}
-              className="flex items-center gap-2 text-sm text-slate-500 hover:text-teal-600 transition-colors px-3 py-1.5 rounded-lg border border-slate-200/40 hover:border-teal-500/30"
+              className="flex items-center gap-2 text-sm text-slate-500 hover:text-teal-600 transition-colors px-3 py-1.5 rounded-lg border border-slate-200/40 hover:border-teal-500/30 whitespace-nowrap"
             >
               <TrendingUp className="w-3.5 h-3.5" />
               이력
