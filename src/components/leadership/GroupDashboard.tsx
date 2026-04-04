@@ -11,7 +11,7 @@ import {
   Tooltip,
   Legend,
 } from "recharts";
-import { ArrowLeft, Trophy, TrendingDown, Users, AlertCircle, Printer, FileText, X } from "lucide-react";
+import { ArrowLeft, Trophy, TrendingDown, Users, AlertCircle, Printer, FileText, X, Lightbulb, Grid3X3 } from "lucide-react";
 import type { GroupSession } from "@/lib/group-types";
 import { COMPETENCY_ORDER } from "@/lib/group-types";
 import { cn } from "@/lib/utils";
@@ -357,6 +357,78 @@ export default function GroupDashboard({ session, onBack, onViewMember }: GroupD
     );
   }, [session]);
 
+  // ── 히트맵 데이터: 6명 x 4역량 매트릭스 ──
+  const heatmapData = useMemo(() => {
+    return session.members.map((m) => {
+      const scores = COMPETENCY_ORDER.map((comp) => {
+        const compState = session.competencies.find((c) => c.competencyKey === comp.key);
+        return {
+          competencyKey: comp.key,
+          label: comp.label,
+          score: compState?.memberScores[m.id]?.overallScore || 0,
+        };
+      });
+      return { member: m, scores };
+    });
+  }, [session]);
+
+  // ── 조 자동 요약: 디브리핑 오프닝 멘트용 3줄 요약 ──
+  const groupSummary = useMemo(() => {
+    if (!hasAnyAnalysis) return null;
+
+    const lines: string[] = [];
+
+    // 1) 가장 강한 역량 찾기 (조 평균 기준)
+    const compAvgs = COMPETENCY_ORDER.map((comp) => {
+      const compState = session.competencies.find((c) => c.competencyKey === comp.key);
+      const scores = session.members
+        .map((m) => compState?.memberScores[m.id]?.overallScore || 0)
+        .filter((s) => s > 0);
+      const avg = scores.length > 0 ? scores.reduce((a, b) => a + b, 0) / scores.length : 0;
+      return { label: comp.label, avg: Math.round(avg * 10) / 10, count: scores.length };
+    }).filter((c) => c.count > 0);
+
+    if (compAvgs.length === 0) return null;
+
+    const sorted = [...compAvgs].sort((a, b) => b.avg - a.avg);
+    const strongest = sorted[0];
+    const weakest = sorted[sorted.length - 1];
+
+    if (strongest.avg >= 7) {
+      lines.push(`${strongest.label}에서 조 전반적으로 우수한 역량을 보임 (평균 ${strongest.avg}점)`);
+    } else if (strongest.avg >= 5) {
+      lines.push(`${strongest.label}이 상대적으로 가장 높은 역량 (평균 ${strongest.avg}점)`);
+    } else {
+      lines.push(`전체적으로 역량 강화가 필요한 조 (최고 평균 ${strongest.avg}점)`);
+    }
+
+    // 2) 가장 약한 역량 (다를 경우)
+    if (sorted.length > 1 && weakest.label !== strongest.label) {
+      if (weakest.avg < 5) {
+        lines.push(`${weakest.label} 역량은 집중 개선이 필요 (평균 ${weakest.avg}점)`);
+      } else {
+        lines.push(`${weakest.label}이 상대적으로 낮지만 보통 이상 수준 (평균 ${weakest.avg}점)`);
+      }
+    }
+
+    // 3) 멤버 간 편차 분석
+    const scoredMembers = overallRanking.filter((m) => m.avgScore > 0);
+    if (scoredMembers.length >= 2) {
+      const maxScore = scoredMembers[0].avgScore;
+      const minScore = scoredMembers[scoredMembers.length - 1].avgScore;
+      const gap = Math.round((maxScore - minScore) * 10) / 10;
+      if (gap >= 3) {
+        lines.push(`구성원 간 역량 편차가 큼 (${gap}점 차이) — 개별 맞춤 코칭 권장`);
+      } else if (gap >= 1.5) {
+        lines.push(`구성원 간 역량 편차가 있음 (${gap}점 차이) — 상호 학습 권장`);
+      } else {
+        lines.push(`구성원 간 역량 수준이 고른 편 (${gap}점 차이) — 조별 토론 효과적`);
+      }
+    }
+
+    return lines;
+  }, [session, hasAnyAnalysis, overallRanking]);
+
   // 개인별 보고서 데이터 생성
   const memberReportData = useMemo((): MemberReportData | null => {
     if (!reportMemberId) return null;
@@ -544,6 +616,152 @@ export default function GroupDashboard({ session, onBack, onViewMember }: GroupD
           </div>
         ))}
       </div>
+
+      {/* ── 조 자동 요약 카드 (디브리핑 오프닝용) ── */}
+      {groupSummary && groupSummary.length > 0 && (
+        <div className="bg-gradient-to-br from-teal-50 to-emerald-50/50 border border-teal-200/50 rounded-xl p-5 print-group-summary">
+          <div className="flex items-center gap-2 mb-3">
+            <div className="w-8 h-8 rounded-lg bg-teal-100 flex items-center justify-center">
+              <Lightbulb className="w-4 h-4 text-teal-600" />
+            </div>
+            <div>
+              <h3 className="text-sm font-bold text-teal-700">이 조의 핵심 특징</h3>
+              <p className="text-[10px] text-teal-500">AI 자동 요약 -- 디브리핑 시작 멘트에 활용하세요</p>
+            </div>
+          </div>
+          <div className="space-y-1.5">
+            {groupSummary.map((line, i) => (
+              <div key={i} className="flex items-start gap-2">
+                <span className="text-xs font-mono font-bold text-teal-500 bg-teal-100/80 rounded px-1.5 py-0.5 shrink-0 mt-0.5">
+                  {i + 1}
+                </span>
+                <p className="text-sm text-slate-700 leading-relaxed">{line}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* ── 역량별 비교 히트맵 (6명 x 4역량) ── */}
+      {hasAnyAnalysis && (
+        <div className="bg-white border border-slate-200/40 rounded-xl p-5 print-heatmap">
+          <div className="flex items-center gap-2 mb-4">
+            <Grid3X3 className="w-4 h-4 text-teal-600" />
+            <h3 className="text-base font-semibold text-slate-800">역량별 비교 히트맵</h3>
+            <div className="ml-auto flex items-center gap-3 text-[10px] text-slate-400">
+              <span className="flex items-center gap-1"><span className="w-3 h-3 rounded bg-teal-500 inline-block" />7+</span>
+              <span className="flex items-center gap-1"><span className="w-3 h-3 rounded bg-amber-400 inline-block" />5-6</span>
+              <span className="flex items-center gap-1"><span className="w-3 h-3 rounded bg-red-400 inline-block" />~4</span>
+              <span className="flex items-center gap-1"><span className="w-3 h-3 rounded bg-slate-200 inline-block" />미평가</span>
+            </div>
+          </div>
+          <div className="overflow-x-auto">
+            <table className="w-full border-collapse">
+              <thead>
+                <tr>
+                  <th className="text-left text-xs font-medium text-slate-500 px-3 py-2 w-24">이름</th>
+                  {COMPETENCY_ORDER.map((comp) => (
+                    <th key={comp.key} className="text-center text-xs font-semibold px-3 py-2" style={{ color: comp.color }}>
+                      {comp.label}
+                    </th>
+                  ))}
+                  <th className="text-center text-xs font-semibold text-slate-600 px-3 py-2">종합</th>
+                </tr>
+              </thead>
+              <tbody>
+                {heatmapData.map((row) => {
+                  const scoredVals = row.scores.map((s) => s.score).filter((s) => s > 0);
+                  const avg = scoredVals.length > 0 ? Math.round((scoredVals.reduce((a, b) => a + b, 0) / scoredVals.length) * 10) / 10 : 0;
+                  return (
+                    <tr key={row.member.id} className="border-t border-slate-100 hover:bg-slate-50/50 transition-colors">
+                      <td className="px-3 py-2.5">
+                        <div className="flex items-center gap-2">
+                          <div
+                            className="w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold text-white shrink-0"
+                            style={{ backgroundColor: MEMBER_COLORS[row.member.order - 1] || "#94a3b8" }}
+                          >
+                            {row.member.order}
+                          </div>
+                          <span className="text-sm font-medium text-slate-700">{row.member.name}</span>
+                        </div>
+                      </td>
+                      {row.scores.map((s) => (
+                        <td key={s.competencyKey} className="px-3 py-2.5 text-center">
+                          <div className={cn(
+                            "inline-flex items-center justify-center w-12 h-8 rounded-lg text-sm font-mono font-bold transition-all",
+                            s.score >= 7 ? "bg-teal-500 text-white" :
+                            s.score >= 5 ? "bg-amber-400 text-white" :
+                            s.score > 0 ? "bg-red-400 text-white" :
+                            "bg-slate-100 text-slate-300"
+                          )}>
+                            {s.score > 0 ? s.score.toFixed(1) : "-"}
+                          </div>
+                        </td>
+                      ))}
+                      <td className="px-3 py-2.5 text-center">
+                        <div className={cn(
+                          "inline-flex items-center justify-center w-12 h-8 rounded-lg text-sm font-mono font-bold border-2",
+                          avg >= 7 ? "border-teal-500 text-teal-600 bg-teal-50" :
+                          avg >= 5 ? "border-amber-400 text-amber-600 bg-amber-50" :
+                          avg > 0 ? "border-red-400 text-red-500 bg-red-50" :
+                          "border-slate-200 text-slate-300 bg-slate-50"
+                        )}>
+                          {avg > 0 ? avg.toFixed(1) : "-"}
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
+                {/* 조 평균 행 */}
+                <tr className="border-t-2 border-slate-200 bg-slate-50/50">
+                  <td className="px-3 py-2.5">
+                    <span className="text-xs font-semibold text-slate-500">조 평균</span>
+                  </td>
+                  {COMPETENCY_ORDER.map((comp) => {
+                    const compState = session.competencies.find((c) => c.competencyKey === comp.key);
+                    const scores = session.members
+                      .map((m) => compState?.memberScores[m.id]?.overallScore || 0)
+                      .filter((s) => s > 0);
+                    const avg = scores.length > 0 ? Math.round((scores.reduce((a, b) => a + b, 0) / scores.length) * 10) / 10 : 0;
+                    return (
+                      <td key={comp.key} className="px-3 py-2.5 text-center">
+                        <span className={cn(
+                          "text-xs font-mono font-bold",
+                          avg >= 7 ? "text-teal-600" :
+                          avg >= 5 ? "text-amber-600" :
+                          avg > 0 ? "text-red-500" :
+                          "text-slate-300"
+                        )}>
+                          {avg > 0 ? avg.toFixed(1) : "-"}
+                        </span>
+                      </td>
+                    );
+                  })}
+                  <td className="px-3 py-2.5 text-center">
+                    {(() => {
+                      const allScores = session.members.flatMap((m) =>
+                        session.competencies.map((c) => c.memberScores[m.id]?.overallScore || 0)
+                      ).filter((s) => s > 0);
+                      const totalAvg = allScores.length > 0 ? Math.round((allScores.reduce((a, b) => a + b, 0) / allScores.length) * 10) / 10 : 0;
+                      return (
+                        <span className={cn(
+                          "text-xs font-mono font-bold",
+                          totalAvg >= 7 ? "text-teal-600" :
+                          totalAvg >= 5 ? "text-amber-600" :
+                          totalAvg > 0 ? "text-red-500" :
+                          "text-slate-300"
+                        )}>
+                          {totalAvg > 0 ? totalAvg.toFixed(1) : "-"}
+                        </span>
+                      );
+                    })()}
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
 
       {/* 6명 겹침 레이더 차트 */}
       <div className="bg-white border border-slate-200/40 rounded-xl p-6 print-page-break-after-chart">
