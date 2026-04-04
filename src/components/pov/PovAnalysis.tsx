@@ -23,6 +23,7 @@ import GoldStandardManager from "@/components/pov/GoldStandardManager";
 import SopManager from "@/components/pov/SopManager";
 import AnalysisHistory from "@/components/pov/AnalysisHistory";
 import TraineeProgressDashboard from "@/components/pov/TraineeProgressDashboard";
+import CohortAnalytics from "@/components/pov/CohortAnalytics";
 import { useVideoUpload } from "@/hooks/useTwelveLabs";
 import { usePovAnalysis } from "@/hooks/usePovAnalysis";
 import { TWELVELABS_INDEXES } from "@/lib/constants";
@@ -148,6 +149,8 @@ export default function PovAnalysis() {
   const [showHistory, setShowHistory] = useState(false);
   // 진행 추이 대시보드 표시 여부
   const [showProgress, setShowProgress] = useState(false);
+  // 코호트 분석 대시보드 표시 여부
+  const [showCohort, setShowCohort] = useState(false);
 
   // 컴포넌트 언마운트 시 blob URL 해제
   useEffect(() => {
@@ -301,6 +304,12 @@ export default function PovAnalysis() {
 
           {/* SOP 쿼리 관리 + 분석 이력 + 진행 추이 진입점 */}
           <div className="flex justify-end gap-2">
+            <button
+              onClick={() => setShowCohort(true)}
+              className="text-xs text-slate-500 hover:text-slate-700 flex items-center gap-1 px-2.5 py-1.5 rounded-lg hover:bg-slate-100 transition-colors"
+            >
+              <Users className="w-3.5 h-3.5" /> 코호트 분석
+            </button>
             <button
               onClick={() => setShowProgress(true)}
               className="text-xs text-zinc-500 hover:text-zinc-300 flex items-center gap-1 px-2.5 py-1.5 rounded-lg hover:bg-zinc-800/60 transition-colors"
@@ -651,6 +660,11 @@ export default function PovAnalysis() {
       {/* 역량 진행 추이 대시보드 */}
       {showProgress && (
         <TraineeProgressDashboard onClose={() => setShowProgress(false)} />
+      )}
+
+      {/* 코호트 분석 대시���드 */}
+      {showCohort && (
+        <CohortAnalytics onClose={() => setShowCohort(false)} />
       )}
     </div>
   );
