@@ -26,15 +26,6 @@ function gradeColor(grade: string): string {
 // 절차 색상 팔레트 (최대 6개)
 const PROCEDURE_COLORS = ['#f59e0b', '#3b82f6', '#10b981', '#8b5cf6', '#ef4444', '#06b6d4'];
 
-// 날짜 포맷
-function shortDate(iso: string): string {
-  try {
-    return new Date(iso).toLocaleDateString('ko-KR', { month: '2-digit', day: '2-digit' });
-  } catch {
-    return iso;
-  }
-}
-
 export default function TraineeProgressDashboard({ onClose }: Props) {
   const { entries, loading, fetchHistory } = usePovHistory();
 

@@ -1,6 +1,6 @@
 "use client";
 
-import { Shield, CheckCircle, AlertTriangle, FileText } from "lucide-react";
+import { Shield, AlertTriangle, FileText } from "lucide-react";
 import type { ReliabilityReport, NormTable, SampleAdequacy } from "@/lib/validation";
 
 interface ValidationConsoleProps {

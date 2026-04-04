@@ -161,8 +161,7 @@ export default function StepsTimeline({
                 ? `${Math.max(1, ((detected.endTime - detected.timestamp) / duration) * 100)}%`
                 : '0%';
 
-              // 루브릭 생성
-              const rubric = generateStepRubric(step);
+              // 루브릭 생성 (isExpanded 상태 확인용으로만 사용)
               const isExpanded = expandedRubrics.has(step.id);
 
               return (

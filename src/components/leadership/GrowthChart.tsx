@@ -99,10 +99,10 @@ function CustomTooltip({ active, payload, label }: {
 // ─── 메인 컴포넌트 ───
 export default function GrowthChart({ timeline, loading = false }: GrowthChartProps) {
   // 훅은 조건문 전에 모두 선언 (Rules of Hooks)
-  const dataPoints = timeline?.dataPoints ?? [];
-  const trends = timeline?.trends ?? [];
-  const plateauCompetencies = timeline?.plateauCompetencies ?? [];
-  const breakthroughCompetencies = timeline?.breakthroughCompetencies ?? [];
+  const dataPoints = useMemo(() => timeline?.dataPoints ?? [], [timeline]);
+  const trends = useMemo(() => timeline?.trends ?? [], [timeline]);
+  const plateauCompetencies = useMemo(() => timeline?.plateauCompetencies ?? [], [timeline]);
+  const breakthroughCompetencies = useMemo(() => timeline?.breakthroughCompetencies ?? [], [timeline]);
 
   // recharts용 데이터 변환
   const chartData = useMemo(

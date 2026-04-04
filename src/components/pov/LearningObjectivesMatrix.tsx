@@ -71,7 +71,7 @@ function PreAnalysisRow({ objective, index }: { objective: LearningObjective; in
 }
 
 /** 사후 달성 행 */
-function PostAnalysisRow({ assessment, index }: { assessment: ObjectiveAssessment; index: number }) {
+function PostAnalysisRow({ assessment, index: _index }: { assessment: ObjectiveAssessment; index: number }) {
   const { objective, achieved, score, detail } = assessment;
 
   return (

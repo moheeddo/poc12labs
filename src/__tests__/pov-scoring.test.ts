@@ -2,11 +2,10 @@ import {
   calculateOverallScore,
   calculateProcedureScore,
   calculateHpoScore,
-  calculateFundamentalsScore,
   getGrade,
   calculateQualityAdjustedScore,
 } from '@/lib/pov-scoring';
-import type { DetectedStep, HpoToolResult, FundamentalScore } from '@/lib/types';
+import type { DetectedStep, HpoToolResult } from '@/lib/types';
 
 describe('calculateProcedureScore', () => {
   it('모든 단계 pass면 100점', () => {

@@ -33,13 +33,6 @@ const HPO_TOOL_LABELS: { key: string; label: string }[] = [
   { key: 'postJobReview',         label: '작업후 평가' },
 ];
 
-// ── 4대 영역 레이블 ──────────────────────────────────────
-
-const DOMAIN_LABELS = [
-  { key: 'procedureComplianceScore', label: '절차 이행' },
-  { key: 'hpoOverallScore',          label: 'HPO 기법 적용' },
-];
-
 // ── 점수 바 ──────────────────────────────────────────────
 
 function ScoreBar({ score, label, color }: { score: number; label: string; color: string }) {

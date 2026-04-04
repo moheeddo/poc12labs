@@ -1,4 +1,4 @@
-import { db, addSession, addScore } from "./store";
+import { addSession, addScore } from "./store";
 import type { DBSession, DBScore } from "./types";
 
 // LocalStorage → IndexedDB 마이그레이션 완료 플래그 키

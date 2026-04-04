@@ -9,7 +9,6 @@ import { useState, useEffect } from 'react';
 import {
   LineChart, Line, BarChart, Bar, XAxis, YAxis,
   CartesianGrid, Tooltip, ResponsiveContainer, Legend,
-  Cell,
 } from 'recharts';
 import { X, TrendingUp, TrendingDown, Minus, BarChart3, Lightbulb, AlertCircle, Loader2 } from 'lucide-react';
 import type { BenchmarkResult, PeriodMetrics } from '@/lib/pov-benchmark';
@@ -46,7 +45,6 @@ interface MetricCardProps {
 function MetricCard({ label, value, unit, positive = true, digits = 1 }: MetricCardProps) {
   // 방향 판단: positive=true면 양수가 좋음, positive=false면 음수(감소)가 좋음
   const isGood = positive ? value > 0 : value > 0;
-  const isBad = positive ? value < 0 : value < 0;
   const isNeutral = value === 0;
 
   return (

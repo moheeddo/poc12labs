@@ -7,7 +7,7 @@ import { readFileSync, writeFileSync, existsSync, mkdirSync } from 'fs';
 import path from 'path';
 import type { PovEvaluationReport, FundamentalScore } from './types';
 import { HPO_PROCEDURES } from './pov-standards';
-import { scoreToLevel, MASTERY_LABELS } from './pov-competency-progression';
+import { scoreToLevel } from './pov-competency-progression';
 
 // 훈련생 포트폴리오 파일 경로
 const PORTFOLIO_PATH = path.join(process.cwd(), 'data', 'trainee-portfolios.json');

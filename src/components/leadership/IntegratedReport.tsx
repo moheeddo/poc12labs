@@ -458,7 +458,6 @@ function EvidenceSection({
         {evidenceMaps.map((em) => {
           const label = competencyLabels[em.competencyKey] ?? em.competencyKey;
           const coveragePct = Math.round(em.coverageRate * 100);
-          const confidencePct = Math.round(em.overallConfidence);
 
           return (
             <div

@@ -1,5 +1,5 @@
 // src/__tests__/pov-dtw.test.ts
-import { alignSequences, detectDeviations } from '@/lib/pov-dtw';
+import { alignSequences } from '@/lib/pov-dtw';
 
 describe('alignSequences', () => {
   it('동일한 시퀀스는 완벽한 정렬', () => {
