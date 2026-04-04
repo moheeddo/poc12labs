@@ -5,7 +5,7 @@ import {
   Shield, GitCompare, Star, AlertTriangle, ChevronRight,
   FileText, CheckCircle2, XCircle, Clock, Activity, BookOpen, Eye,
   Users, Brain, Zap, ClipboardCheck, BarChart3, ArrowLeft,
-  ChevronDown, Sparkles, MessageSquare, Settings, History, TrendingUp,
+  ChevronDown, Sparkles, MessageSquare, Settings, History, TrendingUp, Scale,
 } from "lucide-react";
 import {
   RadarChart, Radar, PolarGrid, PolarAngleAxis, PolarRadiusAxis,
@@ -26,6 +26,7 @@ import SopManager from "@/components/pov/SopManager";
 import AnalysisHistory from "@/components/pov/AnalysisHistory";
 import TraineeProgressDashboard from "@/components/pov/TraineeProgressDashboard";
 import CohortAnalytics from "@/components/pov/CohortAnalytics";
+import CalibrationDashboard from "@/components/pov/CalibrationDashboard";
 import { useVideoUpload } from "@/hooks/useTwelveLabs";
 import { usePovAnalysis } from "@/hooks/usePovAnalysis";
 import { TWELVELABS_INDEXES } from "@/lib/constants";
@@ -153,6 +154,8 @@ export default function PovAnalysis() {
   const [showProgress, setShowProgress] = useState(false);
   // 코호트 분석 대시보드 표시 여부
   const [showCohort, setShowCohort] = useState(false);
+  // 캘리브레이션 대시보드 표시 여부
+  const [showCalibration, setShowCalibration] = useState(false);
 
   // 컴포넌트 언마운트 시 blob URL 해제
   useEffect(() => {
@@ -304,8 +307,14 @@ export default function PovAnalysis() {
             </div>
           </div>
 
-          {/* SOP 쿼리 관리 + 분석 이력 + 진행 추이 진입점 */}
+          {/* SOP 쿼리 관리 + 분석 이력 + 진행 추이 + 캘리브레이션 진입점 */}
           <div className="flex justify-end gap-2">
+            <button
+              onClick={() => setShowCalibration(true)}
+              className="text-xs text-zinc-500 hover:text-zinc-300 flex items-center gap-1 px-2.5 py-1.5 rounded-lg hover:bg-zinc-800/60 transition-colors"
+            >
+              <Scale className="w-3.5 h-3.5" /> 캘리브레이션
+            </button>
             <button
               onClick={() => setShowCohort(true)}
               className="text-xs text-slate-500 hover:text-slate-700 flex items-center gap-1 px-2.5 py-1.5 rounded-lg hover:bg-slate-100 transition-colors"
@@ -670,6 +679,11 @@ export default function PovAnalysis() {
       {/* 코호트 분석 대시���드 */}
       {showCohort && (
         <CohortAnalytics onClose={() => setShowCohort(false)} />
+      )}
+
+      {/* 캘리브레이션 대시보드 */}
+      {showCalibration && (
+        <CalibrationDashboard onClose={() => setShowCalibration(false)} />
       )}
     </div>
   );

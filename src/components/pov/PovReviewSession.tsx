@@ -18,6 +18,7 @@ import DebriefingGuide, {
   type StructuredFeedbackItem,
 } from "@/components/pov/DebriefingGuide";
 import HandoffDocument from "@/components/pov/HandoffDocument";
+import InstructorNotes from "@/components/pov/InstructorNotes";
 
 // ── 타입 ─────────────────────────────────────
 
@@ -78,6 +79,15 @@ export default function PovReviewSession({
 
   // ── 훈련 기록서 상태 ──
   const [showHandoff, setShowHandoff] = useState(false);
+
+  // ── 교수자 노트 상태 ──
+  const [showInstructorNotes, setShowInstructorNotes] = useState(false);
+  // 오버라이드 저장 시 캘리브레이션 노트 자동 기록용 팬딩 오버라이드
+  const [pendingNoteOverride, setPendingNoteOverride] = useState<{
+    originalStatus: string;
+    newStatus: string;
+    reason: string;
+  } | undefined>(undefined);
 
   // 오버라이드 상태 변경
   const updateOverrideStatus = useCallback((stepId: string, originalStatus: string, newStatus: string) => {
@@ -291,6 +301,19 @@ export default function PovReviewSession({
             totalCount={stats.issueCount}
           />
 
+          {/* 교수자 노트 토글 버튼 */}
+          <button
+            onClick={() => setShowInstructorNotes((v) => !v)}
+            className={cn(
+              "shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm transition-colors border",
+              showInstructorNotes
+                ? "bg-blue-50 text-blue-600 border-blue-500/30"
+                : "bg-slate-100 hover:bg-slate-200 text-slate-600 border-transparent",
+            )}
+          >
+            <MessageSquare className="w-3.5 h-3.5" /> 교수자 노트
+          </button>
+
           <button
             onClick={onViewReport}
             className="shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-sm text-slate-700 transition-colors"
@@ -300,10 +323,12 @@ export default function PovReviewSession({
         </div>
       </div>
 
-      {/* ── 메인 레이아웃 (디브리핑 가이드 열림 시 3컬럼) ── */}
+      {/* ── 메인 레이아웃 (사이드 패널 열림 시 컬럼 추가) ── */}
       <div className={cn(
         "grid grid-cols-1 gap-4",
-        showDebriefingGuide ? "lg:grid-cols-7" : "lg:grid-cols-5",
+        showDebriefingGuide && showInstructorNotes ? "lg:grid-cols-9" :
+        showDebriefingGuide || showInstructorNotes ? "lg:grid-cols-7" :
+        "lg:grid-cols-5",
       )}>
         {/* 왼쪽 — 영상 플레이어 + 빠른이동 */}
         <div className="lg:col-span-2 space-y-3">
@@ -457,6 +482,10 @@ export default function PovReviewSession({
                           onOverrideStatus={(newStatus) => updateOverrideStatus(evalItem.stepId, evalItem.status, newStatus)}
                           onOverrideReason={(reason) => updateOverrideReason(evalItem.stepId, reason)}
                           onClearOverride={() => clearOverride(evalItem.stepId)}
+                          onRequestCalibrationNote={(data) => {
+                            setPendingNoteOverride(data);
+                            setShowInstructorNotes(true);
+                          }}
                           ref={(el) => { itemRefs.current[evalItem.stepId] = el; }}
                         />
                       ))}
@@ -481,6 +510,17 @@ export default function PovReviewSession({
               onCreateFeedback={addStructuredFeedback}
               onClose={() => setShowDebriefingGuide(false)}
               feedbacks={structuredFeedbacks}
+            />
+          </div>
+        )}
+
+        {/* 교수자 노트 패널 */}
+        {showInstructorNotes && (
+          <div className="lg:col-span-2 lg:sticky lg:top-4 max-h-[calc(100vh-100px)]">
+            <InstructorNotes
+              reportId={report.id}
+              pendingOverride={pendingNoteOverride}
+              onClose={() => { setShowInstructorNotes(false); setPendingNoteOverride(undefined); }}
             />
           </div>
         )}
@@ -713,11 +753,13 @@ const ReviewItem = forwardRef<HTMLDivElement, {
   onOverrideStatus: (newStatus: string) => void;
   onOverrideReason: (reason: string) => void;
   onClearOverride: () => void;
+  /** 오버라이드 저장 후 캘리브레이션 노트 기록 요청 */
+  onRequestCalibrationNote?: (data: { originalStatus: string; newStatus: string; reason: string }) => void;
 }>(function ReviewItem(
   {
     evalItem, isActive, isDiscussed, isFlagged, feedback, override,
     onSeek, onFeedbackChange, onToggleDiscussed, onToggleFlagged,
-    onOverrideStatus, onOverrideReason, onClearOverride,
+    onOverrideStatus, onOverrideReason, onClearOverride, onRequestCalibrationNote,
   },
   ref,
 ) {
@@ -863,6 +905,20 @@ const ReviewItem = forwardRef<HTMLDivElement, {
               className="w-full bg-white border border-slate-200 rounded-md px-2 py-1 text-sm text-slate-700 placeholder:text-slate-400 focus:outline-none focus:border-violet-500/40"
             />
           </div>
+          {/* 캘리브레이션 노트 저장 제안 */}
+          {isOverridden && onRequestCalibrationNote && (
+            <button
+              onClick={() => onRequestCalibrationNote({
+                originalStatus: override!.originalStatus,
+                newStatus: override!.newStatus,
+                reason: override!.reason,
+              })}
+              className="mt-1 text-sm text-blue-500/70 hover:text-blue-500 flex items-center gap-1 transition-colors"
+            >
+              <MessageSquare className="w-3 h-3" />
+              캘리브레이션 노트 저장
+            </button>
+          )}
         </div>
       )}
 
