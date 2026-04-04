@@ -383,8 +383,9 @@ export default function LeadershipFeedback({
   const [analysisReported, setAnalysisReported] = useState(false);
   useEffect(() => {
     // 전체 분석 완료 (BARS + 멀티모달) 후 evidence가 있으면 자동 저장
+    // mmStarted 필수: 멀티모달이 실제로 시작된 후 완료/실패해야 저장 (조기 저장 방지)
     const isFullyDone = !analysisLoading && analysisPhase >= 6
-      && (!mmStarted || mmProgress.phase === "done" || mmProgress.phase === "error");
+      && mmStarted && (mmProgress.phase === "done" || mmProgress.phase === "error");
     if (isFullyDone && evidence.length > 0 && !autoSaveToast) {
       // 선택된 역량 키도 함께 저장 (대시보드 표시용)
       const primaryCompetency = selectedCompetencies?.[0] || (evidence[0]?.competencyKey ?? "");
@@ -622,7 +623,9 @@ export default function LeadershipFeedback({
   // ══════════════════════════════════════════════════════════════
 
   // ── 섹션 A: 분석 진행 화면 (로딩 스크린) ──────────────────
-  const isFullyLoading = analysisLoading || (mmStarted && mmProgress.phase !== "done" && mmProgress.phase !== "error");
+  // BARS 완료 후 멀티모달 시작 전 1-프레임 갭 방지: mmPendingStart 추가
+  const mmPendingStart = !analysisLoading && analysisPhase >= 6 && !mmStarted && !!videoId;
+  const isFullyLoading = analysisLoading || mmPendingStart || (mmStarted && mmProgress.phase !== "done" && mmProgress.phase !== "error");
   if (isFullyLoading) {
     return (
       <div className="max-w-[800px] mx-auto px-4 md:px-6 py-12 animate-slide-in-right">

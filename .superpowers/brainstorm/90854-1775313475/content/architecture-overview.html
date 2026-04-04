@@ -1,0 +1,212 @@
+<h2>POV 영상분석 시스템 — 전체 아키텍처</h2>
+<p class="subtitle">TwelveLabs + 전문 AI 파이프라인 · 평가관 중심 워크플로</p>
+
+<div class="section">
+  <h3>🔄 End-to-End 데이터 흐름</h3>
+  <div class="mockup">
+    <div class="mockup-header">POV Analysis Pipeline Architecture</div>
+    <div class="mockup-body" style="padding: 24px; font-family: 'JetBrains Mono', monospace; font-size: 13px; line-height: 1.8;">
+      <div style="display: grid; grid-template-columns: 1fr; gap: 16px;">
+
+        <!-- Phase 1: Input -->
+        <div style="background: rgba(245, 158, 11, 0.1); border: 1px solid rgba(245, 158, 11, 0.4); border-radius: 8px; padding: 16px;">
+          <div style="color: #f59e0b; font-weight: 700; margin-bottom: 8px;">PHASE 1 — 입력</div>
+          <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px;">
+            <div style="background: rgba(0,0,0,0.3); border-radius: 6px; padding: 12px; text-align: center;">
+              <div style="font-size: 24px; margin-bottom: 4px;">📹</div>
+              <div style="color: #e5e7eb; font-size: 12px;">POV 영상 업로드</div>
+              <div style="color: #9ca3af; font-size: 10px;">드래그앤드롭 / URL</div>
+            </div>
+            <div style="background: rgba(0,0,0,0.3); border-radius: 6px; padding: 12px; text-align: center;">
+              <div style="font-size: 24px; margin-bottom: 4px;">📋</div>
+              <div style="color: #e5e7eb; font-size: 12px;">SOP 절차 선택</div>
+              <div style="color: #9ca3af; font-size: 10px;">8개 절차 (붙임 1~8)</div>
+            </div>
+            <div style="background: rgba(0,0,0,0.3); border-radius: 6px; padding: 12px; text-align: center;">
+              <div style="font-size: 24px; margin-bottom: 4px;">⭐</div>
+              <div style="color: #e5e7eb; font-size: 12px;">골드스탠다드 영상</div>
+              <div style="color: #9ca3af; font-size: 10px;">숙련자 기준 (선택)</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Arrow -->
+        <div style="text-align: center; color: #6b7280; font-size: 20px;">▼</div>
+
+        <!-- Phase 2: TwelveLabs Ingestion -->
+        <div style="background: rgba(59, 130, 246, 0.1); border: 1px solid rgba(59, 130, 246, 0.4); border-radius: 8px; padding: 16px;">
+          <div style="color: #3b82f6; font-weight: 700; margin-bottom: 8px;">PHASE 2 — TwelveLabs 인덱싱</div>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+            <div style="background: rgba(0,0,0,0.3); border-radius: 6px; padding: 12px;">
+              <div style="color: #93c5fd; font-weight: 600; font-size: 12px;">Marengo 3.0 인덱싱</div>
+              <div style="color: #9ca3af; font-size: 11px; margin-top: 4px;">
+                • Visual + Audio 모달리티<br>
+                • 512차원 임베딩 생성<br>
+                • khnp-pov-training 인덱스
+              </div>
+            </div>
+            <div style="background: rgba(0,0,0,0.3); border-radius: 6px; padding: 12px;">
+              <div style="color: #93c5fd; font-weight: 600; font-size: 12px;">인덱싱 완료 대기</div>
+              <div style="color: #9ca3af; font-size: 11px; margin-top: 4px;">
+                • 상태 폴링 (5초 간격)<br>
+                • 프로그레스 UI 표시<br>
+                • 에러 핸들링 + 재시도
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Arrow -->
+        <div style="text-align: center; color: #6b7280; font-size: 20px;">▼</div>
+
+        <!-- Phase 3: AI Analysis Pipeline -->
+        <div style="background: rgba(168, 85, 247, 0.1); border: 1px solid rgba(168, 85, 247, 0.4); border-radius: 8px; padding: 16px;">
+          <div style="color: #a855f7; font-weight: 700; margin-bottom: 8px;">PHASE 3 — AI 분석 파이프라인 (핵심)</div>
+          <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px;">
+
+            <div style="background: rgba(0,0,0,0.3); border-radius: 6px; padding: 12px;">
+              <div style="color: #c084fc; font-weight: 600; font-size: 12px;">3A. 단계 검출</div>
+              <div style="color: #d4d4d8; font-size: 11px; margin-top: 4px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 6px;">Marengo Search</div>
+              <div style="color: #9ca3af; font-size: 10px; margin-top: 4px;">
+                SOP 각 단계를 자연어 쿼리로 검색<br>
+                → 타임스탬프 + 신뢰도 추출<br>
+                → 수행/미수행 판정
+              </div>
+            </div>
+
+            <div style="background: rgba(0,0,0,0.3); border-radius: 6px; padding: 12px;">
+              <div style="color: #c084fc; font-weight: 600; font-size: 12px;">3B. 손-물체 분석</div>
+              <div style="color: #d4d4d8; font-size: 11px; margin-top: 4px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 6px;">Pegasus Analyze</div>
+              <div style="color: #9ca3af; font-size: 10px; margin-top: 4px;">
+                "손에 들고 있는 도구는?"<br>
+                "밸브 조작 전후 상태는?"<br>
+                → 물체 ID + 상태변화 추출
+              </div>
+            </div>
+
+            <div style="background: rgba(0,0,0,0.3); border-radius: 6px; padding: 12px;">
+              <div style="color: #c084fc; font-weight: 600; font-size: 12px;">3C. 시퀀스 매칭</div>
+              <div style="color: #d4d4d8; font-size: 11px; margin-top: 4px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 6px;">DTW Algorithm</div>
+              <div style="color: #9ca3af; font-size: 10px; margin-top: 4px;">
+                검출된 단계 순서 vs SOP 순서<br>
+                → 누락/순서오류/추가행동<br>
+                → 이탈 구간 타임라인
+              </div>
+            </div>
+          </div>
+
+          <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; margin-top: 12px;">
+            <div style="background: rgba(0,0,0,0.3); border-radius: 6px; padding: 12px;">
+              <div style="color: #c084fc; font-weight: 600; font-size: 12px;">3D. HPO 도구 적용 검증</div>
+              <div style="color: #d4d4d8; font-size: 11px; margin-top: 4px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 6px;">Marengo Search + Pegasus</div>
+              <div style="color: #9ca3af; font-size: 10px; margin-top: 4px;">
+                11개 HPO 도구 적용 여부 검색<br>
+                "자기진단(STAR) 수행 장면"<br>
+                "동료점검 수행 장면"
+              </div>
+            </div>
+
+            <div style="background: rgba(0,0,0,0.3); border-radius: 6px; padding: 12px;">
+              <div style="color: #c084fc; font-weight: 600; font-size: 12px;">3E. 임베딩 비교</div>
+              <div style="color: #d4d4d8; font-size: 11px; margin-top: 4px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 6px;">Marengo Embed</div>
+              <div style="color: #9ca3af; font-size: 10px; margin-top: 4px;">
+                골드스탠다드 vs 평가 영상<br>
+                → 세그먼트별 코사인 유사도<br>
+                → 정량적 격차 히트맵
+              </div>
+            </div>
+
+            <div style="background: rgba(0,0,0,0.3); border-radius: 6px; padding: 12px;">
+              <div style="color: #c084fc; font-weight: 600; font-size: 12px;">3F. 종합 스코어링</div>
+              <div style="color: #d4d4d8; font-size: 11px; margin-top: 4px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 6px;">Scoring Engine</div>
+              <div style="color: #9ca3af; font-size: 10px; margin-top: 4px;">
+                절차준수(40%) + HPO(30%)<br>
+                + 기본수칙(20%) + 유사도(10%)<br>
+                → S/A/B/C/D/F 등급
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Arrow -->
+        <div style="text-align: center; color: #6b7280; font-size: 20px;">▼</div>
+
+        <!-- Phase 4: Output -->
+        <div style="background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.4); border-radius: 8px; padding: 16px;">
+          <div style="color: #10b981; font-weight: 700; margin-bottom: 8px;">PHASE 4 — 평가관 대시보드</div>
+          <div style="display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 12px;">
+            <div style="background: rgba(0,0,0,0.3); border-radius: 6px; padding: 12px; text-align: center;">
+              <div style="color: #6ee7b7; font-weight: 600; font-size: 12px;">Overview</div>
+              <div style="color: #9ca3af; font-size: 10px; margin-top: 4px;">종합 등급 + 점수<br>레이더 차트<br>핵심 이탈 요약</div>
+            </div>
+            <div style="background: rgba(0,0,0,0.3); border-radius: 6px; padding: 12px; text-align: center;">
+              <div style="color: #6ee7b7; font-weight: 600; font-size: 12px;">Steps Timeline</div>
+              <div style="color: #9ca3af; font-size: 10px; margin-top: 4px;">SOP vs 실제 순서<br>이탈 구간 하이라이트<br>영상 구간 연동</div>
+            </div>
+            <div style="background: rgba(0,0,0,0.3); border-radius: 6px; padding: 12px; text-align: center;">
+              <div style="color: #6ee7b7; font-weight: 600; font-size: 12px;">Hand-Object</div>
+              <div style="color: #9ca3af; font-size: 10px; margin-top: 4px;">도구 사용 타임라인<br>조작 상태 변화<br>물체별 상호작용</div>
+            </div>
+            <div style="background: rgba(0,0,0,0.3); border-radius: 6px; padding: 12px; text-align: center;">
+              <div style="color: #6ee7b7; font-weight: 600; font-size: 12px;">Comparison</div>
+              <div style="color: #9ca3af; font-size: 10px; margin-top: 4px;">숙련자 나란히 비교<br>유사도 히트맵<br>격차 분석 리포트</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Arrow -->
+        <div style="text-align: center; color: #6b7280; font-size: 20px;">▼</div>
+
+        <!-- Phase 5: Review -->
+        <div style="background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.4); border-radius: 8px; padding: 16px;">
+          <div style="color: #ef4444; font-weight: 700; margin-bottom: 8px;">PHASE 5 — 디브리핑 세션</div>
+          <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px;">
+            <div style="background: rgba(0,0,0,0.3); border-radius: 6px; padding: 12px; text-align: center;">
+              <div style="color: #fca5a5; font-weight: 600; font-size: 12px;">AI 결과 수정</div>
+              <div style="color: #9ca3af; font-size: 10px; margin-top: 4px;">평가관이 AI 판정<br>오버라이드 가능</div>
+            </div>
+            <div style="background: rgba(0,0,0,0.3); border-radius: 6px; padding: 12px; text-align: center;">
+              <div style="color: #fca5a5; font-weight: 600; font-size: 12px;">구간별 피드백</div>
+              <div style="color: #9ca3af; font-size: 10px; margin-top: 4px;">영상 동기화 재생<br>+ 단계별 코멘트</div>
+            </div>
+            <div style="background: rgba(0,0,0,0.3); border-radius: 6px; padding: 12px; text-align: center;">
+              <div style="color: #fca5a5; font-weight: 600; font-size: 12px;">모범사례 등록</div>
+              <div style="color: #9ca3af; font-size: 10px; margin-top: 4px;">골드스탠다드 풀<br>자동 누적</div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="section" style="margin-top: 32px;">
+  <h3>핵심 기술 스택</h3>
+  <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px;">
+    <div style="background: rgba(59, 130, 246, 0.08); border: 1px solid rgba(59, 130, 246, 0.2); border-radius: 8px; padding: 16px;">
+      <div style="color: #3b82f6; font-weight: 700; font-size: 14px; margin-bottom: 8px;">TwelveLabs API</div>
+      <div style="color: #9ca3af; font-size: 12px; line-height: 1.6;">
+        <strong style="color: #e5e7eb;">Marengo 3.0</strong> — 자연어 검색 + 임베딩<br>
+        <strong style="color: #e5e7eb;">Pegasus 1.2</strong> — 영상→텍스트 분석<br>
+        <strong style="color: #e5e7eb;">Embed API</strong> — 512d 벡터 비교
+      </div>
+    </div>
+    <div style="background: rgba(168, 85, 247, 0.08); border: 1px solid rgba(168, 85, 247, 0.2); border-radius: 8px; padding: 16px;">
+      <div style="color: #a855f7; font-weight: 700; font-size: 14px; margin-bottom: 8px;">분석 엔진</div>
+      <div style="color: #9ca3af; font-size: 12px; line-height: 1.6;">
+        <strong style="color: #e5e7eb;">DTW</strong> — 시퀀스 정렬/이탈 탐지<br>
+        <strong style="color: #e5e7eb;">Cosine Sim</strong> — 임베딩 유사도<br>
+        <strong style="color: #e5e7eb;">Scoring Engine</strong> — 가중 종합 점수
+      </div>
+    </div>
+    <div style="background: rgba(16, 185, 129, 0.08); border: 1px solid rgba(16, 185, 129, 0.2); border-radius: 8px; padding: 16px;">
+      <div style="color: #10b981; font-weight: 700; font-size: 14px; margin-bottom: 8px;">프론트엔드</div>
+      <div style="color: #9ca3af; font-size: 12px; line-height: 1.6;">
+        <strong style="color: #e5e7eb;">Next.js 14</strong> — App Router + SSR<br>
+        <strong style="color: #e5e7eb;">Recharts</strong> — 레이더/타임라인 차트<br>
+        <strong style="color: #e5e7eb;">Video.js</strong> — 동기화 재생
+      </div>
+    </div>
+  </div>
+</div>

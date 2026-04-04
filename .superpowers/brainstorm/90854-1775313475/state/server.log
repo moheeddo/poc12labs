@@ -1,0 +1,6 @@
+{"type":"server-started","port":57500,"host":"127.0.0.1","url_host":"localhost","url":"http://localhost:57500","screen_dir":"/Users/dohan/poc12labs/.superpowers/brainstorm/90854-1775313475/content","state_dir":"/Users/dohan/poc12labs/.superpowers/brainstorm/90854-1775313475/state"}
+{"type":"screen-added","file":"/Users/dohan/poc12labs/.superpowers/brainstorm/90854-1775313475/content/architecture-overview.html"}
+{"type":"screen-added","file":"/Users/dohan/poc12labs/.superpowers/brainstorm/90854-1775313475/content/pipeline-detail.html"}
+{"type":"screen-added","file":"/Users/dohan/poc12labs/.superpowers/brainstorm/90854-1775313475/content/dashboard-ui.html"}
+{"type":"screen-added","file":"/Users/dohan/poc12labs/.superpowers/brainstorm/90854-1775313475/content/waiting.html"}
+{"type":"server-stopped","reason":"idle timeout"}

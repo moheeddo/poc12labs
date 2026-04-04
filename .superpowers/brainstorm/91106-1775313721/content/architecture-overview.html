@@ -1,0 +1,115 @@
+<h2>글로벌 역량진단 시스템 — 모듈 아키텍처</h2>
+<p class="subtitle">10개 기능을 7개 독립 모듈로 구성</p>
+
+<div style="margin: 2rem 0; padding: 2rem; background: rgba(255,255,255,0.03); border-radius: 12px; border: 1px solid rgba(255,255,255,0.1);">
+
+  <!-- Top Layer: UI -->
+  <div style="margin-bottom: 1.5rem;">
+    <div class="label" style="margin-bottom: 0.5rem;">UI Layer (기존 리더십코칭 탭 확장)</div>
+    <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+      <div style="flex:1; min-width: 120px; padding: 12px; background: rgba(45,212,191,0.15); border: 1px solid rgba(45,212,191,0.4); border-radius: 8px; text-align: center; font-size: 13px;">
+        <strong>증거 뷰어</strong><br><span style="opacity:0.6; font-size:11px;">타임스탬프 연동</span>
+      </div>
+      <div style="flex:1; min-width: 120px; padding: 12px; background: rgba(251,146,60,0.15); border: 1px solid rgba(251,146,60,0.4); border-radius: 8px; text-align: center; font-size: 13px;">
+        <strong>탈선 대시보드</strong><br><span style="opacity:0.6; font-size:11px;">위험 패턴 시각화</span>
+      </div>
+      <div style="flex:1; min-width: 120px; padding: 12px; background: rgba(168,85,247,0.15); border: 1px solid rgba(168,85,247,0.4); border-radius: 8px; text-align: center; font-size: 13px;">
+        <strong>BEI 타임라인</strong><br><span style="opacity:0.6; font-size:11px;">STAR 구조 뷰</span>
+      </div>
+      <div style="flex:1; min-width: 120px; padding: 12px; background: rgba(59,130,246,0.15); border: 1px solid rgba(59,130,246,0.4); border-radius: 8px; text-align: center; font-size: 13px;">
+        <strong>성장 추이</strong><br><span style="opacity:0.6; font-size:11px;">종단 비교 차트</span>
+      </div>
+      <div style="flex:1; min-width: 120px; padding: 12px; background: rgba(236,72,153,0.15); border: 1px solid rgba(236,72,153,0.4); border-radius: 8px; text-align: center; font-size: 13px;">
+        <strong>타당화 콘솔</strong><br><span style="opacity:0.6; font-size:11px;">통계 대시보드</span>
+      </div>
+      <div style="flex:1; min-width: 120px; padding: 12px; background: rgba(34,197,94,0.15); border: 1px solid rgba(34,197,94,0.4); border-radius: 8px; text-align: center; font-size: 13px;">
+        <strong>공정성 모니터</strong><br><span style="opacity:0.6; font-size:11px;">편향 알림</span>
+      </div>
+      <div style="flex:1; min-width: 120px; padding: 12px; background: rgba(234,179,8,0.15); border: 1px solid rgba(234,179,8,0.4); border-radius: 8px; text-align: center; font-size: 13px;">
+        <strong>ISO 감사 로그</strong><br><span style="opacity:0.6; font-size:11px;">준수 현황</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Arrow -->
+  <div style="text-align: center; font-size: 20px; opacity: 0.4; margin: 8px 0;">▼</div>
+
+  <!-- Middle Layer: Modules -->
+  <div style="margin-bottom: 1.5rem;">
+    <div class="label" style="margin-bottom: 0.5rem;">Core Modules (7개 독립 모듈)</div>
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px;">
+
+      <div style="padding: 16px; background: rgba(45,212,191,0.08); border: 1px solid rgba(45,212,191,0.3); border-radius: 8px;">
+        <div style="font-size: 11px; color: rgba(45,212,191,0.8); font-weight: 600; margin-bottom: 4px;">MODULE 1</div>
+        <strong style="font-size: 14px;">evidence/</strong>
+        <div style="font-size: 12px; opacity: 0.7; margin-top: 4px;">증거 기반 설명 가능성<br>루브릭↔영상구간 자동매핑<br>증거 클립 추출</div>
+      </div>
+
+      <div style="padding: 16px; background: rgba(251,146,60,0.08); border: 1px solid rgba(251,146,60,0.3); border-radius: 8px;">
+        <div style="font-size: 11px; color: rgba(251,146,60,0.8); font-weight: 600; margin-bottom: 4px;">MODULE 2</div>
+        <strong style="font-size: 14px;">derailer/</strong>
+        <div style="font-size: 12px; opacity: 0.7; margin-top: 4px;">탈선 요인 탐지<br>Hogan HDS 기반 11패턴<br>스트레스 행동 분류</div>
+      </div>
+
+      <div style="padding: 16px; background: rgba(168,85,247,0.08); border: 1px solid rgba(168,85,247,0.3); border-radius: 8px;">
+        <div style="font-size: 11px; color: rgba(168,85,247,0.8); font-weight: 600; margin-bottom: 4px;">MODULE 3</div>
+        <strong style="font-size: 14px;">bei/</strong>
+        <div style="font-size: 12px; opacity: 0.7; margin-top: 4px;">BEI 자동화<br>STAR 구조 파싱<br>행동사건 역량 코딩</div>
+      </div>
+
+      <div style="padding: 16px; background: rgba(59,130,246,0.08); border: 1px solid rgba(59,130,246,0.3); border-radius: 8px;">
+        <div style="font-size: 11px; color: rgba(59,130,246,0.8); font-weight: 600; margin-bottom: 4px;">MODULE 4</div>
+        <strong style="font-size: 14px;">growth/</strong>
+        <div style="font-size: 12px; opacity: 0.7; margin-top: 4px;">성장 추이 추적<br>Embeddings 유사도<br>종단 비교 분석</div>
+      </div>
+
+      <div style="padding: 16px; background: rgba(236,72,153,0.08); border: 1px solid rgba(236,72,153,0.3); border-radius: 8px;">
+        <div style="font-size: 11px; color: rgba(236,72,153,0.8); font-weight: 600; margin-bottom: 4px;">MODULE 5</div>
+        <strong style="font-size: 14px;">validation/</strong>
+        <div style="font-size: 12px; opacity: 0.7; margin-top: 4px;">심리측정 타당화 + 노름<br>Cronbach α / ICC<br>벤치마크 데이터</div>
+      </div>
+
+      <div style="padding: 16px; background: rgba(34,197,94,0.08); border: 1px solid rgba(34,197,94,0.3); border-radius: 8px;">
+        <div style="font-size: 11px; color: rgba(34,197,94,0.8); font-weight: 600; margin-bottom: 4px;">MODULE 6</div>
+        <strong style="font-size: 14px;">fairness/</strong>
+        <div style="font-size: 12px; opacity: 0.7; margin-top: 4px;">편향/공정성 모니터링<br>DIF 분석 + 4/5 규칙<br>집단 간 분포 비교</div>
+      </div>
+
+      <div style="padding: 16px; background: rgba(234,179,8,0.08); border: 1px solid rgba(234,179,8,0.3); border-radius: 8px;">
+        <div style="font-size: 11px; color: rgba(234,179,8,0.8); font-weight: 600; margin-bottom: 4px;">MODULE 7</div>
+        <strong style="font-size: 14px;">compliance/</strong>
+        <div style="font-size: 12px; opacity: 0.7; margin-top: 4px;">ISO 10667 + 삼각측정<br>감사 로그 + 동의 관리<br>하이브리드 점수 융합</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Arrow -->
+  <div style="text-align: center; font-size: 20px; opacity: 0.4; margin: 8px 0;">▼</div>
+
+  <!-- Bottom Layer: Shared -->
+  <div>
+    <div class="label" style="margin-bottom: 0.5rem;">Shared Infrastructure</div>
+    <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+      <div style="flex:1; min-width: 150px; padding: 14px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.15); border-radius: 8px; text-align: center;">
+        <strong style="font-size: 13px;">assessment-store</strong>
+        <div style="font-size: 11px; opacity: 0.6; margin-top: 4px;">IndexedDB 영구 저장<br>(LocalStorage 대체)</div>
+      </div>
+      <div style="flex:1; min-width: 150px; padding: 14px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.15); border-radius: 8px; text-align: center;">
+        <strong style="font-size: 13px;">twelvelabs-client</strong>
+        <div style="font-size: 11px; opacity: 0.6; margin-top: 4px;">기존 API 래퍼<br>+ Embeddings 확장</div>
+      </div>
+      <div style="flex:1; min-width: 150px; padding: 14px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.15); border-radius: 8px; text-align: center;">
+        <strong style="font-size: 13px;">audit-logger</strong>
+        <div style="font-size: 11px; opacity: 0.6; margin-top: 4px;">ISO 10667 감사 추적<br>모든 모듈에서 사용</div>
+      </div>
+      <div style="flex:1; min-width: 150px; padding: 14px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.15); border-radius: 8px; text-align: center;">
+        <strong style="font-size: 13px;">statistics</strong>
+        <div style="font-size: 11px; opacity: 0.6; margin-top: 4px;">통계 유틸리티<br>α, ICC, DIF 계산</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div style="margin-top: 1.5rem; padding: 1rem; background: rgba(45,212,191,0.05); border-left: 3px solid rgba(45,212,191,0.4); border-radius: 4px; font-size: 13px;">
+  <strong>핵심 변경:</strong> LocalStorage → IndexedDB로 영구 저장 전환. 모든 평가 데이터가 브라우저에 안전하게 보존되어 타당화 분석, 노름 구축, 성장 추적이 가능해짐.
+</div>

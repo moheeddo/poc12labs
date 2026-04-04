@@ -1,4 +1,5 @@
 import { getCachedReport, cacheReport, clearCache } from '@/lib/pov-analysis-cache';
+import type { PovEvaluationReport } from '@/lib/types';
 import { writeFileSync, existsSync, mkdirSync } from 'fs';
 import path from 'path';
 
@@ -28,7 +29,7 @@ describe('분석 캐시', () => {
     strengths: [],
     improvements: [],
     summary: '테스트',
-  } as any;
+  } as unknown as PovEvaluationReport;
 
   it('캐시 미스 시 null 반환', () => {
     expect(getCachedReport('vid-1', 'appendix-1')).toBeNull();

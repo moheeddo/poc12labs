@@ -1,0 +1,369 @@
+<h2>AI 분석 파이프라인 — 상세 설계</h2>
+<p class="subtitle">6개 서브모듈의 입력/처리/출력 흐름과 TwelveLabs API 호출 명세</p>
+
+<!-- Module 3A -->
+<div class="section">
+  <h3>3A. SOP 단계 검출 (Step Detection)</h3>
+  <div class="mockup">
+    <div class="mockup-header">Marengo Search × SOP Steps → 수행 타임라인</div>
+    <div class="mockup-body" style="padding: 20px; font-size: 13px;">
+      <div style="display: grid; grid-template-columns: 1fr 40px 1fr 40px 1fr; align-items: start; gap: 8px;">
+
+        <!-- Input -->
+        <div style="background: rgba(59,130,246,0.1); border: 1px solid rgba(59,130,246,0.3); border-radius: 8px; padding: 14px;">
+          <div style="color: #3b82f6; font-weight: 700; font-size: 12px; margin-bottom: 8px;">INPUT</div>
+          <div style="color: #e5e7eb; font-size: 11px; line-height: 1.7;">
+            <strong>SOP 단계 목록</strong> (pov-standards.ts)<br>
+            <code style="background: rgba(0,0,0,0.4); padding: 2px 6px; border-radius: 3px; font-size: 10px;">
+              "1.1 냉각수 계통 밸브 VG-003 열림 확인"
+            </code><br><br>
+            <strong>자연어 쿼리 변환 규칙</strong><br>
+            <code style="background: rgba(0,0,0,0.4); padding: 2px 6px; border-radius: 3px; font-size: 10px;">
+              → "operator checking valve VG-003 open"
+            </code><br><br>
+            <strong>videoId</strong> (인덱싱 완료된 영상)
+          </div>
+        </div>
+
+        <div style="text-align: center; color: #6b7280; padding-top: 40px;">→</div>
+
+        <!-- Process -->
+        <div style="background: rgba(168,85,247,0.1); border: 1px solid rgba(168,85,247,0.3); border-radius: 8px; padding: 14px;">
+          <div style="color: #a855f7; font-weight: 700; font-size: 12px; margin-bottom: 8px;">PROCESS</div>
+          <div style="color: #e5e7eb; font-size: 11px; line-height: 1.7;">
+            <strong>1) 배치 검색</strong><br>
+            SOP N단계 × Marengo Search API<br>
+            (병렬 호출, rate limit 고려)<br><br>
+            <strong>2) 신뢰도 필터링</strong><br>
+            confidence ≥ 0.6 → 수행<br>
+            0.3 ≤ conf < 0.6 → 부분(partial)<br>
+            conf < 0.3 → 미수행<br><br>
+            <strong>3) 타임스탬프 정렬</strong><br>
+            검출된 단계를 시간순 정렬
+          </div>
+        </div>
+
+        <div style="text-align: center; color: #6b7280; padding-top: 40px;">→</div>
+
+        <!-- Output -->
+        <div style="background: rgba(16,185,129,0.1); border: 1px solid rgba(16,185,129,0.3); border-radius: 8px; padding: 14px;">
+          <div style="color: #10b981; font-weight: 700; font-size: 12px; margin-bottom: 8px;">OUTPUT</div>
+          <div style="color: #e5e7eb; font-size: 11px; line-height: 1.7;">
+            <strong>DetectedStep[]</strong><br>
+            <code style="background: rgba(0,0,0,0.4); padding: 2px 6px; border-radius: 3px; font-size: 10px; display: block; margin-top: 4px; white-space: pre; line-height: 1.5;">
+{
+  stepId: "1.1",
+  status: "pass"|"fail"|"partial",
+  confidence: 0.87,
+  timestamp: 45.2,  // 초
+  endTime: 52.8,
+  searchScore: 0.87,
+  thumbnailUrl?: string
+}</code>
+          </div>
+        </div>
+      </div>
+
+      <!-- API Call Example -->
+      <div style="margin-top: 16px; background: rgba(0,0,0,0.4); border-radius: 6px; padding: 12px;">
+        <div style="color: #f59e0b; font-size: 11px; font-weight: 600; margin-bottom: 6px;">TwelveLabs API 호출 예시</div>
+        <code style="color: #a5b4fc; font-size: 10px; line-height: 1.6; display: block; white-space: pre;">POST /search
+{
+  "index_id": "khnp-pov-training",
+  "query_text": "operator opens valve VG-003 by turning handle",
+  "search_options": ["visual", "audio"],
+  "threshold": { "min": 0.3 },
+  "sort_option": "score",
+  "page_limit": 5,
+  "filter": { "id": ["video_abc123"] }
+}</code>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Module 3B -->
+<div class="section">
+  <h3>3B. 손-물체 상호작용 분석 (Hand-Object Analysis)</h3>
+  <div class="mockup">
+    <div class="mockup-header">Pegasus Analyze → 도구 식별 + 조작 대상 + 상태 변화</div>
+    <div class="mockup-body" style="padding: 20px; font-size: 13px;">
+      <div style="display: grid; grid-template-columns: 1fr 40px 1fr 40px 1fr; align-items: start; gap: 8px;">
+
+        <div style="background: rgba(59,130,246,0.1); border: 1px solid rgba(59,130,246,0.3); border-radius: 8px; padding: 14px;">
+          <div style="color: #3b82f6; font-weight: 700; font-size: 12px; margin-bottom: 8px;">INPUT</div>
+          <div style="color: #e5e7eb; font-size: 11px; line-height: 1.7;">
+            <strong>videoId</strong> + <strong>DetectedStep[]</strong><br>
+            (3A에서 검출된 단계 구간)<br><br>
+            <strong>분석 프롬프트 템플릿</strong><br>
+            장비 목록 + 예상 상태 포함<br><br>
+            <strong>구간별 분석</strong><br>
+            각 단계의 timestamp~endTime
+          </div>
+        </div>
+
+        <div style="text-align: center; color: #6b7280; padding-top: 40px;">→</div>
+
+        <div style="background: rgba(168,85,247,0.1); border: 1px solid rgba(168,85,247,0.3); border-radius: 8px; padding: 14px;">
+          <div style="color: #a855f7; font-weight: 700; font-size: 12px; margin-bottom: 8px;">PROCESS</div>
+          <div style="color: #e5e7eb; font-size: 11px; line-height: 1.7;">
+            <strong>1) 구간별 Pegasus 분석</strong><br>
+            프롬프트 엔지니어링:<br>
+            <code style="background: rgba(0,0,0,0.4); padding: 2px 4px; border-radius: 3px; font-size: 9px;">
+              "This is a first-person POV video of a nuclear plant operator. Describe: 1) What tool/object is the operator holding? 2) What equipment are they interacting with? 3) What is the before/after state?"
+            </code><br><br>
+            <strong>2) 구조화 파싱</strong><br>
+            LLM 응답 → JSON 변환<br><br>
+            <strong>3) SOP 기대값 교차검증</strong><br>
+            분석 결과 vs 기대 상태 비교
+          </div>
+        </div>
+
+        <div style="text-align: center; color: #6b7280; padding-top: 40px;">→</div>
+
+        <div style="background: rgba(16,185,129,0.1); border: 1px solid rgba(16,185,129,0.3); border-radius: 8px; padding: 14px;">
+          <div style="color: #10b981; font-weight: 700; font-size: 12px; margin-bottom: 8px;">OUTPUT</div>
+          <div style="color: #e5e7eb; font-size: 11px; line-height: 1.7;">
+            <strong>HandObjectEvent[]</strong><br>
+            <code style="background: rgba(0,0,0,0.4); padding: 2px 6px; border-radius: 3px; font-size: 10px; display: block; margin-top: 4px; white-space: pre; line-height: 1.5;">
+{
+  stepId: "1.1",
+  timestamp: 45.2,
+  heldObject: "렌치",
+  targetEquipment: "VG-003",
+  actionType: "turn_valve",
+  stateBefore: "closed",
+  stateAfter: "open",
+  matchesSOP: true,
+  confidence: 0.82
+}</code>
+          </div>
+        </div>
+      </div>
+
+      <!-- Three categories -->
+      <div style="margin-top: 16px; display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px;">
+        <div style="background: rgba(245,158,11,0.1); border: 1px solid rgba(245,158,11,0.3); border-radius: 6px; padding: 12px;">
+          <div style="color: #f59e0b; font-weight: 600; font-size: 11px; margin-bottom: 6px;">도구 (Held Objects)</div>
+          <div style="color: #9ca3af; font-size: 10px; line-height: 1.6;">
+            렌치, 드라이버, 체크리스트,<br>
+            키, 무전기, 보호장갑,<br>
+            계측기, 펜, 클립보드
+          </div>
+        </div>
+        <div style="background: rgba(245,158,11,0.1); border: 1px solid rgba(245,158,11,0.3); border-radius: 6px; padding: 12px;">
+          <div style="color: #f59e0b; font-weight: 600; font-size: 11px; margin-bottom: 6px;">조작 대상 (Targets)</div>
+          <div style="color: #9ca3af; font-size: 10px; line-height: 1.6;">
+            밸브 핸들, 스위치, 버튼,<br>
+            계기판, 펌프 레버,<br>
+            차단기, 제어반
+          </div>
+        </div>
+        <div style="background: rgba(245,158,11,0.1); border: 1px solid rgba(245,158,11,0.3); border-radius: 6px; padding: 12px;">
+          <div style="color: #f59e0b; font-weight: 600; font-size: 11px; margin-bottom: 6px;">상태 변화 (States)</div>
+          <div style="color: #9ca3af; font-size: 10px; line-height: 1.6;">
+            열림↔닫힘, 기동↔정지,<br>
+            ON↔OFF, 정상↔비정상,<br>
+            증가↔감소, 도달↔미도달
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Module 3C -->
+<div class="section">
+  <h3>3C. 시퀀스 매칭 — DTW 알고리즘</h3>
+  <div class="mockup">
+    <div class="mockup-header">SOP 순서 vs 실제 순서 → 이탈 타임라인</div>
+    <div class="mockup-body" style="padding: 20px; font-size: 13px;">
+
+      <!-- Visual explanation of DTW -->
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+        <div>
+          <div style="color: #10b981; font-weight: 600; font-size: 12px; margin-bottom: 8px;">SOP 정의 순서 (Expected)</div>
+          <div style="display: flex; gap: 4px; flex-wrap: wrap;">
+            <span style="background: rgba(16,185,129,0.2); border: 1px solid rgba(16,185,129,0.4); padding: 4px 8px; border-radius: 4px; font-size: 10px; color: #6ee7b7;">1.1</span>
+            <span style="color: #4b5563;">→</span>
+            <span style="background: rgba(16,185,129,0.2); border: 1px solid rgba(16,185,129,0.4); padding: 4px 8px; border-radius: 4px; font-size: 10px; color: #6ee7b7;">1.2</span>
+            <span style="color: #4b5563;">→</span>
+            <span style="background: rgba(16,185,129,0.2); border: 1px solid rgba(16,185,129,0.4); padding: 4px 8px; border-radius: 4px; font-size: 10px; color: #6ee7b7;">1.3</span>
+            <span style="color: #4b5563;">→</span>
+            <span style="background: rgba(16,185,129,0.2); border: 1px solid rgba(16,185,129,0.4); padding: 4px 8px; border-radius: 4px; font-size: 10px; color: #6ee7b7;">2.1</span>
+            <span style="color: #4b5563;">→</span>
+            <span style="background: rgba(16,185,129,0.2); border: 1px solid rgba(16,185,129,0.4); padding: 4px 8px; border-radius: 4px; font-size: 10px; color: #6ee7b7;">2.2</span>
+            <span style="color: #4b5563;">→</span>
+            <span style="background: rgba(16,185,129,0.2); border: 1px solid rgba(16,185,129,0.4); padding: 4px 8px; border-radius: 4px; font-size: 10px; color: #6ee7b7;">2.3</span>
+          </div>
+        </div>
+        <div>
+          <div style="color: #f59e0b; font-weight: 600; font-size: 12px; margin-bottom: 8px;">실제 수행 순서 (Detected)</div>
+          <div style="display: flex; gap: 4px; flex-wrap: wrap;">
+            <span style="background: rgba(16,185,129,0.2); border: 1px solid rgba(16,185,129,0.4); padding: 4px 8px; border-radius: 4px; font-size: 10px; color: #6ee7b7;">1.1</span>
+            <span style="color: #4b5563;">→</span>
+            <span style="background: rgba(239,68,68,0.2); border: 1px solid rgba(239,68,68,0.4); padding: 4px 8px; border-radius: 4px; font-size: 10px; color: #fca5a5;">1.3</span>
+            <span style="color: #4b5563;">→</span>
+            <span style="background: rgba(239,68,68,0.2); border: 1px solid rgba(239,68,68,0.4); padding: 4px 8px; border-radius: 4px; font-size: 10px; color: #fca5a5;">1.2</span>
+            <span style="color: #4b5563;">→</span>
+            <span style="background: rgba(16,185,129,0.2); border: 1px solid rgba(16,185,129,0.4); padding: 4px 8px; border-radius: 4px; font-size: 10px; color: #6ee7b7;">2.1</span>
+            <span style="color: #4b5563;">→</span>
+            <span style="background: rgba(107,114,128,0.2); border: 1px solid rgba(107,114,128,0.4); padding: 4px 8px; border-radius: 4px; font-size: 10px; color: #9ca3af; text-decoration: line-through;">2.2</span>
+            <span style="color: #4b5563;">→</span>
+            <span style="background: rgba(16,185,129,0.2); border: 1px solid rgba(16,185,129,0.4); padding: 4px 8px; border-radius: 4px; font-size: 10px; color: #6ee7b7;">2.3</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Deviation types -->
+      <div style="margin-top: 16px; display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 8px;">
+        <div style="background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.3); border-radius: 6px; padding: 10px; text-align: center;">
+          <div style="color: #ef4444; font-weight: 600; font-size: 11px;">순서 오류</div>
+          <div style="color: #9ca3af; font-size: 10px; margin-top: 4px;">SWAP</div>
+          <div style="color: #fca5a5; font-size: 10px;">1.2 ↔ 1.3</div>
+        </div>
+        <div style="background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.3); border-radius: 6px; padding: 10px; text-align: center;">
+          <div style="color: #ef4444; font-weight: 600; font-size: 11px;">단계 누락</div>
+          <div style="color: #9ca3af; font-size: 10px; margin-top: 4px;">SKIP</div>
+          <div style="color: #fca5a5; font-size: 10px;">2.2 미수행</div>
+        </div>
+        <div style="background: rgba(245,158,11,0.1); border: 1px solid rgba(245,158,11,0.3); border-radius: 6px; padding: 10px; text-align: center;">
+          <div style="color: #f59e0b; font-weight: 600; font-size: 11px;">추가 행동</div>
+          <div style="color: #9ca3af; font-size: 10px; margin-top: 4px;">INSERT</div>
+          <div style="color: #fcd34d; font-size: 10px;">SOP에 없는 행동</div>
+        </div>
+        <div style="background: rgba(245,158,11,0.1); border: 1px solid rgba(245,158,11,0.3); border-radius: 6px; padding: 10px; text-align: center;">
+          <div style="color: #f59e0b; font-weight: 600; font-size: 11px;">시간 이탈</div>
+          <div style="color: #9ca3af; font-size: 10px; margin-top: 4px;">DELAY</div>
+          <div style="color: #fcd34d; font-size: 10px;">기대시간 초과</div>
+        </div>
+      </div>
+
+      <!-- DTW Output -->
+      <div style="margin-top: 16px; background: rgba(0,0,0,0.4); border-radius: 6px; padding: 12px;">
+        <div style="color: #a855f7; font-size: 11px; font-weight: 600; margin-bottom: 6px;">DTW 출력 구조</div>
+        <code style="color: #a5b4fc; font-size: 10px; line-height: 1.6; display: block; white-space: pre;">interface SequenceAlignment {
+  sopSequence: string[];           // ["1.1","1.2","1.3","2.1","2.2","2.3"]
+  detectedSequence: string[];      // ["1.1","1.3","1.2","2.1","2.3"]
+  alignmentPath: AlignmentPair[];  // DTW 최적 정렬 경로
+  deviations: SopDeviation[];      // 이탈 목록
+  complianceScore: number;         // 0-100 (순서 준수율)
+  criticalDeviations: number;      // 핵심단계 이탈 수
+}</code>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Module 3D + 3E + 3F compact -->
+<div class="section">
+  <h3>3D~3F. HPO 검증 + 임베딩 비교 + 종합 스코어링</h3>
+  <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px;">
+
+    <!-- 3D -->
+    <div class="mockup">
+      <div class="mockup-header">3D. HPO 도구 검증</div>
+      <div class="mockup-body" style="padding: 14px; font-size: 11px;">
+        <div style="color: #e5e7eb; line-height: 1.7;">
+          <strong style="color: #c084fc;">11개 HPO 도구 각각에 대해:</strong><br><br>
+          Marengo Search로 적용 장면 검색<br>
+          <code style="background: rgba(0,0,0,0.4); padding: 1px 4px; border-radius: 3px; font-size: 9px;">"operator performing STAR self-check"</code><br>
+          <code style="background: rgba(0,0,0,0.4); padding: 1px 4px; border-radius: 3px; font-size: 9px;">"peer checking procedure step"</code><br><br>
+
+          <strong style="color: #c084fc;">출력:</strong><br>
+          도구별 적용 횟수 + 타임스탬프<br>
+          기본4종 필수 / 조건부7종 선택<br>
+          <span style="color: #6ee7b7;">기본 4종 미적용 = 감점</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- 3E -->
+    <div class="mockup">
+      <div class="mockup-header">3E. 임베딩 비교</div>
+      <div class="mockup-body" style="padding: 14px; font-size: 11px;">
+        <div style="color: #e5e7eb; line-height: 1.7;">
+          <strong style="color: #3b82f6;">골드스탠다드 영상이 있을 때:</strong><br><br>
+          양쪽 영상을 10초 세그먼트로 분할<br>
+          Marengo Embed → 512d 벡터<br>
+          세그먼트별 코사인 유사도 계산<br><br>
+
+          <strong style="color: #3b82f6;">출력:</strong><br>
+          유사도 히트맵 (시간 × 시간)<br>
+          저유사도 구간 = 격차 구간<br>
+          <span style="color: #fcd34d;">전체 평균 유사도 점수</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- 3F -->
+    <div class="mockup">
+      <div class="mockup-header">3F. 종합 스코어링</div>
+      <div class="mockup-body" style="padding: 14px; font-size: 11px;">
+        <div style="color: #e5e7eb; line-height: 1.7;">
+          <strong style="color: #10b981;">가중 합산 공식:</strong><br><br>
+          <div style="background: rgba(0,0,0,0.4); border-radius: 4px; padding: 8px; margin: 4px 0;">
+            <code style="font-size: 10px; color: #6ee7b7;">
+              절차준수 × 0.40<br>
+              + HPO도구 × 0.30<br>
+              + 기본수칙 × 0.20<br>
+              + 유사도  × 0.10<br>
+              ─────────────<br>
+              = 종합점수 (0~100)
+            </code>
+          </div><br>
+          <strong style="color: #10b981;">등급 매핑:</strong><br>
+          <span style="color: #fbbf24;">S</span>(95+)
+          <span style="color: #34d399;">A</span>(85+)
+          <span style="color: #60a5fa;">B</span>(70+)<br>
+          <span style="color: #a78bfa;">C</span>(55+)
+          <span style="color: #fb923c;">D</span>(40+)
+          <span style="color: #f87171;">F</span>(&lt;40)
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Critical: Query Engineering -->
+<div class="section">
+  <h3>핵심 기술 과제: 쿼리 엔지니어링</h3>
+  <div class="mockup">
+    <div class="mockup-header">한국어 SOP → 영어 자연어 쿼리 변환 전략</div>
+    <div class="mockup-body" style="padding: 20px; font-size: 13px;">
+      <div style="color: #e5e7eb; line-height: 1.8;">
+        <p style="color: #f59e0b; font-weight: 600;">TwelveLabs는 영어 쿼리에서 최고 성능을 발휘합니다. SOP 단계를 효과적인 영어 쿼리로 변환하는 것이 시스템 정확도의 핵심입니다.</p>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 12px;">
+          <div style="background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.3); border-radius: 6px; padding: 12px;">
+            <div style="color: #ef4444; font-weight: 600; font-size: 11px; margin-bottom: 4px;">BAD Query</div>
+            <code style="font-size: 10px; color: #fca5a5;">"냉각수 계통 밸브 VG-003 열림 확인"</code><br>
+            <span style="color: #6b7280; font-size: 10px;">→ 한국어 직역, 너무 추상적</span>
+          </div>
+          <div style="background: rgba(16,185,129,0.1); border: 1px solid rgba(16,185,129,0.3); border-radius: 6px; padding: 12px;">
+            <div style="color: #10b981; font-weight: 600; font-size: 11px; margin-bottom: 4px;">GOOD Query</div>
+            <code style="font-size: 10px; color: #6ee7b7;">"operator's hand turning a valve handle to the open position, checking the valve indicator"</code><br>
+            <span style="color: #6b7280; font-size: 10px;">→ 1인칭 시점 행동 묘사, 구체적</span>
+          </div>
+        </div>
+
+        <div style="margin-top: 12px; background: rgba(0,0,0,0.4); border-radius: 6px; padding: 12px;">
+          <div style="color: #a5b4fc; font-size: 11px; font-weight: 600; margin-bottom: 6px;">쿼리 변환 규칙 (pov-standards.ts에 추가)</div>
+          <code style="font-size: 10px; color: #9ca3af; line-height: 1.6; display: block; white-space: pre;">interface StepQueryTemplate {
+  stepId: string;
+  // SOP 원문 (한국어)
+  sopText: string;
+  // 1차 검색: 행동 기반 (높은 재현율)
+  actionQuery: string;    // "hand turning valve handle"
+  // 2차 검색: 물체 기반 (높은 정밀도)
+  objectQuery: string;    // "valve labeled VG-003"
+  // 3차 검색: 상태 기반 (검증용)
+  stateQuery: string;     // "valve indicator showing open"
+  // 복합 검색: 위 쿼리 조합
+  composedQuery?: string; // 필요시 이미지+텍스트
+}</code>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

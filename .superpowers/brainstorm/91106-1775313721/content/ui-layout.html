@@ -1,0 +1,177 @@
+<h2>UI 설계 — 리더십코칭 탭 확장 레이아웃</h2>
+<p class="subtitle">기존 스텝 바 구조를 확장하여 10개 기능을 자연스럽게 통합</p>
+
+<!-- Current vs New comparison -->
+<div class="split" style="margin: 2rem 0;">
+  <!-- BEFORE -->
+  <div class="mockup">
+    <div class="mockup-header">현재 (Before)</div>
+    <div class="mockup-body" style="padding: 0;">
+      <!-- Step Bar -->
+      <div style="display: flex; background: rgba(255,255,255,0.05); border-bottom: 1px solid rgba(255,255,255,0.1); font-size: 11px;">
+        <div style="flex:1; padding: 10px 8px; text-align: center; border-bottom: 2px solid rgb(45,212,191); color: rgb(45,212,191);">1. 조 구성</div>
+        <div style="flex:1; padding: 10px 8px; text-align: center; opacity: 0.5;">2. 영상 업로드</div>
+        <div style="flex:1; padding: 10px 8px; text-align: center; opacity: 0.5;">3. AI 분석</div>
+        <div style="flex:1; padding: 10px 8px; text-align: center; opacity: 0.5;">4. 결과 리포트</div>
+      </div>
+      <!-- Content area -->
+      <div style="padding: 16px;">
+        <div style="padding: 20px; background: rgba(255,255,255,0.03); border-radius: 8px; text-align: center; opacity: 0.5; font-size: 12px;">
+          조 구성 → 영상 업로드 → AI 분석 → 결과 리포트<br>
+          <span style="font-size: 10px; opacity: 0.6;">단일 평가 흐름만 존재</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- AFTER -->
+  <div class="mockup">
+    <div class="mockup-header">확장 (After)</div>
+    <div class="mockup-body" style="padding: 0;">
+      <!-- Step Bar (same) -->
+      <div style="display: flex; background: rgba(255,255,255,0.05); border-bottom: 1px solid rgba(255,255,255,0.1); font-size: 11px;">
+        <div style="flex:1; padding: 10px 6px; text-align: center; opacity: 0.5;">1. 동의/조구성</div>
+        <div style="flex:1; padding: 10px 6px; text-align: center; opacity: 0.5;">2. 영상 업로드</div>
+        <div style="flex:1; padding: 10px 6px; text-align: center; border-bottom: 2px solid rgb(45,212,191); color: rgb(45,212,191);">3. AI 분석</div>
+        <div style="flex:1; padding: 10px 6px; text-align: center; opacity: 0.5;">4. 심층 리포트</div>
+        <div style="flex:1; padding: 10px 6px; text-align: center; opacity: 0.5;">5. 검증/관리</div>
+      </div>
+      <!-- Sub tabs -->
+      <div style="display: flex; gap: 4px; padding: 8px 12px; background: rgba(255,255,255,0.02); border-bottom: 1px solid rgba(255,255,255,0.06); font-size: 10px;">
+        <span style="padding: 4px 10px; background: rgba(45,212,191,0.15); border-radius: 4px; color: rgb(45,212,191);">역량평가</span>
+        <span style="padding: 4px 10px; opacity: 0.4;">증거맵</span>
+        <span style="padding: 4px 10px; opacity: 0.4;">탈선탐지</span>
+        <span style="padding: 4px 10px; opacity: 0.4;">BEI</span>
+        <span style="padding: 4px 10px; opacity: 0.4;">성장추이</span>
+      </div>
+      <!-- Content -->
+      <div style="padding: 12px;">
+        <div style="padding: 14px; background: rgba(45,212,191,0.05); border-radius: 6px; font-size: 11px;">
+          <strong>3단계 분석</strong>이 5개 서브탭으로 확장<br>
+          <span style="opacity: 0.6;">5단계 검증/관리에서 타당화·편향·ISO 관리</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Detailed Step Layout -->
+<h3 style="margin-top: 2rem;">5단계 워크플로우 상세</h3>
+
+<!-- Step 1 -->
+<div style="margin: 1.5rem 0; padding: 1.2rem; background: rgba(234,179,8,0.05); border: 1px solid rgba(234,179,8,0.15); border-radius: 8px;">
+  <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 10px;">
+    <div style="width: 28px; height: 28px; background: rgba(234,179,8,0.2); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 700; color: rgb(234,179,8);">1</div>
+    <strong style="font-size: 14px;">동의/조 구성</strong>
+    <span style="font-size: 10px; padding: 2px 8px; background: rgba(234,179,8,0.1); border-radius: 4px; color: rgb(234,179,8);">NEW: ISO 10667 동의</span>
+  </div>
+  <div style="display: flex; gap: 12px; font-size: 12px;">
+    <div style="flex: 1; padding: 10px; background: rgba(255,255,255,0.03); border-radius: 6px;">
+      <div class="label">기존</div>
+      <span style="opacity: 0.7;">조원 6명 등록, 직급 선택</span>
+    </div>
+    <div style="flex: 2; padding: 10px; background: rgba(234,179,8,0.03); border-radius: 6px;">
+      <div class="label">추가</div>
+      <span style="opacity: 0.7;">
+        <strong>참여 동의서</strong> 체크박스 (영상 촬영·AI 분석·데이터 보존 동의)<br>
+        <strong>인사DB 연동</strong> 사원번호 입력 → 자동 매칭 (또는 CSV 업로드)<br>
+        <strong>감사 로그</strong> 시작: 세션 생성 시점 기록
+      </span>
+    </div>
+  </div>
+</div>
+
+<!-- Step 2 -->
+<div style="margin: 1.5rem 0; padding: 1.2rem; background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px;">
+  <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 10px;">
+    <div style="width: 28px; height: 28px; background: rgba(255,255,255,0.1); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 700;">2</div>
+    <strong style="font-size: 14px;">영상 업로드</strong>
+    <span style="font-size: 10px; opacity: 0.5;">기존과 동일</span>
+  </div>
+  <div style="font-size: 12px; opacity: 0.7; padding-left: 36px;">
+    역량별 영상 업로드 → TwelveLabs 인덱싱 (변경 없음)
+  </div>
+</div>
+
+<!-- Step 3: The big one -->
+<div style="margin: 1.5rem 0; padding: 1.2rem; background: rgba(45,212,191,0.05); border: 1px solid rgba(45,212,191,0.2); border-radius: 8px;">
+  <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 10px;">
+    <div style="width: 28px; height: 28px; background: rgba(45,212,191,0.2); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 700; color: rgb(45,212,191);">3</div>
+    <strong style="font-size: 14px;">AI 분석</strong>
+    <span style="font-size: 10px; padding: 2px 8px; background: rgba(45,212,191,0.1); border-radius: 4px; color: rgb(45,212,191);">5개 서브탭으로 확장</span>
+  </div>
+  <div style="display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; font-size: 11px;">
+    <div style="padding: 10px; background: rgba(45,212,191,0.08); border-radius: 6px; text-align: center;">
+      <strong style="color: rgb(45,212,191);">역량평가</strong><br>
+      <span style="opacity: 0.6; font-size: 10px;">기존 8Phase<br>+ 삼각측정</span>
+    </div>
+    <div style="padding: 10px; background: rgba(45,212,191,0.08); border-radius: 6px; text-align: center;">
+      <strong style="color: rgb(45,212,191);">증거맵</strong><br>
+      <span style="opacity: 0.6; font-size: 10px;">루브릭↔영상<br>클릭 재생</span>
+    </div>
+    <div style="padding: 10px; background: rgba(251,146,60,0.08); border-radius: 6px; text-align: center;">
+      <strong style="color: rgb(251,146,60);">탈선탐지</strong><br>
+      <span style="opacity: 0.6; font-size: 10px;">11패턴<br>위험도 게이지</span>
+    </div>
+    <div style="padding: 10px; background: rgba(168,85,247,0.08); border-radius: 6px; text-align: center;">
+      <strong style="color: rgb(168,85,247);">BEI</strong><br>
+      <span style="opacity: 0.6; font-size: 10px;">STAR 타임라인<br>역량 코딩</span>
+    </div>
+    <div style="padding: 10px; background: rgba(59,130,246,0.08); border-radius: 6px; text-align: center;">
+      <strong style="color: rgb(59,130,246);">성장추이</strong><br>
+      <span style="opacity: 0.6; font-size: 10px;">종단 차트<br>유사도 비교</span>
+    </div>
+  </div>
+</div>
+
+<!-- Step 4 -->
+<div style="margin: 1.5rem 0; padding: 1.2rem; background: rgba(168,85,247,0.05); border: 1px solid rgba(168,85,247,0.15); border-radius: 8px;">
+  <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 10px;">
+    <div style="width: 28px; height: 28px; background: rgba(168,85,247,0.2); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 700; color: rgb(168,85,247);">4</div>
+    <strong style="font-size: 14px;">심층 리포트</strong>
+    <span style="font-size: 10px; padding: 2px 8px; background: rgba(168,85,247,0.1); border-radius: 4px; color: rgb(168,85,247);">NEW: 통합 리포트</span>
+  </div>
+  <div style="display: flex; gap: 12px; font-size: 12px;">
+    <div style="flex:1; padding: 10px; background: rgba(255,255,255,0.03); border-radius: 6px;">
+      <div class="label">기존 리포트</div>
+      <span style="opacity: 0.7;">레이더 차트 + 피드백 텍스트</span>
+    </div>
+    <div style="flex:2; padding: 10px; background: rgba(168,85,247,0.03); border-radius: 6px;">
+      <div class="label">확장 리포트</div>
+      <span style="opacity: 0.7;">
+        <strong>밝은면</strong> (역량 점수) + <strong>어두운면</strong> (탈선 위험도) 통합 뷰<br>
+        <strong>증거 링크</strong> 내장 — 각 점수 클릭 시 영상 구간 재생<br>
+        <strong>BEI 행동사건</strong> 요약 — STAR 구조화된 핵심 사례<br>
+        <strong>노름 비교</strong> — 동일 직급 대비 백분위 표시<br>
+        <strong>즉시 코칭</strong> — 개선 과제 + 구체적 행동 제안
+      </span>
+    </div>
+  </div>
+</div>
+
+<!-- Step 5 -->
+<div style="margin: 1.5rem 0; padding: 1.2rem; background: rgba(34,197,94,0.05); border: 1px solid rgba(34,197,94,0.15); border-radius: 8px;">
+  <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 10px;">
+    <div style="width: 28px; height: 28px; background: rgba(34,197,94,0.2); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 700; color: rgb(34,197,94);">5</div>
+    <strong style="font-size: 14px;">검증/관리</strong>
+    <span style="font-size: 10px; padding: 2px 8px; background: rgba(34,197,94,0.1); border-radius: 4px; color: rgb(34,197,94);">NEW: 관리자 전용</span>
+  </div>
+  <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; font-size: 11px;">
+    <div style="padding: 10px; background: rgba(236,72,153,0.08); border-radius: 6px; text-align: center;">
+      <strong style="color: rgb(236,72,153);">타당화 콘솔</strong><br>
+      <span style="opacity: 0.6; font-size: 10px;">Cronbach α / ICC<br>표본 크기 가이드<br>노름 테이블 관리</span>
+    </div>
+    <div style="padding: 10px; background: rgba(34,197,94,0.08); border-radius: 6px; text-align: center;">
+      <strong style="color: rgb(34,197,94);">공정성 모니터</strong><br>
+      <span style="opacity: 0.6; font-size: 10px;">편향 알림 대시보드<br>DIF 분석 결과<br>4/5 규칙 현황</span>
+    </div>
+    <div style="padding: 10px; background: rgba(234,179,8,0.08); border-radius: 6px; text-align: center;">
+      <strong style="color: rgb(234,179,8);">ISO 감사</strong><br>
+      <span style="opacity: 0.6; font-size: 10px;">감사 로그 뷰어<br>동의 현황<br>데이터 보존 정책</span>
+    </div>
+  </div>
+</div>
+
+<div style="margin-top: 1.5rem; padding: 1rem; background: rgba(45,212,191,0.05); border-left: 3px solid rgba(45,212,191,0.4); border-radius: 4px; font-size: 12px;">
+  <strong>설계 원칙:</strong> 기존 4단계 → 5단계로 최소 확장. 3단계(AI 분석)에 서브탭 추가로 핵심 기능 집중. 5단계(검증/관리)는 관리자 전용으로 일반 평가 흐름을 방해하지 않음.
+</div>

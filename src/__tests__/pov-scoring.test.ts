@@ -95,7 +95,7 @@ describe('getGrade', () => {
 describe('calculateQualityAdjustedScore', () => {
   it('품질 데이터 없으면 원점수 반환', () => {
     expect(calculateQualityAdjustedScore(80, [])).toBe(80);
-    expect(calculateQualityAdjustedScore(80, [{ other: 1 }] as any)).toBe(80);
+    expect(calculateQualityAdjustedScore(80, [{ other: 1 } as unknown as { qualityScore?: number }])).toBe(80);
   });
 
   it('품질 100이면 점수 상승', () => {

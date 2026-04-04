@@ -138,9 +138,9 @@ export default function PovAnalysis() {
   // 실제 분석 파이프라인 훅
   const analysis = usePovAnalysis();
   const [selectedGoldStandard, setSelectedGoldStandard] = useState<GoldStandard | null>(null);
-  const [currentTime, setCurrentTime] = useState(0);
+  const [currentTime, _setCurrentTime] = useState(0);
   const [videoDuration, setVideoDuration] = useState(0);
-  const [seekTime, setSeekTime] = useState<number | null>(null);
+  const [_seekTime, setSeekTime] = useState<number | null>(null);
   // SOP 관리 모달 표시 여부
   const [showSopManager, setShowSopManager] = useState(false);
   // 분석 이력 모달 표시 여부

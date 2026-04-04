@@ -1,0 +1,27 @@
+[
+  {
+    "key": "vid-2-appendix-1",
+    "videoId": "vid-2",
+    "procedureId": "appendix-1",
+    "report": {
+      "id": "r2",
+      "procedureId": "appendix-1",
+      "procedureTitle": "테스트",
+      "videoId": "vid-1",
+      "date": "2026-04-05",
+      "stepEvaluations": [],
+      "procedureComplianceScore": 80,
+      "hpoEvaluations": [],
+      "hpoOverallScore": 70,
+      "fundamentalScores": [],
+      "overallScore": 75,
+      "grade": "B",
+      "deviations": [],
+      "strengths": [],
+      "improvements": [],
+      "summary": "테스트"
+    },
+    "cachedAt": "2026-04-04T16:44:57.712Z",
+    "pipelineVersion": "1.0.0"
+  }
+]

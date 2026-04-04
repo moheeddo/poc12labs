@@ -1,0 +1,338 @@
+<h2>모듈 상세 설계 — 10개 기능 매핑</h2>
+<p class="subtitle">각 모듈의 입출력, 의존성, API 설계</p>
+
+<!-- Module 1: Evidence -->
+<div style="margin: 2rem 0; padding: 1.5rem; background: rgba(45,212,191,0.05); border: 1px solid rgba(45,212,191,0.2); border-radius: 10px;">
+  <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 12px;">
+    <div style="width: 32px; height: 32px; background: rgba(45,212,191,0.2); border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 700; color: rgb(45,212,191);">1</div>
+    <div>
+      <strong style="font-size: 15px;">evidence/ — 증거 기반 설명 가능성</strong>
+      <div style="font-size: 11px; opacity: 0.5;">Gap #1: Explainability</div>
+    </div>
+  </div>
+  <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; font-size: 12px;">
+    <div>
+      <div class="label">입력</div>
+      <ul style="margin: 4px 0; padding-left: 16px; opacity: 0.8;">
+        <li>루브릭 기준 텍스트</li>
+        <li>영상 videoId</li>
+        <li>AI 점수 + 역량 키</li>
+      </ul>
+    </div>
+    <div>
+      <div class="label">처리</div>
+      <ul style="margin: 4px 0; padding-left: 16px; opacity: 0.8;">
+        <li>루브릭 기준별 TwelveLabs Search</li>
+        <li>매칭 구간 신뢰도 필터링</li>
+        <li>증거 클립 타임스탬프 추출</li>
+      </ul>
+    </div>
+    <div>
+      <div class="label">출력</div>
+      <ul style="margin: 4px 0; padding-left: 16px; opacity: 0.8;">
+        <li>EvidenceMap: 점수↔영상구간</li>
+        <li>클릭 가능한 증거 링크</li>
+        <li>신뢰도 표시 (%, 색상)</li>
+      </ul>
+    </div>
+  </div>
+  <div style="margin-top: 10px; padding: 8px 12px; background: rgba(255,255,255,0.03); border-radius: 6px; font-size: 11px; opacity: 0.7;">
+    <strong>API:</strong> <code>/api/evidence/map</code> — POST { videoId, competencyKey, rubricItems[] } → EvidenceMap[]
+  </div>
+</div>
+
+<!-- Module 2: Derailer -->
+<div style="margin: 2rem 0; padding: 1.5rem; background: rgba(251,146,60,0.05); border: 1px solid rgba(251,146,60,0.2); border-radius: 10px;">
+  <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 12px;">
+    <div style="width: 32px; height: 32px; background: rgba(251,146,60,0.2); border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 700; color: rgb(251,146,60);">2</div>
+    <div>
+      <strong style="font-size: 15px;">derailer/ — 탈선 요인 탐지</strong>
+      <div style="font-size: 11px; opacity: 0.5;">Gap #2: Hogan HDS 기반</div>
+    </div>
+  </div>
+  <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; font-size: 12px;">
+    <div>
+      <div class="label">입력</div>
+      <ul style="margin: 4px 0; padding-left: 16px; opacity: 0.8;">
+        <li>영상 transcript</li>
+        <li>멀티모달 5채널 신호</li>
+        <li>시나리오 맥락 (비상/일상)</li>
+      </ul>
+    </div>
+    <div>
+      <div class="label">처리</div>
+      <ul style="margin: 4px 0; padding-left: 16px; opacity: 0.8;">
+        <li>11개 탈선 패턴 프롬프트</li>
+        <li>음성 긴장/표정 변화 감지</li>
+        <li>맥락별 가중치 조정</li>
+      </ul>
+    </div>
+    <div>
+      <div class="label">출력</div>
+      <ul style="margin: 4px 0; padding-left: 16px; opacity: 0.8;">
+        <li>DerailerProfile: 11개 위험도</li>
+        <li>위험 구간 타임스탬프</li>
+        <li>개발 권고사항</li>
+      </ul>
+    </div>
+  </div>
+  <div style="margin-top: 10px; padding: 8px 12px; background: rgba(255,255,255,0.03); border-radius: 6px; font-size: 11px;">
+    <strong>11개 탈선 패턴 (Hogan HDS 원전 맥락화):</strong>
+    <div style="display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px;">
+      <span style="padding: 2px 8px; background: rgba(251,146,60,0.1); border-radius: 4px; font-size: 10px;">과도한 지시형</span>
+      <span style="padding: 2px 8px; background: rgba(251,146,60,0.1); border-radius: 4px; font-size: 10px;">회피형</span>
+      <span style="padding: 2px 8px; background: rgba(251,146,60,0.1); border-radius: 4px; font-size: 10px;">변덕형</span>
+      <span style="padding: 2px 8px; background: rgba(251,146,60,0.1); border-radius: 4px; font-size: 10px;">과잉신중형</span>
+      <span style="padding: 2px 8px; background: rgba(251,146,60,0.1); border-radius: 4px; font-size: 10px;">독선형</span>
+      <span style="padding: 2px 8px; background: rgba(251,146,60,0.1); border-radius: 4px; font-size: 10px;">과시형</span>
+      <span style="padding: 2px 8px; background: rgba(251,146,60,0.1); border-radius: 4px; font-size: 10px;">수동공격형</span>
+      <span style="padding: 2px 8px; background: rgba(251,146,60,0.1); border-radius: 4px; font-size: 10px;">무관심형</span>
+      <span style="padding: 2px 8px; background: rgba(251,146,60,0.1); border-radius: 4px; font-size: 10px;">과잉순응형</span>
+      <span style="padding: 2px 8px; background: rgba(251,146,60,0.1); border-radius: 4px; font-size: 10px;">완벽주의형</span>
+      <span style="padding: 2px 8px; background: rgba(251,146,60,0.1); border-radius: 4px; font-size: 10px;">고립형</span>
+    </div>
+  </div>
+  <div style="margin-top: 8px; padding: 8px 12px; background: rgba(255,255,255,0.03); border-radius: 6px; font-size: 11px; opacity: 0.7;">
+    <strong>API:</strong> <code>/api/derailer/analyze</code> — POST { videoId, transcript, multimodalSignals, scenarioType } → DerailerProfile
+  </div>
+</div>
+
+<!-- Module 3: BEI -->
+<div style="margin: 2rem 0; padding: 1.5rem; background: rgba(168,85,247,0.05); border: 1px solid rgba(168,85,247,0.2); border-radius: 10px;">
+  <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 12px;">
+    <div style="width: 32px; height: 32px; background: rgba(168,85,247,0.2); border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 700; color: rgb(168,85,247);">3</div>
+    <div>
+      <strong style="font-size: 15px;">bei/ — 행동사건면접 자동화</strong>
+      <div style="font-size: 11px; opacity: 0.5;">Gap #3: STAR 구조 파싱</div>
+    </div>
+  </div>
+  <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; font-size: 12px;">
+    <div>
+      <div class="label">입력</div>
+      <ul style="margin: 4px 0; padding-left: 16px; opacity: 0.8;">
+        <li>영상 transcript (타임스탬프)</li>
+        <li>역량 프레임워크</li>
+        <li>직급별 기대 행동</li>
+      </ul>
+    </div>
+    <div>
+      <div class="label">처리</div>
+      <ul style="margin: 4px 0; padding-left: 16px; opacity: 0.8;">
+        <li>발언 → STAR 구조 파싱</li>
+        <li>행동사건 단위 분리</li>
+        <li>역량 코딩 (자동 분류)</li>
+      </ul>
+    </div>
+    <div>
+      <div class="label">출력</div>
+      <ul style="margin: 4px 0; padding-left: 16px; opacity: 0.8;">
+        <li>BEIEvent[]: STAR 구조화</li>
+        <li>역량별 행동사건 매핑</li>
+        <li>차별화 역량 식별</li>
+      </ul>
+    </div>
+  </div>
+  <div style="margin-top: 10px; padding: 8px 12px; background: rgba(255,255,255,0.03); border-radius: 6px; font-size: 11px; opacity: 0.7;">
+    <strong>API:</strong> <code>/api/bei/extract</code> — POST { videoId, transcript, competencyFramework } → BEIEvent[]<br>
+    <strong>API:</strong> <code>/api/bei/code</code> — POST { events[], competencies[] } → CompetencyCoding[]
+  </div>
+</div>
+
+<!-- Module 4: Growth -->
+<div style="margin: 2rem 0; padding: 1.5rem; background: rgba(59,130,246,0.05); border: 1px solid rgba(59,130,246,0.2); border-radius: 10px;">
+  <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 12px;">
+    <div style="width: 32px; height: 32px; background: rgba(59,130,246,0.2); border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 700; color: rgb(59,130,246);">4</div>
+    <div>
+      <strong style="font-size: 15px;">growth/ — 역량 성장 추이 추적</strong>
+      <div style="font-size: 11px; opacity: 0.5;">Gap #4: Longitudinal Tracking</div>
+    </div>
+  </div>
+  <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; font-size: 12px;">
+    <div>
+      <div class="label">입력</div>
+      <ul style="margin: 4px 0; padding-left: 16px; opacity: 0.8;">
+        <li>과거 세션 평가 데이터</li>
+        <li>현재 세션 평가 데이터</li>
+        <li>Video Embeddings (과거/현재)</li>
+      </ul>
+    </div>
+    <div>
+      <div class="label">처리</div>
+      <ul style="margin: 4px 0; padding-left: 16px; opacity: 0.8;">
+        <li>점수 시계열 분석</li>
+        <li>Embeddings 코사인 유사도</li>
+        <li>성장률 계산 + 추세선</li>
+      </ul>
+    </div>
+    <div>
+      <div class="label">출력</div>
+      <ul style="margin: 4px 0; padding-left: 16px; opacity: 0.8;">
+        <li>GrowthTimeline: 역량별 곡선</li>
+        <li>유사도 변화 그래프</li>
+        <li>개선 영역/정체 영역 식별</li>
+      </ul>
+    </div>
+  </div>
+  <div style="margin-top: 10px; padding: 8px 12px; background: rgba(255,255,255,0.03); border-radius: 6px; font-size: 11px; opacity: 0.7;">
+    <strong>API:</strong> <code>/api/growth/timeline</code> — POST { employeeId, sessions[] } → GrowthTimeline<br>
+    <strong>API:</strong> <code>/api/growth/similarity</code> — POST { videoId1, videoId2 } → SimilarityReport
+  </div>
+</div>
+
+<!-- Module 5: Validation -->
+<div style="margin: 2rem 0; padding: 1.5rem; background: rgba(236,72,153,0.05); border: 1px solid rgba(236,72,153,0.2); border-radius: 10px;">
+  <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 12px;">
+    <div style="width: 32px; height: 32px; background: rgba(236,72,153,0.2); border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 700; color: rgb(236,72,153);">5</div>
+    <div>
+      <strong style="font-size: 15px;">validation/ — 심리측정 타당화 + 노름</strong>
+      <div style="font-size: 11px; opacity: 0.5;">Gap #5 + #6: Psychometric Validation + Norms</div>
+    </div>
+  </div>
+  <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; font-size: 12px;">
+    <div>
+      <div class="label">입력</div>
+      <ul style="margin: 4px 0; padding-left: 16px; opacity: 0.8;">
+        <li>전체 평가 데이터셋</li>
+        <li>인간 평가자 점수</li>
+        <li>인사DB 메타데이터</li>
+      </ul>
+    </div>
+    <div>
+      <div class="label">처리</div>
+      <ul style="margin: 4px 0; padding-left: 16px; opacity: 0.8;">
+        <li>Cronbach's α 계산</li>
+        <li>ICC(AI vs 인간) 산출</li>
+        <li>직급/부서별 노름 생성</li>
+      </ul>
+    </div>
+    <div>
+      <div class="label">출력</div>
+      <ul style="margin: 4px 0; padding-left: 16px; opacity: 0.8;">
+        <li>ValidationReport: 신뢰도 지표</li>
+        <li>NormTable: 백분위 테이블</li>
+        <li>적정 표본 크기 안내</li>
+      </ul>
+    </div>
+  </div>
+  <div style="margin-top: 10px; padding: 8px 12px; background: rgba(255,255,255,0.03); border-radius: 6px; font-size: 11px; opacity: 0.7;">
+    <strong>API:</strong> <code>/api/validation/reliability</code> — POST { dataset } → ReliabilityReport<br>
+    <strong>API:</strong> <code>/api/validation/norms</code> — POST { dataset, groupBy } → NormTable
+  </div>
+</div>
+
+<!-- Module 6: Fairness -->
+<div style="margin: 2rem 0; padding: 1.5rem; background: rgba(34,197,94,0.05); border: 1px solid rgba(34,197,94,0.2); border-radius: 10px;">
+  <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 12px;">
+    <div style="width: 32px; height: 32px; background: rgba(34,197,94,0.2); border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 700; color: rgb(34,197,94);">6</div>
+    <div>
+      <strong style="font-size: 15px;">fairness/ — 편향/공정성 모니터링</strong>
+      <div style="font-size: 11px; opacity: 0.5;">Gap #7: Bias Monitoring</div>
+    </div>
+  </div>
+  <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; font-size: 12px;">
+    <div>
+      <div class="label">입력</div>
+      <ul style="margin: 4px 0; padding-left: 16px; opacity: 0.8;">
+        <li>평가 점수 + 인구통계</li>
+        <li>인사DB (성별/연령/경력)</li>
+        <li>역량별 문항 응답 데이터</li>
+      </ul>
+    </div>
+    <div>
+      <div class="label">처리</div>
+      <ul style="margin: 4px 0; padding-left: 16px; opacity: 0.8;">
+        <li>집단 간 점수 분포 비교</li>
+        <li>DIF 분석 (Mantel-Haenszel)</li>
+        <li>4/5 규칙 자동 적용</li>
+      </ul>
+    </div>
+    <div>
+      <div class="label">출력</div>
+      <ul style="margin: 4px 0; padding-left: 16px; opacity: 0.8;">
+        <li>FairnessReport: 편향 지표</li>
+        <li>DIF 의심 항목 플래그</li>
+        <li>불리한 영향 경고 알림</li>
+      </ul>
+    </div>
+  </div>
+  <div style="margin-top: 10px; padding: 8px 12px; background: rgba(255,255,255,0.03); border-radius: 6px; font-size: 11px; opacity: 0.7;">
+    <strong>API:</strong> <code>/api/fairness/analyze</code> — POST { scores[], demographics[] } → FairnessReport<br>
+    <strong>API:</strong> <code>/api/fairness/dif</code> — POST { itemResponses[], groupVar } → DIFResult[]
+  </div>
+</div>
+
+<!-- Module 7: Compliance -->
+<div style="margin: 2rem 0; padding: 1.5rem; background: rgba(234,179,8,0.05); border: 1px solid rgba(234,179,8,0.2); border-radius: 10px;">
+  <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 12px;">
+    <div style="width: 32px; height: 32px; background: rgba(234,179,8,0.2); border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 700; color: rgb(234,179,8);">7</div>
+    <div>
+      <strong style="font-size: 15px;">compliance/ — ISO 10667 + 삼각측정 + 실시간 코칭</strong>
+      <div style="font-size: 11px; opacity: 0.5;">Gap #8 + #9 + #10: Integration & Compliance</div>
+    </div>
+  </div>
+  <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; font-size: 12px;">
+    <div>
+      <div class="label">삼각측정 (Gap #8)</div>
+      <ul style="margin: 4px 0; padding-left: 16px; opacity: 0.8;">
+        <li>AI 영상분석 점수</li>
+        <li>인간 관찰평가 점수</li>
+        <li>가중 융합 → 최종 점수</li>
+      </ul>
+    </div>
+    <div>
+      <div class="label">ISO 10667 (Gap #9)</div>
+      <ul style="margin: 4px 0; padding-left: 16px; opacity: 0.8;">
+        <li>참여자 동의 관리 UI</li>
+        <li>감사 로그 (모든 평가 행위)</li>
+        <li>데이터 보존/삭제 정책</li>
+      </ul>
+    </div>
+    <div>
+      <div class="label">실시간 코칭 (Gap #10)</div>
+      <ul style="margin: 4px 0; padding-left: 16px; opacity: 0.8;">
+        <li>평가 직후 즉시 피드백</li>
+        <li>이전 피드백 대비 개선 매핑</li>
+        <li>다음 개발 과제 자동 제안</li>
+      </ul>
+    </div>
+  </div>
+  <div style="margin-top: 10px; padding: 8px 12px; background: rgba(255,255,255,0.03); border-radius: 6px; font-size: 11px; opacity: 0.7;">
+    <strong>API:</strong> <code>/api/compliance/triangulate</code> — POST { aiScore, humanScore, weights } → FinalScore<br>
+    <strong>API:</strong> <code>/api/compliance/consent</code> — POST { participantId, consentType, agreed } → ConsentRecord<br>
+    <strong>API:</strong> <code>/api/compliance/audit-log</code> — GET { sessionId } → AuditEntry[]
+  </div>
+</div>
+
+<!-- Shared: HR Connector -->
+<div style="margin: 2rem 0; padding: 1.5rem; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.15); border-radius: 10px;">
+  <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 12px;">
+    <div style="width: 32px; height: 32px; background: rgba(255,255,255,0.1); border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 700; color: rgba(255,255,255,0.7);">+</div>
+    <div>
+      <strong style="font-size: 15px;">hr-connector/ — 인사 DB 연계</strong>
+      <div style="font-size: 11px; opacity: 0.5;">Shared Infrastructure (신규)</div>
+    </div>
+  </div>
+  <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; font-size: 12px;">
+    <div>
+      <div class="label">제공 데이터</div>
+      <ul style="margin: 4px 0; padding-left: 16px; opacity: 0.8;">
+        <li>사원번호, 성명, 부서, 직급</li>
+        <li>성별, 연령, 입사년도, 경력</li>
+        <li>조직도 (상사/동료/부하 관계)</li>
+        <li>과거 평가 이력 (연계 가능 시)</li>
+      </ul>
+    </div>
+    <div>
+      <div class="label">연동 방식 (설정 가능)</div>
+      <ul style="margin: 4px 0; padding-left: 16px; opacity: 0.8;">
+        <li><strong>모드 A:</strong> CSV/Excel 일괄 업로드</li>
+        <li><strong>모드 B:</strong> REST API 연동 (실시간)</li>
+        <li><strong>모드 C:</strong> LDAP/AD 연동</li>
+        <li>개인정보 마스킹 + 암호화 저장</li>
+      </ul>
+    </div>
+  </div>
+  <div style="margin-top: 10px; padding: 8px 12px; background: rgba(234,179,8,0.05); border-left: 3px solid rgba(234,179,8,0.4); border-radius: 4px; font-size: 11px;">
+    <strong>사용처:</strong> validation(노름 구축), fairness(편향 분석), compliance(동의 관리), growth(개인 추적)
+  </div>
+</div>
