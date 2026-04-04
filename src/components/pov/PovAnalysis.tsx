@@ -27,6 +27,9 @@ import AnalysisHistory from "@/components/pov/AnalysisHistory";
 import TraineeProgressDashboard from "@/components/pov/TraineeProgressDashboard";
 import CohortAnalytics from "@/components/pov/CohortAnalytics";
 import CalibrationDashboard from "@/components/pov/CalibrationDashboard";
+import SelfReflection from "@/components/pov/SelfReflection";
+import ReflectionComparison from "@/components/pov/ReflectionComparison";
+import type { SelfReflectionData } from "@/components/pov/SelfReflection";
 import { useVideoUpload } from "@/hooks/useTwelveLabs";
 import { usePovAnalysis } from "@/hooks/usePovAnalysis";
 import { TWELVELABS_INDEXES } from "@/lib/constants";
@@ -156,17 +159,21 @@ export default function PovAnalysis() {
   const [showCohort, setShowCohort] = useState(false);
   // 캘리브레이션 대시보드 표시 여부
   const [showCalibration, setShowCalibration] = useState(false);
+  // 셀프 리플렉션 위저드 표시 여부
+  const [showReflection, setShowReflection] = useState(false);
+  // 셀프 리플렉션 데이터 (제출 후 보관)
+  const [selfReflection, setSelfReflection] = useState<SelfReflectionData | null>(null);
 
   // 컴포넌트 언마운트 시 blob URL 해제
   useEffect(() => {
     return () => { if (videoUrl) URL.revokeObjectURL(videoUrl); };
   }, [videoUrl]);
 
-  // 실제 분석 완료 시 리포트 전환
+  // 실제 분석 완료 시 셀프 리플렉션 위저드 먼저 표시
   useEffect(() => {
     if (analysis.status === 'complete' && analysis.report) {
       setReport(analysis.report);
-      setPhase('report');
+      setShowReflection(true); // 리포트 전에 자기평가 먼저
     }
   }, [analysis.status, analysis.report]);
 
@@ -196,18 +203,18 @@ export default function PovAnalysis() {
         // 실제 TwelveLabs 분석 파이프라인 시작
         analysis.startAnalysis(videoId, selectedProcedure.id, selectedGoldStandard?.id);
       } else {
-        // videoId 없으면 데모 폴백
+        // videoId 없으면 데모 폴백 — 자기평가 먼저 표시
         await new Promise((r) => setTimeout(r, 2000));
         const demoReport = generateDemoReport(selectedProcedure);
         setReport(demoReport);
-        setPhase("report");
+        setShowReflection(true);
       }
     } catch {
-      // 업로드 에러 발생 시 데모 리포트 폴백 (POC)
+      // 업로드 에러 발생 시 데모 리포트 폴백 — 자기평가 먼저 표시
       await new Promise((r) => setTimeout(r, 1500));
       const demoReport = generateDemoReport(selectedProcedure);
       setReport(demoReport);
-      setPhase("report");
+      setShowReflection(true);
     }
   }, [selectedProcedure, upload, videoUrl, analysis, selectedGoldStandard]);
 
@@ -221,17 +228,18 @@ export default function PovAnalysis() {
         // 실제 TwelveLabs 분석 파이프라인 시작
         analysis.startAnalysis(videoId, selectedProcedure.id, selectedGoldStandard?.id);
       } else {
+        // 데모 폴백 — 자기평가 먼저 표시
         await new Promise((r) => setTimeout(r, 2000));
         const demoReport = generateDemoReport(selectedProcedure);
         setReport(demoReport);
-        setPhase("report");
+        setShowReflection(true);
       }
     } catch {
-      // 업로드 에러 발생 시 데모 리포트 폴백 (POC)
+      // 업로드 에러 발생 시 데모 리포트 폴백 — 자기평가 먼저 표시
       await new Promise((r) => setTimeout(r, 1500));
       const demoReport = generateDemoReport(selectedProcedure);
       setReport(demoReport);
-      setPhase("report");
+      setShowReflection(true);
     }
   }, [selectedProcedure, uploadByUrl, analysis, selectedGoldStandard]);
 
@@ -512,7 +520,7 @@ export default function PovAnalysis() {
                 onClick={() => {
                   const demoReport = generateDemoReport(selectedProcedure);
                   setReport(demoReport);
-                  setPhase("report");
+                  setShowReflection(true); // 자기평가 먼저
                 }}
                 className="px-4 py-2 rounded-lg bg-amber-500/15 hover:bg-amber-500/25 text-amber-600 text-sm font-medium border border-amber-200 transition-all"
               >
@@ -523,8 +531,26 @@ export default function PovAnalysis() {
         </div>
       )}
 
+      {/* ════════ Phase 3.5: 셀프 리플렉션 위저드 ════════ */}
+      {showReflection && selectedProcedure && (
+        <div className="animate-fade-in-up">
+          <SelfReflection
+            procedure={selectedProcedure}
+            onComplete={(data) => {
+              setSelfReflection(data);
+              setShowReflection(false);
+              setPhase("report");
+            }}
+            onSkip={() => {
+              setShowReflection(false);
+              setPhase("report");
+            }}
+          />
+        </div>
+      )}
+
       {/* ════════ Phase 4: 평가 리포트 ════════ */}
-      {phase === "report" && report && (
+      {!showReflection && phase === "report" && report && (
         <div className="space-y-4 animate-fade-in-up">
           {/* 강평 세션 CTA — 리포트 상단 */}
           <div className="bg-gradient-to-r from-amber-500/10 via-amber-500/5 to-transparent border border-amber-500/20 rounded-xl p-4 flex flex-col sm:flex-row items-start sm:items-center gap-3">
@@ -572,7 +598,13 @@ export default function PovAnalysis() {
 
           {/* 종합 개요 */}
           {reportTab === "overview" && (
-            <OverviewTab report={report} procedure={selectedProcedure!} />
+            <div className="space-y-4">
+              <OverviewTab report={report} procedure={selectedProcedure!} />
+              {/* HPO-10: 셀프 리플렉션 비교 — 자기평가를 제출한 경우만 표시 */}
+              {selfReflection && (
+                <ReflectionComparison reflection={selfReflection} report={report} />
+              )}
+            </div>
           )}
 
           {/* 절차 타임라인 — 실제 분석 결과가 있으면 StepsTimeline, 없으면 기존 StepsTab 폴백 */}
