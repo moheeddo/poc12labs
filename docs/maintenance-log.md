@@ -1,5 +1,34 @@
 # Maintenance Log
 
+## 2026-04-04 사이클 21 — 조 대시보드 PDF 보고서 고도화
+
+### 1. 전체 보고서 인쇄 레이아웃 강화
+- `globals.css` `@media print` 섹션에 GroupDashboard 전용 인쇄 스타일 추가
+  - 보고서 헤더: "KHNP 리더십 역량진단 보고서" 제목 + 조 이름 + 날짜 + 참가인원
+  - 참가자 목록 표: 순번, 성명, 직급, 역량별 점수, 종합, 순위 포함
+  - 레이더 차트 뒤 페이지 구분 (`print-page-break-after-chart`)
+  - 역량별 순위 2열 그리드 인쇄 보장 (`print-rankings-grid`)
+  - 보고서 전용 푸터 (BARS 방법론 설명 포함)
+
+### 2. 개인별 상세 보고서 인쇄 기능
+- GroupDashboard 종합 순위 카드에 "보고서" 버튼 추가 (각 멤버별)
+- `MemberReportModal` 컴포넌트 구현:
+  - 인쇄 미리보기 모달 UI (화면에서 확인 후 인쇄)
+  - 개인 보고서 구성: 종합 점수 + 역량별 상세 점수 표 + 강점 영역 + 개선 필요 영역 + 역량별 개선 권고
+  - `body.print-member-report-active` 클래스로 인쇄 시 다른 요소 자동 숨김
+  - 점수별 판정 텍스트 (탁월/우수/보통/미흡/부족) + 개선 권고문 자동 생성
+- 기존 "분석 보기" 버튼 유지 + "보고서" 버튼 병렬 배치
+
+### 3. 빌드 검증
+- `npx tsc --noEmit`: 통과 (0 errors)
+- `npx next build`: 통과 (15 라우트, 빌드 5.4초)
+
+### 4. 변경 파일
+- `src/app/globals.css` — 인쇄 전용 스타일 130줄 추가
+- `src/components/leadership/GroupDashboard.tsx` — MemberReportModal + 인쇄 헤더/푸터/참가자표 추가
+
+---
+
 ## 2026-04-04 사이클 20 — 최종 정기 점검 완료 (프로덕션 안정화 완료)
 
 ### 1. 빌드 + 타입 최종 확인
