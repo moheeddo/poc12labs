@@ -1,5 +1,57 @@
 # Maintenance Log
 
+## 2026-04-04 사이클 14 — 코드 효율화 + 최적화
+
+### 1. 번들 크기 분석
+
+| 라우트 | JS 크기 | First Load JS | 판단 |
+|--------|---------|---------------|------|
+| `/` (메인) | 16.7 kB | 119 kB | shared chunks(102kB) 포함. 라우트 자체 양호 |
+| API 라우트 (12개) | 147 B 각각 | 102 kB | 정상 — 서버 전용 |
+
+- `First Load JS shared by all` = 102kB (React + Next.js 런타임)
+- 100kB 초과 원인: `chunks/4bd1b696-*.js`(54.2kB, React 런타임) + `chunks/255-*.js`(45.7kB, 공통 청크)
+- 라우트별 자체 JS는 16.7kB로 양호 — 추가 코드 스플리팅 불필요
+
+### 2. 코드 중복 / 대규모 파일 점검
+
+| 파일 | 줄 수 | 조치 |
+|------|-------|------|
+| `LeadershipFeedback.tsx` | 1,361줄 | 섹션 구분 주석 보강 (A~E 섹션 라벨링) |
+| `CompetencyAssessment.tsx` | 846줄 | 미사용 확인 → 파일 상단에 미사용 주석 추가 |
+| `AnalysisReport.tsx` | 사용 중 | LeadershipFeedback에서 import — 정상 |
+
+- `CompetencyAssessment.tsx`: 어떤 파일에서도 컴포넌트 import 없음 (타입만 별도 파일에서 참조)
+- 컴포넌트 분리는 state 전달 복잡성 때문에 보류, 주석 섹션 구분으로 가독성 확보
+
+### 3. next.config.ts 최적화
+
+| 변경 사항 | 이유 |
+|-----------|------|
+| 캐시 헤더 분리: HTML(no-cache) vs 정적 자산(immutable) | 기존엔 `_next/static`도 no-cache → CDN 성능 저하 |
+| `compress: true` 명시 | 자체 서버 배포 시 gzip 활성화 보장 |
+| `images.formats: ["image/avif", "image/webp"]` 명시 | 이미지 최적화 포맷 명확히 |
+
+### 4. Edge Runtime 분석
+
+| API 라우트 | Edge 가능 | 사유 |
+|------------|-----------|------|
+| `/api/tl-token` | O | 단순 API 키 반환, Node API 미사용 |
+| `/api/twelvelabs/search` | O (조건부) | fetch 기반이나 POC에서 전환 이점 미미 |
+| `/api/twelvelabs/upload` | X | Busboy(Node stream) 의존 |
+| `/api/solar/report` | O (조건부) | fetch 기반이나 timeout 300s 필요 |
+
+- POC 단계에서 Edge 전환은 이점 대비 위험이 큼 → 현재 유지
+
+### 5. 빌드 검증
+
+| 검증 항목 | 결과 |
+|-----------|------|
+| `npx tsc --noEmit` | O — 타입 오류 0개 |
+| `npx next build` | O — 빌드 성공, 15개 라우트 정상 |
+
+---
+
 ## 2026-04-04 사이클 13 — QA 테스트 (리더십 탭 + 6인 조 폼 + 대시보드)
 
 ### 테스트 범위

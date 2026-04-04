@@ -546,12 +546,17 @@ export default function LeadershipFeedback({
     return `${Math.floor(elapsed / 60)}분 ${elapsed % 60}초`;
   }, [phaseTimestamps]);
 
-  // ── JSX ──
+  // ══════════════════════════════════════════════════════════════
+  // JSX 렌더링
+  // ──────────────────────────────────────────────────────────────
+  // 섹션 A: 분석 진행 화면 (로딩) .................. ~L556–684
+  // 섹션 B: 결과 뷰 헤더 + 역량 태그 .............. ~L689–745
+  // 섹션 C: 좌측 — 영상 플레이어 + 챕터 + 요약 .... ~L749–836
+  // 섹션 D: 우측 — 탭 (멀티모달/BARS/대본) ........ ~L838–1153
+  // 섹션 E: [비활성] 평가 근거 카드 리스트 ......... ~L1155–1356
+  // ══════════════════════════════════════════════════════════════
 
-  // ═══════════════════════════════════════
-  // 분석 중 → 전체 화면 진행 상태
-  // (BARS + 멀티모달 파이프라인 모두 완료될 때까지)
-  // ═══════════════════════════════════════
+  // ── 섹션 A: 분석 진행 화면 (로딩 스크린) ──────────────────
   const isFullyLoading = analysisLoading || (mmStarted && mmProgress.phase !== "done" && mmProgress.phase !== "error");
   if (isFullyLoading) {
     return (
@@ -683,9 +688,7 @@ export default function LeadershipFeedback({
     );
   }
 
-  // ═══════════════════════════════════════
-  // 분석 완료 → 결과 뷰
-  // ═══════════════════════════════════════
+  // ── 섹션 B: 분석 완료 → 결과 뷰 ──────────────────────────
   return (
     <div className="max-w-[1440px] mx-auto px-4 md:px-6 py-8 animate-slide-in-right">
       {/* 헤더 */}
@@ -746,7 +749,7 @@ export default function LeadershipFeedback({
 
       {/* ── 2단 레이아웃 (리포트 중심) ── */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-        {/* ─── 좌측: 영상 (컴팩트) ─── */}
+        {/* ── 섹션 C: 좌측 — 영상 플레이어 + 챕터 + 요약 ── */}
         <div className="lg:col-span-5 lg:sticky lg:top-6 lg:self-start space-y-4">
           {/* 영상 플레이어 */}
           <div className="rounded-2xl overflow-hidden border border-slate-200/40 bg-black shadow-2xl shadow-slate-200/60">
@@ -835,8 +838,7 @@ export default function LeadershipFeedback({
           )}
         </div>
 
-        {/* ─── 우측: 평가 근거 / 디브리핑 대본 / 종합 리포트 ─── */}
-        {/* ─── 우측: 리포트 (넓게) ─── */}
+        {/* ── 섹션 D: 우측 — 탭 전환 (멀티모달 / BARS / 대본) ── */}
         <div className="lg:col-span-7 space-y-5">
           {/* 탭 헤더 — 3탭 */}
           <div className="flex items-center gap-1 p-1 bg-white/40 border border-slate-200/30 rounded-xl">
@@ -1152,7 +1154,7 @@ export default function LeadershipFeedback({
             />
           )}
 
-          {/* ── [삭제됨: 평가 근거 탭 — 멀티모달+BARS로 대체] ── */}
+          {/* ── 섹션 E: [비활성] 평가 근거 카드 — 멀티모달+BARS로 대체됨 ── */}
           {false && evidenceByChapter.map(({ chapter, items }, ci) => (
             <div
               key={ci}
