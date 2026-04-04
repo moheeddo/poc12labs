@@ -1,5 +1,36 @@
 # Maintenance Log
 
+## 2026-04-04 사이클 24 — 조 관리 UX 개선 (삭제 + 관찰 팁 + 대시보드 활동)
+
+### 구현 내용
+
+#### A. 조 세션 삭제 기능
+- LeadershipCoaching.tsx의 기존 조 세션 목록에 삭제 버튼 추가
+- 호버 시 Trash2 아이콘 노출 (opacity-0 → group-hover 100%)
+- window.confirm으로 삭제 확인 대화상자
+- group-store.ts의 기존 deleteSession 함수 호출 + UI 상태 동기화
+
+#### B. 역량별 관찰 포인트 팁
+- GroupManager.tsx에 OBSERVATION_TIPS 데이터 추가 (4개 역량별)
+  - 비전제시: PEST 분석 활용도, 전략-과제 정합성, 도전성, 발표 전달력
+  - 신뢰형성: 갈등 분석력, 대안 도출, 적극 참여, 존중·협력, 설득 합의
+  - 구성원육성: 문제 인식, 개선 계획 구체성, 발전적 피드백, 심리적 안전감, 공동 대안
+  - 합리적의사결정: 문제 분석, 논리적 근거, 의견 수렴, 리스크 관리, 실행 계획
+- Lightbulb 아이콘 + ChevronDown 접이식(collapsible) UI
+- 현재 역량에 따라 자동 전환
+
+#### C. 대시보드 최근 활동에 실제 데이터 연결
+- Dashboard.tsx에서 localStorage의 evidence-* 키 + group session 읽기
+- 상태 카드 4개를 실제 데이터로 연결 (등록 영상, 완료 분석, 평균 역량, 최근 분석)
+- 최근 활동 타임라인: 최대 10건, 상대 시간 표시 ("방금 전", "10분 전" 등)
+- 활동이 없으면 기존 빈 상태 UI 유지
+
+### 검증
+- npx tsc --noEmit: 통과
+- npx next build: 통과
+
+---
+
 ## 2026-04-04 사이클 23 — 디브리핑 지원 기능 추가 (히트맵 + 조 자동 요약)
 
 ### 1. 기능 선택 판단

@@ -5,6 +5,7 @@ import {
   Users,
   Plus,
   ChevronRight,
+  ChevronDown,
   Upload,
   CheckCircle2,
   Circle,
@@ -14,6 +15,7 @@ import {
   Loader2,
   FileText,
   Video,
+  Lightbulb,
 } from "lucide-react";
 import { useVideoUpload } from "@/hooks/useTwelveLabs";
 import { TWELVELABS_INDEXES } from "@/lib/constants";
@@ -24,6 +26,43 @@ import {
 import type { GroupSession } from "@/lib/group-types";
 import { saveSession } from "@/lib/group-store";
 import { cn } from "@/lib/utils";
+import type { LeadershipCompetencyKey } from "@/lib/types";
+
+// 역량별 평가자 관찰 포인트 (1-3직급 4개 역량 + 4직급 호환)
+const OBSERVATION_TIPS: Record<LeadershipCompetencyKey, string[]> = {
+  visionPresentation: [
+    "PEST 분석 활용도",
+    "전략-과제 정합성",
+    "도전성",
+    "발표 전달력에 주목하세요",
+  ],
+  trustBuilding: [
+    "갈등 분석력",
+    "대안 도출",
+    "적극 참여",
+    "존중·협력",
+    "설득 합의에 주목하세요",
+  ],
+  memberDevelopment: [
+    "문제 인식",
+    "개선 계획 구체성",
+    "발전적 피드백",
+    "심리적 안전감",
+    "공동 대안에 주목하세요",
+  ],
+  rationalDecision: [
+    "문제 분석",
+    "논리적 근거",
+    "의견 수렴",
+    "리스크 관리",
+    "실행 계획에 주목하세요",
+  ],
+  // 4직급 역량 키 (현재 미사용이지만 타입 호환 필요)
+  visionPractice: [],
+  communication: [],
+  selfDevelopment: [],
+  problemSolving: [],
+};
 
 interface GroupManagerProps {
   session: GroupSession;
@@ -43,6 +82,7 @@ export default function GroupManager({
   const { progress: uploadProgress, upload } = useVideoUpload();
   const [uploadingFor, setUploadingFor] = useState<string | null>(null);
   const [scenarioText, setScenarioText] = useState("");
+  const [tipOpen, setTipOpen] = useState(false);
 
   // 업로드 중 페이지 이탈 경고
   useEffect(() => {
@@ -192,6 +232,27 @@ export default function GroupManager({
             <p className="text-sm text-slate-500">{currentComp.description}</p>
           </div>
         </div>
+
+        {/* 평가자를 위한 관찰 포인트 팁 (접이식) */}
+        {OBSERVATION_TIPS[currentComp.key as LeadershipCompetencyKey]?.length > 0 && (
+          <div className="mb-1">
+            <button
+              onClick={() => setTipOpen((prev) => !prev)}
+              className="flex items-center gap-2 text-sm text-amber-600 hover:text-amber-500 transition-colors py-1"
+            >
+              <Lightbulb className="w-4 h-4" />
+              <span className="font-medium">평가자를 위한 관찰 포인트</span>
+              <ChevronDown className={cn("w-3.5 h-3.5 transition-transform duration-200", tipOpen && "rotate-180")} />
+            </button>
+            {tipOpen && (
+              <div className="mt-2 bg-amber-50/60 border border-amber-200/40 rounded-lg px-4 py-3 animate-fade-in-up">
+                <p className="text-sm text-amber-800 leading-relaxed">
+                  {OBSERVATION_TIPS[currentComp.key as LeadershipCompetencyKey].join(", ")}
+                </p>
+              </div>
+            )}
+          </div>
+        )}
 
         {/* 전체 업로드 진행 바 (업로드 중일 때) */}
         {uploadingFor && (

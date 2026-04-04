@@ -16,6 +16,7 @@ import {
   Sparkles,
   CheckCircle2,
   Circle,
+  Trash2,
 } from "lucide-react";
 import {
   LineChart,
@@ -38,7 +39,7 @@ import {
   TWELVELABS_INDEXES,
   LEADERSHIP_COMPETENCY_DEFS,
 } from "@/lib/constants";
-import { loadAllSessions, saveSession } from "@/lib/group-store";
+import { loadAllSessions, saveSession, deleteSession } from "@/lib/group-store";
 import type { GroupSession } from "@/lib/group-types";
 import type { SpeakerScore, LeadershipCompetencyKey } from "@/lib/types";
 
@@ -495,19 +496,38 @@ export default function LeadershipCoaching() {
           <p className="text-xs uppercase tracking-wider text-slate-400 mb-3">진행 중인 조</p>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
             {groupSessions.map((gs) => (
-              <button
+              <div
                 key={gs.id}
-                onClick={() => setView({ type: "group-manage", sessionId: gs.id })}
-                className="text-left p-3 rounded-lg bg-teal-50/50 border border-teal-200/30 hover:border-teal-300 hover:shadow-sm transition-all"
+                className="relative group/card text-left p-3 rounded-lg bg-teal-50/50 border border-teal-200/30 hover:border-teal-300 hover:shadow-sm transition-all"
               >
-                <p className="text-sm font-semibold text-teal-700">{gs.name}</p>
-                <p className="text-xs text-slate-500 mt-0.5">
-                  {gs.members.length}명 · {gs.members.map((m) => m.name).join(", ")}
-                </p>
-                <p className="text-[10px] text-teal-600 mt-1">
-                  {gs.currentStep + 1}/4 역량 진행 중
-                </p>
-              </button>
+                <button
+                  onClick={() => setView({ type: "group-manage", sessionId: gs.id })}
+                  className="w-full text-left"
+                >
+                  <p className="text-sm font-semibold text-teal-700 pr-7">{gs.name}</p>
+                  <p className="text-xs text-slate-500 mt-0.5">
+                    {gs.members.length}명 · {gs.members.map((m) => m.name).join(", ")}
+                  </p>
+                  <p className="text-[10px] text-teal-600 mt-1">
+                    {gs.currentStep + 1}/4 역량 진행 중
+                  </p>
+                </button>
+                {/* 삭제 버튼 */}
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    if (window.confirm(`"${gs.name}" 조를 삭제하시겠습니까?\n모든 영상 및 분석 데이터가 삭제됩니다.`)) {
+                      deleteSession(gs.id);
+                      setGroupSessions((prev) => prev.filter((s) => s.id !== gs.id));
+                    }
+                  }}
+                  className="absolute top-2.5 right-2.5 p-1.5 rounded-md text-slate-400 opacity-0 group-hover/card:opacity-100 hover:text-red-500 hover:bg-red-50 transition-all"
+                  aria-label={`${gs.name} 조 삭제`}
+                  title="조 삭제"
+                >
+                  <Trash2 className="w-3.5 h-3.5" />
+                </button>
+              </div>
             ))}
           </div>
         </div>
