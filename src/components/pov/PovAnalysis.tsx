@@ -16,6 +16,8 @@ import VideoUploader from "@/components/shared/VideoUploader";
 import ChartTooltip from "@/components/shared/ChartTooltip";
 import PovReviewSession from "@/components/pov/PovReviewSession";
 import AnalysisProgress from "@/components/pov/AnalysisProgress";
+import CompetencyProgression from "@/components/pov/CompetencyProgression";
+import LearningObjectivesMatrix from "@/components/pov/LearningObjectivesMatrix";
 import StepsTimeline from "@/components/pov/StepsTimeline";
 import HandObjectTimeline from "@/components/pov/HandObjectTimeline";
 import ComparisonView from "@/components/pov/ComparisonView";
@@ -477,6 +479,9 @@ export default function PovAnalysis() {
             />
           )}
 
+          {/* 학습목표 매트릭스 — 사전 목표 안내 */}
+          <LearningObjectivesMatrix procedure={selectedProcedure} />
+
           {/* 영상 업로드 */}
           <VideoUploader onUpload={handleUpload} onUrlUpload={handleUrlUpload} progress={uploadProgress} accentColor="amber" />
         </div>
@@ -718,7 +723,7 @@ function ReportHeader({ report }: { report: PovEvaluationReport }) {
   );
 }
 
-function OverviewTab({ report }: { report: PovEvaluationReport; procedure: Procedure }) {
+function OverviewTab({ report, procedure }: { report: PovEvaluationReport; procedure: Procedure }) {
   // 레이더 차트 데이터
   const radarData = report.fundamentalScores.map((f) => ({
     subject: f.label.replace(/\s*\(.*\)/, ""),
@@ -816,6 +821,16 @@ function OverviewTab({ report }: { report: PovEvaluationReport; procedure: Proce
         </h4>
         <p className="text-sm text-slate-500 leading-relaxed">{report.summary}</p>
       </div>
+
+      {/* HPO-8: 학습목표 달성도 매트릭스 */}
+      <LearningObjectivesMatrix procedure={procedure} report={report} />
+
+      {/* HPO-7: 역량 기반 진행 모델 + 훈련 처방 */}
+      <CompetencyProgression
+        fundamentals={report.fundamentalScores}
+        procedureId={report.procedureId}
+        overallScore={report.overallScore}
+      />
     </div>
   );
 }
