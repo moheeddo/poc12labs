@@ -5,7 +5,7 @@ import {
   Shield, GitCompare, Star, AlertTriangle, ChevronRight,
   FileText, CheckCircle2, XCircle, Clock, Activity, BookOpen, Eye,
   Users, Brain, Zap, ClipboardCheck, BarChart3, ArrowLeft,
-  ChevronDown, Sparkles, MessageSquare,
+  ChevronDown, Sparkles, MessageSquare, Settings,
 } from "lucide-react";
 import {
   RadarChart, Radar, PolarGrid, PolarAngleAxis, PolarRadiusAxis,
@@ -20,6 +20,7 @@ import StepsTimeline from "@/components/pov/StepsTimeline";
 import HandObjectTimeline from "@/components/pov/HandObjectTimeline";
 import ComparisonView from "@/components/pov/ComparisonView";
 import GoldStandardManager from "@/components/pov/GoldStandardManager";
+import SopManager from "@/components/pov/SopManager";
 import { useVideoUpload } from "@/hooks/useTwelveLabs";
 import { usePovAnalysis } from "@/hooks/usePovAnalysis";
 import { TWELVELABS_INDEXES } from "@/lib/constants";
@@ -139,6 +140,8 @@ export default function PovAnalysis() {
   const [currentTime, setCurrentTime] = useState(0);
   const [videoDuration, setVideoDuration] = useState(0);
   const [seekTime, setSeekTime] = useState<number | null>(null);
+  // SOP 관리 모달 표시 여부
+  const [showSopManager, setShowSopManager] = useState(false);
 
   // 컴포넌트 언마운트 시 blob URL 해제
   useEffect(() => {
@@ -288,6 +291,16 @@ export default function PovAnalysis() {
                 </div>
               </div>
             </div>
+          </div>
+
+          {/* SOP 쿼리 관리 진입점 */}
+          <div className="flex justify-end">
+            <button
+              onClick={() => setShowSopManager(true)}
+              className="text-xs text-slate-500 hover:text-slate-700 flex items-center gap-1 px-2.5 py-1.5 rounded-lg hover:bg-slate-100 transition-colors"
+            >
+              <Settings className="w-3.5 h-3.5" /> SOP 쿼리 관리
+            </button>
           </div>
 
           {/* 계통별 절차 카드 */}
@@ -595,6 +608,11 @@ export default function PovAnalysis() {
           onBack={() => setPhase("report")}
           onViewReport={() => setPhase("report")}
         />
+      )}
+
+      {/* SOP 관리 모달 */}
+      {showSopManager && (
+        <SopManager onClose={() => setShowSopManager(false)} />
       )}
     </div>
   );
@@ -960,6 +978,7 @@ function FundamentalsTab({ report }: { report: PovEvaluationReport }) {
           </div>
         );
       })}
+
     </div>
   );
 }
