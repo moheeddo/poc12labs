@@ -11,7 +11,7 @@ import {
   Tooltip,
   Legend,
 } from "recharts";
-import { ArrowLeft, Trophy, TrendingDown, Users, AlertCircle, Printer, FileText, X, Lightbulb, Grid3X3 } from "lucide-react";
+import { ArrowLeft, Trophy, TrendingDown, Users, AlertCircle, Printer, FileText, X, Lightbulb, Grid3X3, MessageSquareText } from "lucide-react";
 import type { GroupSession } from "@/lib/group-types";
 import { COMPETENCY_ORDER } from "@/lib/group-types";
 import { cn } from "@/lib/utils";
@@ -60,6 +60,7 @@ interface MemberReportData {
   competencyScores: { label: string; score: number; color: string; activityType: string }[];
   rank: number;
   totalMembers: number;
+  note?: string; // 평가자 피드백 메모
 }
 
 function MemberReportModal({
@@ -284,6 +285,24 @@ function MemberReportModal({
             </div>
           </div>
 
+          {/* 평가자 피드백 메모 */}
+          {data.note && (
+            <div className="member-report-section mb-5">
+              <h3 className="text-base font-bold text-[#006341] mb-3 pb-1 border-b border-slate-200">
+                {(() => {
+                  let num = 3;
+                  if (strengths.length > 0) num++;
+                  if (improvements.length > 0) num++;
+                  num++; // 개선 권고
+                  return num;
+                })()}. 평가자 코멘트
+              </h3>
+              <div className="bg-violet-50 border border-violet-200 rounded-lg px-4 py-3">
+                <p className="text-sm text-slate-700 leading-relaxed whitespace-pre-wrap">{data.note}</p>
+              </div>
+            </div>
+          )}
+
           {/* 보고서 푸터 */}
           <div className="text-center text-xs text-slate-400 pt-4 mt-6 border-t border-slate-200">
             <p className="font-medium">KHNP Video AI Platform -- 리더십 역량진단 시스템</p>
@@ -456,6 +475,7 @@ export default function GroupDashboard({ session, onBack, onViewMember }: GroupD
       competencyScores,
       rank: ranked + 1,
       totalMembers: session.members.length,
+      note: session.memberNotes?.[reportMemberId] || undefined,
     };
   }, [reportMemberId, session, overallRanking]);
 
@@ -595,6 +615,14 @@ export default function GroupDashboard({ session, onBack, onViewMember }: GroupD
               <span className="text-xs text-slate-400">/9</span>
             </div>
             <p className="text-[10px] text-slate-400 mt-0.5">{m.analyzedCount}/4 역량</p>
+
+            {/* 메모 표시 */}
+            {session.memberNotes?.[m.id] && (
+              <div className="mt-2 flex items-start gap-1">
+                <MessageSquareText className="w-3 h-3 text-violet-400 shrink-0 mt-0.5" />
+                <p className="text-[10px] text-violet-600 leading-relaxed line-clamp-2">{session.memberNotes[m.id]}</p>
+              </div>
+            )}
 
             {/* 버튼 그룹 */}
             <div className="mt-3 flex gap-1.5 no-print">

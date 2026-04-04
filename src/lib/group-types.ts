@@ -41,6 +41,8 @@ export interface GroupSession {
   members: GroupMember[];
   competencies: CompetencyVideoState[];
   currentStep: number;
+  // 개인별 피드백 메모 (memberId → 메모 텍스트)
+  memberNotes: Record<string, string>;
 }
 
 // 수업 순서 정의
@@ -105,5 +107,6 @@ export function createEmptySession(name: string, members: { name: string; positi
       memberScores: {},
     })),
     currentStep: 0,
+    memberNotes: {},
   };
 }

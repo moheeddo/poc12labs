@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 import {
   Users,
   Plus,
@@ -16,6 +16,10 @@ import {
   FileText,
   Video,
   Lightbulb,
+  MessageSquarePlus,
+  MessageSquareText,
+  X,
+  Check,
 } from "lucide-react";
 import { useVideoUpload } from "@/hooks/useTwelveLabs";
 import { TWELVELABS_INDEXES } from "@/lib/constants";
@@ -83,6 +87,46 @@ export default function GroupManager({
   const [uploadingFor, setUploadingFor] = useState<string | null>(null);
   const [scenarioText, setScenarioText] = useState("");
   const [tipOpen, setTipOpen] = useState(false);
+
+  // ── 메모 기능 상태 ──
+  const [editingNoteFor, setEditingNoteFor] = useState<string | null>(null);
+  const [noteText, setNoteText] = useState("");
+  const noteInputRef = useRef<HTMLTextAreaElement>(null);
+
+  // 메모 편집 시작
+  const startEditNote = useCallback((memberId: string) => {
+    setEditingNoteFor(memberId);
+    setNoteText(session.memberNotes?.[memberId] || "");
+    // 다음 렌더 후 textarea 포커스
+    setTimeout(() => noteInputRef.current?.focus(), 50);
+  }, [session.memberNotes]);
+
+  // 메모 저장
+  const saveNote = useCallback((memberId: string) => {
+    const trimmed = noteText.trim();
+    const updated = { ...session, memberNotes: { ...(session.memberNotes || {}), [memberId]: trimmed } };
+    // 빈 메모면 삭제
+    if (!trimmed) {
+      delete updated.memberNotes[memberId];
+    }
+    saveSession(updated);
+    onUpdate(updated);
+    setEditingNoteFor(null);
+    setNoteText("");
+  }, [session, noteText, onUpdate]);
+
+  // 메모 삭제
+  const deleteNote = useCallback((memberId: string) => {
+    const updated = { ...session, memberNotes: { ...(session.memberNotes || {}) } };
+    delete updated.memberNotes[memberId];
+    saveSession(updated);
+    onUpdate(updated);
+    setEditingNoteFor(null);
+    setNoteText("");
+  }, [session, onUpdate]);
+
+  // 스텝 바 미니 요약 팝오버 상태
+  const [previewStep, setPreviewStep] = useState<number | null>(null);
 
   // 업로드 중 페이지 이탈 경고
   useEffect(() => {
@@ -185,10 +229,19 @@ export default function GroupManager({
             const stepAnalyzed = session.members.filter(
               (m) => stepState?.memberScores[m.id]?.analyzed
             ).length;
+            const hasAnalysis = stepAnalyzed > 0;
             return (
-              <div key={comp.key} className="flex items-center flex-1">
+              <div key={comp.key} className="flex items-center flex-1 relative">
                 <button
-                  onClick={() => goStep(i)}
+                  onClick={() => {
+                    // 분석 완료된 이전 역량이면 팝오버 토글
+                    if (hasAnalysis && !isCurrent) {
+                      setPreviewStep(previewStep === i ? null : i);
+                    } else {
+                      setPreviewStep(null);
+                    }
+                    goStep(i);
+                  }}
                   className={cn(
                     "flex items-center gap-2 px-3 py-2 rounded-lg w-full transition-all text-left",
                     isCurrent ? "bg-white shadow-md border-2" : isDone ? "bg-slate-50" : "bg-slate-50/50",
@@ -212,6 +265,44 @@ export default function GroupManager({
                     </p>
                   </div>
                 </button>
+                {/* ── 미니 요약 팝오버: 해당 역량의 6명 점수 ── */}
+                {previewStep === i && hasAnalysis && (
+                  <div className="absolute top-full left-0 right-0 z-20 mt-2 animate-fade-in-up">
+                    <div className="bg-white border border-slate-200 rounded-xl shadow-lg p-3 min-w-[200px]">
+                      <div className="flex items-center justify-between mb-2">
+                        <p className="text-xs font-bold" style={{ color: comp.color }}>{comp.label} 결과</p>
+                        <button onClick={(e) => { e.stopPropagation(); setPreviewStep(null); }} className="text-slate-400 hover:text-slate-600 transition-colors">
+                          <X className="w-3 h-3" />
+                        </button>
+                      </div>
+                      <div className="space-y-1">
+                        {session.members.map((m) => {
+                          const sc = stepState?.memberScores[m.id];
+                          return (
+                            <div key={m.id} className="flex items-center gap-2">
+                              <span className="text-[10px] text-slate-500 w-12 truncate">{m.name}</span>
+                              <div className="flex-1 h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                                <div
+                                  className="h-full rounded-full transition-all"
+                                  style={{
+                                    width: sc?.analyzed ? `${((sc.overallScore || 0) / 9) * 100}%` : "0%",
+                                    backgroundColor: (sc?.overallScore || 0) >= 7 ? "#14b8a6" : (sc?.overallScore || 0) >= 5 ? "#f59e0b" : (sc?.overallScore || 0) > 0 ? "#ef4444" : "#e2e8f0",
+                                  }}
+                                />
+                              </div>
+                              <span className={cn(
+                                "text-[10px] font-mono font-bold w-7 text-right",
+                                sc?.analyzed ? "text-slate-700" : "text-slate-300"
+                              )}>
+                                {sc?.analyzed ? (sc.overallScore || 0).toFixed(1) : "-"}
+                              </span>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  </div>
+                )}
                 {i < 3 && <ChevronRight className="w-3 h-3 text-slate-300 shrink-0 mx-1" />}
               </div>
             );
@@ -362,6 +453,8 @@ export default function GroupManager({
                   const hasVideo = !!videoInfo;
                   const isUploading = uploadingFor === member.id;
                   const score = currentState?.memberScores[member.id];
+                  const memberNote = session.memberNotes?.[member.id];
+                  const isEditingNote = editingNoteFor === member.id;
 
                   return (
                     <div key={member.id} className={cn("rounded-xl border p-4 transition-all", hasVideo ? "bg-white border-amber-200/50" : "bg-slate-50/50 border-slate-200/40")}>
@@ -371,12 +464,63 @@ export default function GroupManager({
                           <p className="text-sm font-bold text-slate-800">{member.name}</p>
                           <p className="text-xs text-slate-400">{member.position}</p>
                         </div>
+                        {/* 메모 아이콘 */}
+                        <button
+                          onClick={() => isEditingNote ? saveNote(member.id) : startEditNote(member.id)}
+                          className={cn(
+                            "p-1.5 rounded-lg transition-all shrink-0",
+                            memberNote
+                              ? "text-violet-500 hover:bg-violet-50 hover:text-violet-600"
+                              : "text-slate-300 hover:bg-slate-50 hover:text-slate-500"
+                          )}
+                          title={memberNote ? "메모 편집" : "메모 추가"}
+                        >
+                          {memberNote ? <MessageSquareText className="w-4 h-4" /> : <MessageSquarePlus className="w-4 h-4" />}
+                        </button>
                         {score?.analyzed ? (
                           <span className="text-xs font-mono font-bold text-amber-600 bg-amber-50 px-2 py-0.5 rounded-md border border-amber-200/50">{score.overallScore.toFixed(1)}/9</span>
                         ) : hasVideo ? (
                           <span className="text-[10px] font-medium text-orange-600 bg-orange-50 px-2 py-0.5 rounded-md border border-orange-200/50">미분석</span>
                         ) : null}
                       </div>
+                      {/* 메모 편집 / 표시 영역 */}
+                      {isEditingNote && (
+                        <div className="mb-3 animate-fade-in-up">
+                          <textarea
+                            ref={noteInputRef}
+                            value={noteText}
+                            onChange={(e) => setNoteText(e.target.value)}
+                            placeholder="디브리핑 메모를 입력하세요..."
+                            className="w-full bg-violet-50/50 border border-violet-200/50 rounded-lg px-3 py-2 text-sm text-slate-800 placeholder:text-slate-400 outline-none focus:border-violet-400 transition-all resize-none leading-relaxed"
+                            rows={2}
+                            onKeyDown={(e) => { if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) saveNote(member.id); if (e.key === "Escape") { setEditingNoteFor(null); setNoteText(""); } }}
+                          />
+                          <div className="flex items-center justify-between mt-1.5">
+                            <p className="text-[10px] text-slate-400">Ctrl+Enter 저장 / Esc 취소</p>
+                            <div className="flex items-center gap-1">
+                              {memberNote && (
+                                <button onClick={() => deleteNote(member.id)} className="text-[10px] text-red-400 hover:text-red-500 px-2 py-1 rounded transition-colors">
+                                  삭제
+                                </button>
+                              )}
+                              <button onClick={() => { setEditingNoteFor(null); setNoteText(""); }} className="text-[10px] text-slate-400 hover:text-slate-600 px-2 py-1 rounded transition-colors">
+                                취소
+                              </button>
+                              <button onClick={() => saveNote(member.id)} className="text-[10px] font-medium text-violet-600 hover:text-violet-500 bg-violet-50 px-2.5 py-1 rounded-md border border-violet-200/50 transition-colors">
+                                저장
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                      {!isEditingNote && memberNote && (
+                        <div
+                          onClick={() => startEditNote(member.id)}
+                          className="mb-3 bg-violet-50/40 border border-violet-200/30 rounded-lg px-3 py-2 cursor-pointer hover:bg-violet-50/60 transition-colors"
+                        >
+                          <p className="text-xs text-violet-700 leading-relaxed whitespace-pre-wrap">{memberNote}</p>
+                        </div>
+                      )}
                       {hasVideo ? (
                         <div className="space-y-2">
                           <p className="text-xs text-slate-500 truncate">{videoInfo.fileName}</p>
@@ -454,6 +598,8 @@ export default function GroupManager({
               const hasVideo = !!videoInfo;
               const isUploading = uploadingFor === member.id;
               const score = currentState?.memberScores[member.id];
+              const memberNote = session.memberNotes?.[member.id];
+              const isEditingNote = editingNoteFor === member.id;
 
               return (
                 <div
@@ -475,6 +621,19 @@ export default function GroupManager({
                       <p className="text-sm font-bold text-slate-800">{member.name}</p>
                       <p className="text-xs text-slate-400">{member.position}</p>
                     </div>
+                    {/* 메모 아이콘 */}
+                    <button
+                      onClick={() => isEditingNote ? saveNote(member.id) : startEditNote(member.id)}
+                      className={cn(
+                        "p-1.5 rounded-lg transition-all shrink-0",
+                        memberNote
+                          ? "text-violet-500 hover:bg-violet-50 hover:text-violet-600"
+                          : "text-slate-300 hover:bg-slate-50 hover:text-slate-500"
+                      )}
+                      title={memberNote ? "메모 편집" : "메모 추가"}
+                    >
+                      {memberNote ? <MessageSquareText className="w-4 h-4" /> : <MessageSquarePlus className="w-4 h-4" />}
+                    </button>
                     {score?.analyzed ? (
                       <span className="text-xs font-mono font-bold text-teal-600 bg-teal-50 px-2 py-0.5 rounded-md border border-teal-200/50">
                         {score.overallScore.toFixed(1)}/9
@@ -485,6 +644,45 @@ export default function GroupManager({
                       </span>
                     ) : null}
                   </div>
+
+                  {/* 메모 편집 / 표시 영역 */}
+                  {isEditingNote && (
+                    <div className="mb-3 animate-fade-in-up">
+                      <textarea
+                        ref={noteInputRef}
+                        value={noteText}
+                        onChange={(e) => setNoteText(e.target.value)}
+                        placeholder="디브리핑 메모를 입력하세요..."
+                        className="w-full bg-violet-50/50 border border-violet-200/50 rounded-lg px-3 py-2 text-sm text-slate-800 placeholder:text-slate-400 outline-none focus:border-violet-400 transition-all resize-none leading-relaxed"
+                        rows={2}
+                        onKeyDown={(e) => { if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) saveNote(member.id); if (e.key === "Escape") { setEditingNoteFor(null); setNoteText(""); } }}
+                      />
+                      <div className="flex items-center justify-between mt-1.5">
+                        <p className="text-[10px] text-slate-400">Ctrl+Enter 저장 / Esc 취소</p>
+                        <div className="flex items-center gap-1">
+                          {memberNote && (
+                            <button onClick={() => deleteNote(member.id)} className="text-[10px] text-red-400 hover:text-red-500 px-2 py-1 rounded transition-colors">
+                              삭제
+                            </button>
+                          )}
+                          <button onClick={() => { setEditingNoteFor(null); setNoteText(""); }} className="text-[10px] text-slate-400 hover:text-slate-600 px-2 py-1 rounded transition-colors">
+                            취소
+                          </button>
+                          <button onClick={() => saveNote(member.id)} className="text-[10px] font-medium text-violet-600 hover:text-violet-500 bg-violet-50 px-2.5 py-1 rounded-md border border-violet-200/50 transition-colors">
+                            저장
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                  {!isEditingNote && memberNote && (
+                    <div
+                      onClick={() => startEditNote(member.id)}
+                      className="mb-3 bg-violet-50/40 border border-violet-200/30 rounded-lg px-3 py-2 cursor-pointer hover:bg-violet-50/60 transition-colors"
+                    >
+                      <p className="text-xs text-violet-700 leading-relaxed whitespace-pre-wrap">{memberNote}</p>
+                    </div>
+                  )}
 
                   {hasVideo ? (
                     <div className="space-y-2">

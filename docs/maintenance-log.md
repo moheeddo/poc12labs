@@ -1,5 +1,37 @@
 # Maintenance Log
 
+## 2026-04-04 사이클 27 — 개인별 피드백 메모 + 스텝 바 미니 요약 팝오버
+
+### 구현 내용 (우선순위: B > A)
+
+#### B. 개인별 피드백 메모 기능 (디브리핑 지원)
+- GroupSession 타입에 `memberNotes: Record<string, string>` 필드 추가
+- GroupManager의 individual/hybrid 멤버 카드에 메모 아이콘 추가
+  - 메모 없음: 연한 아이콘 (MessageSquarePlus) → 클릭 시 인라인 편집 모드
+  - 메모 있음: 보라색 아이콘 (MessageSquareText) → 클릭 시 편집, 카드 내 표시
+  - Ctrl+Enter 저장, Esc 취소, 삭제 기능 포함
+- localStorage에 세션과 함께 저장 (기존 group-store 활용)
+- GroupDashboard 종합 순위 카드에 메모 미리보기 (line-clamp-2)
+- MemberReportModal(인쇄/PDF 보고서)에 "평가자 코멘트" 섹션으로 포함
+
+#### A. 스텝 바에서 이전 역량 결과 빠르게 보기
+- 분석 완료된 역량 스텝 클릭 시 미니 요약 팝오버 인라인 표시
+- 6명 이름 + 점수 바 + 점수값 한눈에 확인 가능
+- X 버튼 또는 다른 스텝 클릭 시 닫힘
+- 디브리핑 시간에 이전 역량 점수를 빠르게 참조 가능
+
+### 검증
+- npx tsc --noEmit: 통과
+- npx next build: 통과
+
+### 변경 파일
+- src/lib/group-types.ts — GroupSession에 memberNotes 필드 추가, createEmptySession 초기화
+- src/components/leadership/GroupManager.tsx — 메모 편집 UI + 스텝 바 미니 요약 팝오버
+- src/components/leadership/GroupDashboard.tsx — 대시보드 메모 표시 + 보고서 메모 포함
+- docs/maintenance-log.md — 본 기록
+
+---
+
 ## 2026-04-04 사이클 26 — 점수 즉시 반영 + 개별 분석 대시보드 연동 + 일괄 분석 안내
 
 ### 구현 내용 (우선순위: 2 > 1 > 3)
