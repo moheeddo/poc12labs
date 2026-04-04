@@ -42,6 +42,7 @@ import CommunicationPanel from "@/components/pov/CommunicationPanel";
 import MicroLearning from "@/components/pov/MicroLearning";
 import IncidentLibrary from "@/components/pov/IncidentLibrary";
 import InstructorHome from "@/components/pov/InstructorHome";
+import ApiStatusBadge from "@/components/pov/ApiStatusBadge";
 import { useVideoUpload } from "@/hooks/useTwelveLabs";
 import { usePovAnalysis } from "@/hooks/usePovAnalysis";
 import { TWELVELABS_INDEXES } from "@/lib/constants";
@@ -338,6 +339,7 @@ export default function PovAnalysis() {
         <div>
           <h2 className="text-2xl font-bold text-amber-600 tracking-tight flex items-center gap-2">
             <Shield className="w-6 h-6" /> HPO 훈련영상 POV 분석
+            <ApiStatusBadge />
           </h2>
           <p className="text-base text-slate-500 mt-1">
             {phase === "select" && "운전행위 표준지침반 실습가이드 기반 — 실습 절차를 선택하세요"}

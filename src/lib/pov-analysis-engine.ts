@@ -37,6 +37,8 @@ import { TWELVELABS_INDEXES } from './constants';
 import { createLogger } from './logger';
 import { getCachedReport, cacheReport } from './pov-analysis-cache';
 import { saveReport as saveReportToHistory } from './pov-analysis-history';
+import { isDemoMode } from './api-health';
+import { generateDemoAnalysis } from './pov-demo-data';
 
 const log = createLogger('PovAnalysisEngine');
 
@@ -113,6 +115,32 @@ export async function startAnalysis(
       result: cachedReport,
     };
     jobStore.set(jobId, cachedJob);
+    return jobId;
+  }
+
+  // ── 데모 모드: API 키 없으면 즉시 데모 결과 반환 ──
+  if (isDemoMode()) {
+    log.info('데모 모드 — API 키 미설정, 데모 분석 결과 생성', { jobId, procedureId });
+    const demoReport = generateDemoAnalysis(procedureId);
+    const demoJob: AnalysisJob = {
+      id: jobId,
+      videoId,
+      procedureId,
+      goldStandardId,
+      status: 'complete',
+      progress: 100,
+      stages: {
+        stepDetection: 'done',
+        handObject: 'done',
+        sequenceMatch: 'done',
+        hpoVerification: 'done',
+        embeddingComparison: 'done',
+        scoring: 'done',
+      },
+      result: demoReport,
+    };
+    jobStore.set(jobId, demoJob);
+    try { saveReportToHistory(demoReport); } catch { /* 데모 모드에서 이력 저장 실패는 무시 */ }
     return jobId;
   }
 
