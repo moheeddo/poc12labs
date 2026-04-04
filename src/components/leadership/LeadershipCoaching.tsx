@@ -818,7 +818,8 @@ export default function LeadershipCoaching() {
       </div>
 
       {/* ── 분석 서브탭 (심층 분석 뷰) — 분석 이력이 있을 때만 표시 ── */}
-      {speakers.length > 0 && (<div className="space-y-4">
+      {speakers.length > 0 && (
+        <div className="space-y-4">
         <h3 className="text-sm font-semibold text-slate-700 flex items-center gap-2">
           <Sparkles className="w-3.5 h-3.5 text-teal-600" />
           심층 분석
@@ -915,7 +916,8 @@ export default function LeadershipCoaching() {
             <HRConnectorPanel onImport={() => {}} />
           </div>
         )}
-      </div>)}
+        </div>
+      )}
 
       {/* ── 9점 척도 안내 (접기/펼치기) ── */}
       <details className="group">

@@ -1,5 +1,19 @@
 # Maintenance Log
 
+## 2026-04-05 사이클 4 — HPO 교수자 관점 3차 개선 (4개)
+
+| # | 기능 | 핵심 산출물 |
+|---|------|-------------|
+| HPO-10 | 훈련생 셀프 리플렉션 | `SelfReflection.tsx` — 3단계 위저드(자신감→역량자기평가→서술), `ReflectionComparison.tsx` — AI vs 자기평가 비교 + 메타인지 점수 |
+| HPO-11 | 실시간 코칭 오버레이 | `CoachingOverlay.tsx` — 4유형 큐(이탈/HPO/품질/긍정), 타임라인 마커, 훈련생 질문 프롬프트, 코칭 모드 토글 |
+| HPO-12 | 상세 리포트 인쇄 | `PrintableReport.tsx` — A4 3페이지, 순수 SVG 레이더, @media print CSS, 전단계표+이탈+HPO+손물체 |
+| HPO-13 | 교육과정 벤치마킹 | `pov-benchmark.ts` + `BenchmarkDashboard.tsx` — 분기별 추이, 등급 스택바, 개선 지표, 자동 인사이트 |
+
+### 검증
+- 38/38 테스트 통과, TypeScript 오류 0, Next.js 빌드 성공
+
+---
+
 ## 2026-04-05 사이클 3 — HPO 교수자 관점 2차 개선 (4개)
 
 | # | 기능 | 핵심 산출물 |

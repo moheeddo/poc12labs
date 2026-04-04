@@ -800,12 +800,36 @@ interface GroupCreateFormProps {
 }
 
 export function GroupCreateForm({ onSubmit, onCancel }: GroupCreateFormProps) {
-  const [groupName, setGroupName] = useState("");
+  // 기본 조 이름: 날짜 기반 자동 생성
+  const today = new Date();
+  const defaultName = `${today.getFullYear()}년 ${today.getMonth() + 1}월 ${today.getDate()}일 조`;
+  const [groupName, setGroupName] = useState(defaultName);
   const [members, setMembers] = useState<{ name: string; position: string }[]>(
     Array.from({ length: 6 }, () => ({ name: "", position: "부장" }))
   );
+  const [showBatchInput, setShowBatchInput] = useState(false);
+  const [batchText, setBatchText] = useState("");
 
-  const canSubmit = groupName.trim() && members.every((m) => m.name.trim());
+  // 이름이 입력된 참가자만 필터 (최소 2명)
+  const filledMembers = members.filter((m) => m.name.trim());
+  const canSubmit = groupName.trim() && filledMembers.length >= 2;
+
+  // 일괄 입력: 줄바꿈/쉼표로 구분된 이름 목록
+  const applyBatch = () => {
+    const names = batchText
+      .split(/[\n,]/)
+      .map((n) => n.trim())
+      .filter(Boolean)
+      .slice(0, 6);
+    if (names.length === 0) return;
+    const next = Array.from({ length: 6 }, (_, i) => ({
+      name: names[i] || "",
+      position: "부장",
+    }));
+    setMembers(next);
+    setShowBatchInput(false);
+    setBatchText("");
+  };
 
   return (
     <div className="max-w-[700px] mx-auto px-4 md:px-6 py-8 space-y-6 animate-fade-in-up">
@@ -814,7 +838,7 @@ export function GroupCreateForm({ onSubmit, onCancel }: GroupCreateFormProps) {
       </button>
 
       <h2 className="text-xl font-bold text-teal-600">새 조 만들기</h2>
-      <p className="text-sm text-slate-500">디브리핑용 6인 조를 생성합니다. 수업 순서대로 역량별 영상을 등록하고 비교 분석합니다.</p>
+      <p className="text-sm text-slate-500">수업 순서대로 역량별 영상을 등록하고 비교 분석합니다. (2~6명)</p>
 
       {/* 조 이름 */}
       <div>
@@ -828,41 +852,74 @@ export function GroupCreateForm({ onSubmit, onCancel }: GroupCreateFormProps) {
         />
       </div>
 
-      {/* 6명 참가자 — 1열 레이아웃 (겹침 방지) */}
+      {/* 참가자 입력 */}
       <div>
-        <label className="text-sm font-medium text-slate-700 block mb-2">참가자 (6명)</label>
-        <div className="space-y-2">
-          {members.map((m, i) => (
-            <div key={i} className="flex items-center gap-3 bg-slate-50/50 rounded-lg p-2">
-              <span className="text-sm font-mono font-bold text-slate-400 w-6 text-center shrink-0">{i + 1}</span>
-              <input
-                type="text"
-                value={m.name}
-                onChange={(e) => {
-                  const next = [...members];
-                  next[i] = { ...next[i], name: e.target.value };
-                  setMembers(next);
-                }}
-                placeholder={`참가자 ${i + 1} 이름`}
-                className="flex-1 bg-white border border-slate-200 rounded-lg px-3 py-2.5 text-sm text-slate-900 placeholder:text-slate-400 outline-none focus:border-teal-500/30 transition-all"
-              />
-              <select
-                value={m.position}
-                onChange={(e) => {
-                  const next = [...members];
-                  next[i] = { ...next[i], position: e.target.value };
-                  setMembers(next);
-                }}
-                className="bg-white border border-slate-200 rounded-lg px-3 py-2.5 text-sm text-slate-700 outline-none focus:border-teal-500/30 transition-all w-20"
-              >
-                <option value="부장">부장</option>
-                <option value="차장">차장</option>
-                <option value="과장">과장</option>
-                <option value="대리">대리</option>
-              </select>
-            </div>
-          ))}
+        <div className="flex items-center justify-between mb-2">
+          <label className="text-sm font-medium text-slate-700">참가자 ({filledMembers.length}/6명)</label>
+          <button
+            onClick={() => setShowBatchInput(!showBatchInput)}
+            className="text-xs text-teal-600 hover:text-teal-500 transition-colors"
+          >
+            {showBatchInput ? "개별 입력" : "일괄 입력 (붙여넣기)"}
+          </button>
         </div>
+
+        {showBatchInput ? (
+          <div className="space-y-2">
+            <textarea
+              value={batchText}
+              onChange={(e) => setBatchText(e.target.value)}
+              placeholder={"이름을 줄바꿈 또는 쉼표로 구분하여 입력\n예:\n홍길동\n김영희\n박철수"}
+              className="w-full bg-slate-50 border border-slate-200 rounded-lg px-4 py-3 text-sm text-slate-900 placeholder:text-slate-400 outline-none focus:border-teal-500/30 transition-all resize-none"
+              rows={5}
+            />
+            <button
+              onClick={applyBatch}
+              disabled={!batchText.trim()}
+              className={cn(
+                "text-sm font-medium px-4 py-2 rounded-lg transition-all",
+                batchText.trim()
+                  ? "bg-teal-50 text-teal-600 hover:bg-teal-100"
+                  : "bg-slate-50 text-slate-400 cursor-not-allowed"
+              )}
+            >
+              적용
+            </button>
+          </div>
+        ) : (
+          <div className="space-y-2">
+            {members.map((m, i) => (
+              <div key={i} className="flex items-center gap-3 bg-slate-50/50 rounded-lg p-2">
+                <span className="text-sm font-mono font-bold text-slate-400 w-6 text-center shrink-0">{i + 1}</span>
+                <input
+                  type="text"
+                  value={m.name}
+                  onChange={(e) => {
+                    const next = [...members];
+                    next[i] = { ...next[i], name: e.target.value };
+                    setMembers(next);
+                  }}
+                  placeholder={i < 2 ? `참가자 ${i + 1} 이름 (필수)` : `참가자 ${i + 1} (선택)`}
+                  className="flex-1 bg-white border border-slate-200 rounded-lg px-3 py-2.5 text-sm text-slate-900 placeholder:text-slate-400 outline-none focus:border-teal-500/30 transition-all"
+                />
+                <select
+                  value={m.position}
+                  onChange={(e) => {
+                    const next = [...members];
+                    next[i] = { ...next[i], position: e.target.value };
+                    setMembers(next);
+                  }}
+                  className="bg-white border border-slate-200 rounded-lg px-3 py-2.5 text-sm text-slate-700 outline-none focus:border-teal-500/30 transition-all w-20"
+                >
+                  <option value="부장">부장</option>
+                  <option value="차장">차장</option>
+                  <option value="과장">과장</option>
+                  <option value="대리">대리</option>
+                </select>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
 
       {/* 수업 순서 안내 */}
@@ -881,7 +938,7 @@ export function GroupCreateForm({ onSubmit, onCancel }: GroupCreateFormProps) {
 
       {/* 버튼 */}
       <button
-        onClick={() => { if (canSubmit) onSubmit(createEmptySession(groupName, members)); }}
+        onClick={() => { if (canSubmit) onSubmit(createEmptySession(groupName, filledMembers)); }}
         disabled={!canSubmit}
         className={cn(
           "w-full flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl text-base font-semibold transition-all",
