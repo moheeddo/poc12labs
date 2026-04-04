@@ -11,7 +11,7 @@ import {
   Tooltip,
   Legend,
 } from "recharts";
-import { ArrowLeft, Trophy, TrendingDown, Users, AlertCircle } from "lucide-react";
+import { ArrowLeft, Trophy, TrendingDown, Users, AlertCircle, Printer } from "lucide-react";
 import type { GroupSession } from "@/lib/group-types";
 import { COMPETENCY_ORDER } from "@/lib/group-types";
 import { cn } from "@/lib/utils";
@@ -93,14 +93,23 @@ export default function GroupDashboard({ session, onBack, onViewMember }: GroupD
   return (
     <div className="max-w-[1440px] mx-auto px-4 md:px-6 py-8 space-y-6 animate-slide-in-right print:py-4 print:space-y-4">
       {/* 헤더 */}
-      <div className="flex items-center gap-3 no-print">
-        <button onClick={onBack} className="text-slate-500 hover:text-teal-600 transition-colors" aria-label="뒤로 가기">
-          <ArrowLeft className="w-4 h-4" />
-        </button>
-        <div>
-          <h2 className="text-xl font-bold text-teal-600">{session.name} — 비교 대시보드</h2>
-          <p className="text-sm text-slate-500">{session.members.length}명 역량 비교 · 디브리핑용</p>
+      <div className="flex items-center justify-between no-print">
+        <div className="flex items-center gap-3">
+          <button onClick={onBack} className="text-slate-500 hover:text-teal-600 transition-colors" aria-label="뒤로 가기">
+            <ArrowLeft className="w-4 h-4" />
+          </button>
+          <div>
+            <h2 className="text-xl font-bold text-teal-600">{session.name} — 비교 대시보드</h2>
+            <p className="text-sm text-slate-500">{session.members.length}명 역량 비교 · 디브리핑용</p>
+          </div>
         </div>
+        <button
+          onClick={() => window.print()}
+          className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium bg-white text-slate-700 border border-slate-200 hover:border-teal-500/30 hover:text-teal-600 transition-all duration-200"
+        >
+          <Printer className="w-4 h-4" />
+          인쇄 / PDF
+        </button>
       </div>
       {/* 인쇄용 헤더 */}
       <div className="hidden print:block">
@@ -292,6 +301,12 @@ export default function GroupDashboard({ session, onBack, onViewMember }: GroupD
             <p className="text-sm text-amber-600">종합 {overallRanking[overallRanking.length - 1].avgScore.toFixed(1)}/9</p>
           </div>
         )}
+      </div>
+
+      {/* 인쇄용 푸터 */}
+      <div className="hidden print:block text-center text-xs text-slate-400 pt-4 border-t border-slate-200">
+        <p>KHNP Video AI Platform — {session.name} 비교 대시보드</p>
+        <p>출력일: {new Date().toLocaleDateString("ko-KR")}</p>
       </div>
     </div>
   );

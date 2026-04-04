@@ -182,6 +182,7 @@ export default function LeadershipFeedback({
   // UI
   const [activeEvidenceId, setActiveEvidenceId] = useState<string | null>(null);
   const [saved, setSaved] = useState(false);
+  const [autoSaveToast, setAutoSaveToast] = useState(false);
 
   // 우측 패널 탭 — 멀티모달 기본
   const [rightTab, setRightTab] = useState<"evidence" | "transcript" | "report" | "multimodal">("multimodal");
@@ -366,6 +367,22 @@ export default function LeadershipFeedback({
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [analysisLoading, analysisPhase, mmStarted, videoId]);
+
+  // ── 분석 완료 시 자동 저장 + 토스트 ──
+  useEffect(() => {
+    // 전체 분석 완료 (BARS + 멀티모달) 후 evidence가 있으면 자동 저장
+    const isFullyDone = !analysisLoading && analysisPhase >= 6
+      && (!mmStarted || mmProgress.phase === "done" || mmProgress.phase === "error");
+    if (isFullyDone && evidence.length > 0 && !autoSaveToast) {
+      localStorage.setItem(
+        `evidence-${videoId}`,
+        JSON.stringify({ videoId, videoTitle, evidence, savedAt: new Date().toISOString(), autoSaved: true })
+      );
+      setAutoSaveToast(true);
+      setTimeout(() => setAutoSaveToast(false), 4000);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [analysisLoading, analysisPhase, mmProgress.phase, evidence.length]);
 
   // ── 비디오 시간 추적 (로딩 완료 후 재등록) ──
   useEffect(() => {
@@ -665,11 +682,27 @@ export default function LeadershipFeedback({
           )}
         </div>
 
-        {/* 에러 표시 */}
+        {/* 에러 표시 + 복구 버튼 */}
         {analysisError && (
           <div className="mt-6 bg-amber-50 border border-amber-200 rounded-xl p-4">
             <p className="text-sm text-amber-700 font-medium mb-1">분석 중 오류 발생</p>
-            <p className="text-sm text-amber-600">{analysisError}</p>
+            <p className="text-sm text-amber-600 mb-3">{analysisError}</p>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={onBack}
+                className="flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-medium bg-white text-slate-600 border border-slate-200 hover:bg-slate-50 transition-colors"
+              >
+                <ArrowLeft className="w-3.5 h-3.5" />
+                뒤로 가기
+              </button>
+              <button
+                onClick={() => window.location.reload()}
+                className="flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-medium bg-amber-100 text-amber-700 border border-amber-200 hover:bg-amber-200 transition-colors"
+              >
+                <Sparkles className="w-3.5 h-3.5" />
+                다시 분석
+              </button>
+            </div>
           </div>
         )}
 
@@ -691,6 +724,15 @@ export default function LeadershipFeedback({
   // ── 섹션 B: 분석 완료 → 결과 뷰 ──────────────────────────
   return (
     <div className="max-w-[1440px] mx-auto px-4 md:px-6 py-8 animate-slide-in-right">
+      {/* 자동 저장 토스트 */}
+      {autoSaveToast && (
+        <div className="fixed bottom-6 right-6 z-50 animate-fade-in-up">
+          <div className="flex items-center gap-2 px-4 py-3 rounded-xl bg-teal-600 text-white shadow-lg text-sm font-medium">
+            <CheckCircle2 className="w-4 h-4 shrink-0" />
+            분석 결과가 자동 저장되었습니다
+          </div>
+        </div>
+      )}
       {/* 헤더 */}
       <div className="flex items-center justify-between mb-2">
         <div className="flex items-center gap-3">
@@ -795,7 +837,7 @@ export default function LeadershipFeedback({
             </div>
           )}
 
-          {/* 분석 에러 */}
+          {/* 분석 에러 + 복구 버튼 */}
           {analysisError && (
             <div className="bg-white/40 border border-amber-500/20 rounded-xl p-4">
               <p className="text-sm text-amber-600 flex items-center gap-1.5 mb-1">
@@ -804,6 +846,22 @@ export default function LeadershipFeedback({
               </p>
               <p className="text-sm text-slate-500">{analysisError}</p>
               <p className="text-sm text-slate-400 mt-2">영상 인덱싱이 완료된 후 다시 시도해 주세요</p>
+              <div className="flex items-center gap-2 mt-3">
+                <button
+                  onClick={onBack}
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-white text-slate-600 border border-slate-200 hover:bg-slate-50 transition-colors"
+                >
+                  <ArrowLeft className="w-3 h-3" />
+                  뒤로 가기
+                </button>
+                <button
+                  onClick={() => window.location.reload()}
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-amber-100 text-amber-700 border border-amber-200 hover:bg-amber-200 transition-colors"
+                >
+                  <Sparkles className="w-3 h-3" />
+                  다시 분석
+                </button>
+              </div>
             </div>
           )}
 
@@ -1095,7 +1153,23 @@ export default function LeadershipFeedback({
             ) : mmProgress.phase === "error" ? (
               <div className="bg-white border border-amber-200 rounded-xl p-6 text-center">
                 <p className="text-base text-amber-600 mb-1">멀티모달 분석 오류</p>
-                <p className="text-sm text-slate-400">{mmError || "행동 신호 추출에 실패했습니다"}</p>
+                <p className="text-sm text-slate-400 mb-3">{mmError || "행동 신호 추출에 실패했습니다"}</p>
+                <div className="flex items-center justify-center gap-2">
+                  <button
+                    onClick={onBack}
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-white text-slate-600 border border-slate-200 hover:bg-slate-50 transition-colors"
+                  >
+                    <ArrowLeft className="w-3 h-3" />
+                    뒤로 가기
+                  </button>
+                  <button
+                    onClick={() => window.location.reload()}
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-amber-100 text-amber-700 border border-amber-200 hover:bg-amber-200 transition-colors"
+                  >
+                    <Sparkles className="w-3 h-3" />
+                    다시 분석
+                  </button>
+                </div>
               </div>
             ) : (
               <div className="bg-white border border-violet-200/30 rounded-xl p-8 text-center">

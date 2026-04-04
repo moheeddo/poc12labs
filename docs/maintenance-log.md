@@ -1,5 +1,44 @@
 # Maintenance Log
 
+## 2026-04-04 사이클 16 — 사용성 세부 개선
+
+### 1. 조 대시보드 인쇄 최적화 (GroupDashboard.tsx)
+
+| 항목 | 조치 |
+|------|------|
+| 인쇄/PDF 버튼 | 헤더 우측에 `window.print()` 트리거 버튼 추가 |
+| 네비게이션 버튼 | `no-print` 클래스로 인쇄 시 숨김 처리 |
+| 레이더 차트 인쇄 | Recharts ResponsiveContainer에 인쇄용 CSS 고정 높이(400px) 적용 |
+| 인쇄용 헤더 | `hidden print:block`으로 인쇄 시 전용 헤더 표시 (기존 유지) |
+| 인쇄용 푸터 | 출력일 + 플랫폼명 표시하는 인쇄 전용 푸터 추가 |
+| globals.css | `.recharts-responsive-container`, `.recharts-wrapper`, `.recharts-surface` 인쇄 규칙 추가 |
+
+### 2. 분석 완료 후 자동 저장 알림 (LeadershipFeedback.tsx)
+
+| 항목 | 조치 |
+|------|------|
+| 자동 저장 | BARS + 멀티모달 분석 완료 시 evidence를 localStorage에 자동 저장 |
+| 토스트 알림 | `autoSaveToast` 상태로 고정 하단 우측에 4초간 토스트 표시 |
+| 기존 수동 저장 | "피드백 저장" 버튼은 그대로 유지 (수동 재저장 가능) |
+
+### 3. 에러 복구 가이드
+
+| 영역 | 조치 |
+|------|------|
+| 섹션 A (로딩 화면) 에러 | "뒤로 가기" + "다시 분석" 버튼 추가 |
+| 섹션 C (좌측 패널) 에러 | "뒤로 가기" + "다시 분석" 버튼 추가 |
+| 멀티모달 분석 오류 | "뒤로 가기" + "다시 분석" 버튼 추가 |
+| 다시 분석 동작 | `window.location.reload()`로 전체 분석 재시도 |
+
+### 4. 빌드 검증
+
+| 검증 항목 | 결과 |
+|-----------|------|
+| `npx tsc --noEmit` | 타입 오류 0개 |
+| `npx next build` | 빌드 성공, 에러/경고 0개, 15개 라우트 정상 |
+
+---
+
 ## 2026-04-04 사이클 15 — Vercel 프로덕션 최종 검증
 
 ### 1. Vercel 배포 상태

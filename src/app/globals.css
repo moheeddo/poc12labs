@@ -453,6 +453,20 @@ button:focus-visible, [role="button"]:focus-visible, a:focus-visible, input:focu
     size: A4;
   }
 
+  /* Recharts ResponsiveContainer — 인쇄 시 높이 보장 */
+  .recharts-responsive-container {
+    min-height: 400px !important;
+    height: 400px !important;
+  }
+  .recharts-wrapper {
+    width: 100% !important;
+    height: 400px !important;
+  }
+  .recharts-surface {
+    width: 100% !important;
+    height: 100% !important;
+  }
+
   /* 링크 URL 표시 (접근성) */
   a[href]::after {
     content: " (" attr(href) ")";
