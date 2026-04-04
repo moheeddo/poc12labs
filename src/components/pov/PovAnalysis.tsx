@@ -6,7 +6,7 @@ import {
   FileText, CheckCircle2, XCircle, Clock, Activity, BookOpen, Eye,
   Users, Brain, Zap, ClipboardCheck, BarChart3, ArrowLeft,
   ChevronDown, Sparkles, MessageSquare, Settings, History, TrendingUp, Scale,
-  Printer, UserCircle,
+  Printer, UserCircle, Calendar,
 } from "lucide-react";
 import {
   RadarChart, Radar, PolarGrid, PolarAngleAxis, PolarRadiusAxis,
@@ -34,6 +34,7 @@ import type { SelfReflectionData } from "@/components/pov/SelfReflection";
 import PrintableReport from "@/components/pov/PrintableReport";
 import ExportMenu from "@/components/pov/ExportMenu";
 import BenchmarkDashboard from "@/components/pov/BenchmarkDashboard";
+import EvaluationSchedule from "@/components/pov/EvaluationSchedule";
 import TimeAnalysis from "@/components/pov/TimeAnalysis";
 import TraineePortfolio from "@/components/pov/TraineePortfolio";
 import { useVideoUpload } from "@/hooks/useTwelveLabs";
@@ -175,11 +176,23 @@ export default function PovAnalysis() {
   const [selfReflection, setSelfReflection] = useState<SelfReflectionData | null>(null);
   // 훈련생 포트폴리오 표시 여부
   const [showPortfolio, setShowPortfolio] = useState(false);
+  // 평가 일정 캘린더 표시 여부
+  const [showSchedule, setShowSchedule] = useState(false);
+  // 지연된 일정 수 (헤더 배지용)
+  const [overdueCount, setOverdueCount] = useState(0);
 
   // 컴포넌트 언마운트 시 blob URL 해제
   useEffect(() => {
     return () => { if (videoUrl) URL.revokeObjectURL(videoUrl); };
   }, [videoUrl]);
+
+  // 지연된 일정 수 초기 로드 (헤더 배지 표시용)
+  useEffect(() => {
+    fetch('/api/twelvelabs/pov-schedule?type=week')
+      .then(r => r.json())
+      .then(data => { if (data.overdue) setOverdueCount(data.overdue.length); })
+      .catch(() => {/* 무시 */});
+  }, []);
 
   // 실제 분석 완료 시 셀프 리플렉션 위저드 먼저 표시
   useEffect(() => {
@@ -328,7 +341,18 @@ export default function PovAnalysis() {
           </div>
 
           {/* SOP 쿼리 관리 + 분석 이력 + 진행 추이 + 캘리브레이션 진입점 */}
-          <div className="flex justify-end gap-2">
+          <div className="flex justify-end gap-2 flex-wrap">
+            <button
+              onClick={() => setShowSchedule(true)}
+              className="text-xs text-zinc-500 hover:text-zinc-300 flex items-center gap-1 px-2.5 py-1.5 rounded-lg hover:bg-zinc-800/60 transition-colors relative"
+            >
+              <Calendar className="w-3.5 h-3.5" /> 평가 일정
+              {overdueCount > 0 && (
+                <span className="absolute -top-1 -right-1 min-w-[14px] h-3.5 px-0.5 rounded-full text-[9px] font-bold bg-red-500 text-white flex items-center justify-center leading-none">
+                  {overdueCount}
+                </span>
+              )}
+            </button>
             <button
               onClick={() => setShowPortfolio(true)}
               className="text-xs text-zinc-500 hover:text-zinc-300 flex items-center gap-1 px-2.5 py-1.5 rounded-lg hover:bg-zinc-800/60 transition-colors"
@@ -781,6 +805,27 @@ export default function PovAnalysis() {
             const matchProc = HPO_PROCEDURES.find(p => p.id === histReport.procedureId);
             if (matchProc) setSelectedProcedure(matchProc);
             setPhase("report");
+          }}
+        />
+      )}
+
+      {/* 평가 일정 캘린더 모달 */}
+      {showSchedule && (
+        <EvaluationSchedule
+          onClose={() => {
+            setShowSchedule(false);
+            // 닫을 때 overdue 배지 갱신
+            fetch('/api/twelvelabs/pov-schedule?type=week')
+              .then(r => r.json())
+              .then(data => { if (data.overdue) setOverdueCount(data.overdue.length); })
+              .catch(() => {/* 무시 */});
+          }}
+          onStartEvaluation={(procedureId) => {
+            const proc = HPO_PROCEDURES.find(p => p.id === procedureId);
+            if (proc) {
+              setShowSchedule(false);
+              handleSelectProcedure(proc);
+            }
           }}
         />
       )}

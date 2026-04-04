@@ -660,6 +660,47 @@ export default function PovReviewSession({
           </div>
         )}
 
+        {/* 재평가 권장 (C등급 이하 — 70점 미만) */}
+        {report.overallScore < 70 && (
+          <div className="mt-4 p-3 bg-amber-500/5 border border-amber-500/20 rounded-lg">
+            <p className="text-xs text-amber-400 font-semibold">재평가 권장</p>
+            <p className="text-xs text-zinc-400 mt-0.5">
+              등급 {report.grade} — 1~2주 후 재평가를 권장합니다
+            </p>
+            <button
+              onClick={async () => {
+                try {
+                  // 오늘로부터 14일 후 날짜 계산
+                  const retestDate = new Date(Date.now() + 14 * 86400000).toISOString().split('T')[0];
+                  const res = await fetch('/api/twelvelabs/pov-schedule', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                      traineeName: '미지정 훈련생',
+                      procedureId: report.procedureId,
+                      procedureTitle: report.procedureTitle,
+                      scheduledDate: retestDate,
+                      type: 'retest',
+                      notes: `자동 생성 — 원본 리포트 ${report.id} (${report.grade}등급, ${report.overallScore}점)`,
+                      previousReportId: report.id,
+                    }),
+                  });
+                  if (res.ok) {
+                    alert(`재평가 일정이 ${retestDate}로 등록되었습니다.\n평가 일정 메뉴에서 훈련생 이름을 수정하세요.`);
+                  } else {
+                    alert('일정 등록에 실패했습니다.');
+                  }
+                } catch {
+                  alert('네트워크 오류가 발생했습니다.');
+                }
+              }}
+              className="mt-2 text-xs px-3 py-1 bg-amber-500/20 text-amber-400 rounded hover:bg-amber-500/30 transition-colors"
+            >
+              재평가 일정 등록 (2주 후)
+            </button>
+          </div>
+        )}
+
         {/* 모범사례 등록 추천 (85점 이상) */}
         {report.overallScore >= 85 && (
           <div className="mt-6 p-4 rounded-xl bg-emerald-500/5 border border-emerald-500/20">
