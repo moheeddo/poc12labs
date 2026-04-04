@@ -4,6 +4,7 @@ import {
   calculateHpoScore,
   calculateFundamentalsScore,
   getGrade,
+  calculateQualityAdjustedScore,
 } from '@/lib/pov-scoring';
 import type { DetectedStep, HpoToolResult, FundamentalScore } from '@/lib/types';
 
@@ -88,5 +89,24 @@ describe('getGrade', () => {
     expect(getGrade(40)).toBe('D');
     expect(getGrade(39)).toBe('F');
     expect(getGrade(0)).toBe('F');
+  });
+});
+
+describe('calculateQualityAdjustedScore', () => {
+  it('품질 데이터 없으면 원점수 반환', () => {
+    expect(calculateQualityAdjustedScore(80, [])).toBe(80);
+    expect(calculateQualityAdjustedScore(80, [{ other: 1 }] as any)).toBe(80);
+  });
+
+  it('품질 100이면 점수 상승', () => {
+    const events = [{ qualityScore: 100 }, { qualityScore: 100 }];
+    // 80 * 0.8 + 100 * 0.2 = 64 + 20 = 84
+    expect(calculateQualityAdjustedScore(80, events, 0.2)).toBe(84);
+  });
+
+  it('품질 낮으면 점수 하락', () => {
+    const events = [{ qualityScore: 40 }, { qualityScore: 40 }];
+    // 80 * 0.8 + 40 * 0.2 = 64 + 8 = 72
+    expect(calculateQualityAdjustedScore(80, events, 0.2)).toBe(72);
   });
 });
