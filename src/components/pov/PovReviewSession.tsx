@@ -5,7 +5,7 @@ import {
   AlertTriangle, CheckCircle2, XCircle, Clock,
   MessageSquare, Flag, ChevronDown, ChevronRight, ArrowLeft,
   Play, Filter, Plus, Trash2, Sparkles,
-  BarChart3, Send, BookOpen, FileText,
+  BarChart3, Send, BookOpen, FileText, Tv2,
 } from "lucide-react";
 import VideoPlayer from "@/components/shared/VideoPlayer";
 import {
@@ -19,6 +19,7 @@ import DebriefingGuide, {
 } from "@/components/pov/DebriefingGuide";
 import HandoffDocument from "@/components/pov/HandoffDocument";
 import InstructorNotes from "@/components/pov/InstructorNotes";
+import CoachingOverlay from "@/components/pov/CoachingOverlay";
 
 // ── 타입 ─────────────────────────────────────
 
@@ -52,7 +53,11 @@ export default function PovReviewSession({
   const [seekTime, setSeekTime] = useState(0);
   const [seekKey, setSeekKey] = useState(0);
   const [currentTime, setCurrentTime] = useState(0);
+  const [videoDuration, setVideoDuration] = useState(0);
   const [activeStepId, setActiveStepId] = useState<string | null>(null);
+
+  // ── 코칭 모드 상태 ──
+  const [coachingActive, setCoachingActive] = useState(true);
 
   // ── 강평 상태 ──
   const [feedbacks, setFeedbacks] = useState<Record<string, string>>({});
@@ -314,6 +319,20 @@ export default function PovReviewSession({
             <MessageSquare className="w-3.5 h-3.5" /> 교수자 노트
           </button>
 
+          {/* 코칭 모드 토글 버튼 */}
+          <button
+            onClick={() => setCoachingActive((v) => !v)}
+            className={cn(
+              "shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm transition-colors border",
+              coachingActive
+                ? "bg-amber-50 text-amber-600 border-amber-500/30"
+                : "bg-slate-100 hover:bg-slate-200 text-slate-600 border-transparent",
+            )}
+            title="코칭 모드 켜기/끄기"
+          >
+            <Tv2 className="w-3.5 h-3.5" /> 코칭 모드
+          </button>
+
           <button
             onClick={onViewReport}
             className="shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-sm text-slate-700 transition-colors"
@@ -340,6 +359,7 @@ export default function PovReviewSession({
                 startTime={seekTime}
                 seekTrigger={seekKey}
                 onTimeUpdate={setCurrentTime}
+                onDurationChange={setVideoDuration}
                 autoPlayOnSeek
                 className="w-full"
               />
@@ -355,6 +375,32 @@ export default function PovReviewSession({
                   </span>
                 )}
               </div>
+            </div>
+
+            {/* 실시간 코칭 오버레이 — 코칭 모드 활성 시 영상 하단에 표시 */}
+            <div className="bg-zinc-900 border border-zinc-700/50 rounded-xl p-3">
+              <div className="flex items-center gap-2 mb-2">
+                <Tv2 className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+                <span className="text-xs font-semibold text-amber-400">
+                  실시간 코칭 오버레이
+                </span>
+                <span
+                  className={cn(
+                    "ml-auto text-[10px] px-1.5 py-0.5 rounded font-medium",
+                    coachingActive
+                      ? "bg-amber-500/20 text-amber-400"
+                      : "bg-zinc-700 text-zinc-500",
+                  )}
+                >
+                  {coachingActive ? 'ON' : 'OFF'}
+                </span>
+              </div>
+              <CoachingOverlay
+                report={report}
+                currentTime={currentTime}
+                videoDuration={videoDuration}
+                isActive={coachingActive}
+              />
             </div>
 
             {/* 빠른 이동 — 미흡 항목만 */}

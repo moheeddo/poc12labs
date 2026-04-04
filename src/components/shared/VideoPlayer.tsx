@@ -8,12 +8,13 @@ interface VideoPlayerProps {
   startTime?: number;
   seekTrigger?: number;        // 동일 시간 재탐색용 카운터
   onTimeUpdate?: (time: number) => void;  // 재생 시간 콜백
+  onDurationChange?: (duration: number) => void;  // 영상 길이 콜백
   autoPlayOnSeek?: boolean;    // seek 후 자동 재생
   className?: string;
 }
 
 export default function VideoPlayer({
-  src, startTime, seekTrigger, onTimeUpdate, autoPlayOnSeek, className = "",
+  src, startTime, seekTrigger, onTimeUpdate, onDurationChange, autoPlayOnSeek, className = "",
 }: VideoPlayerProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
 
@@ -24,6 +25,17 @@ export default function VideoPlayer({
       if (autoPlayOnSeek) videoRef.current.play().catch(() => {});
     }
   }, [startTime, seekTrigger, autoPlayOnSeek]);
+
+  // 영상 길이 콜백 — loadedmetadata 이벤트에서 한 번만 호출
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video || !onDurationChange) return;
+    const handler = () => onDurationChange(video.duration || 0);
+    video.addEventListener('loadedmetadata', handler);
+    // 이미 메타데이터가 로드된 경우 즉시 호출
+    if (video.readyState >= 1) handler();
+    return () => video.removeEventListener('loadedmetadata', handler);
+  }, [onDurationChange]);
 
   // 재생 시간 콜백 (throttle: ~250ms 간격)
   useEffect(() => {
