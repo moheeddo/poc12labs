@@ -9,6 +9,7 @@ import { CheckCircle2, ArrowRight, BookOpen, ClipboardList, Target, TrendingUp, 
 import { generatePrescription, MASTERY_LABELS, type MasteryLevel, type CompetencyMastery, type PrescriptionStep } from '@/lib/pov-competency-progression';
 import type { FundamentalScore } from '@/lib/types';
 import { cn } from '@/lib/utils';
+import MicroLearning from '@/components/pov/MicroLearning';
 
 interface Props {
   fundamentals: FundamentalScore[];
@@ -247,6 +248,9 @@ export default function CompetencyProgression({ fundamentals, procedureId, overa
           })}
         </ol>
       </div>
+
+      {/* HPO-23: 마이크로 러닝 추천 (약점 역량 기반) */}
+      <MicroLearning fundamentalScores={fundamentals} />
     </div>
   );
 }
