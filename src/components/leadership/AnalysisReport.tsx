@@ -16,6 +16,7 @@ import {
   AlertTriangle,
   BarChart3,
   CheckCircle2,
+  BookOpen,
 } from "lucide-react";
 import type { AnalysisReportData } from "@/lib/leadership-analysis";
 import { cn } from "@/lib/utils";
@@ -251,7 +252,7 @@ export default function AnalysisReport({ data, onSeek }: AnalysisReportProps) {
       </div>
 
       {/* ── 역량별 상세 ── */}
-      <div className="space-y-3">
+      <div className="space-y-3" id="competency-details">
         {data.competencies.map((c) => (
           <div
             key={c.key}
@@ -355,6 +356,45 @@ export default function AnalysisReport({ data, onSeek }: AnalysisReportProps) {
           </div>
         ))}
       </div>
+
+      {/* ── 평가 방법론 참고 문헌 ── */}
+      {(() => {
+        // 모든 역량의 reference를 수집, 개별 논문으로 분리, 중복 제거
+        const allRefs = data.competencies
+          .filter((c) => c.reference)
+          .flatMap((c) => c.reference!.split("|").map((r) => r.trim()))
+          .filter((r) => r.length > 0);
+        const uniqueRefs = [...new Set(allRefs)];
+        if (uniqueRefs.length === 0) return null;
+
+        return (
+          <div className="bg-slate-50/60 border border-slate-200/30 rounded-xl p-4 mt-1">
+            <div className="flex items-center gap-2 mb-3">
+              <BookOpen className="w-4 h-4 text-slate-500" />
+              <p className="text-sm font-semibold text-slate-600">
+                평가 방법론 참고 문헌
+              </p>
+            </div>
+            <ul className="space-y-1.5">
+              {uniqueRefs.map((ref, i) => (
+                <li
+                  key={i}
+                  className="flex items-start gap-2 text-xs text-slate-500 leading-relaxed"
+                >
+                  <span className="font-mono text-[10px] text-slate-400 shrink-0 mt-0.5">
+                    [{i + 1}]
+                  </span>
+                  <span>{ref}</span>
+                </li>
+              ))}
+            </ul>
+            <p className="text-[10px] text-slate-400 mt-3 leading-relaxed">
+              본 평가는 BARS(Behaviorally Anchored Rating Scales) 방법론과 멀티모달 AI 분석을 결합하여 수행되었습니다.
+              각 역량의 행동 앵커는 위 학술 연구에 기반합니다.
+            </p>
+          </div>
+        );
+      })()}
     </div>
   );
 }

@@ -329,6 +329,7 @@ export interface CompetencySummary {
   rubricScores: RubricItemScore[];  // 루브릭 항목별 판정
   scenario?: string;                // 상황사례
   activityType?: string;            // 활동유형
+  reference?: string;               // 평가 방법론 참고 문헌
 }
 
 export interface ImprovementPriority {
@@ -426,6 +427,7 @@ export function generateAnalysisReport(
       rubricScores,
       scenario: assessmentData?.scenario.title,
       activityType: assessmentData?.scenario.activityType,
+      reference: assessmentData?.scenario.reference,
     };
   });
 

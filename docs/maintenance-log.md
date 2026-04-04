@@ -1,5 +1,37 @@
 # Maintenance Log
 
+## 2026-04-04 사이클 18 — 평가 방법론 참고 문헌 표시 + 코드 안정성
+
+### 1. 빌드 + 타입 확인
+- `npx tsc --noEmit`: 통과 (0 errors)
+- `npx next build`: 통과 (15 pages 생성)
+
+### 2. Vercel 배포 확인
+- `npx vercel ls`: 정상 연결 (moheeddos-projects/poc12labs)
+
+### 3. 변경사항
+
+| 파일 | 변경 내용 |
+|------|-----------|
+| `src/lib/leadership-analysis.ts` | `CompetencySummary`에 `reference` 필드 추가, `generateAnalysisReport`에서 `assessmentData.scenario.reference` 전달 |
+| `src/components/leadership/AnalysisReport.tsx` | 하단에 "평가 방법론 참고 문헌" 섹션 추가 — 역량별 학술 근거를 중복 제거 후 번호 목록으로 표시 |
+
+### 4. 추가된 학술 근거 (leadership-rubric-data.ts 기존 데이터 활용)
+
+| 역량 | 참고 문헌 |
+|------|-----------|
+| 비전제시 | Smith & Kendall(1963) BARS, Sanchez-Cortes et al.(2012), Naim et al.(2015) |
+| 신뢰형성 | Edmondson(1999) 심리적 안전감, Müller et al.(2019) 시선·자세 기반 리더십 |
+| 합리적 의사결정 | Eisenhardt(1989), NRC NUREG-1021, Kahneman(2011) |
+| 구성원 육성 | CCL SBI 피드백, Edmondson(1999), Whitmore(2009) GROW 모델 |
+
+### 5. 검증 결과
+- TypeScript 타입 체크: 통과
+- Next.js 프로덕션 빌드: 통과
+- 참고 문헌 섹션: 평가 완료된 역량에 reference 데이터가 있으면 보고서 하단에 자동 표시
+
+---
+
 ## 2026-04-04 사이클 17 — QA 전체 탭 순회 + 반응형 검증
 
 ### 1. 테스트 수행 내역
