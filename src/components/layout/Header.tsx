@@ -36,7 +36,6 @@ export default function Header({ activeTab, onTabChange }: HeaderProps) {
 
   /* 활성 탭 글로우 라인 색상 */
   const glowColorMap: Record<string, string> = {
-    simulator: "from-coral-500 via-coral-400/40 to-transparent",
     leadership: "from-teal-500 via-teal-400/40 to-transparent",
     pov: "from-amber-500 via-amber-400/40 to-transparent",
   };
@@ -117,7 +116,7 @@ export default function Header({ activeTab, onTabChange }: HeaderProps) {
                   : "text-slate-500 after:bg-transparent after:scale-x-0 hover:text-slate-700"
               )}
             >
-              대시보드
+              홈
             </button>
             {SERVICE_TABS.map((tab) => {
               const isActive = activeTab === tab.key;

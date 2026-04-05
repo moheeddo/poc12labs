@@ -73,37 +73,7 @@ export interface AnnotatedTranscript {
 }
 
 // =============================================
-// 시뮬레이터 평가 (Tab 1) 관련 타입
-// =============================================
-
-export type CompetencyKey =
-  | "communication"
-  | "situationAwareness"
-  | "prudentOperation"
-  | "teamwork"
-  | "decisionMaking"
-  | "leadership"
-  | "procedureCompliance"
-  | "emergencyResponse";
-
-export interface CompetencyScore {
-  key: CompetencyKey;
-  label: string;
-  score: number; // 0-100
-}
-
-export interface SimulatorEvaluation {
-  sessionId: string;
-  operatorName: string;
-  date: string;
-  videoId: string;
-  competencies: CompetencyScore[];
-  overallScore: number;
-  chapters: Chapter[];
-}
-
-// =============================================
-// 리더십 코칭 (Tab 2) 관련 타입
+// 리더십 코칭 관련 타입
 // — KHNP 전직급 리더십 역량 정의 및 행동지표 기준
 // =============================================
 
@@ -303,7 +273,7 @@ export interface PovEvaluationReport {
 // 공통 UI 타입
 // =============================================
 
-export type ServiceTab = "simulator" | "leadership" | "pov";
+export type ServiceTab = "leadership" | "pov";
 
 export interface UploadProgress {
   fileName: string;

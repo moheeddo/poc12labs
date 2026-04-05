@@ -1,8 +1,7 @@
-import type { CompetencyKey, LeadershipCompetencyKey, JobLevel, LeadershipCompetencyDef, ServiceTab } from "./types";
+import type { LeadershipCompetencyKey, JobLevel, LeadershipCompetencyDef, ServiceTab } from "./types";
 
 // TwelveLabs 인덱스 ID (API는 이름이 아닌 UUID ID를 요구)
 export const TWELVELABS_INDEXES = {
-  simulator: "69ccf4b7f7f1a5d7932e56c3",
   leadership: "69ccf4b781e81bcd08ca5487",
   pov: "69ccf4b881e81bcd08ca5488",
 } as const;
@@ -16,14 +15,6 @@ export const SERVICE_TABS: {
   bgColor: string;
   borderColor: string;
 }[] = [
-  {
-    key: "simulator",
-    label: "시뮬레이터 훈련 멀티모달 분석",
-    description: "원전 운전 시뮬레이터 훈련 영상을 멀티모달 AI로 분석하여 8대 핵심역량을 정량 평가합니다.",
-    color: "text-coral-600",
-    bgColor: "bg-coral-500/10",
-    borderColor: "border-coral-500/30",
-  },
   {
     key: "leadership",
     label: "리더십코칭 역량진단",
@@ -41,18 +32,6 @@ export const SERVICE_TABS: {
     borderColor: "border-amber-500/30",
   },
 ];
-
-// 8대 핵심역량 라벨 (시뮬레이터 평가)
-export const COMPETENCY_LABELS: Record<CompetencyKey, string> = {
-  communication: "의사소통",
-  situationAwareness: "상황인식",
-  prudentOperation: "신중한운전",
-  teamwork: "팀워크",
-  decisionMaking: "의사결정",
-  leadership: "리더십",
-  procedureCompliance: "절차준수",
-  emergencyResponse: "비상대응",
-};
 
 // =============================================
 // KHNP 전직급 리더십 역량 체계 (standards/ 문서 기준)

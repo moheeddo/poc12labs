@@ -5,7 +5,6 @@ interface FooterProps {
 }
 
 const FOOTER_LINKS: { key: ServiceTab; label: string; color: string }[] = [
-  { key: "simulator", label: "시뮬레이터 훈련 멀티모달 분석", color: "hover:text-coral-600" },
   { key: "leadership", label: "리더십코칭", color: "hover:text-teal-600" },
   { key: "pov", label: "POV 분석", color: "hover:text-amber-600" },
 ];
@@ -14,7 +13,7 @@ export default function Footer({ onNavigate }: FooterProps) {
   return (
     <footer className="border-t border-slate-200 no-print">
       {/* 멀티컬러 디바이더 */}
-      <div className="h-px bg-gradient-to-r from-coral-500/20 via-teal-500/20 to-amber-500/20" />
+      <div className="h-px bg-gradient-to-r from-teal-500/20 via-khnp-emerald/10 to-amber-500/20" />
 
       <div className="max-w-[1440px] mx-auto px-4 md:px-6 py-6">
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">

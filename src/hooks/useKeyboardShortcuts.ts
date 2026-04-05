@@ -10,9 +10,8 @@ interface UseKeyboardShortcutsOptions {
 
 /**
  * 키보드 단축키 훅
- * - 1: 시뮬레이터 훈련 멀티모달 분석
- * - 2: 리더십 코칭
- * - 3: POV 분석
+ * - 1: 리더십 코칭
+ * - 2: POV 분석
  * - 0 / Escape: 대시보드 복귀
  * - ?: 도움말 모달 토글
  *
@@ -43,13 +42,9 @@ export function useKeyboardShortcuts({
       switch (e.key) {
         case "1":
           e.preventDefault();
-          onTabChange("simulator");
-          break;
-        case "2":
-          e.preventDefault();
           onTabChange("leadership");
           break;
-        case "3":
+        case "2":
           e.preventDefault();
           onTabChange("pov");
           break;
