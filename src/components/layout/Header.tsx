@@ -38,13 +38,11 @@ export default function Header({ activeTab, onTabChange }: HeaderProps) {
   const glowColorMap: Record<string, string> = {
     leadership: "from-teal-500 via-teal-400/40 to-transparent",
     pov: "from-amber-500 via-amber-400/40 to-transparent",
-    lecture: "from-coral-500 via-coral-400/40 to-transparent",
   };
   const activeGlow = activeTab ? glowColorMap[activeTab] : null;
 
   /* 탭 언더라인 색상 매핑 */
   const underlineColorMap: Record<string, string> = {
-    "text-coral-600": "after:bg-coral-500",
     "text-teal-600": "after:bg-teal-500",
     "text-amber-600": "after:bg-amber-500",
   };

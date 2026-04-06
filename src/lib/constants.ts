@@ -26,19 +26,11 @@ export const SERVICE_TABS: {
   },
   {
     key: "pov",
-    label: "훈련영상 POV 분석",
+    label: "HPO센터 영상분석",
     description: "1인칭 시점 영상으로 SOP 절차 이탈을 탐지하고 숙련도를 비교 분석합니다.",
     color: "text-amber-600",
     bgColor: "bg-amber-500/10",
     borderColor: "border-amber-500/30",
-  },
-  {
-    key: "lecture",
-    label: "교수자 강의평가",
-    description: "강의 영상과 강의안을 AI로 분석하여 전달력과 내용 충실도를 정량 평가합니다.",
-    color: "text-coral-600",
-    bgColor: "bg-coral-500/10",
-    borderColor: "border-coral-500/30",
   },
 ];
 
