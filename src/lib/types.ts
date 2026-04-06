@@ -273,7 +273,7 @@ export interface PovEvaluationReport {
 // 공통 UI 타입
 // =============================================
 
-export type ServiceTab = "leadership" | "pov";
+export type ServiceTab = "leadership" | "pov" | "lecture";
 
 export interface UploadProgress {
   fileName: string;

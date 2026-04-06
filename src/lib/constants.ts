@@ -4,6 +4,7 @@ import type { LeadershipCompetencyKey, JobLevel, LeadershipCompetencyDef, Servic
 export const TWELVELABS_INDEXES = {
   leadership: "69ccf4b781e81bcd08ca5487",
   pov: "69ccf4b881e81bcd08ca5488",
+  lecture: "placeholder-lecture-index",
 } as const;
 
 // 서비스 탭 정의
@@ -30,6 +31,14 @@ export const SERVICE_TABS: {
     color: "text-amber-600",
     bgColor: "bg-amber-500/10",
     borderColor: "border-amber-500/30",
+  },
+  {
+    key: "lecture",
+    label: "교수자 강의평가",
+    description: "강의 영상과 강의안을 AI로 분석하여 전달력과 내용 충실도를 정량 평가합니다.",
+    color: "text-coral-600",
+    bgColor: "bg-coral-500/10",
+    borderColor: "border-coral-500/30",
   },
 ];
 
