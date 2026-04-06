@@ -14,6 +14,7 @@ const shortcutGroups = [
     items: [
       { key: "1", description: "리더십 코칭" },
       { key: "2", description: "POV 분석" },
+      { key: "3", description: "교수자 강의평가" },
     ],
   },
   {

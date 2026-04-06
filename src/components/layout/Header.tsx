@@ -38,6 +38,7 @@ export default function Header({ activeTab, onTabChange }: HeaderProps) {
   const glowColorMap: Record<string, string> = {
     leadership: "from-teal-500 via-teal-400/40 to-transparent",
     pov: "from-amber-500 via-amber-400/40 to-transparent",
+    lecture: "from-coral-500 via-coral-400/40 to-transparent",
   };
   const activeGlow = activeTab ? glowColorMap[activeTab] : null;
 

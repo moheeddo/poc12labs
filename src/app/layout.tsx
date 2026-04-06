@@ -13,8 +13,8 @@ export const metadata: Metadata = {
     template: "%s | KHNP HRDI",
   },
   description:
-    "한국수력원자력 인재개발원 — 리더십 코칭·POV 분석을 위한 AI 영상 역량 평가 플랫폼",
-  keywords: ["한국수력원자력", "HRDI", "영상분석", "AI", "역량평가", "시뮬레이터", "리더십", "POV", "TwelveLabs"],
+    "한국수력원자력 인재개발원 — 리더십 코칭·POV 분석·강의평가를 위한 AI 영상 역량 평가 플랫폼",
+  keywords: ["한국수력원자력", "HRDI", "영상분석", "AI", "역량평가", "시뮬레이터", "리더십", "POV", "강의평가", "TwelveLabs"],
   authors: [{ name: "KHNP 인재개발원" }],
   robots: {
     index: false,
@@ -23,7 +23,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: "KHNP HRDI 영상분석 PoC3",
     description:
-      "한국수력원자력 인재개발원 — 리더십 코칭·POV 분석을 위한 AI 영상 역량 평가 플랫폼",
+      "한국수력원자력 인재개발원 — 리더십 코칭·POV 분석·강의평가를 위한 AI 영상 역량 평가 플랫폼",
     type: "website",
     locale: "ko_KR",
     siteName: "KHNP HRDI Video AI Platform",
@@ -31,7 +31,7 @@ export const metadata: Metadata = {
   twitter: {
     card: "summary_large_image",
     title: "KHNP HRDI 영상분석 PoC3",
-    description: "리더십 코칭·POV 분석 AI 플랫폼",
+    description: "리더십 코칭·POV 분석·강의평가 AI 플랫폼",
   },
 };
 

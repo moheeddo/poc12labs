@@ -12,6 +12,7 @@ interface UseKeyboardShortcutsOptions {
  * 키보드 단축키 훅
  * - 1: 리더십 코칭
  * - 2: POV 분석
+ * - 3: 교수자 강의평가
  * - 0 / Escape: 대시보드 복귀
  * - ?: 도움말 모달 토글
  *
@@ -47,6 +48,10 @@ export function useKeyboardShortcuts({
         case "2":
           e.preventDefault();
           onTabChange("pov");
+          break;
+        case "3":
+          e.preventDefault();
+          onTabChange("lecture");
           break;
         case "0":
           e.preventDefault();

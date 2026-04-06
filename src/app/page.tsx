@@ -15,6 +15,7 @@ import Skeleton from "@/components/shared/Skeleton";
 // 탭 컴포넌트 코드 스플리팅 — 초기 번들 크기 감소
 const LeadershipCoaching = lazy(() => import("@/components/leadership/LeadershipCoaching"));
 const PovAnalysis = lazy(() => import("@/components/pov/PovAnalysis"));
+const LectureEvaluation = lazy(() => import("@/components/lecture/LectureEvaluation"));
 
 export default function Home() {
   const [activeTab, setActiveTab] = useState<ServiceTab | null>(null);
@@ -50,6 +51,7 @@ export default function Home() {
           }>
             {activeTab === "leadership" && <LeadershipCoaching />}
             {activeTab === "pov" && <PovAnalysis />}
+            {activeTab === "lecture" && <LectureEvaluation />}
           </Suspense>
         </ErrorBoundary>
       </main>

@@ -7,6 +7,7 @@ interface FooterProps {
 const FOOTER_LINKS: { key: ServiceTab; label: string; color: string }[] = [
   { key: "leadership", label: "리더십코칭", color: "hover:text-teal-600" },
   { key: "pov", label: "POV 분석", color: "hover:text-amber-600" },
+  { key: "lecture", label: "강의평가", color: "hover:text-coral-600" },
 ];
 
 export default function Footer({ onNavigate }: FooterProps) {

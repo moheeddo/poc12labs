@@ -53,6 +53,28 @@ const STATIONS = [
     dotColor: "bg-amber-500",
     btnClass: "bg-amber-600 hover:bg-amber-700 focus-visible:ring-amber-400",
   },
+  {
+    key: "lecture" as ServiceTab,
+    number: "03",
+    title: "교수자",
+    subtitle: "강의평가",
+    tagline: "전달력 + 내용 충실도 듀얼 분석",
+    description: "강의 영상과 강의안(PPT)을 AI로 분석하여 전달력과 강의 내용 전달 충실도를 정량 평가합니다.",
+    features: [
+      "PPT 슬라이드별 커버리지 분석",
+      "핵심 개념 의미론적 매칭",
+      "멀티모달 5채널 전달력 평가",
+      "교수법 특화 지표 (질문유도·포인팅·전환)",
+    ],
+    accentColor: "var(--color-coral-500)",
+    bgTint: "var(--color-coral-50)",
+    borderAccent: "var(--color-coral-200)",
+    hoverBg: "var(--color-coral-100)",
+    textAccent: "var(--color-coral-700)",
+    textLight: "var(--color-coral-600)",
+    dotColor: "bg-coral-500",
+    btnClass: "bg-coral-600 hover:bg-coral-700 focus-visible:ring-coral-400",
+  },
 ] as const;
 
 export default function Landing({ onNavigate }: LandingProps) {
@@ -91,7 +113,7 @@ export default function Landing({ onNavigate }: LandingProps) {
 
       {/* 스테이션 패널 */}
       <div className="flex-1 px-4 md:px-6 pb-12 max-w-[1440px] mx-auto w-full">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-5 md:gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-5 md:gap-6">
           {STATIONS.map((station, i) => {
             const isHovered = hoveredStation === station.key;
             const otherHovered = hoveredStation !== null && !isHovered;
