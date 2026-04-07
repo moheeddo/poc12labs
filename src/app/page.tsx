@@ -32,7 +32,7 @@ export default function Home() {
   const isLanding = activeTab === null;
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className={`min-h-screen ${isLanding ? "" : "bg-slate-50"}`}>
       <a href="#main-content" className="skip-to-content">본문으로 건너뛰기</a>
       {!isLanding && <Header activeTab={activeTab} onTabChange={setActiveTab} />}
       <main id="main-content" aria-live="polite">
