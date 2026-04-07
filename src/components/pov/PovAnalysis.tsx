@@ -41,7 +41,7 @@ import ExecutiveSummary from "@/components/pov/ExecutiveSummary";
 import CommunicationPanel from "@/components/pov/CommunicationPanel";
 import MicroLearning from "@/components/pov/MicroLearning";
 import IncidentLibrary from "@/components/pov/IncidentLibrary";
-import InstructorHome from "@/components/pov/InstructorHome";
+// InstructorHome 제거 — 다크테마 대시보드가 라이트 UI와 불일치
 import ApiStatusBadge from "@/components/pov/ApiStatusBadge";
 import { useVideoUpload } from "@/hooks/useTwelveLabs";
 import { usePovAnalysis } from "@/hooks/usePovAnalysis";
@@ -298,23 +298,7 @@ export default function PovAnalysis() {
     });
   }, []);
 
-  // HPO-24: 교수자 홈 대시보드 — 패널 네비게이션 핸들러
-  const handleHomeNavigate = useCallback((target: string) => {
-    switch (target) {
-      case 'schedule': setShowSchedule(true); break;
-      case 'cohort': setShowCohort(true); break;
-      case 'portfolio': setShowPortfolio(true); break;
-      case 'history': setShowHistory(true); break;
-      case 'benchmark': setShowBenchmark(true); break;
-      case 'calibration': setShowCalibration(true); break;
-    }
-  }, []);
-
-  // HPO-24: 교수자 홈 — 바로 시작 (절차 선택 이동)
-  const handleHomeSelectProcedure = useCallback((procedureId: string) => {
-    const proc = HPO_PROCEDURES.find(p => p.id === procedureId);
-    if (proc) handleSelectProcedure(proc);
-  }, [handleSelectProcedure]);
+  // (InstructorHome 대시보드 제거됨 — 다크테마 불일치)
 
   // 계통별 그룹핑
   const proceduresBySystem = useMemo(() => {
@@ -354,12 +338,6 @@ export default function PovAnalysis() {
       {/* ════════ Phase 1: 실습 절차 선택 ════════ */}
       {phase === "select" && (
         <div className="space-y-6 animate-fade-in-up">
-          {/* HPO-24: 교수자 홈 대시보드 — 오늘 일정 + 최근 평가 + 알림 통합 현황판 */}
-          <InstructorHome
-            onNavigate={handleHomeNavigate}
-            onSelectProcedure={handleHomeSelectProcedure}
-          />
-
           {/* 과정 안내 */}
           <div className="bg-white border border-slate-200 rounded-xl p-5">
             <div className="flex items-start gap-3">
