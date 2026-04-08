@@ -3,11 +3,11 @@
 // JSON 파일 기반 CRUD + 점수 추이 조회
 // =============================================
 
-import { readFileSync, writeFileSync, existsSync, mkdirSync } from 'fs';
-import path from 'path';
+import { readFileSync, writeFileSync, existsSync } from 'fs';
 import type { PovEvaluationReport } from './types';
+import { getDataPath } from './data-path';
 
-const DATA_PATH = path.join(process.cwd(), 'data', 'analysis-history.json');
+const DATA_PATH = getDataPath('analysis-history.json');
 
 export interface HistoryEntry {
   id: string;
@@ -28,8 +28,6 @@ function readHistory(): HistoryEntry[] {
 }
 
 function writeHistory(data: HistoryEntry[]): void {
-  const dir = path.dirname(DATA_PATH);
-  if (!existsSync(dir)) mkdirSync(dir, { recursive: true });
   writeFileSync(DATA_PATH, JSON.stringify(data, null, 2), 'utf-8');
 }
 

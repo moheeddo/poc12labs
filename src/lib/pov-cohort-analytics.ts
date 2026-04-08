@@ -5,11 +5,11 @@
 // =============================================
 
 import { readFileSync, existsSync } from 'fs';
-import path from 'path';
 import type { PovEvaluationReport } from './types';
 import { HPO_PROCEDURES, HPO_TOOLS, OPERATOR_FUNDAMENTALS } from './pov-standards';
+import { getDataPath } from './data-path';
 
-const HISTORY_PATH = path.join(process.cwd(), 'data', 'analysis-history.json');
+const HISTORY_PATH = getDataPath('analysis-history.json');
 
 // ── 이력 항목 (pov-analysis-history.ts와 동일 구조) ──
 

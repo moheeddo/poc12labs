@@ -4,10 +4,10 @@
 // =============================================
 
 import { readFileSync, existsSync } from 'fs';
-import path from 'path';
 import type { PovEvaluationReport } from './types';
+import { getDataPath } from './data-path';
 
-const HISTORY_PATH = path.join(process.cwd(), 'data', 'analysis-history.json');
+const HISTORY_PATH = getDataPath('analysis-history.json');
 
 // ── 이력 항목 (analysis-history.json 구조와 동일) ──────────
 

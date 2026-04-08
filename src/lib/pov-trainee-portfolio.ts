@@ -3,16 +3,14 @@
 // TraineeProfile CRUD + PortfolioSummary 자동 생성
 // =============================================
 
-import { readFileSync, writeFileSync, existsSync, mkdirSync } from 'fs';
-import path from 'path';
+import { readFileSync, writeFileSync, existsSync } from 'fs';
 import type { PovEvaluationReport, FundamentalScore } from './types';
 import { HPO_PROCEDURES } from './pov-standards';
 import { scoreToLevel } from './pov-competency-progression';
+import { getDataPath } from './data-path';
 
-// 훈련생 포트폴리오 파일 경로
-const PORTFOLIO_PATH = path.join(process.cwd(), 'data', 'trainee-portfolios.json');
-// 분석 이력 파일 경로 (기존 포맷 재사용)
-const HISTORY_PATH = path.join(process.cwd(), 'data', 'analysis-history.json');
+const PORTFOLIO_PATH = getDataPath('trainee-portfolios.json');
+const HISTORY_PATH = getDataPath('analysis-history.json');
 
 // ── 훈련생 프로필 ──────────────────────────
 

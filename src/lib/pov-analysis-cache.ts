@@ -4,11 +4,11 @@
 // 캐시 키: ${videoId}-${procedureId}
 // =============================================
 
-import { readFileSync, writeFileSync, existsSync, mkdirSync } from 'fs';
-import path from 'path';
+import { readFileSync, writeFileSync, existsSync } from 'fs';
 import type { PovEvaluationReport } from './types';
+import { getDataPath } from './data-path';
 
-const CACHE_PATH = path.join(process.cwd(), 'data', 'analysis-cache.json');
+const CACHE_PATH = getDataPath('analysis-cache.json');
 
 interface CacheEntry {
   key: string;
@@ -32,8 +32,6 @@ function readCache(): CacheEntry[] {
 
 /** 캐시 파일 저장 */
 function writeCache(data: CacheEntry[]): void {
-  const dir = path.dirname(CACHE_PATH);
-  if (!existsSync(dir)) mkdirSync(dir, { recursive: true });
   writeFileSync(CACHE_PATH, JSON.stringify(data, null, 2), 'utf-8');
 }
 

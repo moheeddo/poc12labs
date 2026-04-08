@@ -3,10 +3,10 @@
 // 일정 CRUD + 자동 overdue 판정 + 주간 요약
 // =============================================
 
-import { readFileSync, writeFileSync, existsSync, mkdirSync } from 'fs';
-import path from 'path';
+import { readFileSync, writeFileSync, existsSync } from 'fs';
+import { getDataPath } from './data-path';
 
-const DATA_PATH = path.join(process.cwd(), 'data', 'evaluation-schedule.json');
+const DATA_PATH = getDataPath('evaluation-schedule.json');
 
 // ── 타입 정의 ────────────────────────────────
 
@@ -32,8 +32,6 @@ function readSchedule(): ScheduleEntry[] {
 }
 
 function writeSchedule(data: ScheduleEntry[]): void {
-  const dir = path.dirname(DATA_PATH);
-  if (!existsSync(dir)) mkdirSync(dir, { recursive: true });
   writeFileSync(DATA_PATH, JSON.stringify(data, null, 2), 'utf-8');
 }
 

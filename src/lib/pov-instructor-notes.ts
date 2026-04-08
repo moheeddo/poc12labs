@@ -1,8 +1,8 @@
-import { readFileSync, writeFileSync, existsSync, mkdirSync } from 'fs';
-import path from 'path';
+import { readFileSync, writeFileSync, existsSync } from 'fs';
+import { getDataPath } from './data-path';
 
 // JSON 파일 기반 교수자 노트 저장소
-const DATA_PATH = path.join(process.cwd(), 'data', 'instructor-notes.json');
+const DATA_PATH = getDataPath('instructor-notes.json');
 
 export interface InstructorNote {
   id: string;
@@ -40,8 +40,6 @@ function readNotes(): InstructorNote[] {
 }
 
 function writeNotes(data: InstructorNote[]): void {
-  const dir = path.dirname(DATA_PATH);
-  if (!existsSync(dir)) mkdirSync(dir, { recursive: true });
   writeFileSync(DATA_PATH, JSON.stringify(data, null, 2), 'utf-8');
 }
 

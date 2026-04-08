@@ -2,10 +2,10 @@
 // HPO-16: 피드백 뱅크 — 5카테고리 16개 기본 템플릿 + CRUD + 인기순 정렬
 // ══════════════════════════════════════════════
 
-import { readFileSync, writeFileSync, existsSync, mkdirSync } from 'fs';
-import path from 'path';
+import { readFileSync, writeFileSync, existsSync } from 'fs';
+import { getDataPath } from './data-path';
 
-const DATA_PATH = path.join(process.cwd(), 'data', 'feedback-bank.json');
+const DATA_PATH = getDataPath('feedback-bank.json');
 
 export interface FeedbackTemplate {
   id: string;
@@ -60,8 +60,6 @@ function readBank(): FeedbackTemplate[] {
 }
 
 function writeBank(data: FeedbackTemplate[]): void {
-  const dir = path.dirname(DATA_PATH);
-  if (!existsSync(dir)) mkdirSync(dir, { recursive: true });
   writeFileSync(DATA_PATH, JSON.stringify(data, null, 2), 'utf-8');
 }
 

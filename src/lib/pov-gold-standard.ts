@@ -1,9 +1,9 @@
 import { readFileSync, writeFileSync, existsSync } from 'fs';
-import path from 'path';
 import type { GoldStandard } from './types';
 import { getSegmentedEmbeddings } from './twelvelabs';
+import { getDataPath } from './data-path';
 
-const DATA_PATH = path.join(process.cwd(), 'data', 'gold-standards.json');
+const DATA_PATH = getDataPath('gold-standards.json');
 
 function readStore(): GoldStandard[] {
   if (!existsSync(DATA_PATH)) return [];
