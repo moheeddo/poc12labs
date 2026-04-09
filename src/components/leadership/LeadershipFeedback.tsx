@@ -1158,107 +1158,147 @@ export default function LeadershipFeedback({
                   );
                 })()}
 
-                {/* 항목별 점수 */}
-                {mmResult.scoring.items.map((item, itemIdx) => (
-                  <div
-                    key={item.id}
-                    className="bg-white/60 border border-slate-200/30 rounded-xl p-4 border-l-[3px] border-l-violet-400 cursor-pointer hover:shadow-md transition-all"
-                    onClick={() => {
-                      // 항목 인덱스에 따라 영상 위치 이동 (균등 분할)
-                      const videoEl = videoRef.current;
-                      if (videoEl && videoEl.duration) {
-                        const segmentDuration = videoEl.duration / 5;
-                        seekTo(segmentDuration * itemIdx);
-                      }
-                    }}
-                  >
-                    <div className="flex items-center justify-between mb-2">
-                      <div>
-                        <span className="text-sm font-semibold text-violet-600">{item.name}</span>
-                        <span className="text-xs text-slate-400 ml-2">{item.channel}</span>
+                {/* ── 채널별 시각화 카드 ── */}
+                {mmResult.scoring.items.map((item, itemIdx) => {
+                  const sig = mmResult.signals;
+                  const score = item.itemScore;
+                  const isGood = score !== null && score >= 7;
+                  const isBad = score !== null && score < 5;
+                  const borderColor = isGood ? "border-teal-200" : isBad ? "border-red-200" : "border-amber-200";
+                  const bgColor = isGood ? "bg-teal-50/30" : isBad ? "bg-red-50/30" : "bg-amber-50/30";
+
+                  // 채널 아이콘
+                  const icons: Record<string, string> = { item1: "👁", item2: "🔊", item3: "💬", item4: "🤸", item5: "😊" };
+
+                  // 게이지 바 헬퍼
+                  const GaugeBar = ({ value, max, label, unit, optimal }: { value: number | null; max: number; label: string; unit: string; optimal?: string }) => {
+                    if (value === null) return null;
+                    const pct = Math.min(100, Math.max(0, (value / max) * 100));
+                    const ind = item.indicators.find(i => i.label === label);
+                    const color = ind?.judgment === "상위" ? "bg-teal-500" : ind?.judgment === "중상" ? "bg-sky-400" : ind?.judgment === "중하" ? "bg-amber-400" : ind?.judgment === "미흡" ? "bg-red-400" : "bg-slate-300";
+                    return (
+                      <div className="mb-2">
+                        <div className="flex items-center justify-between text-[11px] mb-0.5">
+                          <span className="text-slate-600">{label}</span>
+                          <span className="font-mono text-slate-700 font-semibold">{typeof value === 'number' && value % 1 !== 0 ? value.toFixed(1) : value}{unit}</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <div className="flex-1 h-2 rounded-full bg-slate-100 overflow-hidden">
+                            <div className={cn("h-full rounded-full transition-all", color)} style={{ width: `${pct}%` }} />
+                          </div>
+                          {ind && <span className={cn("text-[10px] font-medium w-8", ind.judgment === "상위" ? "text-teal-600" : ind.judgment === "미흡" ? "text-red-500" : "text-slate-400")}>{ind.judgment}</span>}
+                        </div>
+                        {optimal && <p className="text-[9px] text-slate-400 mt-0.5">{optimal}</p>}
                       </div>
-                      <span className={cn(
-                        "text-sm font-mono font-bold px-2 py-0.5 rounded",
-                        item.itemScore !== null && item.itemScore >= 7 ? "bg-teal-50 text-teal-600" :
-                        item.itemScore !== null && item.itemScore >= 5 ? "bg-amber-50 text-amber-600" :
-                        item.itemScore !== null ? "bg-red-50 text-red-500" :
-                        "bg-slate-100 text-slate-400"
-                      )}>
-                        {item.itemScore !== null ? `${item.itemScore.toFixed(1)}/9` : "N/A"}
-                      </span>
-                    </div>
-                    {/* 하위지표 */}
-                    <div className="space-y-1">
-                      {item.indicators.map((ind) => (
-                        <div
-                          key={ind.name}
-                          className={cn(
-                            "flex items-center gap-2 text-xs rounded-md px-1.5 py-1 -mx-1.5 transition-colors",
-                            ind.judgment === "미흡" && "bg-red-50/60 ring-1 ring-red-200/40",
-                            ind.judgment === "상위" && "bg-teal-50/60 ring-1 ring-teal-200/40"
-                          )}
-                        >
-                          <span className={cn(
-                            "flex-1 truncate",
-                            ind.judgment === "미흡" ? "text-red-600 font-medium" :
-                            ind.judgment === "상위" ? "text-teal-700 font-medium" :
-                            "text-slate-500"
-                          )}>
-                            {ind.label}
-                          </span>
-                          <span className={cn(
-                            "font-mono w-14 text-right",
-                            ind.judgment === "미흡" ? "text-red-500" :
-                            ind.judgment === "상위" ? "text-teal-600" :
-                            "text-slate-500"
-                          )}>
-                            {ind.value !== null ? ind.value.toFixed(2) : "—"}
-                          </span>
-                          <span className={cn(
-                            "px-1.5 py-0.5 rounded font-medium w-10 text-center",
-                            ind.judgment === "상위" ? "bg-teal-100 text-teal-700" :
-                            ind.judgment === "중상" ? "bg-sky-50 text-sky-600" :
-                            ind.judgment === "중하" ? "bg-amber-50 text-amber-600" :
-                            ind.judgment === "미흡" ? "bg-red-100 text-red-600" :
-                            "bg-slate-100 text-slate-400"
-                          )}>
-                            {ind.judgment}
-                          </span>
+                    );
+                  };
+
+                  return (
+                    <div
+                      key={item.id}
+                      className={cn("rounded-xl p-5 border cursor-pointer hover:shadow-md transition-all", borderColor, bgColor)}
+                      onClick={() => {
+                        const videoEl = videoRef.current;
+                        if (videoEl && videoEl.duration) seekTo((videoEl.duration / 5) * itemIdx);
+                      }}
+                    >
+                      {/* 헤더 */}
+                      <div className="flex items-center justify-between mb-3">
+                        <div className="flex items-center gap-2">
+                          <span className="text-lg">{icons[item.id] || "📊"}</span>
+                          <div>
+                            <span className="text-sm font-semibold text-slate-800">{item.name}</span>
+                            <span className="text-[10px] text-slate-400 ml-1.5">{item.channel}</span>
+                          </div>
                         </div>
-                      ))}
-                    </div>
-                    {item.observation && (
-                      <div className="mt-2.5 pt-2.5 border-t border-violet-100/50">
-                        <div className="flex items-center justify-between mb-1">
-                          <p className="text-[10px] uppercase tracking-wider text-violet-500/70 font-medium">AI 관찰 소견</p>
-                          {item.observation.length > 120 && (
-                            <button
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                setExpandedObs((prev) => {
-                                  const next = new Set(prev);
-                                  if (next.has(itemIdx)) next.delete(itemIdx);
-                                  else next.add(itemIdx);
-                                  return next;
-                                });
-                              }}
-                              className="text-[10px] text-violet-500 hover:text-violet-700 transition-colors min-h-[28px] min-w-[44px] flex items-center justify-center"
-                              aria-label={expandedObs.has(itemIdx) ? "관찰 소견 접기" : "관찰 소견 펼치기"}
-                            >
-                              {expandedObs.has(itemIdx) ? "접기" : "더보기"}
-                            </button>
-                          )}
-                        </div>
-                        <p className={cn(
-                          "text-sm text-slate-600 leading-relaxed bg-violet-50/30 rounded-lg px-3 py-2",
-                          !expandedObs.has(itemIdx) && item.observation.length > 120 && "line-clamp-3"
+                        <span className={cn(
+                          "text-sm font-mono font-bold px-2.5 py-1 rounded-lg",
+                          isGood ? "bg-teal-100 text-teal-700" : isBad ? "bg-red-100 text-red-600" : score !== null ? "bg-amber-100 text-amber-700" : "bg-slate-100 text-slate-400"
                         )}>
-                          {item.observation}
-                        </p>
+                          {score !== null ? `${score.toFixed(1)}/9` : "N/A"}
+                        </span>
                       </div>
-                    )}
-                  </div>
-                ))}
+
+                      {/* 채널별 게이지 */}
+                      {item.id === "item2" && sig.voice && (
+                        <div className="mb-2">
+                          <GaugeBar value={sig.voice.f0_dynamic_range_st} max={14} label="F0 변화폭" unit="st" optimal="최적: 4~10st" />
+                          <GaugeBar value={sig.voice.loudness_dynamic_range_db} max={16} label="음량 변화폭" unit="dB" optimal="최적: 5~12dB" />
+                          <GaugeBar value={sig.voice.emphasis_bursts_per_min} max={10} label="강조 burst" unit="회/분" optimal="최적: 2~6회/분" />
+                        </div>
+                      )}
+                      {item.id === "item3" && sig.fluency && (
+                        <div className="mb-2">
+                          <GaugeBar value={sig.fluency.articulation_rate_syllables_per_sec} max={7} label="조음 속도" unit="음절/초" optimal="최적: 3.5~5.8" />
+                          <GaugeBar value={sig.fluency.filled_pauses_per_min} max={8} label="'어..음..' 빈도" unit="회/분" optimal="적을수록 좋음 (≤2)" />
+                          <GaugeBar value={sig.fluency.long_silent_pauses_per_min} max={6} label="장무음 멈춤" unit="회/분" optimal="적을수록 좋음 (≤1)" />
+                        </div>
+                      )}
+                      {item.id === "item4" && sig.posture_gesture && (
+                        <div className="mb-2">
+                          <GaugeBar value={sig.posture_gesture.open_posture_ratio !== null ? sig.posture_gesture.open_posture_ratio * 100 : null} max={100} label="개방적 자세" unit="%" optimal="≥70% 상위" />
+                          <GaugeBar value={sig.posture_gesture.purposeful_gesture_bouts_per_min} max={12} label="목적형 제스처" unit="회/분" optimal="최적: 2~8회/분" />
+                          <GaugeBar value={sig.posture_gesture.closed_or_fidget_ratio !== null ? sig.posture_gesture.closed_or_fidget_ratio * 100 : null} max={50} label="닫힌 자세/잔동작" unit="%" optimal="≤10% 상위 (적을수록 좋음)" />
+                        </div>
+                      )}
+                      {item.id === "item5" && sig.face_head && (
+                        <div className="mb-2">
+                          <GaugeBar value={sig.face_head.engaged_neutral_ratio !== null ? sig.face_head.engaged_neutral_ratio * 100 : null} max={100} label="안정적 표정" unit="%" optimal="≥75% 상위" />
+                          <GaugeBar value={sig.face_head.facial_tension_ratio !== null ? sig.face_head.facial_tension_ratio * 100 : null} max={50} label="얼굴 긴장" unit="%" optimal="≤10% 상위 (적을수록 좋음)" />
+                          <GaugeBar value={sig.face_head.abrupt_head_jerk_events_per_min} max={8} label="급격한 머리 움직임" unit="회/분" optimal="≤2회/분 상위" />
+                        </div>
+                      )}
+                      {/* 시선(item1)은 상단 전용 카드에서 이미 표시 — 하위지표 요약만 */}
+                      {item.id === "item1" && (
+                        <div className="space-y-1 mb-2">
+                          {item.indicators.map(ind => (
+                            <div key={ind.name} className="flex items-center justify-between text-[11px]">
+                              <span className="text-slate-600">{ind.label}</span>
+                              <div className="flex items-center gap-2">
+                                <span className="font-mono text-slate-700">{ind.value !== null ? (typeof ind.value === 'number' && ind.value < 1 ? `${(ind.value * 100).toFixed(0)}%` : ind.value.toFixed(1)) : "—"}</span>
+                                <span className={cn("text-[10px] font-medium px-1.5 py-0.5 rounded",
+                                  ind.judgment === "상위" ? "bg-teal-100 text-teal-700" : ind.judgment === "미흡" ? "bg-red-100 text-red-600" : "bg-slate-100 text-slate-500"
+                                )}>{ind.judgment}</span>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+
+                      {/* 판정 메시지 */}
+                      <div className={cn("text-sm leading-relaxed mt-2 pt-2 border-t",
+                        isGood ? "text-teal-700 border-teal-200/50" : isBad ? "text-red-600 border-red-200/50" : "text-amber-700 border-amber-200/50"
+                      )}>
+                        {isGood && <p>양호한 수준입니다. 현재 패턴을 유지하세요.</p>}
+                        {!isGood && !isBad && score !== null && <p>보통 수준입니다. 약간의 개선이 있으면 더 효과적인 발표가 됩니다.</p>}
+                        {isBad && <p>개선이 필요합니다. 아래 AI 관찰 소견을 참고하세요.</p>}
+                        {score === null && <p className="text-slate-400">데이터 부족으로 채점을 보류합니다.</p>}
+                      </div>
+
+                      {/* AI 관찰 소견 */}
+                      {item.observation && (
+                        <div className="mt-3 pt-2.5 border-t border-slate-200/30">
+                          <div className="flex items-center justify-between mb-1">
+                            <p className="text-[10px] uppercase tracking-wider text-violet-500/70 font-medium">AI 관찰 소견</p>
+                            {item.observation.length > 120 && (
+                              <button
+                                onClick={(e) => { e.stopPropagation(); setExpandedObs(prev => { const n = new Set(prev); if (n.has(itemIdx)) n.delete(itemIdx); else n.add(itemIdx); return n; }); }}
+                                className="text-[10px] text-violet-500 hover:text-violet-700 transition-colors min-h-[28px] min-w-[44px] flex items-center justify-center"
+                              >
+                                {expandedObs.has(itemIdx) ? "접기" : "더보기"}
+                              </button>
+                            )}
+                          </div>
+                          <p className={cn("text-sm text-slate-600 leading-relaxed bg-white/50 rounded-lg px-3 py-2",
+                            !expandedObs.has(itemIdx) && item.observation.length > 120 && "line-clamp-3"
+                          )}>
+                            {item.observation}
+                          </p>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
 
                 {/* Solar Pro 2 보고서 (마크다운 렌더링) */}
                 {mmResult.report && (
