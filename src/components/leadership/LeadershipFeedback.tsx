@@ -1050,6 +1050,114 @@ export default function LeadershipFeedback({
                   )}
                 </div>
 
+                {/* ── 시선 통제 요약 카드 ── */}
+                {mmResult.signals.gaze && (() => {
+                  const g = mmResult.signals.gaze;
+                  const audienceRatio = g.audience_facing_ratio;
+                  const screenRatio = g.downward_or_slide_fixation_ratio;
+                  const otherRatio = audienceRatio !== null && screenRatio !== null
+                    ? Math.max(0, 1 - audienceRatio - screenRatio) : null;
+                  const gazeItem = mmResult.scoring.items.find(i => i.id === "item1");
+                  const isGood = audienceRatio !== null && audienceRatio >= 0.55;
+                  const isBad = audienceRatio !== null && audienceRatio < 0.35;
+
+                  return (
+                    <div className={cn(
+                      "rounded-xl p-5 border",
+                      isBad ? "bg-red-50/60 border-red-200" :
+                      isGood ? "bg-teal-50/40 border-teal-200" :
+                      "bg-amber-50/40 border-amber-200"
+                    )}>
+                      <div className="flex items-center justify-between mb-3">
+                        <div className="flex items-center gap-2">
+                          <Eye className="w-4 h-4 text-violet-500" />
+                          <span className="text-sm font-semibold text-slate-800">청중 지향 시선 통제</span>
+                        </div>
+                        {gazeItem && (
+                          <span className={cn(
+                            "text-sm font-mono font-bold px-2 py-0.5 rounded",
+                            gazeItem.itemScore !== null && gazeItem.itemScore >= 7 ? "bg-teal-100 text-teal-700" :
+                            gazeItem.itemScore !== null && gazeItem.itemScore >= 5 ? "bg-amber-100 text-amber-700" :
+                            gazeItem.itemScore !== null ? "bg-red-100 text-red-600" :
+                            "bg-slate-100 text-slate-400"
+                          )}>
+                            {gazeItem.itemScore !== null ? `${gazeItem.itemScore.toFixed(1)}/9` : "N/A"}
+                          </span>
+                        )}
+                      </div>
+
+                      {/* 시선 분포 바 */}
+                      {audienceRatio !== null && screenRatio !== null && (
+                        <div className="mb-3">
+                          <div className="flex h-5 rounded-full overflow-hidden bg-slate-200">
+                            <div
+                              className="bg-teal-500 flex items-center justify-center"
+                              style={{ width: `${(audienceRatio * 100).toFixed(0)}%` }}
+                            >
+                              {audienceRatio >= 0.15 && (
+                                <span className="text-[10px] font-bold text-white">{(audienceRatio * 100).toFixed(0)}%</span>
+                              )}
+                            </div>
+                            <div
+                              className="bg-red-400 flex items-center justify-center"
+                              style={{ width: `${(screenRatio * 100).toFixed(0)}%` }}
+                            >
+                              {screenRatio >= 0.1 && (
+                                <span className="text-[10px] font-bold text-white">{(screenRatio * 100).toFixed(0)}%</span>
+                              )}
+                            </div>
+                            {otherRatio !== null && otherRatio > 0.05 && (
+                              <div
+                                className="bg-slate-300 flex items-center justify-center"
+                                style={{ width: `${(otherRatio * 100).toFixed(0)}%` }}
+                              >
+                                {otherRatio >= 0.1 && (
+                                  <span className="text-[10px] font-medium text-slate-600">{(otherRatio * 100).toFixed(0)}%</span>
+                                )}
+                              </div>
+                            )}
+                          </div>
+                          <div className="flex items-center gap-4 mt-1.5 text-[10px]">
+                            <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-teal-500" /> 청중 응시</span>
+                            <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-red-400" /> 모니터/화면</span>
+                            <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-slate-300" /> 기타</span>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* 판정 메시지 */}
+                      <div className={cn(
+                        "text-sm leading-relaxed",
+                        isBad ? "text-red-700" : isGood ? "text-teal-700" : "text-amber-700"
+                      )}>
+                        {isBad ? (
+                          <p>청중 응시 비율이 <strong>{audienceRatio !== null ? `${(audienceRatio * 100).toFixed(0)}%` : "—"}</strong>로 기준(55%) 미달입니다. 발표 모니터나 화면을 보는 비중이 너무 큽니다. 핵심 키워드만 메모하고 청중을 바라보며 말하는 연습이 필요합니다.</p>
+                        ) : isGood ? (
+                          <p>청중 응시 비율 <strong>{audienceRatio !== null ? `${(audienceRatio * 100).toFixed(0)}%` : "—"}</strong>로 양호합니다. 발표 시 청중과 적절히 눈을 맞추고 있습니다.</p>
+                        ) : (
+                          <p>청중 응시 비율 <strong>{audienceRatio !== null ? `${(audienceRatio * 100).toFixed(0)}%` : "—"}</strong>로 보통 수준입니다. 모니터 참조를 줄이고 청중 쪽 시선을 늘리면 더 좋습니다.</p>
+                        )}
+                      </div>
+
+                      {/* 시선 이탈 빈도 */}
+                      {g.off_audience_episodes_per_min !== null && (
+                        <div className="mt-2 text-xs text-slate-500">
+                          시선 이탈: <span className="font-mono font-semibold">{g.off_audience_episodes_per_min.toFixed(1)}</span>회/분
+                          {g.off_audience_episodes_per_min > 5 && <span className="text-red-500 ml-1">(과다)</span>}
+                          {g.off_audience_episodes_per_min <= 1.5 && <span className="text-teal-500 ml-1">(양호)</span>}
+                        </div>
+                      )}
+
+                      {/* 기준 안내 */}
+                      <div className="mt-3 pt-2.5 border-t border-slate-200/50 grid grid-cols-3 gap-2 text-[10px] text-slate-400">
+                        <div>청중 응시 ≥70% <span className="text-teal-500 font-semibold">상위</span></div>
+                        <div>모니터 응시 ≤15% <span className="text-teal-500 font-semibold">상위</span></div>
+                        <div>이탈 ≤1.5회/분 <span className="text-teal-500 font-semibold">상위</span></div>
+                      </div>
+                    </div>
+                  );
+                })()}
+
                 {/* 항목별 점수 */}
                 {mmResult.scoring.items.map((item, itemIdx) => (
                   <div
