@@ -125,6 +125,87 @@ const EXTRACTION_PROMPTS: Record<string, string> = {
 
 const VALID_CHANNELS = new Set(Object.keys(EXTRACTION_PROMPTS));
 
+// 채널별 기대 필드 (수치 추출 폴백용)
+const CHANNEL_FIELDS: Record<string, string[]> = {
+  gaze: ["audience_facing_ratio", "off_audience_episodes_per_min", "downward_or_slide_fixation_ratio"],
+  voice: ["f0_dynamic_range_st", "loudness_dynamic_range_db", "emphasis_bursts_per_min"],
+  fluency: ["articulation_rate_syllables_per_sec", "filled_pauses_per_min", "long_silent_pauses_per_min"],
+  posture: ["open_posture_ratio", "purposeful_gesture_bouts_per_min", "closed_or_fidget_ratio"],
+  face: ["engaged_neutral_ratio", "facial_tension_ratio", "abrupt_head_jerk_events_per_min"],
+};
+
+// 채널별 래퍼 키 (JSON 응답 구조: { "gaze": { ... } })
+const CHANNEL_WRAPPER_KEYS: Record<string, string> = {
+  gaze: "gaze", voice: "voice", fluency: "fluency",
+  posture: "posture_gesture", face: "face_head",
+};
+
+/**
+ * TwelveLabs 응답 텍스트에서 JSON 파싱 (견고한 버전)
+ * 1. 순수 JSON 파싱
+ * 2. 마크다운 코드블록 내부 추출
+ * 3. 가장 깊은 중첩 객체 추출
+ * 4. 텍스트 내 수치 추출 폴백
+ */
+function parseChannelResponse(text: string, channel: string): Record<string, unknown> | null {
+  const raw = typeof text === "string" ? text : JSON.stringify(text);
+
+  // 1단계: 코드블록 제거 후 JSON 추출
+  const cleaned = raw.replace(/```json?\s*/gi, "").replace(/```/g, "").trim();
+  const jsonMatches = cleaned.match(/\{[^{}]*(?:\{[^{}]*\}[^{}]*)*\}/g);
+
+  if (jsonMatches) {
+    // 가장 긴 매치를 우선 시도 (전체 JSON일 가능성 높음)
+    const sorted = [...jsonMatches].sort((a, b) => b.length - a.length);
+    for (const match of sorted) {
+      try {
+        const obj = JSON.parse(match);
+        // 래퍼 키가 있으면 풀어냄: { "gaze": { ... } } → { ... }
+        const wrapperKey = CHANNEL_WRAPPER_KEYS[channel];
+        if (wrapperKey && obj[wrapperKey] && typeof obj[wrapperKey] === "object") {
+          return obj[wrapperKey] as Record<string, unknown>;
+        }
+        // 기대 필드가 직접 있으면 그대로 사용
+        const fields = CHANNEL_FIELDS[channel] || [];
+        if (fields.some(f => f in obj)) return obj;
+        // 하위 객체에 기대 필드가 있는지 확인
+        for (const val of Object.values(obj)) {
+          if (val && typeof val === "object" && !Array.isArray(val)) {
+            if (fields.some(f => f in (val as Record<string, unknown>))) return val as Record<string, unknown>;
+          }
+        }
+        return obj;
+      } catch { /* 다음 매치 시도 */ }
+    }
+  }
+
+  // 2단계: 텍스트에서 수치 직접 추출 (폴백)
+  const fields = CHANNEL_FIELDS[channel];
+  if (fields) {
+    const result: Record<string, unknown> = {};
+    let found = 0;
+    for (const field of fields) {
+      // "audience_facing_ratio": 0.62 또는 audience_facing_ratio: 0.62 패턴
+      const pattern = new RegExp(`["']?${field}["']?\\s*[:=]\\s*([0-9]+\\.?[0-9]*)`, "i");
+      const match = raw.match(pattern);
+      if (match) {
+        result[field] = parseFloat(match[1]);
+        found++;
+      }
+    }
+    // observation 추출
+    const obsMatch = raw.match(/["']?observation["']?\s*[:=]\s*["']([^"']+)["']/i);
+    if (obsMatch) result["observation"] = obsMatch[1];
+
+    if (found > 0) {
+      log.info("폴백 수치 추출 성공", { channel, found, total: fields.length });
+      return result;
+    }
+  }
+
+  return null;
+}
+
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
@@ -140,17 +221,23 @@ export async function POST(req: NextRequest) {
     if (channel && VALID_CHANNELS.has(channel)) {
       log.info("단일 채널 추출 시작", { videoId, channel });
       const prompt = EXTRACTION_PROMPTS[channel];
-      const result = await generateWithPrompt(videoId, prompt);
 
-      // TwelveLabs 응답에서 JSON 파싱 시도
+      // 최대 2회 시도 (첫 실패 시 재시도)
       let parsed = null;
-      try {
-        const text = typeof result.data === "string" ? result.data : JSON.stringify(result.data);
-        // JSON 블록 추출 (마크다운 코드블록 내부 또는 순수 JSON)
-        const jsonMatch = text.match(/\{[\s\S]*\}/);
-        if (jsonMatch) parsed = JSON.parse(jsonMatch[0]);
-      } catch {
-        parsed = { raw: result.data, parseError: true };
+      for (let attempt = 0; attempt < 2; attempt++) {
+        try {
+          const result = await generateWithPrompt(videoId, prompt);
+          parsed = parseChannelResponse(result.data, channel);
+          if (parsed) break;
+          log.warn("파싱 실패, 재시도", { channel, attempt: attempt + 1 });
+        } catch (e) {
+          log.warn("추출 실패, 재시도", { channel, attempt: attempt + 1, error: e instanceof Error ? e.message : "unknown" });
+        }
+      }
+
+      if (!parsed) {
+        log.warn("채널 추출 최종 실패", { channel });
+        parsed = { parseError: true };
       }
 
       return NextResponse.json({ channel, data: parsed });
@@ -163,16 +250,15 @@ export async function POST(req: NextRequest) {
       const results = await Promise.allSettled(
         channels.map(async (ch) => {
           const prompt = EXTRACTION_PROMPTS[ch];
-          const result = await generateWithPrompt(videoId, prompt);
           let parsed = null;
-          try {
-            const text = typeof result.data === "string" ? result.data : JSON.stringify(result.data);
-            const jsonMatch = text.match(/\{[\s\S]*\}/);
-            if (jsonMatch) parsed = JSON.parse(jsonMatch[0]);
-          } catch {
-            parsed = { raw: result.data, parseError: true };
+          for (let attempt = 0; attempt < 2; attempt++) {
+            try {
+              const result = await generateWithPrompt(videoId, prompt);
+              parsed = parseChannelResponse(result.data, ch);
+              if (parsed) break;
+            } catch { /* 재시도 */ }
           }
-          return { channel: ch, data: parsed };
+          return { channel: ch, data: parsed || { parseError: true } };
         })
       );
 
