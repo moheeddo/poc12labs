@@ -42,6 +42,7 @@ import {
 import { loadAllSessions, loadSession as loadSessionFromStore, saveSession, deleteSession } from "@/lib/group-store";
 import type { GroupSession } from "@/lib/group-types";
 import type { SpeakerScore, LeadershipCompetencyKey } from "@/lib/types";
+import ApiKeyWarning from "@/components/shared/ApiKeyWarning";
 import ConsentForm from "./ConsentForm";
 import HRConnectorPanel from "./HRConnectorPanel";
 import EvidenceMapView from "./EvidenceMapView";
@@ -430,6 +431,26 @@ export default function LeadershipCoaching() {
         selectedCompetencies={view.selectedCompetencies}
         scenarioText={view.scenarioText}
         onBack={() => setView({ type: "main" })}
+        onAnalysisComplete={(payload) => {
+          // 분석 완료 시 speakers 상태 업데이트 — 메인 뷰 심층 분석 섹션에 반영
+          setSpeakers((prev) => {
+            const existing = prev.findIndex((s) => s.speakerId === payload.videoId);
+            const entry: SpeakerScore = {
+              speakerId: payload.videoId,
+              speakerName: view.videoTitle || "발표자",
+              jobLevel: 2,
+              scores: payload.bars as Partial<Record<LeadershipCompetencyKey, number>>,
+              totalScore: payload.overallScore,
+              feedback: "",
+            };
+            if (existing >= 0) {
+              const updated = [...prev];
+              updated[existing] = entry;
+              return updated;
+            }
+            return [...prev, entry];
+          });
+        }}
       />
     );
   }
