@@ -439,3 +439,11 @@ export interface StepQueryTemplate {
   objectQuery: string;
   stateQuery: string;
 }
+
+// ── 전사문 세그먼트 ──
+export interface TranscriptSegment {
+  start: number;
+  end: number;
+  text: string;
+  speaker?: string;
+}
