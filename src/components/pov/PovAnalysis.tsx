@@ -43,6 +43,10 @@ import MicroLearning from "@/components/pov/MicroLearning";
 import IncidentLibrary from "@/components/pov/IncidentLibrary";
 // InstructorHome 제거 — 다크테마 대시보드가 라이트 UI와 불일치
 import ApiStatusBadge from "@/components/pov/ApiStatusBadge";
+import SessionCreateForm from '@/components/pov/SessionCreateForm';
+import SessionProgress from '@/components/pov/SessionProgress';
+import SessionReport from '@/components/pov/SessionReport';
+import { useTrainingSession } from '@/hooks/useTrainingSession';
 import { useVideoUpload } from "@/hooks/useTwelveLabs";
 import { usePovAnalysis } from "@/hooks/usePovAnalysis";
 import { TWELVELABS_INDEXES } from "@/lib/constants";
@@ -195,6 +199,10 @@ export default function PovAnalysis() {
   // HPO-22: 사고 사례 라이브러리 모달 표시 여부
   const [showIncidentLibrary, setShowIncidentLibrary] = useState(false);
 
+  // 세션 모드 (멀티 POV)
+  const [sessionMode, setSessionMode] = useState(false);
+  const trainingSession = useTrainingSession();
+
   // 컴포넌트 언마운트 시 blob URL 해제
   useEffect(() => {
     return () => { if (videoUrl) URL.revokeObjectURL(videoUrl); };
@@ -215,6 +223,13 @@ export default function PovAnalysis() {
       setShowReflection(true); // 리포트 전에 자기평가 먼저
     }
   }, [analysis.status, analysis.report]);
+
+  // 세션 분석 완료 시 리포트 화면으로 전환
+  useEffect(() => {
+    if (sessionMode && trainingSession.session?.status === 'complete') {
+      setPhase("report" as ViewPhase);
+    }
+  }, [sessionMode, trainingSession.session?.status]);
 
   // 절차 선택
   const handleSelectProcedure = useCallback((proc: Procedure) => {
@@ -338,6 +353,38 @@ export default function PovAnalysis() {
       {/* ════════ Phase 1: 실습 절차 선택 ════════ */}
       {phase === "select" && (
         <div className="space-y-6 animate-fade-in-up">
+          {/* 세션 / 개별 모드 전환 */}
+          <div className="flex gap-2 mb-4">
+            <button
+              onClick={() => setSessionMode(false)}
+              className={cn(
+                "px-4 py-2 rounded-lg text-sm font-medium transition-all",
+                !sessionMode ? "bg-amber-600 text-white" : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+              )}
+            >
+              개별 분석
+            </button>
+            <button
+              onClick={() => setSessionMode(true)}
+              className={cn(
+                "px-4 py-2 rounded-lg text-sm font-medium transition-all",
+                sessionMode ? "bg-amber-600 text-white" : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+              )}
+            >
+              세션 분석 (멀티 POV)
+            </button>
+          </div>
+
+          {sessionMode && (
+            <SessionCreateForm
+              onStartSession={(params) => {
+                trainingSession.createSession(params);
+                setPhase("analyzing" as ViewPhase);
+              }}
+              isCreating={trainingSession.isCreating}
+            />
+          )}
+
           {/* 과정 안내 */}
           <div className="bg-white border border-slate-200 rounded-xl p-5">
             <div className="flex items-start gap-3">
@@ -575,8 +622,15 @@ export default function PovAnalysis() {
         </div>
       )}
 
+      {/* ════════ Phase 3-S: 세션 분석 중 ════════ */}
+      {phase === "analyzing" && sessionMode && trainingSession.session && (
+        <div className="space-y-6 animate-fade-in-up">
+          <SessionProgress session={trainingSession.session} />
+        </div>
+      )}
+
       {/* ════════ Phase 3: AI 분석 중 ════════ */}
-      {phase === "analyzing" && (
+      {phase === "analyzing" && !sessionMode && (
         <div className="animate-fade-in-up">
           <AnalysisProgress
             progress={analysis.progress}
@@ -620,8 +674,28 @@ export default function PovAnalysis() {
         </div>
       )}
 
+      {/* ════════ Phase 4-S: 세션 리포트 ════════ */}
+      {phase === "report" && sessionMode && trainingSession.session && (
+        <div className="space-y-6 animate-fade-in-up">
+          <SessionReport
+            session={trainingSession.session}
+            renderReport={(report, operatorName) => (
+              <div className="text-sm text-slate-500">
+                {operatorName}의 상세 리포트 (종합 점수: {report.overallScore}점, 등급: {report.grade})
+                {/* 기존 리포트 탭 콘텐츠는 향후 Task에서 연결 */}
+              </div>
+            )}
+            onBack={() => {
+              trainingSession.reset();
+              setSessionMode(false);
+              setPhase("select" as ViewPhase);
+            }}
+          />
+        </div>
+      )}
+
       {/* ════════ Phase 4: 평가 리포트 ════════ */}
-      {!showReflection && phase === "report" && report && (
+      {!showReflection && phase === "report" && !sessionMode && report && (
         <div className="space-y-4 animate-fade-in-up">
           {/* 강평 세션 CTA — 리포트 상단 */}
           <div className="bg-gradient-to-r from-amber-500/10 via-amber-500/5 to-transparent border border-amber-500/20 rounded-xl p-4 flex flex-col sm:flex-row items-start sm:items-center gap-3">
