@@ -1,11 +1,12 @@
 'use client';
-import { useState } from 'react';
-import type { DetectedStep, SequenceAlignment, PovSopDeviation, HpoToolResult, FundamentalScore } from '@/lib/types';
+import { useState, Fragment } from 'react';
+import type { DetectedStep, SequenceAlignment, PovSopDeviation, HpoToolResult, FundamentalScore, TranscriptSegment } from '@/lib/types';
 import type { Procedure, ProcedureStep } from '@/lib/pov-standards';
 import { generateStepRubric, explainJudgment } from '@/lib/pov-rubrics';
 import { RCA_LABELS } from '@/lib/pov-rca';
 import { findRelatedIncidents } from '@/lib/pov-incident-library';
 import { IncidentCard } from '@/components/pov/IncidentLibrary';
+import EvidencePanel from './EvidencePanel';
 
 interface Props {
   detectedSteps: DetectedStep[];
@@ -17,6 +18,10 @@ interface Props {
   hpoResults?: HpoToolResult[];
   /** 기본수칙 역량 (RCA 표시용 — 없으면 RCA 미표시) */
   fundamentalScores?: FundamentalScore[];
+  /** 전사문 세그먼트 (EvidencePanel 근거 패널용) */
+  transcription?: TranscriptSegment[];
+  /** 영상 URL (EvidencePanel 근거 패널용) */
+  videoUrl?: string;
 }
 
 // 절차의 모든 스텝을 평탄화하여 반환
@@ -100,6 +105,8 @@ export default function StepsTimeline({
   procedure,
   videoDuration,
   onSeek,
+  transcription,
+  videoUrl,
 }: Props) {
   const allSteps = flattenSteps(procedure);
   // stepId → DetectedStep 맵
@@ -113,6 +120,8 @@ export default function StepsTimeline({
 
   // 루브릭 토글 상태
   const [expandedRubrics, setExpandedRubrics] = useState<Set<string>>(new Set());
+  // 근거(Evidence) 패널 토글 상태 — 한 번에 하나의 스텝만 펼침
+  const [expandedEvidence, setExpandedEvidence] = useState<string | null>(null);
 
   const toggleRubric = (stepId: string) => {
     setExpandedRubrics((prev) => {
@@ -164,86 +173,115 @@ export default function StepsTimeline({
               // 루브릭 생성 (isExpanded 상태 확인용으로만 사용)
               const isExpanded = expandedRubrics.has(step.id);
 
+              const isEvidenceOpen = expandedEvidence === step.id;
+
               return (
-                <tr
-                  key={step.id}
-                  className={`border-b border-zinc-800 transition-colors ${rowBg}`}
-                >
-                  {/* 스텝 ID + 중요 여부 */}
-                  <td
-                    className="px-3 py-2 font-mono text-zinc-400 whitespace-nowrap cursor-pointer"
-                    onClick={() => detected && onSeek(detected.timestamp)}
+                <Fragment key={step.id}>
+                  <tr
+                    className={`border-b border-zinc-800 transition-colors cursor-pointer ${rowBg} ${
+                      isEvidenceOpen ? 'ring-1 ring-inset ring-blue-500/40' : ''
+                    }`}
+                    onClick={() =>
+                      setExpandedEvidence((prev) => (prev === step.id ? null : step.id))
+                    }
                   >
-                    {step.isCritical && (
-                      <span className="text-yellow-400 mr-1" title="중요 단계">&#9733;</span>
-                    )}
-                    {step.id}
-                  </td>
-
-                  {/* 설명 */}
-                  <td
-                    className="px-3 py-2 text-zinc-200 text-xs leading-snug cursor-pointer"
-                    onClick={() => detected && onSeek(detected.timestamp)}
-                  >
-                    <span>{step.description}</span>
-                    {step.equipment && (
-                      <span className="ml-1 text-zinc-500 font-mono">({step.equipment})</span>
-                    )}
-                  </td>
-
-                  {/* 타임라인 바 */}
-                  <td
-                    className="px-3 py-2 cursor-pointer"
-                    onClick={() => detected && onSeek(detected.timestamp)}
-                  >
-                    <div className="relative h-4 bg-zinc-800 rounded overflow-hidden">
-                      {detected && (
-                        <div
-                          className={`absolute top-0 bottom-0 rounded ${statusColor(status)} opacity-80`}
-                          style={{ left: barLeft, width: barWidth }}
-                          title={`${formatTime(detected.timestamp)} – ${formatTime(detected.endTime)}`}
-                        />
-                      )}
-                    </div>
-                    {detected && (
-                      <div className="text-zinc-500 text-xs mt-0.5 font-mono">
-                        {formatTime(detected.timestamp)}
-                      </div>
-                    )}
-                  </td>
-
-                  {/* 상태 배지 */}
-                  <td className="px-3 py-2 text-center">
-                    <StatusBadge status={status} />
-                  </td>
-
-                  {/* 신뢰도 */}
-                  <td className="px-3 py-2 text-center text-xs font-mono text-zinc-300">
-                    {detected ? `${detected.confidence}%` : '—'}
-                  </td>
-
-                  {/* 이탈 인디케이터 */}
-                  <td className="px-3 py-2 text-center">
-                    {hasDeviation && (
-                      <span className="inline-block w-2 h-2 rounded-full bg-red-400" title="이탈 발생" />
-                    )}
-                  </td>
-
-                  {/* 루브릭 토글 버튼 */}
-                  <td className="px-3 py-2 text-center">
-                    <button
-                      onClick={() => toggleRubric(step.id)}
-                      className={`inline-flex items-center justify-center w-5 h-5 rounded-full text-xs font-bold transition-colors ${
-                        isExpanded
-                          ? 'bg-blue-600 text-white'
-                          : 'bg-zinc-700 text-zinc-400 hover:bg-zinc-600 hover:text-zinc-200'
-                      }`}
-                      title="판정 기준(루브릭) 보기"
+                    {/* 스텝 ID + 중요 여부 */}
+                    <td
+                      className="px-3 py-2 font-mono text-zinc-400 whitespace-nowrap"
                     >
-                      ?
-                    </button>
-                  </td>
-                </tr>
+                      {step.isCritical && (
+                        <span className="text-yellow-400 mr-1" title="중요 단계">&#9733;</span>
+                      )}
+                      {step.id}
+                    </td>
+
+                    {/* 설명 */}
+                    <td
+                      className="px-3 py-2 text-zinc-200 text-xs leading-snug"
+                    >
+                      <span>{step.description}</span>
+                      {step.equipment && (
+                        <span className="ml-1 text-zinc-500 font-mono">({step.equipment})</span>
+                      )}
+                    </td>
+
+                    {/* 타임라인 바 */}
+                    <td
+                      className="px-3 py-2"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        if (detected) onSeek(detected.timestamp);
+                      }}
+                    >
+                      <div className="relative h-4 bg-zinc-800 rounded overflow-hidden">
+                        {detected && (
+                          <div
+                            className={`absolute top-0 bottom-0 rounded ${statusColor(status)} opacity-80`}
+                            style={{ left: barLeft, width: barWidth }}
+                            title={`${formatTime(detected.timestamp)} – ${formatTime(detected.endTime)}`}
+                          />
+                        )}
+                      </div>
+                      {detected && (
+                        <div className="text-zinc-500 text-xs mt-0.5 font-mono">
+                          {formatTime(detected.timestamp)}
+                        </div>
+                      )}
+                    </td>
+
+                    {/* 상태 배지 */}
+                    <td className="px-3 py-2 text-center">
+                      <StatusBadge status={status} />
+                    </td>
+
+                    {/* 신뢰도 */}
+                    <td className="px-3 py-2 text-center text-xs font-mono text-zinc-300">
+                      {detected ? `${detected.confidence}%` : '—'}
+                    </td>
+
+                    {/* 이탈 인디케이터 */}
+                    <td className="px-3 py-2 text-center">
+                      {hasDeviation && (
+                        <span className="inline-block w-2 h-2 rounded-full bg-red-400" title="이탈 발생" />
+                      )}
+                    </td>
+
+                    {/* 루브릭 토글 버튼 */}
+                    <td className="px-3 py-2 text-center">
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          toggleRubric(step.id);
+                        }}
+                        className={`inline-flex items-center justify-center w-5 h-5 rounded-full text-xs font-bold transition-colors ${
+                          isExpanded
+                            ? 'bg-blue-600 text-white'
+                            : 'bg-zinc-700 text-zinc-400 hover:bg-zinc-600 hover:text-zinc-200'
+                        }`}
+                        title="판정 기준(루브릭) 보기"
+                      >
+                        ?
+                      </button>
+                    </td>
+                  </tr>
+
+                  {/* 근거(Evidence) 패널 — 해당 스텝 행 클릭 시 토글 */}
+                  {isEvidenceOpen && detected && (
+                    <tr className="border-b border-zinc-800">
+                      <td colSpan={7} className="p-0">
+                        <EvidencePanel
+                          step={detected}
+                          stepDescription={step.description}
+                          status={status}
+                          note={detected.qualityAnalysis}
+                          videoUrl={videoUrl}
+                          transcription={transcription}
+                          timestamp={detected.timestamp}
+                        />
+                      </td>
+                    </tr>
+                  )}
+                </Fragment>
               );
             })}
           </tbody>
