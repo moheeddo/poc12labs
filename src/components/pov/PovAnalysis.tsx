@@ -43,6 +43,7 @@ import MicroLearning from "@/components/pov/MicroLearning";
 import IncidentLibrary from "@/components/pov/IncidentLibrary";
 // InstructorHome 제거 — 다크테마 대시보드가 라이트 UI와 불일치
 import ApiStatusBadge from "@/components/pov/ApiStatusBadge";
+import ApiKeyWarning from "@/components/shared/ApiKeyWarning";
 import SessionCreateForm from '@/components/pov/SessionCreateForm';
 import SessionProgress from '@/components/pov/SessionProgress';
 import SessionReport from '@/components/pov/SessionReport';
@@ -328,6 +329,9 @@ export default function PovAnalysis() {
 
   return (
     <div className="max-w-[1440px] mx-auto px-4 md:px-6 py-6 space-y-6 animate-slide-in-right">
+      {/* API 연결 상태 경고 배너 */}
+      <ApiKeyWarning />
+
       {/* 헤더 */}
       <div className="flex items-center gap-3">
         {phase !== "select" && (

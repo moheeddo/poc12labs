@@ -546,6 +546,9 @@ export default function LeadershipCoaching() {
   // ═══════════════════════════════════════
   return (
     <div className="max-w-[1440px] mx-auto px-4 md:px-6 py-8 space-y-8 animate-slide-in-right">
+      {/* API 연결 상태 경고 배너 */}
+      <ApiKeyWarning />
+
       {/* 헤더 — 컴팩트 + 조 관리 강화 */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>
