@@ -389,6 +389,17 @@ export default function PovAnalysis() {
             />
           )}
 
+          {/* 개별 분석 모드 시작 안내 */}
+          {!sessionMode && (
+            <div className="bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-100 rounded-xl p-5 mb-4">
+              <h4 className="text-sm font-semibold text-amber-800 mb-1">시작하기</h4>
+              <p className="text-sm text-amber-700/80 leading-relaxed">
+                아래에서 실습 절차를 선택하면 영상 업로드 화면으로 이동합니다.
+                POV(1인칭 시점) 영상을 업로드하면 AI가 자동으로 SOP 절차 준수도를 분석합니다.
+              </p>
+            </div>
+          )}
+
           {/* 과정 안내 */}
           <div className="bg-white border border-slate-200 rounded-xl p-5">
             <div className="flex items-start gap-3">

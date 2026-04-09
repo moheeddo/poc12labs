@@ -55,6 +55,9 @@ export default function SessionProgress({ session }: Props) {
             </span>
           </div>
         </div>
+        <p className="text-xs text-slate-400 mt-4 text-center">
+          영상 길이와 네트워크 상태에 따라 3~10분 소요될 수 있습니다
+        </p>
       </div>
     </div>
   );

@@ -724,6 +724,20 @@ export default function LeadershipFeedback({
             </div>
           </div>
 
+          {/* 소요 시간 안내 */}
+          <p className="text-xs text-slate-400 mt-4 text-center">약 2~5분 소요됩니다</p>
+
+          {/* 취소 / 뒤로가기 버튼 */}
+          <div className="mt-4 flex justify-center">
+            <button
+              onClick={onBack}
+              className="flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-medium bg-white text-slate-500 border border-slate-200 hover:bg-slate-50 hover:text-slate-700 transition-colors"
+            >
+              <ArrowLeft className="w-3.5 h-3.5" />
+              분석 취소
+            </button>
+          </div>
+
           {/* 상황사례 표시 */}
           {scenarioText && (
             <div className="mt-6 pt-6 border-t border-slate-200/30">
