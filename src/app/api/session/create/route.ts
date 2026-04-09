@@ -257,7 +257,7 @@ export async function POST(req: NextRequest) {
 
         // 세션 마무리 (동기화 + 요약)
         await finalizeSession(sessionId);
-      } catch (error) {
+      } catch {
         updateSession(sessionId, {
           status: 'error',
         });

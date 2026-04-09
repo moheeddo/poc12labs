@@ -3,7 +3,8 @@
 // TraineeProfile CRUD + PortfolioSummary 자동 생성
 // =============================================
 
-import { readFileSync, writeFileSync, existsSync } from 'fs';
+import { readFileSync, writeFileSync, existsSync, mkdirSync } from 'fs';
+import path from 'path';
 import type { PovEvaluationReport, FundamentalScore } from './types';
 import { HPO_PROCEDURES } from './pov-standards';
 import { scoreToLevel } from './pov-competency-progression';

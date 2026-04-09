@@ -632,6 +632,31 @@ export default function PovAnalysis() {
           <SessionProgress session={trainingSession.session} />
         </div>
       )}
+      {/* 세션 생성 직후 첫 폴링까지의 로딩 상태 */}
+      {phase === "analyzing" && sessionMode && !trainingSession.session && !trainingSession.error && (
+        <div className="bg-white border border-slate-200 rounded-xl p-6 animate-fade-in-up flex items-center gap-3">
+          <Loader2 className="w-5 h-5 text-amber-500 animate-spin" />
+          <span className="text-sm text-slate-600">세션 분석 파이프라인 초기화 중...</span>
+        </div>
+      )}
+      {/* 세션 생성 에러 */}
+      {sessionMode && trainingSession.error && (
+        <div className="bg-red-50 border border-red-200 rounded-xl p-5 animate-fade-in-up">
+          <div className="flex items-start gap-3">
+            <AlertTriangle className="w-5 h-5 text-red-500 mt-0.5 shrink-0" />
+            <div>
+              <h4 className="text-sm font-semibold text-red-700">세션 생성 실패</h4>
+              <p className="text-sm text-red-600 mt-1">{trainingSession.error}</p>
+              <button
+                onClick={() => { trainingSession.reset(); setSessionMode(false); setPhase("select" as ViewPhase); }}
+                className="mt-3 text-sm text-red-600 hover:text-red-800 underline underline-offset-2"
+              >
+                돌아가기
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* ════════ Phase 3: AI 분석 중 ════════ */}
       {phase === "analyzing" && !sessionMode && (
