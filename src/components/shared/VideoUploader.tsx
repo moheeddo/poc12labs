@@ -70,20 +70,11 @@ export default function VideoUploader({ onUpload, onUrlUpload, progress, accentC
     }
   }, []);
 
-  // Vercel 서버리스 환경 파일 크기 제한 (4.5MB)
-  const VERCEL_LIMIT = 4.5 * 1024 * 1024;
-  const isVercelEnv = typeof window !== "undefined" && window.location.hostname.includes("vercel.app");
-  const isFileTooLargeForVercel = isVercelEnv && selectedFile && selectedFile.size > VERCEL_LIMIT;
-
   // 파일 업로드 시작
   const handleUpload = useCallback(async () => {
     if (!selectedFile) return;
-    if (isFileTooLargeForVercel) {
-      setShowUrlInput(true);
-      return;
-    }
     await onUpload(selectedFile);
-  }, [selectedFile, onUpload, isFileTooLargeForVercel]);
+  }, [selectedFile, onUpload]);
 
   // URL 업로드
   const handleUrlSubmit = useCallback(async () => {
@@ -233,26 +224,6 @@ export default function VideoUploader({ onUpload, onUrlUpload, progress, accentC
               업로드
             </button>
           </div>
-          {isFileTooLargeForVercel && (
-            <div className="flex items-start gap-2 p-3 rounded-lg bg-amber-50 border border-amber-200 text-sm">
-              <AlertCircle className="w-4 h-4 text-amber-600 mt-0.5 shrink-0" />
-              <div>
-                <p className="text-amber-800 font-medium">파일이 너무 큽니다 ({formatFileSize(selectedFile.size)})</p>
-                <p className="text-amber-600 mt-0.5">
-                  클라우드 배포 환경은 4.5MB 이하만 직접 업로드 가능합니다.
-                  {onUrlUpload && " 아래 'URL로 업로드'를 이용하거나, 로컬 환경(localhost)에서 시도하세요."}
-                </p>
-                {onUrlUpload && (
-                  <button
-                    onClick={() => { setShowUrlInput(true); setSelectedFile(null); }}
-                    className="mt-2 text-amber-700 font-medium underline underline-offset-2 hover:text-amber-900"
-                  >
-                    URL로 업로드 전환
-                  </button>
-                )}
-              </div>
-            </div>
-          )}
         </div>
       )}
 
