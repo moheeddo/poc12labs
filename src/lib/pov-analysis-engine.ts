@@ -279,6 +279,46 @@ async function runPipeline(job: AnalysisJob): Promise<void> {
   updateStage(job, 'stepDetection', 'done');
   log.info('단계 검출 완료', { detected: detectedSteps.filter((s) => s.status !== 'fail').length, total: detectedSteps.length });
 
+  // ── 3A-2: Pegasus 이중 검증 — 저신뢰도 단계 재확인 ──
+  const lowConfSteps = detectedSteps.filter(s => s.confidence > 0 && s.confidence < 50);
+  if (lowConfSteps.length > 0) {
+    log.info('저신뢰도 단계 Pegasus 이중 검증', { count: lowConfSteps.length });
+    const verifyResults = await rateLimitedBatch(
+      lowConfSteps,
+      BATCH_SIZE,
+      async (step) => {
+        const qt = queryTemplates.find(q => q.stepId === step.stepId);
+        if (!qt) return { stepId: step.stepId, verified: false, pegasusConfidence: 0 };
+        apiCallCount++;
+        try {
+          const prompt = `이 영상에서 다음 절차가 수행되었는지 확인하세요: "${qt.sopText}"\n\n반드시 순수 JSON만 출력: {"verified": true/false, "confidence": 0-100, "observation": "관찰 내용"}`;
+          const response = await generateWithPrompt(job.videoId, prompt);
+          const text = response.data;
+          const match = text.match(/\{[\s\S]*\}/);
+          if (match) {
+            const parsed = JSON.parse(match[0]);
+            return { stepId: step.stepId, verified: parsed.verified === true, pegasusConfidence: parsed.confidence || 0 };
+          }
+        } catch { /* 검증 실패는 무시 */ }
+        return { stepId: step.stepId, verified: false, pegasusConfidence: 0 };
+      }
+    );
+
+    // 융합: Pegasus가 확인하면 신뢰도 상향 조정
+    for (const result of verifyResults) {
+      if (result.status === 'fulfilled' && result.value.verified) {
+        const step = detectedSteps.find(s => s.stepId === result.value.stepId);
+        if (step) {
+          const pegasusConf = result.value.pegasusConfidence || 60;
+          // Marengo 40% + Pegasus 60% 가중 융합
+          step.confidence = Math.round(0.4 * step.confidence + 0.6 * pegasusConf);
+          step.status = step.confidence >= 70 ? 'pass' : step.confidence >= 40 ? 'partial' : 'fail';
+          log.info('Pegasus 검증으로 신뢰도 조정', { stepId: step.stepId, newConfidence: step.confidence });
+        }
+      }
+    }
+  }
+
   // ── 3B: 손-물체 상호작용 분석 (Pegasus Analyze) ─
   updateStage(job, 'handObject', 'running');
   job.progress = 28;
@@ -401,6 +441,42 @@ async function runPipeline(job: AnalysisJob): Promise<void> {
   updateStage(job, 'hpoVerification', 'done');
   log.info('HPO 검증 완료', { total: hpoResults.length, detected: hpoResults.filter((r) => r.detected).length });
 
+  // ── 3D-2: Pegasus 이중 검증 — 미검출 HPO 기법 재확인 ──
+  const undetectedHpo = hpoResults.filter(r => !r.detected);
+  if (undetectedHpo.length > 0 && undetectedHpo.length <= 5) {
+    log.info('미검출 HPO 기법 Pegasus 이중 검증', { count: undetectedHpo.length });
+    const hpoVerifyResults = await rateLimitedBatch(
+      undetectedHpo,
+      BATCH_SIZE,
+      async (hpo) => {
+        apiCallCount++;
+        try {
+          const prompt = `이 영상에서 "${hpo.toolName}" 기법이 적용되었는지 확인하세요. 이 기법은 원전 운전원의 인적오류예방기법(HPO)입니다.\n\n반드시 순수 JSON만 출력: {"detected": true/false, "confidence": 0-100, "evidence": "근거 설명"}`;
+          const response = await generateWithPrompt(job.videoId, prompt);
+          const text = response.data;
+          const match = text.match(/\{[\s\S]*\}/);
+          if (match) {
+            const parsed = JSON.parse(match[0]);
+            return { toolId: hpo.toolId, detected: parsed.detected === true, confidence: parsed.confidence || 0, evidence: parsed.evidence };
+          }
+        } catch { /* 무시 */ }
+        return { toolId: hpo.toolId, detected: false, confidence: 0 };
+      }
+    );
+
+    for (const result of hpoVerifyResults) {
+      if (result.status === 'fulfilled' && result.value.detected) {
+        const hpo = hpoResults.find(r => r.toolId === result.value.toolId);
+        if (hpo) {
+          hpo.detected = true;
+          hpo.confidence = result.value.confidence;
+          hpo.detectionCount = 1;
+          log.info('Pegasus 검증으로 HPO 기법 검출', { toolId: hpo.toolId, confidence: hpo.confidence });
+        }
+      }
+    }
+  }
+
   // ── 3E: 임베딩 비교 (Marengo Embed) ──────────
   updateStage(job, 'embeddingComparison', 'running');
   job.progress = 67;
@@ -453,6 +529,44 @@ async function runPipeline(job: AnalysisJob): Promise<void> {
   } catch (err) {
     log.warn('기본수칙 역량 평가 실패, 기본값 사용', { error: String(err) });
     fundamentalScores = getDefaultFundamentals();
+  }
+
+  // ── 3F-2: Marengo 이중 검증 — 5대 기본수칙 행동 검색 보강 ──
+  try {
+    const fundamentalQueries = [
+      { key: 'procedural_compliance', query: 'operator following written procedure, checking procedure document step by step' },
+      { key: 'conservative_decision', query: 'operator pausing to verify before taking action, cautious operation' },
+      { key: 'clear_communication', query: 'operator verbally confirming action, repeating back instruction, three-way communication' },
+      { key: 'team_awareness', query: 'operator checking with colleague, looking at team member, collaborative verification' },
+      { key: 'attention_to_detail', query: 'operator carefully inspecting equipment, close examination of gauges or displays' },
+    ];
+
+    const fundSearchResults = await rateLimitedBatch(
+      fundamentalQueries,
+      BATCH_SIZE,
+      async (fq) => {
+        apiCallCount++;
+        const response = await searchVideos(indexId, fq.query);
+        const clips = (response.data || []).filter((c: { video_id: string; confidence: string | number }) => c.video_id === job.videoId);
+        return { key: fq.key, clipCount: clips.length, maxConfidence: clips.length > 0 ? parseConfidence(clips[0].confidence) : 0 };
+      }
+    );
+
+    for (const result of fundSearchResults) {
+      if (result.status === 'fulfilled') {
+        const { key, clipCount, maxConfidence } = result.value;
+        const fs = fundamentalScores.find((f: FundamentalScore) => f.key === key);
+        if (fs && clipCount > 0) {
+          // Marengo 검색 결과로 보강: 검출되면 최소 40점 보장, 가중 융합
+          const marengoScore = Math.min(100, maxConfidence + clipCount * 5);
+          const originalScore = fs.score;
+          fs.score = Math.round(0.5 * fs.score + 0.5 * marengoScore);
+          log.info('Marengo 기본수칙 보강', { key, originalScore, marengoScore, fusedScore: fs.score, clipCount });
+        }
+      }
+    }
+  } catch (err) {
+    log.warn('Marengo 기본수칙 보강 실패', { error: String(err) });
   }
 
   job.progress = 88;
