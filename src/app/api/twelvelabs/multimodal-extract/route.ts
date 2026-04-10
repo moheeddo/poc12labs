@@ -1,8 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
-import { generateWithPrompt } from "@/lib/twelvelabs";
+import { generateWithPrompt, searchVideos } from "@/lib/twelvelabs";
 import { createLogger } from "@/lib/logger";
 
 const log = createLogger("API:multimodal-extract");
+
+const LEADERSHIP_INDEX_ID = process.env.TWELVELABS_LEADERSHIP_INDEX_ID || "69ccf4b781e81bcd08ca5487";
 
 // =============================================
 // 멀티모달 행동 신호 추출 API
@@ -206,6 +208,97 @@ function parseChannelResponse(text: string, channel: string): Record<string, unk
   return null;
 }
 
+/**
+ * Marengo 검색 기반 시선 분석 보강
+ * "청중을 바라보는 장면" / "모니터를 보는 장면"을 검색하여
+ * 타임스탬프 비율로 실측 기반 시선 비율 계산
+ */
+async function enrichGazeWithMarengo(
+  videoId: string,
+  pegasusData: Record<string, unknown> | null,
+  videoDuration?: number,
+): Promise<Record<string, unknown>> {
+  const base = pegasusData || {};
+
+  try {
+    // Marengo 검색: 청중/카메라를 바라보는 장면
+    const [audienceResults, screenResults] = await Promise.allSettled([
+      searchVideos(LEADERSHIP_INDEX_ID, "presenter looking at audience or camera, making eye contact with viewers"),
+      searchVideos(LEADERSHIP_INDEX_ID, "presenter looking down at notes, looking at monitor screen, reading slides"),
+    ]);
+
+    let audienceSeconds = 0;
+    let screenSeconds = 0;
+    let audienceEpisodes = 0;
+
+    if (audienceResults.status === "fulfilled" && audienceResults.value.data) {
+      for (const clip of audienceResults.value.data) {
+        if (clip.video_id === videoId) {
+          audienceSeconds += clip.end - clip.start;
+        }
+      }
+    }
+
+    if (screenResults.status === "fulfilled" && screenResults.value.data) {
+      for (const clip of screenResults.value.data) {
+        if (clip.video_id === videoId) {
+          screenSeconds += clip.end - clip.start;
+          audienceEpisodes++;
+        }
+      }
+    }
+
+    const totalDetected = audienceSeconds + screenSeconds;
+    if (totalDetected < 5) {
+      // 충분한 데이터가 없으면 Pegasus 결과만 사용
+      log.info("Marengo 시선 데이터 부족, Pegasus 결과만 사용", { audienceSeconds, screenSeconds });
+      return base;
+    }
+
+    const duration = videoDuration || totalDetected;
+    const durationMin = duration / 60;
+
+    const marengoAudienceRatio = audienceSeconds / totalDetected;
+    const marengoScreenRatio = screenSeconds / totalDetected;
+    const marengoEpisodesPerMin = durationMin > 0 ? audienceEpisodes / durationMin : 0;
+
+    // Pegasus 추정값과 Marengo 실측값 융합 (가중평균: Marengo 60%, Pegasus 40%)
+    const pegasusAudience = typeof base.audience_facing_ratio === "number" ? base.audience_facing_ratio : null;
+    const pegasusScreen = typeof base.downward_or_slide_fixation_ratio === "number" ? base.downward_or_slide_fixation_ratio : null;
+    const pegasusEpisodes = typeof base.off_audience_episodes_per_min === "number" ? base.off_audience_episodes_per_min : null;
+
+    const fusedAudience = pegasusAudience !== null
+      ? 0.6 * marengoAudienceRatio + 0.4 * pegasusAudience
+      : marengoAudienceRatio;
+    const fusedScreen = pegasusScreen !== null
+      ? 0.6 * marengoScreenRatio + 0.4 * pegasusScreen
+      : marengoScreenRatio;
+    const fusedEpisodes = pegasusEpisodes !== null
+      ? 0.6 * marengoEpisodesPerMin + 0.4 * pegasusEpisodes
+      : marengoEpisodesPerMin;
+
+    log.info("Marengo 시선 보강 성공", {
+      marengo: { audience: marengoAudienceRatio.toFixed(2), screen: marengoScreenRatio.toFixed(2) },
+      pegasus: { audience: pegasusAudience, screen: pegasusScreen },
+      fused: { audience: fusedAudience.toFixed(2), screen: fusedScreen.toFixed(2) },
+    });
+
+    return {
+      ...base,
+      audience_facing_ratio: parseFloat(fusedAudience.toFixed(3)),
+      downward_or_slide_fixation_ratio: parseFloat(fusedScreen.toFixed(3)),
+      off_audience_episodes_per_min: parseFloat(fusedEpisodes.toFixed(1)),
+      observation: (base.observation || "") +
+        ` [Marengo 검증: 청중응시 ${(marengoAudienceRatio * 100).toFixed(0)}%, 모니터응시 ${(marengoScreenRatio * 100).toFixed(0)}% — Pegasus+Marengo 융합값 적용]`,
+      _marengo_verified: true,
+      _marengo_raw: { audienceSeconds, screenSeconds, episodes: audienceEpisodes },
+    };
+  } catch (e) {
+    log.warn("Marengo 시선 보강 실패, Pegasus 결과만 사용", { error: e instanceof Error ? e.message : "unknown" });
+    return base;
+  }
+}
+
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
@@ -240,6 +333,11 @@ export async function POST(req: NextRequest) {
         parsed = { parseError: true };
       }
 
+      // Gaze 채널: Marengo 검색으로 이중 검증
+      if (channel === "gaze") {
+        parsed = await enrichGazeWithMarengo(videoId, parsed as Record<string, unknown>);
+      }
+
       return NextResponse.json({ channel, data: parsed });
     }
 
@@ -258,7 +356,12 @@ export async function POST(req: NextRequest) {
               if (parsed) break;
             } catch { /* 재시도 */ }
           }
-          return { channel: ch, data: parsed || { parseError: true } };
+          let result = parsed || { parseError: true };
+          // Gaze 채널: Marengo 이중 검증
+          if (ch === "gaze" && parsed) {
+            result = await enrichGazeWithMarengo(videoId, parsed as Record<string, unknown>);
+          }
+          return { channel: ch, data: result };
         })
       );
 
