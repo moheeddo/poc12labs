@@ -41,3 +41,13 @@ next-env.d.ts
 .playwright-mcp/
 *.png
 /capture/
+
+# 분석 데이터 (런타임 생성)
+data/analysis-cache.json
+data/analysis-history.json
+
+# superpowers brainstorm 결과
+.superpowers/
+
+# 임시 스냅샷
+snapshot-*.md
