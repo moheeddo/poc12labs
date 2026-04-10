@@ -15,6 +15,7 @@ import ChartTooltip from "@/components/shared/ChartTooltip";
 import CompetencyProgression from "@/components/pov/CompetencyProgression";
 import LearningObjectivesMatrix from "@/components/pov/LearningObjectivesMatrix";
 import StepsTimeline from "@/components/pov/StepsTimeline";
+import EvidencePlayer from "@/components/pov/EvidencePlayer";
 import HandObjectTimeline from "@/components/pov/HandObjectTimeline";
 import ComparisonView from "@/components/pov/ComparisonView";
 import TimeAnalysis from "@/components/pov/TimeAnalysis";
@@ -61,7 +62,23 @@ export default function OperatorReportView({
   const [commAnalysis, setCommAnalysis] = useState<CommunicationAnalysis | null>(null);
   const [commLoading, setCommLoading] = useState(false);
 
+  // EvidencePlayer 연동 — 선택된 절차 단계
+  const [evidenceStep, setEvidenceStep] = useState<StepEvaluation | null>(null);
+
   const handleSeek = (time: number) => onSeek?.(time);
+
+  // EvidencePlayer 이전/다음 단계 네비게이션
+  const currentStepIndex = evidenceStep
+    ? report.stepEvaluations.findIndex((se) => se.stepId === evidenceStep.stepId)
+    : -1;
+  const handlePrevStep =
+    currentStepIndex > 0
+      ? () => setEvidenceStep(report.stepEvaluations[currentStepIndex - 1])
+      : undefined;
+  const handleNextStep =
+    currentStepIndex >= 0 && currentStepIndex < report.stepEvaluations.length - 1
+      ? () => setEvidenceStep(report.stepEvaluations[currentStepIndex + 1])
+      : undefined;
 
   return (
     <div className="space-y-4">
@@ -92,6 +109,20 @@ export default function OperatorReportView({
         ))}
       </div>
 
+      {/* EvidencePlayer — 절차 단계 클릭 시 해당 구간 영상 재생 */}
+      {evidenceStep && (
+        <EvidencePlayer
+          videoUrl={videoUrl}
+          step={evidenceStep}
+          transcription={transcription?.map((seg) => ({ ...seg, value: seg.text }))}
+          startTime={evidenceStep.timestamp || 0}
+          endTime={(evidenceStep.timestamp || 0) + 30}
+          onClose={() => setEvidenceStep(null)}
+          onPrevStep={handlePrevStep}
+          onNextStep={handleNextStep}
+        />
+      )}
+
       {/* 종합 개요 */}
       {reportTab === "overview" && (
         <div className="space-y-4">
@@ -119,9 +150,17 @@ export default function OperatorReportView({
             procedure={procedure}
             videoDuration={videoDuration || 600}
             onSeek={handleSeek}
+            onStepClick={(stepId) => {
+              const step = report.stepEvaluations.find((se) => se.stepId === stepId);
+              if (step) setEvidenceStep(step);
+            }}
           />
         ) : (
-          <StepsTab report={report} procedure={procedure} />
+          <StepsTab
+            report={report}
+            procedure={procedure}
+            onStepClick={(step) => setEvidenceStep(step)}
+          />
         )
       )}
 
@@ -377,7 +416,7 @@ function OverviewTab({ report, procedure }: { report: PovEvaluationReport; proce
   );
 }
 
-function StepsTab({ report, procedure }: { report: PovEvaluationReport; procedure: Procedure }) {
+function StepsTab({ report, procedure, onStepClick }: { report: PovEvaluationReport; procedure: Procedure; onStepClick?: (step: StepEvaluation) => void }) {
   const statusConfig = {
     pass: { icon: <CheckCircle2 className="w-3.5 h-3.5" />, color: "text-teal-400", bg: "bg-teal-500/10", label: "적합" },
     partial: { icon: <AlertTriangle className="w-3.5 h-3.5" />, color: "text-amber-600", bg: "bg-amber-50", label: "부분적합" },
@@ -415,7 +454,8 @@ function StepsTab({ report, procedure }: { report: PovEvaluationReport; procedur
                 return (
                   <div
                     key={evalItem.stepId}
-                    className="animate-fade-in-up flex items-start gap-3 p-2.5 rounded-lg bg-slate-100/50 hover:bg-slate-100 transition-colors"
+                    onClick={() => onStepClick?.(evalItem)}
+                    className="animate-fade-in-up flex items-start gap-3 p-2.5 rounded-lg bg-slate-100/50 hover:bg-slate-100 hover:ring-1 hover:ring-amber-300 cursor-pointer transition-all"
                     style={{ animationDelay: `${i * 40}ms`, animationFillMode: "backwards" }}
                   >
                     <div className={cn("mt-0.5 shrink-0", cfg.color)}>{cfg.icon}</div>
