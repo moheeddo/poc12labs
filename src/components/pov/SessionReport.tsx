@@ -2,6 +2,10 @@
 
 import { useState, type ReactNode } from 'react';
 import { Users, BarChart3, ArrowLeft } from 'lucide-react';
+import {
+  RadarChart, Radar, PolarGrid, PolarAngleAxis, PolarRadiusAxis,
+  ResponsiveContainer, Legend,
+} from "recharts";
 import type { TrainingSession } from '@/lib/session-types';
 import type { PovEvaluationReport } from '@/lib/types';
 import { cn, getGrade } from '@/lib/utils';
@@ -67,6 +71,43 @@ function SessionSummaryView({ session }: { session: TrainingSession }) {
           );
         })}
       </div>
+
+      {/* 기본수칙 역량 비교 레이더 차트 */}
+      {completedOps.length >= 2 && (() => {
+        const fundamentalComparisonData = completedOps[0]?.report?.fundamentalScores.map((f, i) => ({
+          label: f.label.replace(/\s*\(.*\)/, ""),
+          a: f.score,
+          b: completedOps[1]?.report?.fundamentalScores[i]?.score ?? 0,
+        })) ?? [];
+
+        return fundamentalComparisonData.length > 0 ? (
+          <div className="bg-white border border-slate-200 rounded-xl p-5">
+            <h4 className="text-sm font-semibold text-slate-700 mb-4">기본수칙 역량 비교</h4>
+            <ResponsiveContainer width="100%" height={280}>
+              <RadarChart data={fundamentalComparisonData}>
+                <PolarGrid stroke="#e2e8f0" />
+                <PolarAngleAxis dataKey="label" tick={{ fontSize: 12, fill: "#64748b" }} />
+                <PolarRadiusAxis angle={90} domain={[0, 100]} tick={false} axisLine={false} />
+                <Radar
+                  name={completedOps[0].name}
+                  dataKey="a"
+                  stroke="#0d9488"
+                  fill="#0d9488"
+                  fillOpacity={0.15}
+                />
+                <Radar
+                  name={completedOps[1].name}
+                  dataKey="b"
+                  stroke="#d97706"
+                  fill="#d97706"
+                  fillOpacity={0.15}
+                />
+                <Legend />
+              </RadarChart>
+            </ResponsiveContainer>
+          </div>
+        ) : null;
+      })()}
 
       {/* 동기화 정보 */}
       {session.syncResult && (
