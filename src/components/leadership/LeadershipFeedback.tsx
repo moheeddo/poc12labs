@@ -1153,8 +1153,8 @@ export default function LeadershipFeedback({
                   );
                 })()}
 
-                {/* ── 채널별 시각화 카드 ── */}
-                {mmResult.scoring.items.map((item, itemIdx) => {
+                {/* ── 채널별 시각화 카드 (시선은 상단 전용 카드에서 이미 표시) ── */}
+                {mmResult.scoring.items.filter((it) => it.id !== "item1").map((item, itemIdx) => {
                   const sig = mmResult.signals;
                   const score = item.itemScore;
                   const isGood = score !== null && score >= 7;

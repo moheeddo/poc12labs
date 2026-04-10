@@ -125,42 +125,57 @@ export async function analyzeVideo(videoId: string, type: "summary" | "chapter" 
 export async function generateWithPrompt(videoId: string, prompt: string): Promise<{ data: string }> {
   log.debug("analyze (custom prompt)", { videoId, promptLength: prompt.length });
 
-  const res = await fetch(`${API_URL}/analyze`, {
-    method: "POST",
-    headers: {
-      "x-api-key": API_KEY,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      video_id: videoId,
-      prompt,
-    }),
-  });
+  // 서버사이드 fetch 타임아웃 (120초) — Vercel 함수 자체 타임아웃보다 먼저 정리
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 120_000);
 
-  if (!res.ok) {
-    const error = await res.text();
-    log.error("analyze 실패", { status: res.status, error });
-    throw new Error(`TwelveLabs analyze 오류 (${res.status}): ${error}`);
-  }
+  try {
+    const res = await fetch(`${API_URL}/analyze`, {
+      method: "POST",
+      headers: {
+        "x-api-key": API_KEY,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        video_id: videoId,
+        prompt,
+      }),
+      signal: controller.signal,
+    });
 
-  // SSE 스트리밍 응답을 텍스트로 조합
-  const rawText = await res.text();
-  const lines = rawText.split("\n").filter((l) => l.trim());
-  let fullText = "";
-
-  for (const line of lines) {
-    try {
-      const event = JSON.parse(line);
-      if (event.event_type === "text_generation" && event.text) {
-        fullText += event.text;
-      }
-    } catch {
-      // 파싱 불가한 라인은 건너뛰기
+    if (!res.ok) {
+      const error = await res.text();
+      log.error("analyze 실패", { status: res.status, error });
+      throw new Error(`TwelveLabs analyze 오류 (${res.status}): ${error}`);
     }
-  }
 
-  log.info("analyze 완료", { videoId, responseLength: fullText.length });
-  return { data: fullText };
+    // SSE 스트리밍 응답을 텍스트로 조합
+    const rawText = await res.text();
+    const lines = rawText.split("\n").filter((l) => l.trim());
+    let fullText = "";
+
+    for (const line of lines) {
+      try {
+        const event = JSON.parse(line);
+        if (event.event_type === "text_generation" && event.text) {
+          fullText += event.text;
+        }
+      } catch {
+        // 파싱 불가한 라인은 건너뛰기
+      }
+    }
+
+    log.info("analyze 완료", { videoId, responseLength: fullText.length });
+    return { data: fullText };
+  } catch (e) {
+    if (e instanceof Error && e.name === "AbortError") {
+      log.error("analyze 타임아웃 (120초)", { videoId });
+      throw new Error("TwelveLabs 분석 타임아웃 (120초) — 영상이 너무 길거나 서버가 응답하지 않습니다");
+    }
+    throw e;
+  } finally {
+    clearTimeout(timeout);
+  }
 }
 
 // 영상 임베딩 생성 태스크
