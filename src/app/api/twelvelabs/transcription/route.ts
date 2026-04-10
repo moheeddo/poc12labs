@@ -2,6 +2,9 @@ import { NextRequest, NextResponse } from "next/server";
 import { getVideoTranscription } from "@/lib/twelvelabs";
 import { createLogger } from "@/lib/logger";
 
+// Vercel 서버리스 함수 타임아웃
+export const maxDuration = 120;
+
 const log = createLogger("API:transcription");
 
 export async function GET(req: NextRequest) {

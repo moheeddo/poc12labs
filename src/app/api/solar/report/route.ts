@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createLogger } from "@/lib/logger";
 
+// Vercel 서버리스 함수 타임아웃: Solar Pro 보고서 생성은 30~60초 소요
+export const maxDuration = 300;
+
 const log = createLogger("API:solar/report");
 
 // =============================================

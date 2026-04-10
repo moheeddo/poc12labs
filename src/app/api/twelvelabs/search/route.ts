@@ -2,6 +2,9 @@ import { NextRequest, NextResponse } from "next/server";
 import { searchVideos } from "@/lib/twelvelabs";
 import { createLogger } from "@/lib/logger";
 
+// Vercel 서버리스 함수 타임아웃: Marengo 검색
+export const maxDuration = 120;
+
 const log = createLogger("API:search");
 
 export async function POST(req: NextRequest) {

@@ -2,6 +2,9 @@ import { NextRequest, NextResponse } from "next/server";
 import { generateWithPrompt, searchVideos } from "@/lib/twelvelabs";
 import { createLogger } from "@/lib/logger";
 
+// Vercel 서버리스 함수 타임아웃: 5채널 병렬 추출 시 최대 2~3분 소요
+export const maxDuration = 300;
+
 const log = createLogger("API:multimodal-extract");
 
 const LEADERSHIP_INDEX_ID = process.env.TWELVELABS_LEADERSHIP_INDEX_ID || "69ccf4b781e81bcd08ca5487";

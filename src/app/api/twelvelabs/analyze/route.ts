@@ -2,6 +2,9 @@ import { NextRequest, NextResponse } from "next/server";
 import { analyzeVideo } from "@/lib/twelvelabs";
 import { createLogger } from "@/lib/logger";
 
+// Vercel 서버리스 함수 타임아웃: TwelveLabs analyze SSE 스트리밍은 30~120초 소요
+export const maxDuration = 300;
+
 const log = createLogger("API:analyze");
 
 // 허용되는 분석 타입

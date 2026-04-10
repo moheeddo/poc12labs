@@ -234,15 +234,12 @@ export default function LeadershipFeedback({
       setAnalysisError(null);
 
       try {
-        // 0단계: 인덱싱 완료 대기
+        // 0단계: 인덱싱 완료 확인 (videoId가 있으면 이미 인덱싱 완료 상태)
+        // upload 훅에서 status="ready" 확인 후 videoId를 반환하므로 별도 대기 불필요
         setAnalysisPhase(1);
-        setAnalysisStep("영상 인덱싱 중... (AI가 영상을 이해하고 있습니다)");
-        const ready = await waitForIndexing();
+        setAnalysisStep("영상 인덱싱 확인 완료 — 분석을 시작합니다...");
+        await new Promise((r) => setTimeout(r, 500));
         if (cancelled) return;
-        if (!ready) {
-          setAnalysisStep("인덱싱 상태 확인 불가 — 분석을 시도합니다...");
-          await new Promise((r) => setTimeout(r, 1000));
-        }
 
         // 1단계: 챕터 분석
         setAnalysisPhase(2);
@@ -349,7 +346,15 @@ export default function LeadershipFeedback({
           });
         });
 
-        if (generatedEvidence.length > 0) setEvidence(generatedEvidence);
+        if (generatedEvidence.length > 0) {
+          // AI 점수 자동 적용 (사용자가 수동 버튼을 누를 필요 없도록)
+          const autoApplied = generatedEvidence.map((e) => ({
+            ...e,
+            score: e.aiScore,
+            feedback: e.autoFeedback,
+          }));
+          setEvidence(autoApplied);
+        }
         setAnalysisPhase(6);
         setAnalysisStep("분석 완료");
       } catch (e) {
@@ -812,16 +817,6 @@ export default function LeadershipFeedback({
           <h2 className="text-lg font-bold text-teal-600">영상 리뷰 &amp; 피드백</h2>
         </div>
         <div className="flex items-center gap-2">
-          {/* AI 추천 일괄 적용 */}
-          {unscoredCount > 0 && (
-            <button
-              onClick={applyAllAIScores}
-              className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-base font-medium transition-all duration-200 bg-violet-50 text-violet-600 border border-violet-500/20 hover:bg-violet-500/20 hover:border-violet-500/30"
-            >
-              <Wand2 className="w-4 h-4" />
-              AI 추천 적용 ({unscoredCount}건)
-            </button>
-          )}
           <button
             onClick={handleSave}
             className={cn(
@@ -1300,68 +1295,126 @@ export default function LeadershipFeedback({
                   );
                 })}
 
-                {/* Solar Pro 2 보고서 (마크다운 렌더링) */}
-                {mmResult.report && (
-                  <div className="bg-white border border-slate-200/30 rounded-xl p-5 print:shadow-none" id="multimodal-report">
-                    <div className="flex items-center justify-between mb-4">
-                      <p className="text-sm text-slate-600 font-medium flex items-center gap-1.5">
-                        <Sparkles className="w-3.5 h-3.5 text-violet-500" />
-                        AI 종합 보고서
-                        {mmResult.reportModel === "solar-pro2" && (
-                          <span className="text-xs bg-violet-50 text-violet-500 px-1.5 py-0.5 rounded">Solar Pro 2</span>
-                        )}
-                      </p>
-                      <div className="flex items-center gap-1.5 print:hidden">
-                        <button
-                          onClick={() => window.print()}
-                          className="text-xs text-slate-500 hover:text-teal-600 px-2 py-1 rounded border border-slate-200 hover:border-teal-300 transition-colors"
-                        >
-                          PDF 내보내기
-                        </button>
-                        <button
-                          onClick={() => {
-                            const text = mmResult.report;
-                            navigator.clipboard.writeText(text);
-                            alert("보고서가 클립보드에 복사되었습니다. 메일이나 메시지에 붙여넣기하세요.");
-                          }}
-                          className="text-xs text-slate-500 hover:text-teal-600 px-2 py-1 rounded border border-slate-200 hover:border-teal-300 transition-colors"
-                        >
-                          복사 & 공유
-                        </button>
+                {/* Solar Pro 2 종합 보고서 */}
+                {mmResult.report && (() => {
+                  // 마크다운 → 구조화된 HTML 변환 (테이블, 섹션, 리스트 지원)
+                  function renderReport(md: string): string {
+                    let html = md
+                      // XSS 방지
+                      .replace(/<script[^>]*>[\s\S]*?<\/script>/gi, '')
+                      .replace(/<iframe[^>]*>[\s\S]*?<\/iframe>/gi, '')
+                      .replace(/\son\w+\s*=/gi, ' data-removed=');
+
+                    // ── 마크다운 테이블 → HTML 테이블 ──
+                    html = html.replace(
+                      /(?:^|\n)((?:\|[^\n]+\|\n)+)/g,
+                      (_match, tableBlock: string) => {
+                        const rows = tableBlock.trim().split('\n').filter(r => r.trim());
+                        if (rows.length < 2) return tableBlock;
+                        // 구분선(|---|---| 등) 제거
+                        const dataRows = rows.filter(r => !/^\|[\s-:|]+\|$/.test(r.trim()));
+                        if (dataRows.length === 0) return '';
+                        const headerCells = dataRows[0].split('|').filter(c => c.trim()).map(c => c.trim());
+                        const bodyRows = dataRows.slice(1);
+                        let table = '<div class="report-table-wrap"><table class="report-table">';
+                        table += '<thead><tr>' + headerCells.map(c => `<th>${c.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')}</th>`).join('') + '</tr></thead>';
+                        table += '<tbody>';
+                        bodyRows.forEach(row => {
+                          const cells = row.split('|').filter(c => c.trim()).map(c => c.trim());
+                          table += '<tr>' + cells.map(c => `<td>${c.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')}</td>`).join('') + '</tr>';
+                        });
+                        table += '</tbody></table></div>';
+                        return '\n' + table + '\n';
+                      }
+                    );
+
+                    // ── 헤딩 (#### → h4, ### → h3, ## → h2) ──
+                    html = html.replace(/^#### (.*$)/gm, '<h4>$1</h4>');
+                    html = html.replace(/^### (.*$)/gm, '<h3>$1</h3>');
+                    html = html.replace(/^## (.*$)/gm, '<h2>$1</h2>');
+
+                    // ── 굵은 텍스트 ──
+                    html = html.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+
+                    // ── 번호 목록 ──
+                    html = html.replace(/((?:^\d+\.\s.*$\n?)+)/gm, (block) => {
+                      const items = block.trim().split('\n').map(l => l.replace(/^\d+\.\s/, '').trim());
+                      return '<ol>' + items.map(i => `<li>${i}</li>`).join('') + '</ol>';
+                    });
+
+                    // ── 불릿 목록 ──
+                    html = html.replace(/((?:^[-*]\s.*$\n?)+)/gm, (block) => {
+                      const items = block.trim().split('\n').map(l => l.replace(/^[-*]\s/, '').trim());
+                      return '<ul>' + items.map(i => `<li>${i}</li>`).join('') + '</ul>';
+                    });
+
+                    // ── 빈 줄이 아닌 일반 텍스트 → 단락 ──
+                    html = html.replace(/^(?!<[houdtl])(.*\S.*)$/gm, '<p>$1</p>');
+
+                    // ── 특수 표기 ──
+                    html = html.replace(/※/g, '<span class="text-amber-600 font-medium">※</span>');
+
+                    // ── 연속 빈 줄 정리 ──
+                    html = html.replace(/\n{3,}/g, '\n\n');
+
+                    return html;
+                  }
+
+                  return (
+                    <div className="bg-white border border-slate-200/30 rounded-2xl overflow-hidden print:shadow-none" id="multimodal-report">
+                      {/* 헤더 */}
+                      <div className="bg-gradient-to-r from-violet-50 to-indigo-50 px-6 py-4 border-b border-slate-200/30">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            <div className="w-8 h-8 rounded-lg bg-violet-100 flex items-center justify-center">
+                              <Sparkles className="w-4 h-4 text-violet-600" />
+                            </div>
+                            <div>
+                              <h3 className="text-sm font-bold text-slate-800">멀티모달 행동분석 종합보고서</h3>
+                              <p className="text-[11px] text-slate-500">
+                                5채널 신호 기반 · {mmResult.reportModel === "solar-pro2" ? "Solar Pro 2" : "로컬 템플릿"} 생성
+                              </p>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-1.5 print:hidden">
+                            <button
+                              onClick={() => window.print()}
+                              className="text-xs text-slate-500 hover:text-violet-600 px-2.5 py-1.5 rounded-lg border border-slate-200 hover:border-violet-300 transition-colors"
+                            >
+                              PDF 내보내기
+                            </button>
+                            <button
+                              onClick={() => {
+                                navigator.clipboard.writeText(mmResult.report);
+                                alert("보고서가 클립보드에 복사되었습니다.");
+                              }}
+                              className="text-xs text-slate-500 hover:text-violet-600 px-2.5 py-1.5 rounded-lg border border-slate-200 hover:border-violet-300 transition-colors"
+                            >
+                              복사
+                            </button>
+                          </div>
+                        </div>
                       </div>
+                      {/* 본문 */}
+                      <div
+                        className="px-6 py-5 text-[13px] text-slate-700 leading-[1.9] max-w-none
+                          [&_h2]:text-[15px] [&_h2]:font-bold [&_h2]:text-slate-800 [&_h2]:mt-6 [&_h2]:mb-3 [&_h2]:pb-2 [&_h2]:border-b [&_h2]:border-violet-100
+                          [&_h3]:text-[14px] [&_h3]:font-bold [&_h3]:text-slate-700 [&_h3]:mt-5 [&_h3]:mb-2
+                          [&_h4]:text-[13px] [&_h4]:font-semibold [&_h4]:text-violet-700 [&_h4]:mt-4 [&_h4]:mb-1.5
+                          [&_strong]:font-semibold [&_strong]:text-slate-800
+                          [&_ul]:list-disc [&_ul]:pl-5 [&_ul]:space-y-1.5 [&_ul]:my-3
+                          [&_ol]:list-decimal [&_ol]:pl-5 [&_ol]:space-y-1.5 [&_ol]:my-3
+                          [&_li]:text-[13px] [&_li]:text-slate-600 [&_li]:leading-relaxed
+                          [&_p]:mb-2.5 [&_p]:leading-[1.9]
+                          [&_.report-table-wrap]:my-4 [&_.report-table-wrap]:overflow-x-auto [&_.report-table-wrap]:rounded-lg [&_.report-table-wrap]:border [&_.report-table-wrap]:border-slate-200/50
+                          [&_.report-table]:w-full [&_.report-table]:text-[12px]
+                          [&_.report-table_th]:bg-slate-50 [&_.report-table_th]:text-left [&_.report-table_th]:px-3 [&_.report-table_th]:py-2 [&_.report-table_th]:font-semibold [&_.report-table_th]:text-slate-600 [&_.report-table_th]:border-b [&_.report-table_th]:border-slate-200/50
+                          [&_.report-table_td]:px-3 [&_.report-table_td]:py-2 [&_.report-table_td]:text-slate-600 [&_.report-table_td]:border-b [&_.report-table_td]:border-slate-100"
+                        dangerouslySetInnerHTML={{ __html: renderReport(mmResult.report) }}
+                      />
                     </div>
-                    <div
-                      className="text-sm text-slate-700 leading-[1.8] max-w-none
-                        [&_h2]:text-base [&_h2]:font-bold [&_h2]:text-slate-800 [&_h2]:mt-5 [&_h2]:mb-2 [&_h2]:border-b [&_h2]:border-slate-200/50 [&_h2]:pb-1
-                        [&_h3]:text-sm [&_h3]:font-bold [&_h3]:text-slate-700 [&_h3]:mt-4 [&_h3]:mb-1.5
-                        [&_strong]:font-semibold [&_strong]:text-slate-800
-                        [&_ul]:list-disc [&_ul]:pl-5 [&_ul]:space-y-1 [&_ul]:my-2
-                        [&_ol]:list-decimal [&_ol]:pl-5 [&_ol]:space-y-1 [&_ol]:my-2
-                        [&_li]:text-sm [&_li]:text-slate-600
-                        [&_p]:mb-2
-                        [&_hr]:my-3 [&_hr]:border-slate-200/50"
-                      dangerouslySetInnerHTML={{
-                        __html: mmResult.report
-                          // XSS 방지: script/iframe/on* 이벤트 핸들러 제거
-                          .replace(/<script[^>]*>[\s\S]*?<\/script>/gi, '')
-                          .replace(/<iframe[^>]*>[\s\S]*?<\/iframe>/gi, '')
-                          .replace(/\son\w+\s*=/gi, ' data-removed=')
-                          // 마크다운 → HTML 변환
-                          .replace(/^### (.*$)/gm, '<h3>$1</h3>')
-                          .replace(/^## (.*$)/gm, '<h2>$1</h2>')
-                          .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-                          .replace(/^\* (.*$)/gm, '<li>$1</li>')
-                          .replace(/^(\d+)\. (.*$)/gm, '<li>$2</li>')
-                          .replace(/(<li>.*<\/li>\n?)+/g, (match) =>
-                            match.includes('1.') ? `<ol>${match}</ol>` : `<ul>${match}</ul>`
-                          )
-                          .replace(/^(?!<[hulo])(.*\S.*)$/gm, '<p>$1</p>')
-                          .replace(/\n{2,}/g, '<hr/>')
-                          .replace(/※/g, '<span class="text-amber-600">※</span>')
-                      }}
-                    />
-                  </div>
-                )}
+                  );
+                })()}
               </div>
             ) : mmProgress.phase === "error" ? (
               <div className="bg-white border border-amber-200 rounded-xl p-6 text-center">
@@ -1415,16 +1468,7 @@ export default function LeadershipFeedback({
                   <p>챕터: {chapters.length}개 · 하이라이트: {highlights.length}개 · 요약: {summary ? "있음" : "없음"}</p>
                   <p>평가근거: {evidence.length}개 · 전사: {transcriptSegments?.length || 0}개</p>
                 </div>
-                {/* AI 추천 일괄 적용 버튼 */}
-                {evidence.length > 0 && unscoredCount > 0 && (
-                  <button
-                    onClick={() => { applyAllAIScores(); }}
-                    className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium bg-violet-50 text-violet-600 border border-violet-500/20 hover:bg-violet-500/20 transition-all"
-                  >
-                    <Wand2 className="w-4 h-4" />
-                    AI 추천 점수 적용하여 리포트 생성
-                  </button>
-                )}
+                {/* AI 점수가 자동 적용되어 리포트가 생성됩니다 */}
               </div>
             )
           )}

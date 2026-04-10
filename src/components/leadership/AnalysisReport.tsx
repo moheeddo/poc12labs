@@ -87,56 +87,65 @@ export default function AnalysisReport({ data, onSeek }: AnalysisReportProps) {
   return (
     <div className="space-y-5 animate-fade-in-up">
       {/* ── 종합 점수 헤더 ── */}
-      <div className="bg-white/60 border border-slate-200/40 rounded-xl p-5">
-        <div className="flex items-center gap-3 mb-4">
-          <div className="w-9 h-9 rounded-xl bg-teal-50 flex items-center justify-center">
-            <BarChart3 className="w-5 h-5 text-teal-600" />
-          </div>
-          <div>
-            <h3 className="text-base font-semibold text-slate-900">AI 종합 분석 리포트</h3>
-            <p className="text-sm text-slate-500">
-              {data.totalEvidenceCount}개 평가 근거 · {data.scoredCount}건 평가 완료
-            </p>
+      <div className="bg-white border border-slate-200/40 rounded-2xl overflow-hidden">
+        <div className="bg-gradient-to-r from-teal-50 to-emerald-50 px-5 py-4 border-b border-slate-200/30">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-teal-100 flex items-center justify-center">
+              <BarChart3 className="w-5 h-5 text-teal-600" />
+            </div>
+            <div>
+              <h3 className="text-base font-bold text-slate-900">BARS 역량 분석 리포트</h3>
+              <p className="text-xs text-slate-500">
+                {data.totalEvidenceCount}개 행동 근거 분석 · {data.scoredCount}건 평가 완료 · AI 자동 채점
+              </p>
+            </div>
           </div>
         </div>
 
-        {/* 종합 점수 */}
-        <div className="flex items-center gap-6">
-          <div className={cn("px-5 py-3 rounded-xl border", getScoreBg(data.overallScore))}>
-            <p className="text-sm uppercase tracking-wider text-slate-500 mb-1">종합 점수</p>
-            <div className="flex items-baseline gap-1.5">
-              <span className={cn("text-3xl font-bold font-mono tabular-nums", getScoreColor(data.overallScore))}>
-                {hasScores ? data.overallScore.toFixed(1) : "-"}
-              </span>
-              <span className="text-base text-slate-500">/9</span>
-            </div>
-            {hasScores && (
-              <p className={cn("text-sm font-medium mt-1", getScoreColor(data.overallScore))}>
-                {data.overallInterpretation || getScoreLabel(data.overallScore)}
-              </p>
-            )}
-          </div>
-
-          {/* 역량별 미니 바 */}
-          <div className="flex-1 space-y-2">
-            {data.competencies.map((c) => (
-              <div key={c.key} className="flex items-center gap-2">
-                <span className="text-sm text-slate-500 w-20 truncate">{c.label}</span>
-                <div className="flex-1 h-2 bg-slate-100/60 rounded-full overflow-hidden">
-                  <div
-                    className="h-full rounded-full transition-all duration-700"
-                    style={{
-                      width: `${(c.avgScore / 9) * 100}%`,
-                      backgroundColor: c.color,
-                      opacity: c.avgScore > 0 ? 1 : 0.2,
-                    }}
-                  />
-                </div>
-                <span className={cn("text-sm font-mono tabular-nums w-8 text-right", getScoreColor(c.avgScore))}>
-                  {c.avgScore > 0 ? c.avgScore.toFixed(1) : "-"}
+        <div className="p-5">
+          {/* 종합 점수 + 역량 바 */}
+          <div className="flex items-start gap-6">
+            <div className={cn("px-5 py-4 rounded-xl border shrink-0 text-center min-w-[120px]", getScoreBg(data.overallScore))}>
+              <p className="text-[10px] uppercase tracking-widest text-slate-500 mb-1.5 font-medium">종합 점수</p>
+              <div className="flex items-baseline justify-center gap-1">
+                <span className={cn("text-4xl font-bold font-mono tabular-nums", getScoreColor(data.overallScore))}>
+                  {hasScores ? data.overallScore.toFixed(1) : "-"}
                 </span>
+                <span className="text-sm text-slate-400">/9</span>
               </div>
-            ))}
+              {hasScores && (
+                <span className={cn(
+                  "inline-block text-xs font-semibold mt-2 px-2.5 py-1 rounded-full",
+                  data.overallScore >= 7 ? "bg-teal-100 text-teal-700" :
+                  data.overallScore >= 5 ? "bg-amber-100 text-amber-700" :
+                  "bg-red-100 text-red-600"
+                )}>
+                  {data.overallInterpretation || getScoreLabel(data.overallScore)}
+                </span>
+              )}
+            </div>
+
+            {/* 역량별 미니 바 */}
+            <div className="flex-1 space-y-2.5">
+              {data.competencies.map((c) => (
+                <div key={c.key} className="flex items-center gap-2.5">
+                  <span className="text-[13px] text-slate-600 w-24 truncate font-medium">{c.label}</span>
+                  <div className="flex-1 h-2.5 bg-slate-100 rounded-full overflow-hidden">
+                    <div
+                      className="h-full rounded-full transition-all duration-700"
+                      style={{
+                        width: `${Math.max(c.avgScore > 0 ? (c.avgScore / 9) * 100 : 2, 2)}%`,
+                        backgroundColor: c.color,
+                        opacity: c.avgScore > 0 ? 1 : 0.15,
+                      }}
+                    />
+                  </div>
+                  <span className={cn("text-sm font-mono font-semibold tabular-nums w-10 text-right", getScoreColor(c.avgScore))}>
+                    {c.avgScore > 0 ? c.avgScore.toFixed(1) : "-"}
+                  </span>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       </div>
@@ -252,107 +261,146 @@ export default function AnalysisReport({ data, onSeek }: AnalysisReportProps) {
       </div>
 
       {/* ── 역량별 상세 ── */}
-      <div className="space-y-3" id="competency-details">
+      <div className="space-y-4" id="competency-details">
         {data.competencies.map((c) => (
           <div
             key={c.key}
-            className="bg-white/40 border border-slate-200/30 rounded-xl p-4 border-l-[3px]"
-            style={{ borderLeftColor: c.color }}
+            className="bg-white border border-slate-200/30 rounded-2xl overflow-hidden"
           >
-            <div className="flex items-center justify-between mb-2">
-              <div className="flex items-center gap-2">
-                <span className="text-sm font-semibold" style={{ color: c.color }}>
-                  {c.label}
-                </span>
-                <span className="text-sm font-mono text-slate-400">
-                  {c.evidenceCount}건 근거
-                </span>
+            {/* 역량 헤더 */}
+            <div
+              className="px-5 py-3.5 flex items-center justify-between"
+              style={{ backgroundColor: `${c.color}08`, borderBottom: `2px solid ${c.color}30` }}
+            >
+              <div className="flex items-center gap-3">
+                <div
+                  className="w-8 h-8 rounded-lg flex items-center justify-center"
+                  style={{ backgroundColor: `${c.color}18` }}
+                >
+                  <BarChart3 className="w-4 h-4" style={{ color: c.color }} />
+                </div>
+                <div>
+                  <h4 className="text-sm font-bold" style={{ color: c.color }}>
+                    {c.label}
+                  </h4>
+                  {c.scenario && (
+                    <p className="text-[11px] text-slate-500">{c.scenario} · {c.activityType}</p>
+                  )}
+                </div>
               </div>
-              <div className={cn(
-                "px-2 py-0.5 rounded-md text-sm font-mono font-bold",
-                c.avgScore >= 7 ? "bg-teal-50 text-teal-600" :
-                c.avgScore >= 5 ? "bg-amber-500/15 text-amber-600" :
-                c.avgScore > 0 ? "bg-red-500/15 text-red-400" :
-                "bg-slate-100/30 text-slate-400"
-              )}>
-                {c.avgScore > 0 ? `${c.avgScore.toFixed(1)}/9` : "미평가"}
+              <div className="flex items-center gap-2">
+                <span className="text-[11px] text-slate-400 font-mono">{c.evidenceCount}건</span>
+                <div className={cn(
+                  "px-3 py-1.5 rounded-lg text-sm font-mono font-bold",
+                  c.avgScore >= 7 ? "bg-teal-50 text-teal-600 border border-teal-200" :
+                  c.avgScore >= 5 ? "bg-amber-50 text-amber-600 border border-amber-200" :
+                  c.avgScore > 0 ? "bg-red-50 text-red-500 border border-red-200" :
+                  "bg-slate-50 text-slate-400 border border-slate-200"
+                )}>
+                  {c.avgScore > 0 ? `${c.avgScore.toFixed(1)}/9` : "미평가"}
+                  <span className="text-[10px] ml-1 font-medium">
+                    {c.avgScore > 0 ? getScoreLabel(c.avgScore) : ""}
+                  </span>
+                </div>
               </div>
             </div>
-            {/* 상황사례 + 활동유형 */}
-            {c.scenario && (
-              <p className="text-xs text-slate-400 mb-2">
-                {c.scenario} · {c.activityType}
-              </p>
-            )}
 
-            {c.topHighlight && (
-              <div className="flex items-start gap-2 mb-2">
-                {c.highlightTimestamp !== undefined && onSeek && (
-                  <button
-                    onClick={() => onSeek(c.highlightTimestamp!)}
-                    className="inline-flex items-center gap-1 shrink-0 text-xs font-mono text-teal-600 bg-teal-50 hover:bg-teal-100 rounded px-2 py-1.5 min-h-[44px] transition-colors"
-                  >
-                    <PlayCircle className="w-3 h-3" />
-                    {formatTime(c.highlightTimestamp)}
-                  </button>
+            <div className="p-5 space-y-4">
+              {/* 대표 근거 + 비디오 이동 */}
+              {c.topHighlight && (
+                <div className={cn(
+                  "flex items-start gap-3 rounded-xl p-3.5",
+                  c.highlightTimestamp !== undefined && onSeek ? "bg-teal-50/50 border border-teal-100 cursor-pointer hover:bg-teal-50 transition-colors" : "bg-slate-50/50 border border-slate-100"
                 )}
-                <p className="text-sm text-slate-500 leading-relaxed line-clamp-2">
-                  {c.topHighlight}
-                </p>
-              </div>
-            )}
+                  onClick={() => {
+                    if (c.highlightTimestamp !== undefined && onSeek) onSeek(c.highlightTimestamp);
+                  }}
+                >
+                  {c.highlightTimestamp !== undefined && onSeek && (
+                    <div className="shrink-0 w-10 h-10 rounded-lg bg-teal-100 flex items-center justify-center">
+                      <PlayCircle className="w-5 h-5 text-teal-600" />
+                    </div>
+                  )}
+                  <div className="flex-1 min-w-0">
+                    {c.highlightTimestamp !== undefined && (
+                      <p className="text-[10px] font-mono text-teal-600 mb-0.5">{formatTime(c.highlightTimestamp)} 클릭하여 해당 장면 재생</p>
+                    )}
+                    <p className="text-sm text-slate-600 leading-relaxed">{c.topHighlight}</p>
+                  </div>
+                </div>
+              )}
 
-            {/* 루브릭 항목별 판정 기준 (BARS) */}
-            {c.rubricScores.length > 0 && (
-              <div className="mt-2 pt-2 border-t border-slate-200/20 space-y-1.5">
-                <p className="text-[10px] uppercase tracking-wider text-slate-400 font-medium">
-                  BARS 루브릭 판정 ({c.rubricScores[0]?.levelLabel})
-                </p>
-                {c.rubricScores.map((rs, i) => (
-                  <div key={i} className="flex items-start gap-2 group/rubric">
-                    <span className="text-[10px] font-mono text-slate-400 mt-0.5 shrink-0 w-4">{i + 1}.</span>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-1.5 flex-wrap">
-                        <span className="text-xs font-medium text-slate-600">{rs.criteria}</span>
-                        <span className="text-[10px] text-slate-400">({rs.subLabel})</span>
-                        {/* 타임스탬프 근거 클릭 버튼 */}
-                        {rs.evidenceTimestamp !== undefined && rs.evidenceTimestamp > 0 && onSeek && (
-                          <button
-                            onClick={() => onSeek(rs.evidenceTimestamp!)}
-                            className="inline-flex items-center gap-0.5 text-[10px] font-mono text-teal-600 bg-teal-50 hover:bg-teal-100 rounded px-1.5 py-1 min-h-[28px] transition-colors"
-                          >
-                            <PlayCircle className="w-2.5 h-2.5" />
-                            {formatTime(rs.evidenceTimestamp)}
-                          </button>
+              {/* BARS 루브릭 판정 테이블 */}
+              {c.rubricScores.length > 0 && (
+                <div>
+                  <div className="flex items-center gap-2 mb-3">
+                    <span className="text-[10px] uppercase tracking-widest text-slate-400 font-semibold">BARS 루브릭 판정</span>
+                    <span className="text-[10px] px-2 py-0.5 rounded-full bg-slate-100 text-slate-500">{c.rubricScores[0]?.levelLabel}</span>
+                  </div>
+                  <div className="space-y-2">
+                    {c.rubricScores.map((rs, i) => (
+                      <div
+                        key={i}
+                        className={cn(
+                          "rounded-xl border p-3.5 transition-all",
+                          rs.evidenceTimestamp !== undefined && rs.evidenceTimestamp > 0 && onSeek
+                            ? "cursor-pointer hover:shadow-md hover:border-teal-200"
+                            : "",
+                          "bg-white border-slate-100"
+                        )}
+                        onClick={() => {
+                          if (rs.evidenceTimestamp !== undefined && rs.evidenceTimestamp > 0 && onSeek) {
+                            onSeek(rs.evidenceTimestamp);
+                          }
+                        }}
+                      >
+                        <div className="flex items-start justify-between gap-2">
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2 mb-1.5">
+                              <span className="text-[11px] font-mono font-bold text-slate-400 shrink-0">#{i + 1}</span>
+                              <span className="text-xs font-semibold text-slate-700">{rs.criteria}</span>
+                              <span className="text-[10px] text-slate-400 bg-slate-50 px-1.5 py-0.5 rounded">{rs.subLabel}</span>
+                            </div>
+                            <p className="text-xs text-slate-500 leading-relaxed">{rs.levelDescription}</p>
+                          </div>
+                          {rs.evidenceTimestamp !== undefined && rs.evidenceTimestamp > 0 && onSeek && (
+                            <div className="shrink-0 flex items-center gap-1 text-[11px] font-mono text-teal-600 bg-teal-50 rounded-lg px-2.5 py-1.5 border border-teal-100">
+                              <PlayCircle className="w-3 h-3" />
+                              {formatTime(rs.evidenceTimestamp)}
+                            </div>
+                          )}
+                        </div>
+                        {/* 행동 근거 */}
+                        {rs.evidenceText && (
+                          <div className="mt-2 pt-2 border-t border-slate-100">
+                            <p className="text-[11px] text-teal-700/80 leading-relaxed flex items-start gap-1.5">
+                              <span className="shrink-0 text-[10px] bg-teal-100 text-teal-700 px-1.5 py-0.5 rounded font-medium">근거</span>
+                              <span className="italic">&ldquo;{rs.evidenceText}&rdquo;</span>
+                            </p>
+                          </div>
                         )}
                       </div>
-                      <p className="text-xs text-slate-500 leading-relaxed mt-0.5">{rs.levelDescription}</p>
-                      {/* 근거 요약 */}
-                      {rs.evidenceText && (
-                        <p className="text-[10px] text-teal-600/70 mt-1 leading-relaxed italic">
-                          근거: &ldquo;{rs.evidenceText}&rdquo;
-                        </p>
-                      )}
-                    </div>
+                    ))}
                   </div>
-                ))}
-              </div>
-            )}
+                </div>
+              )}
 
-            {(c.strengths.length > 0 || c.improvements.length > 0) && (
-              <div className="mt-2 pt-2 border-t border-slate-200/30 flex flex-wrap gap-2">
-                {c.strengths.map((s, i) => (
-                  <span key={i} className="text-sm bg-teal-50 text-teal-600/80 px-2 py-0.5 rounded">
-                    {s}
-                  </span>
-                ))}
-                {c.improvements.map((s, i) => (
-                  <span key={i} className="text-sm bg-amber-50 text-amber-600/80 px-2 py-0.5 rounded">
-                    {s}
-                  </span>
-                ))}
-              </div>
-            )}
+              {/* 강점/개선 태그 */}
+              {(c.strengths.length > 0 || c.improvements.length > 0) && (
+                <div className="flex flex-wrap gap-2 pt-2 border-t border-slate-100">
+                  {c.strengths.map((s, i) => (
+                    <span key={i} className="text-xs bg-teal-50 text-teal-600 px-2.5 py-1 rounded-lg border border-teal-100 font-medium">
+                      {s}
+                    </span>
+                  ))}
+                  {c.improvements.map((s, i) => (
+                    <span key={i} className="text-xs bg-amber-50 text-amber-600 px-2.5 py-1 rounded-lg border border-amber-100 font-medium">
+                      {s}
+                    </span>
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
         ))}
       </div>
