@@ -33,6 +33,7 @@ export default class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBo
         <div
           className="flex flex-col items-center justify-center min-h-[300px] p-8 text-center"
           role="alert"
+          aria-live="assertive"
         >
           <div className="w-12 h-12 rounded-full bg-coral-500/10 flex items-center justify-center mb-4">
             <AlertTriangle className="w-6 h-6 text-coral-400" />

@@ -6,7 +6,7 @@
 
 "use client";
 
-import { useState, useRef, useCallback, useMemo } from "react";
+import { useState, useRef, useCallback, useMemo, useEffect } from "react";
 import {
   ArrowLeft,
   Play,
@@ -272,6 +272,15 @@ export default function CompetencyAssessment({ data, onBack }: CompetencyAssessm
   const [mmNotes, setMmNotes] = useState<Record<string, string>>({});
 
   const [saved, setSaved] = useState(false);
+  // setTimeout cleanup 용 ref (언마운트 시 타이머 정리)
+  const savedTimerRef = useRef<ReturnType<typeof setTimeout>>(null);
+
+  // 컴포넌트 언마운트 시 타이머 정리
+  useEffect(() => {
+    return () => {
+      if (savedTimerRef.current) clearTimeout(savedTimerRef.current);
+    };
+  }, []);
 
   // 영상 재생
   const [currentTime, setCurrentTime] = useState(0);
@@ -359,7 +368,9 @@ export default function CompetencyAssessment({ data, onBack }: CompetencyAssessm
       JSON.stringify({ competencyKey: data.key, barsScores, mmSubScores, mmNotes, savedAt: new Date().toISOString() })
     );
     setSaved(true);
-    setTimeout(() => setSaved(false), 3000);
+    // 이전 타이머 정리 후 새 타이머 설정
+    if (savedTimerRef.current) clearTimeout(savedTimerRef.current);
+    savedTimerRef.current = setTimeout(() => setSaved(false), 3000);
   }, [data.key, barsScores, mmSubScores, mmNotes]);
 
   const toggleRubric = useCallback((id: string) => {

@@ -198,6 +198,11 @@ async function runPipeline(job: AnalysisJob): Promise<void> {
 
   const indexId = TWELVELABS_INDEXES.pov;
 
+  // ── 병렬 그룹 1: 단계 검출 + 손-물체 분석 (독립적) ──
+  // stepDetection과 handObject는 서로 의존하지 않으므로 병렬 실행
+  // 단, handObject는 stepDetection 결과(passedSteps)가 필요하므로,
+  // stepDetection 완료 후 handObject + sequenceMatch를 실행하는 구조로 변경
+
   // ── 3A: 단계 검출 (Marengo Search) ────────────
   updateStage(job, 'stepDetection', 'running');
   job.progress = 5;
@@ -319,65 +324,79 @@ async function runPipeline(job: AnalysisJob): Promise<void> {
     }
   }
 
-  // ── 3B: 손-물체 상호작용 분석 (Pegasus Analyze) ─
+  // ── 병렬 그룹 2: 손-물체 분석 + 시퀀스 매칭 (stepDetection 완료 후 병렬) ──
+  // handObject는 passedSteps, sequenceMatch는 detectedSteps에 의존
+  // 둘 다 stepDetection 이후 독립적으로 실행 가능
   updateStage(job, 'handObject', 'running');
+  updateStage(job, 'sequenceMatch', 'running');
   job.progress = 28;
 
-  const handObjectEvents: HandObjectEvent[] = [];
-
-  // 검출된 단계 중 pass/partial인 것만 분석
-  const passedSteps = detectedSteps.filter((s) => s.status !== 'fail' && s.timestamp > 0);
-
-  if (passedSteps.length > 0) {
-    // 배치 처리: 5건씩 Pegasus 분석, 배치 간 200ms 대기 (rate limit 방지)
-    const handObjectResults = await rateLimitedBatch(
-      passedSteps,
-      BATCH_SIZE,
-      async (step) => {
-        apiCallCount++;
-        const prompt = buildHandObjectPrompt(step);
-        const response = await generateWithPrompt(job.videoId, prompt);
-        return { stepId: step.stepId, timestamp: step.timestamp, endTime: step.endTime, text: response.data };
-      }
-    );
-
-    for (const result of handObjectResults) {
-      if (result.status === 'fulfilled') {
-        const event = parseHandObjectResponse(result.value);
-        if (event) {
-          handObjectEvents.push(event);
-        }
-      } else {
-        log.warn('손-물체 분석 실패', { error: result.reason });
-      }
-    }
-  }
-
-  job.progress = 40;
-
-  updateStage(job, 'handObject', 'done');
-  log.info('손-물체 분석 완료', { eventCount: handObjectEvents.length });
-
-  // ── 3C: 시퀀스 매칭 (DTW) ─────────────────────
-  updateStage(job, 'sequenceMatch', 'running');
-  job.progress = 42;
-
-  // SOP 순서: 절차의 모든 스텝 ID를 평탄화
+  // SOP 순서: 절차의 모든 스텝 ID를 평탄화 (sequenceMatch용 사전 준비)
   const sopSequence = flattenAllStepIds(procedure);
-
-  // 검출 순서: 타임스탬프 기준 정렬 후 스텝 ID 추출
   const detectedSequence = detectedSteps
     .filter((s) => s.status !== 'fail' && s.timestamp > 0)
     .sort((a, b) => a.timestamp - b.timestamp)
     .map((s) => s.stepId);
-
-  // 핵심 단계 Set 구성
   const criticalSteps = new Set<string>();
   for (const section of procedure.sections) {
     collectCriticalSteps(section.steps, criticalSteps);
   }
 
-  const sequenceAlignment = alignSequences(sopSequence, detectedSequence, criticalSteps);
+  const [handObjectSettled, sequenceMatchSettled] = await Promise.allSettled([
+    // 3B: 손-물체 상호작용 분석 (Pegasus Analyze)
+    (async () => {
+      const events: HandObjectEvent[] = [];
+      const passedSteps = detectedSteps.filter((s) => s.status !== 'fail' && s.timestamp > 0);
+
+      if (passedSteps.length > 0) {
+        const handObjectResults = await rateLimitedBatch(
+          passedSteps,
+          BATCH_SIZE,
+          async (step) => {
+            apiCallCount++;
+            const prompt = buildHandObjectPrompt(step);
+            const response = await generateWithPrompt(job.videoId, prompt);
+            return { stepId: step.stepId, timestamp: step.timestamp, endTime: step.endTime, text: response.data };
+          }
+        );
+
+        for (const result of handObjectResults) {
+          if (result.status === 'fulfilled') {
+            const event = parseHandObjectResponse(result.value);
+            if (event) {
+              events.push(event);
+            }
+          } else {
+            log.warn('손-물체 분석 실패', { error: result.reason });
+          }
+        }
+      }
+
+      return events;
+    })(),
+
+    // 3C: 시퀀스 매칭 (DTW) — CPU 연산만, API 호출 없음
+    (async () => {
+      return alignSequences(sopSequence, detectedSequence, criticalSteps);
+    })(),
+  ]);
+
+  // 손-물체 결과 수집
+  const handObjectEvents: HandObjectEvent[] =
+    handObjectSettled.status === 'fulfilled' ? handObjectSettled.value : [];
+  if (handObjectSettled.status === 'rejected') {
+    log.warn('손-물체 분석 전체 실패', { error: String(handObjectSettled.reason) });
+  }
+
+  updateStage(job, 'handObject', 'done');
+  log.info('손-물체 분석 완료', { eventCount: handObjectEvents.length });
+
+  // 시퀀스 매칭 결과 수집
+  if (sequenceMatchSettled.status === 'rejected') {
+    log.error('시퀀스 매칭 실패', { error: String(sequenceMatchSettled.reason) });
+    throw new Error('시퀀스 매칭 실패: ' + String(sequenceMatchSettled.reason));
+  }
+  const sequenceAlignment = sequenceMatchSettled.value;
 
   updateStage(job, 'sequenceMatch', 'done');
   job.progress = 50;
@@ -386,132 +405,154 @@ async function runPipeline(job: AnalysisJob): Promise<void> {
     criticalDeviations: sequenceAlignment.criticalDeviations,
   });
 
-  // ── 3D: HPO 기법 적용 검증 (Marengo Search) ──
+  // ── 병렬 그룹 3: HPO 검증 + 임베딩 비교 (독립적) ──
+  // hpoVerification과 embeddingComparison은 서로 의존하지 않으므로 병렬 실행
   updateStage(job, 'hpoVerification', 'running');
+  updateStage(job, 'embeddingComparison', 'running');
   job.progress = 52;
 
   const hpoQueries = getHpoQueries();
-  const hpoResults: HpoToolResult[] = [];
 
-  // 배치 처리: 5건씩 병렬 요청, 배치 간 200ms 대기 (rate limit 방지)
-  const hpoQueryResults = await rateLimitedBatch(
-    hpoQueries,
-    BATCH_SIZE,
-    async (hq) => {
-      apiCallCount++;
-      const response = await searchVideos(indexId, hq.searchQuery);
-      return { hq, response };
-    }
-  );
+  const [hpoSettled, embeddingSettled] = await Promise.allSettled([
+    // 3D: HPO 기법 적용 검증 (Marengo Search)
+    (async () => {
+      const results: HpoToolResult[] = [];
 
-  hpoQueryResults.forEach((result, idx) => {
-    if (result.status === 'fulfilled') {
-      const { hq, response } = result.value;
-      const clips = (response.data || []).filter((c) => c.video_id === job.videoId);
-      const detected = clips.length > 0;
-      const bestConfidence = detected ? parseConfidence(clips[0].confidence) : 0;
+      const hpoQueryResults = await rateLimitedBatch(
+        hpoQueries,
+        BATCH_SIZE,
+        async (hq) => {
+          apiCallCount++;
+          const response = await searchVideos(indexId, hq.searchQuery);
+          return { hq, response };
+        }
+      );
 
-      hpoResults.push({
-        toolId: hq.toolId,
-        toolName: hq.toolLabel,
-        category: hq.category,
-        detected,
-        detectionCount: clips.length,
-        timestamps: clips.map((c) => c.start),
-        confidence: bestConfidence,
-      });
-    } else {
-      const hq = hpoQueries[idx];
-      if (hq) {
-        hpoResults.push({
-          toolId: hq.toolId,
-          toolName: hq.toolLabel,
-          category: hq.category,
-          detected: false,
-          detectionCount: 0,
-          timestamps: [],
-          confidence: 0,
-        });
-      }
-    }
-  });
+      hpoQueryResults.forEach((result, idx) => {
+        if (result.status === 'fulfilled') {
+          const { hq, response } = result.value;
+          const clips = (response.data || []).filter((c) => c.video_id === job.videoId);
+          const detected = clips.length > 0;
+          const bestConfidence = detected ? parseConfidence(clips[0].confidence) : 0;
 
-  job.progress = 65;
-
-  updateStage(job, 'hpoVerification', 'done');
-  log.info('HPO 검증 완료', { total: hpoResults.length, detected: hpoResults.filter((r) => r.detected).length });
-
-  // ── 3D-2: Pegasus 이중 검증 — 미검출 HPO 기법 재확인 ──
-  const undetectedHpo = hpoResults.filter(r => !r.detected);
-  if (undetectedHpo.length > 0 && undetectedHpo.length <= 5) {
-    log.info('미검출 HPO 기법 Pegasus 이중 검증', { count: undetectedHpo.length });
-    const hpoVerifyResults = await rateLimitedBatch(
-      undetectedHpo,
-      BATCH_SIZE,
-      async (hpo) => {
-        apiCallCount++;
-        try {
-          const prompt = `이 영상에서 "${hpo.toolName}" 기법이 적용되었는지 확인하세요. 이 기법은 원전 운전원의 인적오류예방기법(HPO)입니다.\n\n반드시 순수 JSON만 출력: {"detected": true/false, "confidence": 0-100, "evidence": "근거 설명"}`;
-          const response = await generateWithPrompt(job.videoId, prompt);
-          const text = response.data;
-          const match = text.match(/\{[\s\S]*\}/);
-          if (match) {
-            const parsed = JSON.parse(match[0]);
-            return { toolId: hpo.toolId, detected: parsed.detected === true, confidence: parsed.confidence || 0, evidence: parsed.evidence };
+          results.push({
+            toolId: hq.toolId,
+            toolName: hq.toolLabel,
+            category: hq.category,
+            detected,
+            detectionCount: clips.length,
+            timestamps: clips.map((c) => c.start),
+            confidence: bestConfidence,
+          });
+        } else {
+          const hq = hpoQueries[idx];
+          if (hq) {
+            results.push({
+              toolId: hq.toolId,
+              toolName: hq.toolLabel,
+              category: hq.category,
+              detected: false,
+              detectionCount: 0,
+              timestamps: [],
+              confidence: 0,
+            });
           }
-        } catch { /* 무시 */ }
-        return { toolId: hpo.toolId, detected: false, confidence: 0 };
-      }
-    );
+        }
+      });
 
-    for (const result of hpoVerifyResults) {
-      if (result.status === 'fulfilled' && result.value.detected) {
-        const hpo = hpoResults.find(r => r.toolId === result.value.toolId);
-        if (hpo) {
-          hpo.detected = true;
-          hpo.confidence = result.value.confidence;
-          hpo.detectionCount = 1;
-          log.info('Pegasus 검증으로 HPO 기법 검출', { toolId: hpo.toolId, confidence: hpo.confidence });
+      // 3D-2: Pegasus 이중 검증 — 미검출 HPO 기법 재확인
+      const undetectedHpo = results.filter(r => !r.detected);
+      if (undetectedHpo.length > 0 && undetectedHpo.length <= 5) {
+        log.info('미검출 HPO 기법 Pegasus 이중 검증', { count: undetectedHpo.length });
+        const hpoVerifyResults = await rateLimitedBatch(
+          undetectedHpo,
+          BATCH_SIZE,
+          async (hpo) => {
+            apiCallCount++;
+            try {
+              const prompt = `이 영상에서 "${hpo.toolName}" 기법이 적용되었는지 확인하세요. 이 기법은 원전 운전원의 인적오류예방기법(HPO)입니다.\n\n반드시 순수 JSON만 출력: {"detected": true/false, "confidence": 0-100, "evidence": "근거 설명"}`;
+              const response = await generateWithPrompt(job.videoId, prompt);
+              const text = response.data;
+              const match = text.match(/\{[\s\S]*\}/);
+              if (match) {
+                const parsed = JSON.parse(match[0]);
+                return { toolId: hpo.toolId, detected: parsed.detected === true, confidence: parsed.confidence || 0, evidence: parsed.evidence };
+              }
+            } catch { /* 무시 */ }
+            return { toolId: hpo.toolId, detected: false, confidence: 0 };
+          }
+        );
+
+        for (const result of hpoVerifyResults) {
+          if (result.status === 'fulfilled' && result.value.detected) {
+            const hpo = results.find(r => r.toolId === result.value.toolId);
+            if (hpo) {
+              hpo.detected = true;
+              hpo.confidence = result.value.confidence;
+              hpo.detectionCount = 1;
+              log.info('Pegasus 검증으로 HPO 기법 검출', { toolId: hpo.toolId, confidence: hpo.confidence });
+            }
+          }
         }
       }
-    }
-  }
 
-  // ── 3E: 임베딩 비교 (Marengo Embed) ──────────
-  updateStage(job, 'embeddingComparison', 'running');
-  job.progress = 67;
+      return results;
+    })(),
 
-  let embeddingComparison: EmbeddingComparison | undefined;
+    // 3E: 임베딩 비교 (Marengo Embed)
+    (async (): Promise<EmbeddingComparison | undefined> => {
+      if (!job.goldStandardId) return undefined;
 
-  if (job.goldStandardId) {
-    const goldStandard = getGoldStandard(job.goldStandardId);
-    if (goldStandard) {
+      const goldStandard = getGoldStandard(job.goldStandardId);
+      if (!goldStandard) {
+        log.warn('골드스탠다드를 찾을 수 없음, 임베딩 비교 건너뜀', { goldStandardId: job.goldStandardId });
+        return undefined;
+      }
+
       try {
-        // 골드스탠다드 임베딩: 캐시 우선, 미스 시 API 호출 후 캐시 저장
         const durationSec = estimateDuration(detectedSteps);
         apiCallCount++;
         const goldEmbeddings = await getOrFetchEmbeddings(goldStandard, durationSec);
 
         if (goldEmbeddings.length > 0) {
-          // 피평가자 영상의 임베딩 추출 (10초 단위)
           const traineeEmbeddings = await getSegmentedEmbeddings(job.videoId, durationSec, 10);
 
-          embeddingComparison = compareEmbeddings(
+          const comparison = compareEmbeddings(
             goldEmbeddings,
             traineeEmbeddings.map((seg) => seg.embedding),
             traineeEmbeddings
           );
 
-          log.info('임베딩 비교 완료', { avgSimilarity: embeddingComparison.averageSimilarity });
+          log.info('임베딩 비교 완료', { avgSimilarity: comparison.averageSimilarity });
+          return comparison;
         } else {
           log.warn('골드스탠다드 임베딩 추출 실패, 임베딩 비교 건너뜀', { goldStandardId: job.goldStandardId });
+          return undefined;
         }
       } catch (err) {
         log.warn('임베딩 비교 실패', { error: String(err) });
+        return undefined;
       }
-    } else {
-      log.warn('골드스탠다드를 찾을 수 없음, 임베딩 비교 건너뜀', { goldStandardId: job.goldStandardId });
-    }
+    })(),
+  ]);
+
+  // HPO 검증 결과 수집
+  const hpoResults: HpoToolResult[] =
+    hpoSettled.status === 'fulfilled' ? hpoSettled.value : [];
+  if (hpoSettled.status === 'rejected') {
+    log.warn('HPO 검증 전체 실패', { error: String(hpoSettled.reason) });
+  }
+
+  updateStage(job, 'hpoVerification', 'done');
+  job.progress = 65;
+  log.info('HPO 검증 완료', { total: hpoResults.length, detected: hpoResults.filter((r) => r.detected).length });
+
+  // 임베딩 비교 결과 수집
+  let embeddingComparison: EmbeddingComparison | undefined;
+  if (embeddingSettled.status === 'fulfilled') {
+    embeddingComparison = embeddingSettled.value;
+  } else {
+    log.warn('임베딩 비교 전체 실패', { error: String(embeddingSettled.reason) });
   }
 
   updateStage(job, 'embeddingComparison', 'done');
