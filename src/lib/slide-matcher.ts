@@ -19,7 +19,7 @@ export function computeSlideCoverages(
   slides: ParsedSlide[],
   transcript: TranscriptSegment[]
 ): SlideCoverage[] {
-  const fullText = transcript.map((s) => s.value).join(" ");
+  const fullText = transcript.map((s) => s.text || s.value || "").join(" ");
 
   return slides.map((slide) => {
     if (!slide.notes.trim()) {
@@ -33,7 +33,7 @@ export function computeSlideCoverages(
 
     // 각 전사 세그먼트와의 유사도 계산
     const matched = transcript
-      .map((seg) => ({ ...seg, similarity: wordOverlap(slide.notes, seg.value) }))
+      .map((seg) => ({ ...seg, similarity: wordOverlap(slide.notes, seg.text || seg.value || "") }))
       .filter((seg) => seg.similarity > 0.1)
       .sort((a, b) => b.similarity - a.similarity)
       .slice(0, 5);
@@ -50,7 +50,7 @@ export function computeSlideCoverages(
       matchedSegments: matched.map((m) => ({
         start: m.start,
         end: m.end,
-        text: m.value,
+        text: m.text || m.value || "",
       })),
     };
   });

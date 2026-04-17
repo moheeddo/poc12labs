@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useCallback, useRef } from "react";
-import type { SearchResult, UploadProgress, TaskStatusResponse } from "@/lib/types";
+import type { SearchResult, UploadProgress, TaskStatusResponse, TranscriptSegment } from "@/lib/types";
 
 // 클라이언트 로거 (브라우저 console)
 const tag = (name: string) => `[TL:${name}]`;
@@ -280,11 +280,8 @@ export function useVideoUpload() {
 // =============================================
 // 영상 전사(transcript) 조회 훅
 // =============================================
-export interface TranscriptSegment {
-  value: string;
-  start: number;
-  end: number;
-}
+// TranscriptSegment → lib/types.ts에서 통합 정의 사용 (re-export)
+export type { TranscriptSegment };
 
 export function useVideoTranscription() {
   const [segments, setSegments] = useState<TranscriptSegment[]>([]);

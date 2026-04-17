@@ -152,34 +152,18 @@ export default function PovAnalysis() {
   const [selectedGoldStandard, setSelectedGoldStandard] = useState<GoldStandard | null>(null);
   const [videoDuration, setVideoDuration] = useState(0);
   const [_seekTime, setSeekTime] = useState<number | null>(null);
-  // SOP 관리 모달 표시 여부
-  const [showSopManager, setShowSopManager] = useState(false);
-  // 분석 이력 모달 표시 여부
-  const [showHistory, setShowHistory] = useState(false);
-  // 진행 추이 대시보드 표시 여부
-  const [showProgress, setShowProgress] = useState(false);
-  // 코호트 분석 대시보드 표시 여부
-  const [showCohort, setShowCohort] = useState(false);
-  // 캘리브레이션 대시보드 표시 여부
-  const [showCalibration, setShowCalibration] = useState(false);
-  // 상세 리포트 인쇄 모달 표시 여부
-  const [showPrintReport, setShowPrintReport] = useState(false);
-  // 교육과정 효과 벤치마킹 대시보드 표시 여부
-  const [showBenchmark, setShowBenchmark] = useState(false);
-  // 셀프 리플렉션 위저드 표시 여부
-  const [showReflection, setShowReflection] = useState(false);
   // 셀프 리플렉션 데이터 (제출 후 보관)
   const [selfReflection, setSelfReflection] = useState<SelfReflectionData | null>(null);
-  // 훈련생 포트폴리오 표시 여부
-  const [showPortfolio, setShowPortfolio] = useState(false);
-  // 평가 일정 캘린더 표시 여부
-  const [showSchedule, setShowSchedule] = useState(false);
   // 지연된 일정 수 (헤더 배지용)
   const [overdueCount, setOverdueCount] = useState(0);
-  // HPO-20: 경영진 요약 대시보드 표시 여부
-  const [showExecutive, setShowExecutive] = useState(false);
-  // HPO-22: 사고 사례 라이브러리 모달 표시 여부
-  const [showIncidentLibrary, setShowIncidentLibrary] = useState(false);
+
+  // ── 모달 상태 통합 (11개 boolean → 단일 문자열) ──
+  type ModalType = "sopManager" | "history" | "progress" | "cohort" | "calibration"
+    | "printReport" | "benchmark" | "reflection" | "portfolio" | "schedule"
+    | "executive" | "incidentLibrary" | null;
+  const [activeModal, setActiveModal] = useState<ModalType>(null);
+  const openModal = useCallback((m: NonNullable<ModalType>) => setActiveModal(m), []);
+  const closeModal = useCallback(() => setActiveModal(null), []);
 
   // 세션 모드 (멀티 POV)
   const [sessionMode, setSessionMode] = useState(false);
@@ -202,9 +186,9 @@ export default function PovAnalysis() {
   useEffect(() => {
     if (analysis.status === 'complete' && analysis.report) {
       setReport(analysis.report);
-      setShowReflection(true); // 리포트 전에 자기평가 먼저
+      openModal("reflection"); // 리포트 전에 자기평가 먼저
     }
-  }, [analysis.status, analysis.report]);
+  }, [analysis.status, analysis.report, openModal]);
 
   // 세션 분석 완료 시 리포트 화면으로 전환
   useEffect(() => {
@@ -243,16 +227,16 @@ export default function PovAnalysis() {
         await new Promise((r) => setTimeout(r, 2000));
         const demoReport = generateDemoReport(selectedProcedure);
         setReport(demoReport);
-        setShowReflection(true);
+        openModal("reflection");
       }
     } catch {
       // 업로드 에러 발생 시 데모 리포트 폴백 — 자기평가 먼저 표시
       await new Promise((r) => setTimeout(r, 1500));
       const demoReport = generateDemoReport(selectedProcedure);
       setReport(demoReport);
-      setShowReflection(true);
+      openModal("reflection");
     }
-  }, [selectedProcedure, upload, videoUrl, analysis, selectedGoldStandard]);
+  }, [selectedProcedure, upload, videoUrl, analysis, selectedGoldStandard, openModal]);
 
   // URL 기반 업로드
   const handleUrlUpload = useCallback(async (url: string) => {
@@ -268,16 +252,16 @@ export default function PovAnalysis() {
         await new Promise((r) => setTimeout(r, 2000));
         const demoReport = generateDemoReport(selectedProcedure);
         setReport(demoReport);
-        setShowReflection(true);
+        openModal("reflection");
       }
     } catch {
       // 업로드 에러 발생 시 데모 리포트 폴백 — 자기평가 먼저 표시
       await new Promise((r) => setTimeout(r, 1500));
       const demoReport = generateDemoReport(selectedProcedure);
       setReport(demoReport);
-      setShowReflection(true);
+      openModal("reflection");
     }
-  }, [selectedProcedure, uploadByUrl, analysis, selectedGoldStandard]);
+  }, [selectedProcedure, uploadByUrl, analysis, selectedGoldStandard, openModal]);
 
   // 뒤로가기
   const handleBack = useCallback(() => {
@@ -403,7 +387,7 @@ export default function PovAnalysis() {
           {/* SOP 쿼리 관리 + 분석 이력 + 진행 추이 + 캘리브레이션 진입점 */}
           <div className="flex justify-end gap-2 flex-wrap">
             <button
-              onClick={() => setShowSchedule(true)}
+              onClick={() => openModal("schedule")}
               className="text-xs text-zinc-500 hover:text-zinc-300 flex items-center gap-1 px-2.5 py-1.5 rounded-lg hover:bg-zinc-800/60 transition-colors relative"
             >
               <Calendar className="w-3.5 h-3.5" /> 평가 일정
@@ -414,49 +398,49 @@ export default function PovAnalysis() {
               )}
             </button>
             <button
-              onClick={() => setShowPortfolio(true)}
+              onClick={() => openModal("portfolio")}
               className="text-xs text-zinc-500 hover:text-zinc-300 flex items-center gap-1 px-2.5 py-1.5 rounded-lg hover:bg-zinc-800/60 transition-colors"
             >
               <UserCircle className="w-3.5 h-3.5" /> 훈련생 관리
             </button>
             <button
-              onClick={() => setShowBenchmark(true)}
+              onClick={() => openModal("benchmark")}
               className="text-xs text-zinc-500 hover:text-zinc-300 flex items-center gap-1 px-2.5 py-1.5 rounded-lg hover:bg-zinc-800/60 transition-colors"
             >
               <BarChart3 className="w-3.5 h-3.5" /> 교육과정 효과
             </button>
             <button
-              onClick={() => setShowExecutive(true)}
+              onClick={() => openModal("executive")}
               className="text-xs text-zinc-500 hover:text-zinc-300 flex items-center gap-1 px-2.5 py-1.5 rounded-lg hover:bg-zinc-800/60 transition-colors"
             >
               <Briefcase className="w-3.5 h-3.5" /> 경영진 보고
             </button>
             <button
-              onClick={() => setShowCalibration(true)}
+              onClick={() => openModal("calibration")}
               className="text-xs text-zinc-500 hover:text-zinc-300 flex items-center gap-1 px-2.5 py-1.5 rounded-lg hover:bg-zinc-800/60 transition-colors"
             >
               <Scale className="w-3.5 h-3.5" /> 캘리브레이션
             </button>
             <button
-              onClick={() => setShowCohort(true)}
+              onClick={() => openModal("cohort")}
               className="text-xs text-slate-500 hover:text-slate-700 flex items-center gap-1 px-2.5 py-1.5 rounded-lg hover:bg-slate-100 transition-colors"
             >
               <Users className="w-3.5 h-3.5" /> 코호트 분석
             </button>
             <button
-              onClick={() => setShowProgress(true)}
+              onClick={() => openModal("progress")}
               className="text-xs text-zinc-500 hover:text-zinc-300 flex items-center gap-1 px-2.5 py-1.5 rounded-lg hover:bg-zinc-800/60 transition-colors"
             >
               <TrendingUp className="w-3.5 h-3.5" /> 진행 추이
             </button>
             <button
-              onClick={() => setShowHistory(true)}
+              onClick={() => openModal("history")}
               className="text-xs text-slate-500 hover:text-slate-700 flex items-center gap-1 px-2.5 py-1.5 rounded-lg hover:bg-slate-100 transition-colors"
             >
               <History className="w-3.5 h-3.5" /> 분석 이력
             </button>
             <button
-              onClick={() => setShowSopManager(true)}
+              onClick={() => openModal("sopManager")}
               className="text-xs text-slate-500 hover:text-slate-700 flex items-center gap-1 px-2.5 py-1.5 rounded-lg hover:bg-slate-100 transition-colors"
             >
               <Settings className="w-3.5 h-3.5" /> SOP 쿼리 관리
@@ -666,7 +650,7 @@ export default function PovAnalysis() {
                 onClick={() => {
                   const demoReport = generateDemoReport(selectedProcedure);
                   setReport(demoReport);
-                  setShowReflection(true); // 자기평가 먼저
+                  openModal("reflection"); // 자기평가 먼저
                 }}
                 className="px-4 py-2 rounded-lg bg-amber-500/15 hover:bg-amber-500/25 text-amber-600 text-sm font-medium border border-amber-200 transition-all"
               >
@@ -678,17 +662,17 @@ export default function PovAnalysis() {
       )}
 
       {/* ════════ Phase 3.5: 셀프 리플렉션 위저드 ════════ */}
-      {showReflection && selectedProcedure && (
+      {activeModal === "reflection" && selectedProcedure && (
         <div className="animate-fade-in-up">
           <SelfReflection
             procedure={selectedProcedure}
             onComplete={(data) => {
               setSelfReflection(data);
-              setShowReflection(false);
+              closeModal();
               setPhase("report");
             }}
             onSkip={() => {
-              setShowReflection(false);
+              closeModal();
               setPhase("report");
             }}
           />
@@ -723,7 +707,7 @@ export default function PovAnalysis() {
       )}
 
       {/* ════════ Phase 4: 평가 리포트 ════════ */}
-      {!showReflection && phase === "report" && !sessionMode && report && (
+      {activeModal !== "reflection" && phase === "report" && !sessionMode && report && (
         <div className="space-y-4 animate-fade-in-up">
           {/* 강평 세션 CTA — 리포트 상단 */}
           <div className="bg-gradient-to-r from-amber-500/10 via-amber-500/5 to-transparent border border-amber-500/20 rounded-xl p-4 flex flex-col sm:flex-row items-start sm:items-center gap-3">
@@ -739,14 +723,14 @@ export default function PovAnalysis() {
               <ExportMenu report={report} />
               {/* HPO-22: 사고 사례 라이브러리 버튼 */}
               <button
-                onClick={() => setShowIncidentLibrary(true)}
+                onClick={() => openModal("incidentLibrary")}
                 className="flex items-center gap-2 px-3.5 py-2 rounded-lg bg-red-50 hover:bg-red-100 text-red-600 text-sm font-medium border border-red-200 transition-all"
                 title="관련 사고 사례 보기"
               >
                 <BookOpen className="w-4 h-4" /> 사고 사례
               </button>
               <button
-                onClick={() => setShowPrintReport(true)}
+                onClick={() => openModal("printReport")}
                 className="flex items-center gap-2 px-3.5 py-2 rounded-lg bg-zinc-100 hover:bg-zinc-200 text-zinc-700 text-sm font-medium border border-zinc-200 transition-all"
               >
                 <Printer className="w-4 h-4" /> 상세 리포트 인쇄
@@ -785,61 +769,61 @@ export default function PovAnalysis() {
       )}
 
       {/* SOP 관리 모달 */}
-      {showSopManager && (
-        <SopManager onClose={() => setShowSopManager(false)} />
+      {activeModal === "sopManager" && (
+        <SopManager onClose={() => closeModal()} />
       )}
 
-      {showHistory && (
+      {activeModal === "history" && (
         <AnalysisHistory
           procedureId={selectedProcedure?.id}
           onViewReport={(histReport) => {
             setReport(histReport);
-            setShowHistory(false);
+            closeModal();
             // 이력에서 선택한 리포트의 절차를 찾아 설정
             const matchProc = HPO_PROCEDURES.find(p => p.id === histReport.procedureId);
             if (matchProc) setSelectedProcedure(matchProc);
             setPhase("report");
           }}
-          onClose={() => setShowHistory(false)}
+          onClose={() => closeModal()}
         />
       )}
 
       {/* 역량 진행 추이 대시보드 */}
-      {showProgress && (
-        <TraineeProgressDashboard onClose={() => setShowProgress(false)} />
+      {activeModal === "progress" && (
+        <TraineeProgressDashboard onClose={() => closeModal()} />
       )}
 
       {/* 코호트 분석 대시���드 */}
-      {showCohort && (
-        <CohortAnalytics onClose={() => setShowCohort(false)} />
+      {activeModal === "cohort" && (
+        <CohortAnalytics onClose={() => closeModal()} />
       )}
 
       {/* 캘리브레이션 대시보드 */}
-      {showCalibration && (
-        <CalibrationDashboard onClose={() => setShowCalibration(false)} />
+      {activeModal === "calibration" && (
+        <CalibrationDashboard onClose={() => closeModal()} />
       )}
 
       {/* 상세 리포트 인쇄 모달 */}
-      {showPrintReport && report && selectedProcedure && (
+      {activeModal === "printReport" && report && selectedProcedure && (
         <PrintableReport
           report={report}
           procedure={selectedProcedure}
-          onClose={() => setShowPrintReport(false)}
+          onClose={() => closeModal()}
         />
       )}
 
       {/* 교육과정 효과 벤치마킹 대시보드 */}
-      {showBenchmark && (
-        <BenchmarkDashboard onClose={() => setShowBenchmark(false)} />
+      {activeModal === "benchmark" && (
+        <BenchmarkDashboard onClose={() => closeModal()} />
       )}
 
       {/* 훈련생 포트폴리오 모달 */}
-      {showPortfolio && (
+      {activeModal === "portfolio" && (
         <TraineePortfolio
-          onClose={() => setShowPortfolio(false)}
+          onClose={() => closeModal()}
           onViewReport={(histReport) => {
             setReport(histReport);
-            setShowPortfolio(false);
+            closeModal();
             const matchProc = HPO_PROCEDURES.find(p => p.id === histReport.procedureId);
             if (matchProc) setSelectedProcedure(matchProc);
             setPhase("report");
@@ -848,23 +832,23 @@ export default function PovAnalysis() {
       )}
 
       {/* HPO-20: 경영진 요약 대시보드 모달 */}
-      {showExecutive && (
-        <ExecutiveSummary onClose={() => setShowExecutive(false)} />
+      {activeModal === "executive" && (
+        <ExecutiveSummary onClose={() => closeModal()} />
       )}
 
       {/* HPO-22: 사고 사례 연계 라이브러리 모달 */}
-      {showIncidentLibrary && (
+      {activeModal === "incidentLibrary" && (
         <IncidentLibrary
           report={report ?? undefined}
-          onClose={() => setShowIncidentLibrary(false)}
+          onClose={() => closeModal()}
         />
       )}
 
       {/* 평가 일정 캘린더 모달 */}
-      {showSchedule && (
+      {activeModal === "schedule" && (
         <EvaluationSchedule
           onClose={() => {
-            setShowSchedule(false);
+            closeModal();
             // 닫을 때 overdue 배지 갱신
             fetch('/api/twelvelabs/pov-schedule?type=week')
               .then(r => r.json())
@@ -874,7 +858,7 @@ export default function PovAnalysis() {
           onStartEvaluation={(procedureId) => {
             const proc = HPO_PROCEDURES.find(p => p.id === procedureId);
             if (proc) {
-              setShowSchedule(false);
+              closeModal();
               handleSelectProcedure(proc);
             }
           }}
