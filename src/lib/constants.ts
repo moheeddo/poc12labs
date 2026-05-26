@@ -8,6 +8,7 @@ export const TWELVELABS_INDEXES = {
 } as const;
 
 // 서비스 탭 정의
+// NOTE: HPO센터(POV)는 UI에서 숨김 — 코드는 유지하되 노출 안 함
 export const SERVICE_TABS: {
   key: ServiceTab;
   label: string;
@@ -18,19 +19,11 @@ export const SERVICE_TABS: {
 }[] = [
   {
     key: "leadership",
-    label: "리더십코칭 역량진단",
-    description: "6인 토론 영상에서 개별 발표자의 역량을 자동 스코어링하고 피드백을 생성합니다.",
+    label: "리더십 - 역량진단 2.0",
+    description: "3인 토의·1:1 면담·5분 전략 브리핑 영상에서 멀티모달 행동지표로 리더십 역량을 평가합니다.",
     color: "text-teal-600",
     bgColor: "bg-teal-500/10",
     borderColor: "border-teal-500/30",
-  },
-  {
-    key: "pov",
-    label: "HPO센터 영상분석",
-    description: "1인칭 시점 영상으로 SOP 절차 이탈을 탐지하고 숙련도를 비교 분석합니다.",
-    color: "text-amber-600",
-    bgColor: "bg-amber-500/10",
-    borderColor: "border-amber-500/30",
   },
 ];
 
@@ -39,12 +32,12 @@ export const SERVICE_TABS: {
 // =============================================
 
 // 직급별 평가 역량 매핑
-// 1-3직급: 비전제시, 신뢰형성, 구성원육성, 합리적의사결정
+// 1-3직급: 비전제시, 신뢰형성, 구성원육성 (3개 핵심 역량 — 합리적의사결정 제외)
 // 4직급:   비전실천, 의사소통, 자기개발, 문제해결
 export const LEVEL_COMPETENCY_MAP: Record<JobLevel, LeadershipCompetencyKey[]> = {
-  1: ["visionPresentation", "trustBuilding", "memberDevelopment", "rationalDecision"],
-  2: ["visionPresentation", "trustBuilding", "memberDevelopment", "rationalDecision"],
-  3: ["visionPresentation", "trustBuilding", "memberDevelopment", "rationalDecision"],
+  1: ["visionPresentation", "trustBuilding", "memberDevelopment"],
+  2: ["visionPresentation", "trustBuilding", "memberDevelopment"],
+  3: ["visionPresentation", "trustBuilding", "memberDevelopment"],
   4: ["visionPractice", "communication", "selfDevelopment", "problemSolving"],
 };
 
@@ -239,15 +232,26 @@ export function getCompetenciesForLevel(level: JobLevel) {
 }
 
 // 리더십 역량 간단 설정 (하위 호환 + ScoreCard/차트용)
+// NOTE: rationalDecision 평가 항목 제외 — 1-3직급은 3개 핵심 역량으로 운영
+const ACTIVE_COMPETENCY_KEYS = new Set<LeadershipCompetencyKey>([
+  "visionPresentation",
+  "trustBuilding",
+  "memberDevelopment",
+  // 4직급 역량은 유지
+  "visionPractice",
+  "communication",
+  "selfDevelopment",
+  "problemSolving",
+]);
 export const LEADERSHIP_COMPETENCY_CONFIG: {
   key: LeadershipCompetencyKey;
   label: string;
   weight: number;
   color: string;
-}[] = LEADERSHIP_COMPETENCY_DEFS.map((d) => ({
+}[] = LEADERSHIP_COMPETENCY_DEFS.filter((d) => ACTIVE_COMPETENCY_KEYS.has(d.key)).map((d) => ({
   key: d.key,
   label: d.label,
-  weight: 0.25, // 4개 역량 균등 가중치 (직급별 4개씩 평가)
+  weight: 1 / 3, // 1-3직급 3개 역량 균등 가중치 (4직급은 별도 처리)
   color: d.color,
 }));
 

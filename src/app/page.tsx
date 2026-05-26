@@ -13,8 +13,8 @@ import ErrorBoundary from "@/components/shared/ErrorBoundary";
 import Skeleton from "@/components/shared/Skeleton";
 
 // 탭 컴포넌트 코드 스플리팅 — 초기 번들 크기 감소
+// NOTE: HPO센터(POV) · 강의평가는 UI 노출 제외 — 코드는 유지하되 라우트에서 제거
 const LeadershipCoaching = lazy(() => import("@/components/leadership/LeadershipCoaching"));
-const PovAnalysis = lazy(() => import("@/components/pov/PovAnalysis"));
 
 export default function Home() {
   const [activeTab, setActiveTab] = useState<ServiceTab | null>(null);
@@ -49,7 +49,6 @@ export default function Home() {
             </div>
           }>
             {activeTab === "leadership" && <LeadershipCoaching />}
-            {activeTab === "pov" && <PovAnalysis />}
           </Suspense>
         </ErrorBoundary>
       </main>

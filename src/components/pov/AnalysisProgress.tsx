@@ -26,7 +26,14 @@ const STATUS_COLOR: Record<string, string> = {
 export default function AnalysisProgress({ progress, stages, status, error }: Props) {
   return (
     <div className="flex flex-col items-center gap-6 py-12">
-      <div className="relative w-32 h-32">
+      <div
+        className="relative w-32 h-32"
+        role="progressbar"
+        aria-valuenow={progress}
+        aria-valuemin={0}
+        aria-valuemax={100}
+        aria-label={`AI 분석 진행률 ${progress}%`}
+      >
         <svg className="w-32 h-32 -rotate-90" viewBox="0 0 128 128">
           <circle cx="64" cy="64" r="56" fill="none" stroke="currentColor" className="text-zinc-800" strokeWidth="8" />
           <circle cx="64" cy="64" r="56" fill="none" stroke="currentColor"
@@ -44,8 +51,12 @@ export default function AnalysisProgress({ progress, stages, status, error }: Pr
       {stages && (
         <div className="w-full max-w-md space-y-2">
           {Object.entries(stages).map(([key, stageStatus]) => (
-            <div key={key} className="flex items-center gap-3 px-4 py-2 rounded-lg bg-zinc-900/50">
-              <span className={`text-lg font-mono ${STATUS_COLOR[stageStatus]}`}>{STATUS_ICON[stageStatus]}</span>
+            <div
+              key={key}
+              className="flex items-center gap-3 px-4 py-2 rounded-lg bg-zinc-900/50"
+              aria-label={`${STAGE_LABELS[key] || key}: ${stageStatus === 'done' ? '완료' : stageStatus === 'running' ? '진행 중' : stageStatus === 'error' ? '오류' : '대기'}`}
+            >
+              <span className={`text-lg font-mono ${STATUS_COLOR[stageStatus]}`} aria-hidden="true">{STATUS_ICON[stageStatus]}</span>
               <span className={`text-sm ${stageStatus === 'running' ? 'text-zinc-100' : 'text-zinc-400'}`}>
                 {STAGE_LABELS[key] || key}
               </span>

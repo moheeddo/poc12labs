@@ -2,7 +2,7 @@
 // HPO-20: 경영진 요약 대시보드
 // 프로그램 효과를 경영진에게 한 장으로 보고하기 위한 요약 대시보드 (A4 가로 인쇄 최적화)
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import {
   LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer,
   PieChart, Pie, Cell, Legend,
@@ -174,7 +174,8 @@ function ChangeBadge({ change, positive }: { change: number; positive: boolean }
 
 export default function ExecutiveSummary({ onClose }: Props) {
   const [data, setData] = useState<ReturnType<typeof buildDemoData> | null>(null);
-  const today = new Date().toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric' });
+  // 날짜 문자열은 컴포넌트 마운트 시점에 한 번만 생성
+  const today = useMemo(() => new Date().toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric' }), []);
 
   // 실제 운영 시에는 pov-cohort + pov-benchmark API를 호출해 채운다
   useEffect(() => {
@@ -193,6 +194,12 @@ export default function ExecutiveSummary({ onClose }: Props) {
     load();
   }, []);
 
+  // 등급 총합은 gradeData가 변경될 때만 재계산 (차트 리렌더링 방지)
+  const totalGrade = useMemo(
+    () => data ? data.gradeData.reduce((s, g) => s + g.value, 0) : 0,
+    [data],
+  );
+
   if (!data) {
     return (
       <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50">
@@ -202,7 +209,6 @@ export default function ExecutiveSummary({ onClose }: Props) {
   }
 
   const { kpiCards, gradeData, trendData, procedureRows, insights, recommendations } = data;
-  const totalGrade = gradeData.reduce((s, g) => s + g.value, 0);
 
   return (
     <>

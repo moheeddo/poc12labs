@@ -17,6 +17,35 @@ const API_KEY = process.env.TWELVELABS_API_KEY!;
 const API_URL = process.env.TWELVELABS_API_URL || "https://api.twelvelabs.io/v1.3";
 const MAX_FILE_SIZE = 2 * 1024 * 1024 * 1024; // 2GB
 
+// 허용 MIME 타입 화이트리스트
+const ALLOWED_MIME_TYPES = new Set([
+  "video/mp4", "video/quicktime", "video/x-matroska",
+  "video/webm", "video/avi", "video/x-msvideo",
+  "video/mpeg", "video/x-ms-wmv", "video/x-flv",
+]);
+// 허용 확장자
+const ALLOWED_EXTENSIONS = new Set([
+  ".mp4", ".mov", ".mkv", ".webm", ".avi", ".mpeg", ".mpg", ".wmv", ".flv",
+]);
+
+function validateFile(fileName: string, mimeType: string): string | null {
+  const ext = fileName.lastIndexOf(".") >= 0
+    ? fileName.slice(fileName.lastIndexOf(".")).toLowerCase()
+    : "";
+  if (!ALLOWED_EXTENSIONS.has(ext)) {
+    return `지원하지 않는 확장자입니다: ${ext || "(없음)"}. 허용: ${[...ALLOWED_EXTENSIONS].join(", ")}`;
+  }
+  if (!ALLOWED_MIME_TYPES.has(mimeType)) {
+    return `지원하지 않는 파일 형식입니다: ${mimeType}. 허용: 동영상 파일만 업로드 가능합니다`;
+  }
+  // 경로 순회 공격 방지
+  const baseName = fileName.split(/[\\/]/).pop() || fileName;
+  if (baseName !== fileName || fileName.includes("..")) {
+    return "파일명에 허용되지 않는 문자가 포함되어 있습니다";
+  }
+  return null;
+}
+
 // ── URL 기반 업로드 (용량 제한 없음) ──
 
 async function handleUrlUpload(request: NextRequest) {
@@ -114,10 +143,18 @@ function parseMultipart(request: NextRequest): Promise<ParsedUpload> {
         reject(new Error("MISSING_PARAMS"));
         return;
       }
+      // 파일 검증 (MIME 타입, 확장자, 경로 순회)
+      const validationError = validateFile(fileName, fileMimeType);
+      if (validationError) {
+        reject(new Error(`INVALID_FILE:${validationError}`));
+        return;
+      }
+      // 경로 순회 공격 방지: 파일명에서 디렉토리 경로 제거
+      const safeName = fileName.split(/[\\/]/).pop() || fileName;
       resolve({
         indexId,
         fileBuffer: Buffer.concat(chunks),
-        fileName,
+        fileName: safeName,
         fileMimeType,
       });
     });
@@ -196,6 +233,12 @@ export async function POST(request: NextRequest) {
         { error: `파일 크기(${sizeMB}MB)가 제한(2GB)을 초과합니다` },
         { status: 413 }
       );
+    }
+
+    if (msg.startsWith("INVALID_FILE:")) {
+      const detail = msg.slice("INVALID_FILE:".length);
+      log.warn("파일 검증 실패", { detail });
+      return NextResponse.json({ error: detail }, { status: 400 });
     }
 
     if (msg === "MISSING_PARAMS") {

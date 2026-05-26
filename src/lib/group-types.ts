@@ -1,6 +1,7 @@
 // =============================================
 // 6인 조 단위 관리 — 타입 정의
-// 수업 순서: 비전제시(전원) → 신뢰형성(전원) → 구성원육성(전원) → 합리적의사결정(전원)
+// 수업 순서: 비전제시(전원) → 신뢰형성(전원) → 구성원육성(전원)
+// NOTE: 합리적의사결정은 평가항목에서 제외됨 (v0.9 루브릭 기준)
 // =============================================
 
 import type { LeadershipCompetencyKey } from "./types";
@@ -77,14 +78,6 @@ export const COMPETENCY_ORDER: {
     activityType: "역할 연기",
     description: "6명 각자 코칭 면담 영상 업로드",
     color: "#ef4444",
-  },
-  {
-    key: "rationalDecision",
-    label: "합리적의사결정",
-    type: "individual",
-    activityType: "In-basket",
-    description: "6명 각자 의사결정 발표 영상 업로드",
-    color: "#3b82f6",
   },
 ];
 

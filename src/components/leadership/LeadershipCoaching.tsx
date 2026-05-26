@@ -10,7 +10,6 @@ import {
   ArrowLeft,
   ChevronRight,
   Target,
-  Scale,
   GraduationCap,
   MessageCircle,
   Sparkles,
@@ -69,15 +68,13 @@ const COMPETENCY_ICONS: Record<string, React.ElementType> = {
   visionPresentation: Target,
   trustBuilding: MessageCircle,
   memberDevelopment: GraduationCap,
-  rationalDecision: Scale,
 };
 
-// ─── 1-3직급 역량 4개 ───
+// ─── 1-3직급 핵심 역량 3개 (합리적의사결정 제외) ───
 const EVALUATION_COMPETENCIES: LeadershipCompetencyKey[] = [
   "visionPresentation",
   "trustBuilding",
   "memberDevelopment",
-  "rationalDecision",
 ];
 
 // ─── 뷰 상태 ───

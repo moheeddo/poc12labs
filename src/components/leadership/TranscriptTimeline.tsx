@@ -49,7 +49,7 @@ function mergeSegments(segments: TranscriptSegment[]): MergedSegment[] {
   } = {
     start: segments[0].start,
     end: segments[0].end,
-    texts: [segments[0].value || ""],
+    texts: [segments[0].text || segments[0].value || ""],
     indices: [0],
   };
 
@@ -61,7 +61,7 @@ function mergeSegments(segments: TranscriptSegment[]): MergedSegment[] {
     const seg = segments[i];
     const prevText = currentGroup.texts.join(" ");
     const timeDiff = seg.start - currentGroup.end;
-    const totalLength = prevText.length + (seg.value?.length || 0);
+    const totalLength = prevText.length + (seg.text?.length || seg.value?.length || 0);
 
     // 병합 조건:
     // 1. 시간 갭이 2초 이내
@@ -74,7 +74,7 @@ function mergeSegments(segments: TranscriptSegment[]): MergedSegment[] {
 
     if (shouldMerge) {
       currentGroup.end = seg.end;
-      currentGroup.texts.push(seg.value || "");
+      currentGroup.texts.push(seg.text || seg.value || "");
       currentGroup.indices.push(i);
     } else {
       // 현재 그룹 완료
@@ -92,7 +92,7 @@ function mergeSegments(segments: TranscriptSegment[]): MergedSegment[] {
       currentGroup = {
         start: seg.start,
         end: seg.end,
-        texts: [seg.value || ""],
+        texts: [seg.text || seg.value || ""],
         indices: [i],
       };
     }

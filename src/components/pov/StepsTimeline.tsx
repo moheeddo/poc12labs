@@ -22,6 +22,8 @@ interface Props {
   transcription?: TranscriptSegment[];
   /** 영상 URL (EvidencePanel 근거 패널용) */
   videoUrl?: string;
+  /** 절차 단계 클릭 시 상위 EvidencePlayer 연동용 콜백 */
+  onStepClick?: (stepId: string) => void;
 }
 
 // 절차의 모든 스텝을 평탄화하여 반환
@@ -107,6 +109,7 @@ export default function StepsTimeline({
   onSeek,
   transcription,
   videoUrl,
+  onStepClick,
 }: Props) {
   const allSteps = flattenSteps(procedure);
   // stepId → DetectedStep 맵
@@ -181,9 +184,10 @@ export default function StepsTimeline({
                     className={`border-b border-zinc-800 transition-colors cursor-pointer ${rowBg} ${
                       isEvidenceOpen ? 'ring-1 ring-inset ring-blue-500/40' : ''
                     }`}
-                    onClick={() =>
-                      setExpandedEvidence((prev) => (prev === step.id ? null : step.id))
-                    }
+                    onClick={() => {
+                      setExpandedEvidence((prev) => (prev === step.id ? null : step.id));
+                      onStepClick?.(step.id);
+                    }}
                   >
                     {/* 스텝 ID + 중요 여부 */}
                     <td

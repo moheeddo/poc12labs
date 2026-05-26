@@ -194,6 +194,17 @@ export default function LeadershipFeedback({
   const [activeEvidenceId, setActiveEvidenceId] = useState<string | null>(null);
   const [saved, setSaved] = useState(false);
   const [autoSaveToast, setAutoSaveToast] = useState(false);
+  // setTimeout cleanup 용 ref (언마운트 시 타이머 정리)
+  const savedTimerRef = useRef<ReturnType<typeof setTimeout>>(null);
+  const autoSaveTimerRef = useRef<ReturnType<typeof setTimeout>>(null);
+
+  // 컴포넌트 언마운트 시 타이머 정리
+  useEffect(() => {
+    return () => {
+      if (savedTimerRef.current) clearTimeout(savedTimerRef.current);
+      if (autoSaveTimerRef.current) clearTimeout(autoSaveTimerRef.current);
+    };
+  }, []);
 
   // 우측 패널 탭 — 멀티모달 기본
   const [rightTab, setRightTab] = useState<"evidence" | "transcript" | "report" | "multimodal">("multimodal");
@@ -285,7 +296,7 @@ export default function LeadershipFeedback({
         setAnalysisStep("AI 역량 매칭 및 자동 평가 중...");
         const competencyKeys: LeadershipCompetencyKey[] = selectedCompetencies && selectedCompetencies.length > 0
           ? selectedCompetencies
-          : ["visionPresentation", "trustBuilding", "memberDevelopment", "rationalDecision"];
+          : ["visionPresentation", "trustBuilding", "memberDevelopment"];
         const generatedEvidence: EvidenceItem[] = [];
         // 챕터가 없으면 영상 전체를 하나의 구간으로 대체
         const chaptersToUse: Chapter[] = parsed.length > 0
@@ -399,7 +410,9 @@ export default function LeadershipFeedback({
         JSON.stringify({ videoId, videoTitle, competencyKey: primaryCompetency, evidence, savedAt: new Date().toISOString(), autoSaved: true })
       );
       setAutoSaveToast(true);
-      setTimeout(() => setAutoSaveToast(false), 4000);
+      // 이전 타이머 정리 후 새 타이머 설정
+      if (autoSaveTimerRef.current) clearTimeout(autoSaveTimerRef.current);
+      autoSaveTimerRef.current = setTimeout(() => setAutoSaveToast(false), 4000);
 
       // 조 세션에 점수 자동 반영 (최초 1회만)
       if (onAnalysisComplete && !analysisReported) {
@@ -532,7 +545,9 @@ export default function LeadershipFeedback({
       JSON.stringify({ videoId, videoTitle, competencyKey: primaryCompetency, evidence, savedAt: new Date().toISOString() })
     );
     setSaved(true);
-    setTimeout(() => setSaved(false), 3000);
+    // 이전 타이머 정리 후 새 타이머 설정
+    if (savedTimerRef.current) clearTimeout(savedTimerRef.current);
+    savedTimerRef.current = setTimeout(() => setSaved(false), 3000);
   }, [videoId, videoTitle, evidence, selectedCompetencies]);
 
   // handleSearch: 향후 검색 UI 연동을 위해 보존 (현재 미사용)
@@ -572,7 +587,7 @@ export default function LeadershipFeedback({
       summary,
       selectedCompetencies && selectedCompetencies.length > 0
         ? selectedCompetencies
-        : ["visionPresentation", "trustBuilding", "memberDevelopment", "rationalDecision"]
+        : ["visionPresentation", "trustBuilding", "memberDevelopment"]
     );
   }, [evidence, summary, selectedCompetencies]);
 
@@ -593,7 +608,7 @@ export default function LeadershipFeedback({
   const competencyKeysToUse = useMemo(
     () => selectedCompetencies && selectedCompetencies.length > 0
       ? selectedCompetencies
-      : ["visionPresentation", "trustBuilding", "memberDevelopment", "rationalDecision"] as LeadershipCompetencyKey[],
+      : ["visionPresentation", "trustBuilding", "memberDevelopment"] as LeadershipCompetencyKey[],
     [selectedCompetencies]
   );
 

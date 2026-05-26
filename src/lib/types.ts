@@ -55,9 +55,12 @@ export interface Highlight {
 // =============================================
 
 export interface TranscriptSegment {
-  value: string;
   start: number;
   end: number;
+  text: string;
+  speaker?: string;
+  /** @deprecated text 필드 사용 권장 — 하위 호환용 */
+  value?: string;
 }
 
 // 화자 추정이 포함된 전사 세그먼트 (디브리핑 대본용)
@@ -440,10 +443,4 @@ export interface StepQueryTemplate {
   stateQuery: string;
 }
 
-// ── 전사문 세그먼트 ──
-export interface TranscriptSegment {
-  start: number;
-  end: number;
-  text: string;
-  speaker?: string;
-}
+// (TranscriptSegment 통합 완료 — 상단 전사 섹션에서 정의)
