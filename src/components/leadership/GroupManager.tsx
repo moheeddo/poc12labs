@@ -53,13 +53,8 @@ const OBSERVATION_TIPS: Record<LeadershipCompetencyKey, string[]> = {
     "심리적 안전감",
     "공동 대안에 주목하세요",
   ],
-  rationalDecision: [
-    "문제 분석",
-    "논리적 근거",
-    "의견 수렴",
-    "리스크 관리",
-    "실행 계획에 주목하세요",
-  ],
+  // rationalDecision: 평가항목 제외 — 빈 배열 유지(타입 호환)
+  rationalDecision: [],
   // 4직급 역량 키 (현재 미사용이지만 타입 호환 필요)
   visionPractice: [],
   communication: [],

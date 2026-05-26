@@ -10,13 +10,12 @@ interface UseKeyboardShortcutsOptions {
 
 /**
  * 키보드 단축키 훅
- * - 1: 리더십 코칭
- * - 2: POV 분석
- * - 3: 교수자 강의평가
+ * - 1: 리더십 역량진단 2.0
  * - 0 / Escape: 대시보드 복귀
  * - ?: 도움말 모달 토글
  *
  * input, textarea, [contenteditable] 포커스 시 비활성
+ * NOTE: HPO센터(POV) · 강의평가는 UI 노출 제외 — 단축키도 제거
  */
 export function useKeyboardShortcuts({
   onTabChange,
@@ -44,14 +43,6 @@ export function useKeyboardShortcuts({
         case "1":
           e.preventDefault();
           onTabChange("leadership");
-          break;
-        case "2":
-          e.preventDefault();
-          onTabChange("pov");
-          break;
-        case "3":
-          e.preventDefault();
-          onTabChange("lecture");
           break;
         case "0":
           e.preventDefault();

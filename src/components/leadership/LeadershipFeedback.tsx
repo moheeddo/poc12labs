@@ -296,7 +296,7 @@ export default function LeadershipFeedback({
         setAnalysisStep("AI 역량 매칭 및 자동 평가 중...");
         const competencyKeys: LeadershipCompetencyKey[] = selectedCompetencies && selectedCompetencies.length > 0
           ? selectedCompetencies
-          : ["visionPresentation", "trustBuilding", "memberDevelopment", "rationalDecision"];
+          : ["visionPresentation", "trustBuilding", "memberDevelopment"];
         const generatedEvidence: EvidenceItem[] = [];
         // 챕터가 없으면 영상 전체를 하나의 구간으로 대체
         const chaptersToUse: Chapter[] = parsed.length > 0
@@ -587,7 +587,7 @@ export default function LeadershipFeedback({
       summary,
       selectedCompetencies && selectedCompetencies.length > 0
         ? selectedCompetencies
-        : ["visionPresentation", "trustBuilding", "memberDevelopment", "rationalDecision"]
+        : ["visionPresentation", "trustBuilding", "memberDevelopment"]
     );
   }, [evidence, summary, selectedCompetencies]);
 
@@ -608,7 +608,7 @@ export default function LeadershipFeedback({
   const competencyKeysToUse = useMemo(
     () => selectedCompetencies && selectedCompetencies.length > 0
       ? selectedCompetencies
-      : ["visionPresentation", "trustBuilding", "memberDevelopment", "rationalDecision"] as LeadershipCompetencyKey[],
+      : ["visionPresentation", "trustBuilding", "memberDevelopment"] as LeadershipCompetencyKey[],
     [selectedCompetencies]
   );
 

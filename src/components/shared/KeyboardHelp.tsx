@@ -12,9 +12,7 @@ const shortcutGroups = [
   {
     title: "서비스 전환",
     items: [
-      { key: "1", description: "리더십 코칭" },
-      { key: "2", description: "POV 분석" },
-      { key: "3", description: "교수자 강의평가" },
+      { key: "1", description: "리더십 - 역량진단 2.0" },
     ],
   },
   {
