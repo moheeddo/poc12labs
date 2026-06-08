@@ -8,7 +8,6 @@ import {
   Save,
   FileText,
   ClipboardList,
-  BarChart3,
   Wand2,
   Bot,
   CheckCircle2,
@@ -24,12 +23,9 @@ import {
   matchChapterToCompetency,
   generateAIScore,
   generateAutoFeedback,
-  generateAnalysisReport,
 } from "@/lib/leadership-analysis";
-import type { AnalysisReportData } from "@/lib/leadership-analysis";
 import { useMultimodalPipeline } from "@/hooks/useMultimodalPipeline";
 import TranscriptTimeline from "./TranscriptTimeline";
-import AnalysisReport from "./AnalysisReport";
 import type { Chapter, Highlight, LeadershipCompetencyKey } from "@/lib/types";
 import { formatTime, cn } from "@/lib/utils";
 
@@ -82,7 +78,7 @@ const ANALYSIS_STEPS = [
   { phase: 2, label: "구간 분석", desc: "영상을 의미 있는 챕터로 분할합니다", icon: FileText },
   { phase: 3, label: "핵심 장면 추출", desc: "중요한 하이라이트를 찾고 있습니다", icon: Zap },
   { phase: 4, label: "AI 요약", desc: "전체 내용을 요약하고 있습니다", icon: Bot },
-  { phase: 5, label: "BARS 역량 매칭", desc: "내용 기준 역량을 평가합니다", icon: ClipboardList },
+  { phase: 5, label: "역량 매칭", desc: "내용 기준 역량을 평가합니다", icon: ClipboardList },
   { phase: 6, label: "시선 · 음성 · 유창성 분석", desc: "멀티모달 행동 신호를 추출합니다", icon: Eye },
   { phase: 7, label: "자세 · 표정 분석", desc: "신체 행동 신호를 분석합니다", icon: Hand },
   { phase: 8, label: "Solar Pro 2 보고서", desc: "AI가 종합 보고서를 생성합니다", icon: Sparkles },
@@ -207,7 +203,7 @@ export default function LeadershipFeedback({
   }, []);
 
   // 우측 패널 탭 — 멀티모달 기본
-  const [rightTab, setRightTab] = useState<"evidence" | "transcript" | "report" | "multimodal">("multimodal");
+  const [rightTab, setRightTab] = useState<"evidence" | "transcript" | "multimodal">("multimodal");
 
   // 멀티모달 항목별 observation 확장 상태
   const [expandedObs, setExpandedObs] = useState<Set<number>>(new Set());
@@ -572,25 +568,6 @@ export default function LeadershipFeedback({
   const _scoredCount = useMemo(() => evidence.filter((e) => e.score > 0).length, [evidence]);
   void _scoredCount;
 
-  // 종합 리포트 데이터
-  const reportData: AnalysisReportData | null = useMemo(() => {
-    if (evidence.length === 0) return null;
-    return generateAnalysisReport(
-      evidence.map((e) => ({
-        competencyKey: e.competencyKey,
-        score: e.score,
-        feedback: e.feedback,
-        description: e.description,
-        aiScore: e.aiScore,
-        timestamp: e.timestamp,
-      })),
-      summary,
-      selectedCompetencies && selectedCompetencies.length > 0
-        ? selectedCompetencies
-        : ["visionPresentation", "trustBuilding", "memberDevelopment"]
-    );
-  }, [evidence, summary, selectedCompetencies]);
-
   // 미평가 항목 수
   const unscoredCount = evidence.filter((e) => e.score === 0).length;
 
@@ -864,20 +841,23 @@ export default function LeadershipFeedback({
         })}
       </div>
 
-      {/* ── 2단 레이아웃 (리포트 중심) ── */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-        {/* ── 섹션 C: 좌측 — 영상 플레이어 + 챕터 + 요약 ── */}
-        <div className="lg:col-span-5 lg:sticky lg:top-6 lg:self-start space-y-4">
-          {/* 영상 플레이어 */}
-          <div className="rounded-2xl overflow-hidden border border-slate-200/40 bg-black shadow-2xl shadow-slate-200/60">
+      {/* ── 세로 레이아웃: 영상 상단 고정 + 분석 하단 전체너비 ── */}
+      <div className="flex flex-col gap-5">
+        {/* ── 영상 플레이어 — 화면 상단 sticky 고정 (스크롤 시에도 항상 노출) ── */}
+        <div className="sticky top-0 z-20 -mx-1 px-1 pt-1 pb-3 bg-slate-50/85 backdrop-blur-sm">
+          <div className="rounded-2xl overflow-hidden border border-slate-200/40 bg-black shadow-xl shadow-slate-200/60 mx-auto w-full max-w-3xl">
             <video
               ref={videoRef}
               src={videoUrl}
               controls
-              className="w-full aspect-video bg-black"
+              className="w-full aspect-video max-h-[52vh] bg-black"
               aria-label="토론 영상"
             />
           </div>
+        </div>
+
+        {/* ── 분석 영역 — 영상 아래 전체 너비 ── */}
+        <div className="space-y-4">
 
           {/* 챕터 타임라인 (챕터가 있을 때만) */}
           {chapters.length > 0 && (
@@ -969,11 +949,8 @@ export default function LeadershipFeedback({
               )}
             </div>
           )}
-        </div>
-
-        {/* ── 섹션 D: 우측 — 탭 전환 (멀티모달 / BARS / 대본) ── */}
-        <div className="lg:col-span-7 space-y-5">
-          {/* 탭 헤더 — 3탭 */}
+          {/* ── 탭 전환 (멀티모달 / 대본) ── */}
+          {/* 탭 헤더 — 2탭 */}
           <div className="flex items-center gap-1 p-1 bg-white/40 border border-slate-200/30 rounded-xl">
             <button
               onClick={() => setRightTab("multimodal")}
@@ -986,18 +963,6 @@ export default function LeadershipFeedback({
             >
               <Eye className="w-3.5 h-3.5" />
               멀티모달 분석
-            </button>
-            <button
-              onClick={() => setRightTab("report")}
-              className={cn(
-                "flex-1 flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-lg text-sm font-medium transition-all",
-                rightTab === "report"
-                  ? "bg-slate-100/60 text-teal-600 shadow-sm"
-                  : "text-slate-500 hover:text-slate-500"
-              )}
-            >
-              <BarChart3 className="w-3.5 h-3.5" />
-              BARS 리포트
             </button>
             <button
               onClick={() => setRightTab("transcript")}
@@ -1185,7 +1150,8 @@ export default function LeadershipFeedback({
                     if (value === null) return null;
                     const pct = Math.min(100, Math.max(0, (value / max) * 100));
                     const ind = item.indicators.find(i => i.label === label);
-                    const color = ind?.judgment === "상위" ? "bg-teal-500" : ind?.judgment === "중상" ? "bg-sky-400" : ind?.judgment === "중하" ? "bg-amber-400" : ind?.judgment === "미흡" ? "bg-red-400" : "bg-slate-300";
+                    // 3분할 색상대: 우수(상위)=teal · 보통(중상·중하)=amber · 미흡=red
+                    const color = ind?.judgment === "상위" ? "bg-teal-500" : (ind?.judgment === "중상" || ind?.judgment === "중하") ? "bg-amber-400" : ind?.judgment === "미흡" ? "bg-red-400" : "bg-slate-300";
                     return (
                       <div className="mb-2">
                         <div className="flex items-center justify-between text-[11px] mb-0.5">
@@ -1457,33 +1423,6 @@ export default function LeadershipFeedback({
                 <Loader2 className="w-8 h-8 mx-auto mb-3 text-violet-400 animate-spin" />
                 <p className="text-base text-violet-600 mb-1">멀티모달 행동 분석 진행 중</p>
                 <p className="text-sm text-slate-400">5채널 신호 추출 → 채점 → 보고서 생성</p>
-              </div>
-            )
-          )}
-
-          {/* ── 종합 리포트 탭 ── */}
-          {rightTab === "report" && (
-            reportData ? (
-              <AnalysisReport data={reportData} onSeek={seekTo} />
-            ) : (
-              <div className="bg-white border border-slate-200/30 rounded-xl p-8 text-center space-y-4">
-                <BarChart3 className="w-10 h-10 mx-auto mb-3 text-slate-300" />
-                <p className="text-base text-slate-500 mb-1">
-                  {analysisError ? "분석 중 오류 발생" : "리포트 데이터 없음"}
-                </p>
-                <p className="text-sm text-slate-400">
-                  {analysisError
-                    ? analysisError
-                    : evidence.length === 0
-                      ? "영상 분석에서 챕터/하이라이트를 추출하지 못했습니다."
-                      : "평가 근거 탭에서 점수를 입력하면 리포트에 반영됩니다."}
-                </p>
-                {/* 분석 상태 디버그 */}
-                <div className="text-xs text-slate-400 font-mono space-y-0.5 pt-2 border-t border-slate-100">
-                  <p>챕터: {chapters.length}개 · 하이라이트: {highlights.length}개 · 요약: {summary ? "있음" : "없음"}</p>
-                  <p>평가근거: {evidence.length}개 · 전사: {transcriptSegments?.length || 0}개</p>
-                </div>
-                {/* AI 점수가 자동 적용되어 리포트가 생성됩니다 */}
               </div>
             )
           )}

@@ -306,7 +306,7 @@ function MemberReportModal({
           {/* 보고서 푸터 */}
           <div className="text-center text-xs text-slate-400 pt-4 mt-6 border-t border-slate-200">
             <p className="font-medium">KHNP Video AI Platform -- 리더십 역량진단 시스템</p>
-            <p>본 보고서는 BARS(Behaviorally Anchored Rating Scales) 방법론과 멀티모달 AI 분석을 결합하여 생성되었습니다.</p>
+            <p>본 보고서는 멀티모달 AI 행동분석을 통해 생성되었습니다.</p>
             <p>출력일: {today} | {sessionName} | {data.member.name} ({data.member.position})</p>
           </div>
         </div>
@@ -918,7 +918,7 @@ export default function GroupDashboard({ session, onBack, onViewMember }: GroupD
       {/* 인쇄 전용 보고서 푸터 */}
       <div className="hidden print-report-footer">
         <p>KHNP Video AI Platform -- 리더십 역량진단 시스템</p>
-        <p>본 보고서는 BARS(Behaviorally Anchored Rating Scales) 방법론과 멀티모달 AI 분석을 결합하여 생성되었습니다.</p>
+        <p>본 보고서는 멀티모달 AI 행동분석을 통해 생성되었습니다.</p>
         <p>{session.name} 비교 대시보드 | 출력일: {today}</p>
       </div>
 
