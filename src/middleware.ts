@@ -13,7 +13,8 @@ function buildCsp(): string {
       : "script-src 'self' 'unsafe-inline' 'unsafe-eval'",
     "style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://fonts.googleapis.com",
     "font-src 'self' https://cdn.jsdelivr.net https://fonts.gstatic.com",
-    "img-src 'self' blob:",
+    // data: — globals.css의 인라인 노이즈 텍스처(SVG) 배경 허용
+    "img-src 'self' blob: data:",
     "media-src 'self' blob:",
     "connect-src 'self' https://api.twelvelabs.io https://*.amazonaws.com",
     "frame-ancestors 'none'",
