@@ -1,8 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { generateWithPrompt, searchVideos } from "@/lib/twelvelabs";
 import { createLogger } from "@/lib/logger";
+import { ASSESSMENT_BY_KEY } from "@/lib/leadership-rubric-data";
+import type { MAssessmentItem, CompetencyAssessmentData } from "@/lib/leadership-rubric-data";
 
-// Vercel 서버리스 함수 타임아웃: 5채널 병렬 추출 시 최대 2~3분 소요
+// Vercel 서버리스 함수 타임아웃: 채널 병렬 추출 시 최대 2~3분 소요
 export const maxDuration = 300;
 
 const log = createLogger("API:multimodal-extract");
@@ -10,173 +12,105 @@ const log = createLogger("API:multimodal-extract");
 const LEADERSHIP_INDEX_ID = process.env.TWELVELABS_LEADERSHIP_INDEX_ID || "69ccf4b781e81bcd08ca5487";
 
 // =============================================
-// 멀티모달 행동 신호 추출 API
-// rubricurl 문서 3 (증거 추출 프롬프트) 기반
-// TwelveLabs generate API에 커스텀 프롬프트 전송
+// 멀티모달 행동 신호 추출 API (역량별 · 루브릭 데이터 구동) v1.0
+//
+// 피드백 ① 반영: 추출 프롬프트를 ASSESSMENT_BY_KEY[competencyKey].mItems 에서
+//   동적 생성한다. 채널 = m-항목 코드(m1~m5). 역량마다 자기 지표를 추출.
+// 피드백 ⑦ 반영: roleContext(코치 보정 — 평가 대상자/화자 라벨)를 프롬프트에 주입.
 // =============================================
 
-// 5채널 추출 프롬프트 (rubricurl 문서 3 기반, TwelveLabs 맞춤 적응)
-const EXTRACTION_PROMPTS: Record<string, string> = {
-  gaze: `당신은 발표 영상에서 시선 행동을 분석하는 전문 평가자입니다.
-
-[중요 규칙]
-- 반드시 순수 JSON만 출력하세요. 마크다운, 설명문, 코드블록(\`\`\`) 없이 JSON 객체만 반환합니다.
-- 모든 수치 필드에 반드시 숫자값을 넣으세요. null이나 "N/A"는 사용하지 마세요.
-- 관찰이 어려운 지표는 영상에서 보이는 단서를 바탕으로 합리적으로 추정하세요.
-
-## 관찰 항목
-1. audience_facing_ratio: 발표자가 청중(카메라) 방향을 응시하는 비율 (0.0~1.0). 정면 ±20° 이내를 "청중 응시"로 판단
-2. off_audience_episodes_per_min: 청중 방향에서 1초 이상 이탈한 횟수 (분당)
-3. downward_or_slide_fixation_ratio: 하방 또는 자료 응시 비율 (0.0~1.0)
-
-## 판정 기준
-- audience_facing_ratio: ≥0.70 상위 / 0.55~0.69 중상 / 0.35~0.54 중하 / <0.35 미흡
-- off_audience_episodes_per_min: ≤1.5 상위 / 1.6~3.0 중상 / 3.1~5.0 중하 / >5.0 미흡
-- downward_or_slide_fixation_ratio: ≤0.15 상위 / 0.16~0.25 중상 / 0.26~0.40 중하 / >0.40 미흡
-
-## 출력 예시
-{"gaze":{"audience_facing_ratio":0.62,"off_audience_episodes_per_min":2.3,"downward_or_slide_fixation_ratio":0.18,"observation":"발표자는 청중 방향을 주로 응시하나 간헐적으로 자료를 확인하는 모습이 관찰됨"}}
-
-위 형식과 동일하게 JSON만 출력하세요.`,
-
-  voice: `당신은 발표 영상에서 음성 운율을 분석하는 전문 평가자입니다.
-
-[중요 규칙]
-- 반드시 순수 JSON만 출력하세요. 마크다운, 설명문, 코드블록(\`\`\`) 없이 JSON 객체만 반환합니다.
-- 모든 수치 필드에 반드시 숫자값을 넣으세요. null이나 "N/A"는 사용하지 마세요.
-- 추정이 어려운 지표는 음성 톤·강세·속도 등 단서를 바탕으로 합리적으로 추정하세요.
-
-## 관찰 항목
-1. f0_dynamic_range_st: 음높이(F0) 변화폭 — 단조로운(좁은) vs 역동적(넓은). 반음(semitone) 단위 추정
-2. loudness_dynamic_range_db: 음량 변화폭 — 일정한 vs 강약 있는. dB 단위 추정
-3. emphasis_bursts_per_min: 핵심 강조 순간(피치+음량 동시 상승) 빈도 (분당)
-
-## 판정 기준
-- f0_dynamic_range_st: 4~10 상위 / 3~4 또는 10~12 중상 / 2~3 또는 12~14 중하 / <2 또는 >14 미흡
-- loudness_dynamic_range_db: 5~12 상위 / 4~5 또는 12~14 중상 / 3~4 또는 14~16 중하 / <3 또는 >16 미흡
-- emphasis_bursts_per_min: 2~6 상위 / 1.0~1.9 또는 6.1~8.0 중상 / 0.5~0.9 또는 8.1~10.0 중하 / <0.5 또는 >10.0 미흡
-
-## 출력 예시
-{"voice":{"f0_dynamic_range_st":6.5,"loudness_dynamic_range_db":8.2,"emphasis_bursts_per_min":3.1,"observation":"발표자의 음높이 변화가 적절하며 강조 포인트에서 음량이 자연스럽게 상승함"}}
-
-위 형식과 동일하게 JSON만 출력하세요.`,
-
-  fluency: `당신은 발표 영상에서 유창성을 분석하는 전문 평가자입니다.
-
-[중요 규칙]
-- 반드시 순수 JSON만 출력하세요. 마크다운, 설명문, 코드블록(\`\`\`) 없이 JSON 객체만 반환합니다.
-- 모든 수치 필드에 반드시 숫자값을 넣으세요. null이나 "N/A"는 사용하지 마세요.
-- 추정이 어려운 지표는 발화 속도·멈춤·filler word 등 단서를 바탕으로 합리적으로 추정하세요.
-
-## 관찰 항목
-1. articulation_rate_syllables_per_sec: 조음 속도 (음절/초) — 한국어 기준
-2. filled_pauses_per_min: "어", "음", "그" 등 filled pause 빈도 (분당)
-3. long_silent_pauses_per_min: 1초 이상 무음 구간 빈도 (분당) — 슬라이드 전환 제외
-
-## 판정 기준
-- articulation_rate: 3.5~5.8 상위 / 3.0~3.4 또는 5.9~6.4 중상 / 2.5~2.9 또는 6.5~7.0 중하 / <2.5 또는 >7.0 미흡
-- filled_pauses_per_min: ≤2.0 상위 / 2.1~4.0 중상 / 4.1~6.0 중하 / >6.0 미흡
-- long_silent_pauses_per_min: ≤1.0 상위 / 1.1~2.0 중상 / 2.1~4.0 중하 / >4.0 미흡
-
-## 출력 예시
-{"fluency":{"articulation_rate_syllables_per_sec":4.2,"filled_pauses_per_min":3.0,"long_silent_pauses_per_min":1.5,"observation":"발표자는 안정적인 조음 속도를 유지하나 간헐적으로 '음' 등의 채움말이 관찰됨"}}
-
-위 형식과 동일하게 JSON만 출력하세요.`,
-
-  posture: `당신은 발표 영상에서 자세와 제스처를 분석하는 전문 평가자입니다.
-
-[중요 규칙]
-- 반드시 순수 JSON만 출력하세요. 마크다운, 설명문, 코드블록(\`\`\`) 없이 JSON 객체만 반환합니다.
-- 모든 수치 필드에 반드시 숫자값을 넣으세요. null이나 "N/A"는 사용하지 마세요.
-- 관찰이 어려운 지표는 발표자의 상체·팔·손 움직임 등 단서를 바탕으로 합리적으로 추정하세요.
-
-## 관찰 항목
-1. open_posture_ratio: 개방적 자세 비율 (0.0~1.0) — 팔짱·손 숨김이 없고 어깨가 정면을 향한 시간 비율
-2. purposeful_gesture_bouts_per_min: 발화 강조와 동기화된 목적형 제스처 빈도 (분당)
-3. closed_or_fidget_ratio: 닫힌 자세 또는 잔동작 비율 (0.0~1.0) — 팔짱, 자기접촉, 만지작거림
-
-## 판정 기준
-- open_posture_ratio: ≥0.70 상위 / 0.55~0.69 중상 / 0.35~0.54 중하 / <0.35 미흡
-- purposeful_gesture_bouts_per_min: 2~8 상위 / 1.0~1.9 또는 8.1~10.0 중상 / 0.5~0.9 또는 10.1~12.0 중하 / <0.5 또는 >12.0 미흡
-- closed_or_fidget_ratio: <0.10 상위 / 0.10~0.20 중상 / 0.21~0.35 중하 / >0.35 미흡
-
-## 출력 예시
-{"posture_gesture":{"open_posture_ratio":0.68,"purposeful_gesture_bouts_per_min":4.5,"closed_or_fidget_ratio":0.12,"observation":"발표자는 대체로 개방적 자세를 유지하며 강조 시 손 제스처를 적절히 활용함"}}
-
-위 형식과 동일하게 JSON만 출력하세요.`,
-
-  face: `당신은 발표 영상에서 표정과 머리 움직임을 분석하는 전문 평가자입니다.
-
-[중요 규칙]
-- 반드시 순수 JSON만 출력하세요. 마크다운, 설명문, 코드블록(\`\`\`) 없이 JSON 객체만 반환합니다.
-- 모든 수치 필드에 반드시 숫자값을 넣으세요. null이나 "N/A"는 사용하지 마세요.
-- 관찰이 어려운 지표는 표정·머리 움직임 등 단서를 바탕으로 합리적으로 추정하세요.
-
-## 관찰 항목
-1. engaged_neutral_ratio: 주의집중 상태의 안정적 표정 유지 비율 (0.0~1.0) — 과장 없이 차분하고 집중된 표정
-2. facial_tension_ratio: 얼굴 긴장 신호 비율 (0.0~1.0) — 찡그림, 입술 꽉 다물기, 턱 긴장 등
-3. abrupt_head_jerk_events_per_min: 급격하고 비자연적 머리 꺾임/흔들림 빈도 (분당)
-
-## 판정 기준
-- engaged_neutral_ratio: ≥0.75 상위 / 0.60~0.74 중상 / 0.40~0.59 중하 / <0.40 미흡
-- facial_tension_ratio: <0.10 상위 / 0.10~0.20 중상 / 0.21~0.35 중하 / >0.35 미흡
-- abrupt_head_jerk_events_per_min: ≤2.0 상위 / 2.1~4.0 중상 / 4.1~6.0 중하 / >6.0 미흡
-
-## 출력 예시
-{"face_head":{"engaged_neutral_ratio":0.72,"facial_tension_ratio":0.15,"abrupt_head_jerk_events_per_min":1.8,"observation":"발표자는 안정적인 표정을 유지하며 경미한 긴장 신호가 간헐적으로 관찰됨"}}
-
-위 형식과 동일하게 JSON만 출력하세요.`,
+export type RoleContext = {
+  targetName?: string;       // 평가 대상자(target/Leader) 이름·라벨
+  targetRole?: string;       // 부여 역할 (효율성/안전성/비용 등)
+  otherParticipants?: string[]; // 맥락 참여자 라벨 목록
 };
 
-const VALID_CHANNELS = new Set(Object.keys(EXTRACTION_PROMPTS));
+// m-항목 1개 → 추출 프롬프트 (루브릭 band를 그대로 가이드로 사용)
+function buildItemPrompt(
+  competency: CompetencyAssessmentData,
+  m: MAssessmentItem,
+  roleContext?: RoleContext,
+): string {
+  const code = m.code.toLowerCase();
+  const lines: string[] = [];
 
-// 채널별 기대 필드 (수치 추출 폴백용)
-const CHANNEL_FIELDS: Record<string, string[]> = {
-  gaze: ["audience_facing_ratio", "off_audience_episodes_per_min", "downward_or_slide_fixation_ratio"],
-  voice: ["f0_dynamic_range_st", "loudness_dynamic_range_db", "emphasis_bursts_per_min"],
-  fluency: ["articulation_rate_syllables_per_sec", "filled_pauses_per_min", "long_silent_pauses_per_min"],
-  posture: ["open_posture_ratio", "purposeful_gesture_bouts_per_min", "closed_or_fidget_ratio"],
-  face: ["engaged_neutral_ratio", "facial_tension_ratio", "abrupt_head_jerk_events_per_min"],
-};
+  lines.push(`당신은 ${competency.label} 리더십 역량평가에서 "${m.customerLabel}"(${m.aiLabel}) 항목의 행동 신호를 분석하는 전문 평가자입니다.`);
+  lines.push("");
+  lines.push(`## 과업 맥락`);
+  lines.push(`- 활동: ${competency.taskContext.activityType} (${competency.taskContext.duration || "길이 가변"})`);
+  lines.push(`- 참여 구조: ${competency.participantModel || competency.taskContext.participants || ""}`);
 
-// 채널별 래퍼 키 (JSON 응답 구조: { "gaze": { ... } })
-const CHANNEL_WRAPPER_KEYS: Record<string, string> = {
-  gaze: "gaze", voice: "voice", fluency: "fluency",
-  posture: "posture_gesture", face: "face_head",
-};
+  // 코치 보정(평가 대상자/역할/화자) 주입 — 화자분리·역할매핑 한계 보완
+  if (roleContext?.targetName) {
+    lines.push(`- 평가 대상자(target): ${roleContext.targetName}${roleContext.targetRole ? ` (역할: ${roleContext.targetRole})` : ""}`);
+    lines.push(`  → 반드시 이 평가 대상자 1인의 행동만 산출하세요. 다른 참여자는 맥락(context)으로만 사용합니다.`);
+    if (roleContext.otherParticipants?.length) {
+      lines.push(`- 다른 참여자(context): ${roleContext.otherParticipants.join(", ")}`);
+    }
+  }
+
+  lines.push("");
+  lines.push(`## 항목 정의`);
+  lines.push(m.definition);
+  lines.push("");
+  lines.push(`## 관찰·산출 항목 (JSON 키 = 변수명)`);
+
+  m.indicators.forEach((ind, idx) => {
+    const tag = ind.category === "required" && ind.scoreReflected
+      ? "[채점 필수지표]"
+      : ind.category === "supplementary"
+        ? "[상시 참고지표]"
+        : ind.category === "conditional"
+          ? "[조건부 참고지표]"
+          : "[참고]";
+    lines.push(`${idx + 1}. ${ind.variableName} ${tag} — ${ind.customerLabel}`);
+    lines.push(`   의미: ${ind.meaning}`);
+    if (ind.band) {
+      lines.push(`   판정 기준: 상위 ${ind.band.upper} / 중상 ${ind.band.midHigh} / 중하 ${ind.band.midLow} / 미흡 ${ind.band.poor}`);
+    }
+  });
+
+  lines.push("");
+  lines.push(`## 출력 규칙`);
+  lines.push(`- 반드시 순수 JSON만 출력하세요. 마크다운·설명문·코드블록(\`\`\`) 없이 JSON 객체만 반환합니다.`);
+  lines.push(`- 최상위 키는 "${code}" 이며, 그 안에 위 변수명을 키로 하는 수치값을 넣습니다.`);
+  lines.push(`- 비율 지표는 0.0~1.0, 빈도(회/분)·횟수·초·ST·dB 등은 단위 수치로 표기합니다.`);
+  lines.push(`- 영상·음성에서 신뢰성 있게 관찰 가능한 행동만 산출하세요. 화자분리·역할매핑이 불가능하거나 해당 신호를 관찰할 수 없으면 그 지표 값은 null 로 두세요(임의 추정 금지 — N/A는 0점이 아닙니다).`);
+  lines.push(`- "observation" 키에 관찰 근거를 행동 중심으로 1~2문장(한국어) 작성합니다. 인상평·성격 추정·내용 평가는 금지합니다.`);
+
+  // 출력 예시 (변수명 채워서)
+  const exampleFields = m.indicators.map((ind) => {
+    const isRatio = ind.unit === "%" || /ratio|index/.test(ind.variableName);
+    const sample = ind.dataType?.startsWith("Bool") ? "false" : isRatio ? "0.62" : ind.dataType?.startsWith("Int") ? "3" : "2.3";
+    return `"${ind.variableName}":${sample}`;
+  }).join(",");
+  lines.push("");
+  lines.push(`## 출력 예시`);
+  lines.push(`{"${code}":{${exampleFields},"observation":"관찰된 행동을 수치 근거와 함께 기술"}}`);
+  lines.push("");
+  lines.push(`위 형식과 동일하게 JSON만 출력하세요.`);
+
+  return lines.join("\n");
+}
 
 /**
- * TwelveLabs 응답 텍스트에서 JSON 파싱 (견고한 버전)
- * 1. 순수 JSON 파싱
- * 2. 마크다운 코드블록 내부 추출
- * 3. 가장 깊은 중첩 객체 추출
- * 4. 텍스트 내 수치 추출 폴백
+ * TwelveLabs 응답 텍스트에서 JSON 파싱 (m-항목 래퍼 unwrap)
  */
-function parseChannelResponse(text: string, channel: string): Record<string, unknown> | null {
+function parseItemResponse(text: string, code: string, fields: string[]): Record<string, unknown> | null {
   const raw = typeof text === "string" ? text : JSON.stringify(text);
-
-  // 1단계: 코드블록 제거 후 JSON 추출
   const cleaned = raw.replace(/```json?\s*/gi, "").replace(/```/g, "").trim();
   const jsonMatches = cleaned.match(/\{[^{}]*(?:\{[^{}]*\}[^{}]*)*\}/g);
 
   if (jsonMatches) {
-    // 가장 긴 매치를 우선 시도 (전체 JSON일 가능성 높음)
     const sorted = [...jsonMatches].sort((a, b) => b.length - a.length);
     for (const match of sorted) {
       try {
         const obj = JSON.parse(match);
-        // 래퍼 키가 있으면 풀어냄: { "gaze": { ... } } → { ... }
-        const wrapperKey = CHANNEL_WRAPPER_KEYS[channel];
-        if (wrapperKey && obj[wrapperKey] && typeof obj[wrapperKey] === "object") {
-          return obj[wrapperKey] as Record<string, unknown>;
-        }
-        // 기대 필드가 직접 있으면 그대로 사용
-        const fields = CHANNEL_FIELDS[channel] || [];
-        if (fields.some(f => f in obj)) return obj;
-        // 하위 객체에 기대 필드가 있는지 확인
+        if (obj[code] && typeof obj[code] === "object") return obj[code] as Record<string, unknown>;
+        if (fields.some((f) => f in obj)) return obj;
         for (const val of Object.values(obj)) {
           if (val && typeof val === "object" && !Array.isArray(val)) {
-            if (fields.some(f => f in (val as Record<string, unknown>))) return val as Record<string, unknown>;
+            if (fields.some((f) => f in (val as Record<string, unknown>))) return val as Record<string, unknown>;
           }
         }
         return obj;
@@ -184,209 +118,146 @@ function parseChannelResponse(text: string, channel: string): Record<string, unk
     }
   }
 
-  // 2단계: 텍스트에서 수치 직접 추출 (폴백)
-  const fields = CHANNEL_FIELDS[channel];
-  if (fields) {
-    const result: Record<string, unknown> = {};
-    let found = 0;
-    for (const field of fields) {
-      // "audience_facing_ratio": 0.62 또는 audience_facing_ratio: 0.62 패턴
-      const pattern = new RegExp(`["']?${field}["']?\\s*[:=]\\s*([0-9]+\\.?[0-9]*)`, "i");
-      const match = raw.match(pattern);
-      if (match) {
-        result[field] = parseFloat(match[1]);
-        found++;
-      }
-    }
-    // observation 추출
-    const obsMatch = raw.match(/["']?observation["']?\s*[:=]\s*["']([^"']+)["']/i);
-    if (obsMatch) result["observation"] = obsMatch[1];
-
-    if (found > 0) {
-      log.info("폴백 수치 추출 성공", { channel, found, total: fields.length });
-      return result;
+  // 폴백: 텍스트에서 수치 직접 추출
+  const result: Record<string, unknown> = {};
+  let found = 0;
+  for (const field of fields) {
+    const pattern = new RegExp(`["']?${field}["']?\\s*[:=]\\s*(-?[0-9]+\\.?[0-9]*|true|false)`, "i");
+    const match = raw.match(pattern);
+    if (match) {
+      result[field] = match[1] === "true" ? true : match[1] === "false" ? false : parseFloat(match[1]);
+      found++;
     }
   }
-
-  return null;
+  const obsMatch = raw.match(/["']?observation["']?\s*[:=]\s*["']([^"']+)["']/i);
+  if (obsMatch) result["observation"] = obsMatch[1];
+  return found > 0 ? result : null;
 }
 
 /**
- * Marengo 검색 기반 시선 분석 보강
- * "청중을 바라보는 장면" / "모니터를 보는 장면"을 검색하여
- * 타임스탬프 비율로 실측 기반 시선 비율 계산
+ * Marengo 검색 기반 시선 분석 보강 (비전제시 M1 청중 응시 전용)
  */
-async function enrichGazeWithMarengo(
+async function enrichVisionGazeWithMarengo(
   videoId: string,
-  pegasusData: Record<string, unknown> | null,
-  videoDuration?: number,
+  base: Record<string, unknown> | null,
 ): Promise<Record<string, unknown>> {
-  const base = pegasusData || {};
-
+  const data = base || {};
   try {
-    // Marengo 검색: 청중/카메라를 바라보는 장면
     const [audienceResults, screenResults] = await Promise.allSettled([
       searchVideos(LEADERSHIP_INDEX_ID, "presenter looking at audience or camera, making eye contact with viewers"),
       searchVideos(LEADERSHIP_INDEX_ID, "presenter looking down at notes, looking at monitor screen, reading slides"),
     ]);
 
-    let audienceSeconds = 0;
-    let screenSeconds = 0;
-    let audienceEpisodes = 0;
-
+    let audienceSeconds = 0, screenSeconds = 0;
     if (audienceResults.status === "fulfilled" && audienceResults.value.data) {
-      for (const clip of audienceResults.value.data) {
-        if (clip.video_id === videoId) {
-          audienceSeconds += clip.end - clip.start;
-        }
-      }
+      for (const clip of audienceResults.value.data) if (clip.video_id === videoId) audienceSeconds += clip.end - clip.start;
     }
-
     if (screenResults.status === "fulfilled" && screenResults.value.data) {
-      for (const clip of screenResults.value.data) {
-        if (clip.video_id === videoId) {
-          screenSeconds += clip.end - clip.start;
-          audienceEpisodes++;
-        }
-      }
+      for (const clip of screenResults.value.data) if (clip.video_id === videoId) screenSeconds += clip.end - clip.start;
     }
-
     const totalDetected = audienceSeconds + screenSeconds;
-    if (totalDetected < 5) {
-      // 충분한 데이터가 없으면 Pegasus 결과만 사용
-      log.info("Marengo 시선 데이터 부족, Pegasus 결과만 사용", { audienceSeconds, screenSeconds });
-      return base;
-    }
-
-    const duration = videoDuration || totalDetected;
-    const durationMin = duration / 60;
+    if (totalDetected < 5) return data;
 
     const marengoAudienceRatio = audienceSeconds / totalDetected;
     const marengoScreenRatio = screenSeconds / totalDetected;
-    const marengoEpisodesPerMin = durationMin > 0 ? audienceEpisodes / durationMin : 0;
-
-    // Pegasus 추정값과 Marengo 실측값 융합 (가중평균: Marengo 60%, Pegasus 40%)
-    const pegasusAudience = typeof base.audience_facing_ratio === "number" ? base.audience_facing_ratio : null;
-    const pegasusScreen = typeof base.downward_or_slide_fixation_ratio === "number" ? base.downward_or_slide_fixation_ratio : null;
-    const pegasusEpisodes = typeof base.off_audience_episodes_per_min === "number" ? base.off_audience_episodes_per_min : null;
-
-    const fusedAudience = pegasusAudience !== null
-      ? 0.6 * marengoAudienceRatio + 0.4 * pegasusAudience
-      : marengoAudienceRatio;
-    const fusedScreen = pegasusScreen !== null
-      ? 0.6 * marengoScreenRatio + 0.4 * pegasusScreen
-      : marengoScreenRatio;
-    const fusedEpisodes = pegasusEpisodes !== null
-      ? 0.6 * marengoEpisodesPerMin + 0.4 * pegasusEpisodes
-      : marengoEpisodesPerMin;
-
-    log.info("Marengo 시선 보강 성공", {
-      marengo: { audience: marengoAudienceRatio.toFixed(2), screen: marengoScreenRatio.toFixed(2) },
-      pegasus: { audience: pegasusAudience, screen: pegasusScreen },
-      fused: { audience: fusedAudience.toFixed(2), screen: fusedScreen.toFixed(2) },
-    });
+    const pegasusAudience = typeof data.audience_facing_ratio === "number" ? data.audience_facing_ratio : null;
+    const pegasusScreen = typeof data.downward_or_slide_fixation_ratio === "number" ? data.downward_or_slide_fixation_ratio : null;
+    const fusedAudience = pegasusAudience !== null ? 0.6 * marengoAudienceRatio + 0.4 * pegasusAudience : marengoAudienceRatio;
+    const fusedScreen = pegasusScreen !== null ? 0.6 * marengoScreenRatio + 0.4 * pegasusScreen : marengoScreenRatio;
 
     return {
-      ...base,
+      ...data,
       audience_facing_ratio: parseFloat(fusedAudience.toFixed(3)),
       downward_or_slide_fixation_ratio: parseFloat(fusedScreen.toFixed(3)),
-      off_audience_episodes_per_min: parseFloat(fusedEpisodes.toFixed(1)),
-      observation: (base.observation || "") +
+      observation: (data.observation || "") +
         ` [Marengo 검증: 청중응시 ${(marengoAudienceRatio * 100).toFixed(0)}%, 모니터응시 ${(marengoScreenRatio * 100).toFixed(0)}% — Pegasus+Marengo 융합값 적용]`,
       _marengo_verified: true,
-      _marengo_raw: { audienceSeconds, screenSeconds, episodes: audienceEpisodes },
     };
   } catch (e) {
     log.warn("Marengo 시선 보강 실패, Pegasus 결과만 사용", { error: e instanceof Error ? e.message : "unknown" });
-    return base;
+    return data;
   }
+}
+
+async function extractItem(
+  videoId: string,
+  competency: CompetencyAssessmentData,
+  m: MAssessmentItem,
+  roleContext?: RoleContext,
+): Promise<Record<string, unknown>> {
+  const code = m.code.toLowerCase();
+  const fields = m.indicators.map((i) => i.variableName);
+  const prompt = buildItemPrompt(competency, m, roleContext);
+
+  let parsed: Record<string, unknown> | null = null;
+  for (let attempt = 0; attempt < 2; attempt++) {
+    try {
+      const result = await generateWithPrompt(videoId, prompt);
+      parsed = parseItemResponse(result.data, code, fields);
+      if (parsed) break;
+    } catch (e) {
+      log.warn("항목 추출 실패, 재시도", { code, attempt: attempt + 1, error: e instanceof Error ? e.message : "unknown" });
+    }
+  }
+  let data = parsed || { parseError: true };
+
+  // 비전제시 M1만 Marengo 시선 이중 검증
+  if (competency.key === "visionPresentation" && code === "m1" && parsed) {
+    data = await enrichVisionGazeWithMarengo(videoId, parsed);
+  }
+  return data;
 }
 
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
     const videoId = typeof body.videoId === "string" ? body.videoId.trim() : "";
-    const channel = typeof body.channel === "string" ? body.channel.trim() : "";
+    const channel = typeof body.channel === "string" ? body.channel.trim().toLowerCase() : "";
+    const competencyKey = typeof body.competencyKey === "string" ? body.competencyKey.trim() : "visionPresentation";
+    const roleContext: RoleContext | undefined = body.roleContext && typeof body.roleContext === "object" ? body.roleContext : undefined;
 
     if (!videoId) {
       log.warn("videoId 누락");
       return NextResponse.json({ error: "videoId가 필요합니다" }, { status: 400 });
     }
 
-    // 단일 채널 추출
-    if (channel && VALID_CHANNELS.has(channel)) {
-      log.info("단일 채널 추출 시작", { videoId, channel });
-      const prompt = EXTRACTION_PROMPTS[channel];
-
-      // 최대 2회 시도 (첫 실패 시 재시도)
-      let parsed = null;
-      for (let attempt = 0; attempt < 2; attempt++) {
-        try {
-          const result = await generateWithPrompt(videoId, prompt);
-          parsed = parseChannelResponse(result.data, channel);
-          if (parsed) break;
-          log.warn("파싱 실패, 재시도", { channel, attempt: attempt + 1 });
-        } catch (e) {
-          log.warn("추출 실패, 재시도", { channel, attempt: attempt + 1, error: e instanceof Error ? e.message : "unknown" });
-        }
-      }
-
-      if (!parsed) {
-        log.warn("채널 추출 최종 실패", { channel });
-        parsed = { parseError: true };
-      }
-
-      // Gaze 채널: Marengo 검색으로 이중 검증
-      if (channel === "gaze") {
-        parsed = await enrichGazeWithMarengo(videoId, parsed as Record<string, unknown>);
-      }
-
-      return NextResponse.json({ channel, data: parsed });
+    const competency = ASSESSMENT_BY_KEY[competencyKey];
+    if (!competency) {
+      log.warn("유효하지 않은 역량", { competencyKey });
+      return NextResponse.json({ error: `유효하지 않은 역량: ${competencyKey}` }, { status: 400 });
     }
 
-    // 전체 5채널 병렬 추출
-    if (!channel || channel === "all") {
-      log.info("전체 5채널 병렬 추출 시작", { videoId });
-      const channels = Object.keys(EXTRACTION_PROMPTS);
-      const results = await Promise.allSettled(
-        channels.map(async (ch) => {
-          const prompt = EXTRACTION_PROMPTS[ch];
-          let parsed = null;
-          for (let attempt = 0; attempt < 2; attempt++) {
-            try {
-              const result = await generateWithPrompt(videoId, prompt);
-              parsed = parseChannelResponse(result.data, ch);
-              if (parsed) break;
-            } catch { /* 재시도 */ }
-          }
-          let result = parsed || { parseError: true };
-          // Gaze 채널: Marengo 이중 검증
-          if (ch === "gaze" && parsed) {
-            result = await enrichGazeWithMarengo(videoId, parsed as Record<string, unknown>);
-          }
-          return { channel: ch, data: result };
-        })
-      );
+    const validCodes = competency.mItems.map((m) => m.code.toLowerCase());
 
+    // 단일 채널(m-항목) 추출
+    if (channel && validCodes.includes(channel)) {
+      const m = competency.mItems.find((x) => x.code.toLowerCase() === channel)!;
+      log.info("단일 항목 추출", { videoId, competencyKey, channel });
+      const data = await extractItem(videoId, competency, m, roleContext);
+      return NextResponse.json({ channel, competencyKey, data });
+    }
+
+    // 전체 항목 병렬 추출
+    if (!channel || channel === "all") {
+      log.info("전체 항목 병렬 추출", { videoId, competencyKey, items: validCodes.length });
+      const results = await Promise.allSettled(
+        competency.mItems.map((m) => extractItem(videoId, competency, m, roleContext)),
+      );
       const extracted: Record<string, unknown> = {};
       const errors: Record<string, string> = {};
-
       results.forEach((r, i) => {
-        if (r.status === "fulfilled") {
-          extracted[channels[i]] = r.value.data;
-        } else {
-          errors[channels[i]] = r.reason?.message || "추출 실패";
-        }
+        const code = competency.mItems[i].code.toLowerCase();
+        if (r.status === "fulfilled") extracted[code] = r.value;
+        else errors[code] = r.reason?.message || "추출 실패";
       });
-
-      log.info("전체 5채널 추출 완료", { videoId, successCount: Object.keys(extracted).length, errorCount: Object.keys(errors).length });
-      return NextResponse.json({ extracted, errors });
+      log.info("전체 항목 추출 완료", { videoId, competencyKey, successCount: Object.keys(extracted).length });
+      return NextResponse.json({ competencyKey, extracted, errors });
     }
 
-    log.warn("유효하지 않은 채널", { channel });
+    log.warn("유효하지 않은 채널", { channel, competencyKey });
     return NextResponse.json(
-      { error: `유효하지 않은 채널: ${channel}. 유효 채널: ${[...VALID_CHANNELS].join(", ")}` },
-      { status: 400 }
+      { error: `유효하지 않은 항목: ${channel}. 유효 항목: ${validCodes.join(", ")}` },
+      { status: 400 },
     );
   } catch (error) {
     const message = error instanceof Error ? error.message : "멀티모달 추출 실패";

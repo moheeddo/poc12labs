@@ -1,13 +1,15 @@
 // =============================================
-// KHNP 리더십 역량진단 v2.0 — 최종 확정 루브릭
-// 출처: docs/rubric/ — 비전제시·신뢰형성·구성원육성 v0.9 System Spec
+// KHNP 리더십 역량진단 — 최종 확정 루브릭 v1.0
+// 출처: 한수원_리더십_역량평가_루브릭_v1.0 — 비전제시·구성원육성·신뢰형성
+//        AI 기술 정의서(System Spec) 최종 검토 반영본 v1.0
 //
-// 핵심 변경 (vs 이전 BARS 5항목):
-//   - 5개 M-항목 구조 (M1~M5), 총점은 M1~M4만 반영 / M5는 보조
-//   - 필수지표 / 보조지표 / 조건부지표 분리
+// 핵심 구조:
+//   - 5개 M-항목 (M1~M5), 총점은 핵심 4개(M1~M4)만 반영 / M5는 보조(총점 미반영)
+//   - 지표 분류: 필수지표(채점) / 상시·조건부·내부 참고지표(미채점) / 항목간 참고정보
 //   - 4단계 운영밴드: 상위(3점) / 중상(2점) / 중하(1점) / 미흡(0점)
 //   - 산식: M_score = mean(필수지표 변환점수) × 3 (최대 9점)
-//   - 총점 = mean(채점 가능한 M1~M4) (최대 9점) → 100점 환산값 병행
+//   - 총점 = mean(채점 가능한 M1~M4), 채점 가능 항목 ≥3일 때만 산출 → 100점 환산 병행
+//   - 멀티모달 보고서는 역량별 prohibitedExpressions(금지표현)를 강제
 //   - 합리적의사결정 평가항목 제외 (3개 핵심 역량만 운영)
 // =============================================
 
@@ -114,6 +116,9 @@ export interface CompetencyAssessmentData {
   evaluationPrinciples: string[];      // 핵심 평가 원칙
   excludedElements: string[];          // 평가 제외 요소
   totalScoringFormula: string;         // 총점 산출식
+  prohibitedExpressions: string[];     // 멀티모달 보고서 금지표현 (System Spec §9)
+  crossItemReference?: string;         // 항목 간 참고정보 설명 (judgmental language 등)
+  participantModel?: string;           // 평가 대상자/맥락 참여자 구조 설명
 }
 
 // 4단계 운영밴드 → RubricLevel 4개 변환 (UI 호환)
@@ -162,25 +167,24 @@ const VP_M1: MAssessmentItem = {
       id: "vp-m1-a", variableName: "audience_facing_ratio", customerLabel: "청중 응시 비율",
       category: "required", dataType: "Float (%)", unit: "%",
       meaning: "전체 valid frame 중 청중 방향 시선 비율",
-      band: { upper: "70% 이상", midHigh: "55~69%", midLow: "35~54%", poor: "35% 미만" },
+      band: { upper: "70% 이상", midHigh: "55~69%", midLow: "40~54%", poor: "40% 미만" },
       scoreReflected: true,
     },
     {
       id: "vp-m1-b", variableName: "off_audience_episodes_per_min", customerLabel: "시선 이탈 빈도",
       category: "required", dataType: "Float", unit: "회/분",
       meaning: "청중에서 벗어난 시선 이탈 이벤트 분당 빈도 (1.5초 이상 지속)",
-      band: { upper: "1.5회 이하", midHigh: "1.6~3.0회", midLow: "3.1~5.0회", poor: "5.0회 초과" },
+      band: { upper: "2.0회 이하", midHigh: "2.1~4.0회", midLow: "4.1~6.0회", poor: "6.0회 초과" },
       scoreReflected: true,
     },
     {
       id: "vp-m1-c", variableName: "downward_or_slide_fixation_ratio", customerLabel: "하방·슬라이드 응시 비율",
-      category: "required", dataType: "Float (%)", unit: "%",
-      meaning: "장시간 자료/하방 시선 비율 — 짧은 목적성 참조는 제외",
-      band: { upper: "15% 이하", midHigh: "16~25%", midLow: "26~40%", poor: "40% 초과" },
-      scoreReflected: true,
+      category: "supplementary", dataType: "Float (%)", unit: "%",
+      meaning: "상시 참고지표 — 자료 참조 맥락·청중 응시 복귀·구조전환 발화와 함께 해석. 점수 산식 직접 미반영",
+      scoreReflected: false,
     },
   ],
-  scoringFormula: "M1_score = mean(audience_facing_ratio_score, off_audience_episodes_per_min_score, downward_or_slide_fixation_ratio_score) × 3",
+  scoringFormula: "M1_score = mean(audience_facing_ratio_score, off_audience_episodes_per_min_score) × 3",
   totalReflected: true,
 };
 
@@ -194,22 +198,21 @@ const VP_M2: MAssessmentItem = {
       id: "vp-m2-a", variableName: "f0_dynamic_range_st", customerLabel: "F0 변화폭 (Semitone)",
       category: "required", dataType: "Float", unit: "ST",
       meaning: "발표자 음높이 변화폭 — 단조 또는 과장 모두 감점",
-      band: { upper: "4~10 ST", midHigh: "3~4 또는 10~12 ST", midLow: "2~3 또는 12~14 ST", poor: "2 미만 또는 14 초과" },
+      band: { upper: "4.0~10.0 ST", midHigh: "3.0~3.9 또는 10.1~12.0 ST", midLow: "2.0~2.9 또는 12.1~14.0 ST", poor: "2.0 미만 또는 14.0 초과" },
       scoreReflected: true,
     },
     {
       id: "vp-m2-b", variableName: "loudness_dynamic_range_db", customerLabel: "음량 변화폭",
       category: "required", dataType: "Float", unit: "dB",
       meaning: "발표자 음량의 dynamic range",
-      band: { upper: "5~12 dB", midHigh: "4~5 또는 12~14 dB", midLow: "3~4 또는 14~16 dB", poor: "3 미만 또는 16 초과" },
+      band: { upper: "5.0~12.0 dB", midHigh: "4.0~4.9 또는 12.1~14.0 dB", midLow: "3.0~3.9 또는 14.1~16.0 dB", poor: "3.0 미만 또는 16.0 초과" },
       scoreReflected: true,
     },
     {
       id: "vp-m2-c", variableName: "emphasis_bursts_per_min", customerLabel: "강조 burst 빈도",
       category: "conditional", dataType: "Float", unit: "회/분",
-      meaning: "명시적 강조 이벤트 빈도 — 이벤트 라벨 제공 시에만 사용",
-      condition: "명시적으로 제공된 경우에만 사용",
-      band: { upper: "2~6회", midHigh: "1.0~1.9 또는 6.1~8.0회", midLow: "0.5~0.9 또는 8.1~10.0회", poor: "0.5 미만 또는 10.0 초과" },
+      meaning: "핵심 메시지 강조 구간 빈도 — 조건부 참고지표(스펙상 운영밴드 미정의, 점수 미반영)",
+      condition: "신뢰도 있게 확인되는 경우에만 참고",
       scoreReflected: false,
     },
   ],
@@ -239,14 +242,19 @@ const VP_M3: MAssessmentItem = {
     },
     {
       id: "vp-m3-c", variableName: "long_silent_pauses_per_min", customerLabel: "장무음 pause 빈도 (1초 이상)",
-      category: "conditional", dataType: "Float", unit: "회/분",
-      meaning: "1초 이상 장무음 — 구조전환 직후의 의도적 멈춤은 제외 가능",
-      condition: "장표 전환·의도적 수사 pause는 제외",
+      category: "required", dataType: "Float", unit: "회/분",
+      meaning: "VAD 기준 1초 이상 장무음 분당 빈도 — 구조전환 직후의 의도적 멈춤(structural pause)은 예외 해석",
       band: { upper: "1회 이하", midHigh: "1.1~2.0회", midLow: "2.1~4.0회", poor: "4.0회 초과" },
+      scoreReflected: true,
+    },
+    {
+      id: "vp-m3-d", variableName: "structural_pause_candidates", customerLabel: "구조적 멈춤 후보",
+      category: "supplementary", dataType: "Int", unit: "회",
+      meaning: "상시 참고지표 — 긴 무음이 흐름 저하가 아니라 구조적 설명 멈춤일 가능성이 있는 구간. 점수 산식 직접 미반영",
       scoreReflected: false,
     },
   ],
-  scoringFormula: "M3_score = mean(articulation_rate_score, filled_pauses_per_min_score) × 3",
+  scoringFormula: "M3_score = mean(articulation_rate_score, filled_pauses_per_min_score, long_silent_pauses_per_min_score) × 3",
   totalReflected: true,
 };
 
@@ -266,9 +274,8 @@ const VP_M4: MAssessmentItem = {
     {
       id: "vp-m4-b", variableName: "purposeful_gesture_bouts_per_min", customerLabel: "목적형 제스처 빈도",
       category: "conditional", dataType: "Float", unit: "회/분",
-      meaning: "메시지를 지지하는 목적형 제스처 — 이벤트 라벨 제공 시에만 사용",
-      condition: "사전 정의된 이벤트 라벨이 있을 때만 사용",
-      band: { upper: "2~8회", midHigh: "1.0~1.9 또는 8.1~10.0회", midLow: "0.5~0.9 또는 10.1~12.0회", poor: "0.5 미만 또는 12.0 초과" },
+      meaning: "발화 의미를 보조하는 목적형 제스처 — 조건부 참고지표(스펙상 운영밴드 미정의, 점수 미반영)",
+      condition: "목적형 제스처 확인 기준 충족 시에만 산출",
       scoreReflected: false,
     },
     {
@@ -327,7 +334,7 @@ const VISION_PRESENTATION: CompetencyAssessmentData = {
       "② 분석 결과 기반 전략목표·전략과제 도출\n" +
       "③ 과제별 달성방안 구조적 제시",
     activityType: "전략 브리핑형 발표 (Presentation)",
-    reference: "PEST 분석 | 멀티모달 발표 행동지표 v0.9",
+    reference: "PEST 분석 | 멀티모달 발표 행동지표 v1.0",
   },
   rubricItems: [VP_M1, VP_M2, VP_M3, VP_M4, VP_M5].map(mItemToRubricItem),
   mItems: [VP_M1, VP_M2, VP_M3, VP_M4, VP_M5],
@@ -337,7 +344,7 @@ const VISION_PRESENTATION: CompetencyAssessmentData = {
     activityType: "발표 (Presentation)",
     duration: "5분",
     participants: "발표자 1인 + 청중 팀 구성원",
-    reference: "비전제시 리더십 역량평가 AI 기술정의서 v0.9",
+    reference: "비전제시 리더십 역량평가 AI 기술정의서 v1.0",
   },
   evaluationPrinciples: [
     "감정적 호소가 아닌 분석 결과와 전략 방향의 구조적 설명을 중심으로 평가",
@@ -355,10 +362,16 @@ const VISION_PRESENTATION: CompetencyAssessmentData = {
     "촬영 품질·배경 환경에 대한 주관적 인상평",
   ],
   totalScoringFormula: "총점 = mean(채점 가능한 M1~M4) (0~9 scale) · 100점 환산값 = 총점 / 9 × 100",
+  prohibitedExpressions: [
+    "카리스마가 있다", "리더답다", "자신감 있어 보인다", "발표를 잘했다",
+    "비전 내용이 좋다", "설득력이 있다", "전략이 우수하다", "PEST 분석이 정확하다",
+    "긴장해 보인다", "열정적이다", "감동적 발표였다",
+  ],
+  participantModel: "발표자 1인 평가 (청중은 맥락). 자료 참조 자체는 감점하지 않으며 청중 응시 복귀 여부가 핵심.",
 };
 
 // =============================================
-// 신뢰형성 (Trust Building) — 3인 협상형 그룹토의
+// 신뢰형성 (Trust Building) — 협상형 그룹토의 (가변 N인, 평가 대상자 1인 기준)
 // =============================================
 
 const TB_M1: MAssessmentItem = {
@@ -478,36 +491,43 @@ const TB_M3: MAssessmentItem = {
 
 const TB_M4: MAssessmentItem = {
   code: "M4",
-  customerLabel: "두 참여자를 고르게 포함하는 참여 운영",
+  customerLabel: "다른 참여자를 고르게 포함하는 참여 운영",
   aiLabel: "Inclusive participation management",
-  definition: "평가 대상자가 다른 두 참여자에게 골고루 반응하고, 특정 참여자에 편중되지 않는 정도를 평가한다.",
+  definition: "평가 대상자가 특정 참여자에게만 반복적으로 반응하지 않고, 다른 참여자 모두를 대화 안에 포함시키는 정도를 평가한다.",
   indicators: [
     {
       id: "tb-m4-a", variableName: "other_participant_response_coverage_ratio", customerLabel: "다른 참여자 반응 커버리지 비율",
       category: "required", dataType: "Int", unit: "%",
-      meaning: "다른 두 참여자 모두에게 반응한 발화 커버리지 (100% = 양쪽 모두 반응)",
+      meaning: "다른 참여자들의 발언 기회 대비 반복적으로 받아주고 연결한 반응 커버리지 (모든 맥락 참여자 coverage의 평균)",
       band: { upper: "100", midHigh: "75~99", midLow: "50~74", poor: "50 미만" },
       scoreReflected: true,
     },
     {
-      id: "tb-m4-b", variableName: "other_participant_inclusion_balance_index", customerLabel: "두 참여자 포함 균형 정도",
+      id: "tb-m4-b", variableName: "other_participant_inclusion_balance_index", customerLabel: "참여자 포함 균형 지수",
       category: "required", dataType: "Float",
-      meaning: "두 참여자에 대한 반응 분포의 균형 지수 (1.0에 가까울수록 균형)",
+      meaning: "다른 참여자에 대한 반응이 기회 대비 한쪽으로 쏠리지 않은 균형 지수 (1.0에 가까울수록 균형)",
       band: { upper: "0.80 이상", midHigh: "0.65~0.79", midLow: "0.45~0.64", poor: "0.45 미만" },
       scoreReflected: true,
     },
     {
       id: "tb-m4-c", variableName: "turn_passing_events_count", customerLabel: "발언권 넘기기 횟수",
       category: "conditional", dataType: "Int",
-      meaning: "다른 참여자에게 명시적으로 발언권을 넘긴 횟수",
+      meaning: "특정 참여자를 호명하며 발언권을 명시적으로 넘기거나 발언이 적은 참여자를 초대한 횟수",
       condition: "turn-passing 이벤트 탐지 활성 시",
       scoreReflected: false,
     },
     {
-      id: "tb-m4-d", variableName: "multi_party_bridging_events_count", customerLabel: "두 참여자 발언 연결·정리 횟수",
+      id: "tb-m4-d", variableName: "multi_party_bridging_events_count", customerLabel: "여러 참여자 발언 연결·정리 횟수",
       category: "conditional", dataType: "Int",
-      meaning: "두 참여자의 발언을 함께 연결하거나 정리하는 반응의 횟수",
+      meaning: "한 번의 발언 안에서 둘 이상 참여자의 발언을 함께 참조·요약·연결한 횟수",
       condition: "bridging 이벤트 탐지 활성 시",
+      scoreReflected: false,
+    },
+    {
+      id: "tb-m4-e", variableName: "single_participant_response_skew_flag", customerLabel: "특정 참여자 반응 편중 참고값",
+      category: "conditional", dataType: "Bool",
+      meaning: "내부 참고값 — directed response의 80% 이상이 한 참여자에 집중될 때 true. 점수 미반영, 해석 보강에만 사용",
+      condition: "내부 해석 안전장치 (결과 전면 점수항목으로 노출하지 않음)",
       scoreReflected: false,
     },
   ],
@@ -558,25 +578,26 @@ const TRUST_BUILDING: CompetencyAssessmentData = {
   icon: "Handshake",
   color: "#f59e0b",
   scenario: {
-    title: "부서간 설비 교체 일정 갈등 조율 (3인 협상형 그룹토의 · 40분)",
+    title: "부서간 설비 교체 일정 갈등 조율 (협상형 그룹토의)",
     description:
-      "발전소 설비 교체 작업 일정을 두고 3개 부서가 서로 다른 입장을 가집니다.\n\n" +
-      "A부서(효율성): 야간/주말 작업으로 가동 중단 최소화\n" +
-      "B부서(안전성): 주간 작업으로 안전 확보\n" +
-      "C부서(비용): 예산 범위 내 최적 일정\n\n" +
-      "각자 담당 부서 입장을 관철하되, 최종적으로 모든 부서가 수용할 수 있는 하나의 안을 도출해야 합니다.",
+      "발전소 설비 교체 작업 일정을 두고 서로 다른 부서 역할을 맡은 참여자들이 그룹토의를 진행합니다.\n\n" +
+      "효율성: 야간/주말 작업으로 가동 중단 최소화\n" +
+      "안전성: 주간 작업으로 안전 확보\n" +
+      "비용: 예산 범위 내 최적 일정\n\n" +
+      "각자 담당 부서 입장을 관철하되, 제한 시간 안에 모두 수용 가능한 하나의 안을 도출합니다.\n" +
+      "평가는 한 번에 한 사람(평가 대상자)만 지정하여 수행하며, 나머지는 맥락 참여자로 처리합니다.",
     activityType: "협상형 그룹토의 (Group Discussion)",
-    reference: "3인 협상형 토의 상호작용 행동 분석 v0.9",
+    reference: "협상형 토의 상호작용 행동 분석 v1.0",
   },
   rubricItems: [TB_M1, TB_M2, TB_M3, TB_M4, TB_M5].map(mItemToRubricItem),
   mItems: [TB_M1, TB_M2, TB_M3, TB_M4, TB_M5],
   taskContext: {
     title: "부서간 설비 교체 일정 갈등 조율",
-    description: "3인이 서로 다른 부서 역할을 맡아 40분 동안 합의안을 도출하는 협상형 그룹토의 — 평가 대상자 1인 기준 별도 scoring",
+    description: "서로 다른 부서 역할을 맡은 참여자들이 합의안을 도출하는 협상형 그룹토의 — 평가 대상자 1인(target) 기준으로 별도 scoring, 나머지는 맥락 참여자(context)",
     activityType: "Group Discussion",
-    duration: "40분",
-    participants: "평가 대상자 1인 + 맥락 참여자 2인",
-    reference: "신뢰형성 리더십 역량평가 AI 기술정의서 v0.9",
+    duration: "세션 길이 가변",
+    participants: "평가 대상자 1인(target) + 맥락 참여자 N인(context)",
+    reference: "신뢰형성 리더십 역량평가 AI 기술정의서 v1.0",
   },
   evaluationPrinciples: [
     "한 번에 한 사람의 평가 대상자만 평가하며, 나머지 두 사람은 맥락 참여자",
@@ -593,7 +614,14 @@ const TRUST_BUILDING: CompetencyAssessmentData = {
     "성격·친화력·카리스마·따뜻함 등 인상적 해석",
     "편집 방식·카메라 전환·화면 구성에 대한 주관적 인상평",
   ],
-  totalScoringFormula: "총점 = mean(채점 가능한 M1~M4) (0~9 scale) · 100점 환산값 = 총점 / 9 × 100",
+  totalScoringFormula: "총점 = mean(채점 가능한 M1~M4) (0~9 scale) · 핵심 4개 중 3개 이상 채점 가능할 때만 산출 · 100점 환산값 = 총점 / 9 × 100",
+  prohibitedExpressions: [
+    "신뢰가 형성되었다", "믿음직하다", "따뜻하다", "카리스마가 있다", "공격적이다",
+    "소극적이다", "사람을 편하게 한다", "편을 든다", "리더답다", "설득을 잘한다", "의견이 맞다",
+    "상대를 계속 바라보았다", "아이컨택이 좋았다",
+  ],
+  crossItemReference: "강한 입장 표명·이슈 강조(\"안전은 타협할 수 없습니다\")와 사람·발언을 직접 낮추는 일축 표현(\"그건 틀렸습니다\")을 구분한다. judgmental_dismissive_language는 점수화하지 않고 M1·M3 해석 보강에만 사용한다.",
+  participantModel: "평가 대상자 1인(target) 평가, 나머지는 맥락 참여자(context). 가변 N인. 이견·반박 자체는 감점하지 않으며, 1:1 면담형 시선 언어(\"계속 바라봄\")를 사용하지 않는다.",
 };
 
 // =============================================
@@ -786,7 +814,7 @@ const MEMBER_DEVELOPMENT: CompetencyAssessmentData = {
       "③ 차장급 구성원의 업무역량 향상까지 함께 고려해야 합니다.\n\n" +
       "단순 지적 면담이 아니라 코칭·피드백 면담입니다.",
     activityType: "1:1 코칭 면담 (Role Play)",
-    reference: "개발적 코칭 면담 상호작용 행동 분석 v0.9",
+    reference: "개발적 코칭 면담 상호작용 행동 분석 v1.0",
   },
   rubricItems: [MD_M1, MD_M2, MD_M3, MD_M4, MD_M5].map(mItemToRubricItem),
   mItems: [MD_M1, MD_M2, MD_M3, MD_M4, MD_M5],
@@ -796,7 +824,7 @@ const MEMBER_DEVELOPMENT: CompetencyAssessmentData = {
     activityType: "Role Play (1:1 코칭 면담)",
     duration: "6분",
     participants: "Leader (평가 대상자) + Member (맥락 참여자)",
-    reference: "구성원육성 리더십 역량평가 AI 기술정의서 v0.9",
+    reference: "구성원육성 리더십 역량평가 AI 기술정의서 v1.0",
   },
   evaluationPrinciples: [
     "Leader 1인만 평가 — Member 발화는 상호작용 맥락 해석용",
@@ -816,6 +844,12 @@ const MEMBER_DEVELOPMENT: CompetencyAssessmentData = {
     "배경 환경·촬영 품질에 대한 주관적 인상평",
   ],
   totalScoringFormula: "총점 = mean(채점 가능한 M1~M4) (0~9 scale) · 100점 환산값 = 총점 / 9 × 100",
+  prohibitedExpressions: [
+    "심리적 안전감이 느껴졌다", "코칭을 잘했다", "공감 능력이 높다", "리더답다",
+    "따뜻해 보인다", "공격적이다", "방어적이다", "성장시킬 것 같다", "라포가 형성되었다",
+  ],
+  crossItemReference: "문제 제기 발화(\"회의 참여율이 낮은 부분은 개선이 필요합니다\")와 사람·발언을 직접 낮추는 평가·비난 후보(\"왜 그렇게밖에 못하셨습니까?\")를 구분한다. judgmental_language는 점수화하지 않고 M1·M2 해석 보강에만 사용한다. 라포는 단정하지 않고 '면담 초반 관계 형성 행동' 관찰로만 기술한다.",
+  participantModel: "Leader 1인(평가 대상자)만 평가, Member는 맥락 참여자. 공감 반응과 인정·격려 반응을 구분하며, 열린 질문은 이유·배경·어려움·대안을 더 여는 질문으로 한정한다.",
 };
 
 // =============================================
@@ -852,9 +886,19 @@ export const QUALITY_NA_RULES = [
   "전사 신뢰도 부족 시 의미 분석 기반 지표 N/A",
   "상반신·손 keypoint 가시 비율 70% 미만 시 M4 전체 N/A",
   "M5는 추적 품질이 낮거나 분류기가 비활성이면 자동 N/A 또는 참고의견 생략",
-  "조건부지표 미산출은 0점이 아니라 Drop",
-  "evaluable M-항목이 2개 이하인 경우 총점 산출 보류",
+  "상시·조건부·내부 참고지표 미산출은 0점이 아니라 Drop",
+  "채점 가능한 핵심 항목(M1~M4)이 3개 미만이면 총점 산출 보류(N/A)",
+  "M5(보조 항목)는 numeric score를 산출하지 않으며 총점에 반영하지 않음",
 ];
+
+// 역량별 채점 대상 필수지표 조회 (category=required & scoreReflected & band 보유)
+export function getScoredIndicators(competencyKey: string): RubricIndicator[] {
+  const data = ASSESSMENT_BY_KEY[competencyKey];
+  if (!data) return [];
+  return data.mItems
+    .filter((m) => m.totalReflected)
+    .flatMap((m) => m.indicators.filter((ind) => ind.category === "required" && ind.scoreReflected && ind.band));
+}
 
 // =============================================
 // 전체 데이터 내보내기 — 1-3직급 핵심 3개 역량
@@ -876,8 +920,8 @@ export const ASSESSMENT_BY_KEY: Record<string, CompetencyAssessmentData> = Objec
 // 새 코드는 ASSESSMENT_BY_KEY[*].mItems / indicators 직접 사용 권장
 // =============================================
 
-// 현재 운영 버전은 "v0.9" 단일화. "bars"/"multimodal"은 deprecated CompetencyAssessment.tsx 호환용.
-export type RubricVersion = "v0.9" | "bars" | "multimodal";
+// 현재 운영 버전은 "v1.0" 단일화. "bars"/"multimodal"은 deprecated CompetencyAssessment.tsx 호환용.
+export type RubricVersion = "v1.0" | "v0.9" | "bars" | "multimodal";
 
 // 비전제시의 M1~M5를 멀티모달 루브릭 호환 형태로 노출 (deprecated)
 export interface MultimodalThreshold {
@@ -922,7 +966,7 @@ export interface MultimodalRubricData {
 
 // 비전제시 M-항목을 그대로 노출 (하위 호환)
 export const MULTIMODAL_RUBRIC: MultimodalRubricData = {
-  version: "v0.9",
+  version: "v1.0",
   title: "비전제시 멀티모달 행동지표 루브릭",
   description: "비전제시 5분 전략 브리핑 발표의 멀티모달 행동지표 — 새 코드는 ASSESSMENT_BY_KEY['visionPresentation'].mItems 사용 권장",
   purpose: "비전제시 발표의 전달 행동 (시선·음성·유창성·자세·표정)을 정량 평가",

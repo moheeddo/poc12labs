@@ -2,16 +2,20 @@
 
 import { useState, useCallback } from "react";
 import { scoreMultimodalSignals } from "@/lib/multimodal-scoring";
-import type { ExtractedSignals, MultimodalScoreResult } from "@/lib/multimodal-scoring";
+import type { ExtractedSignals, ChannelSignals, MultimodalScoreResult } from "@/lib/multimodal-scoring";
+import { ASSESSMENT_BY_KEY } from "@/lib/leadership-rubric-data";
+import type { RoleContext } from "@/app/api/twelvelabs/multimodal-extract/route";
+import type { LeadershipCompetencyKey } from "@/lib/types";
 
 // =============================================
-// 멀티모달 분석 파이프라인 훅
-// 5채널 행동 신호 추출 → 채점 → Solar Pro 2 보고서
+// 멀티모달 분석 파이프라인 훅 (역량별) v1.0
+// m-항목별 행동 신호 추출 → 역량 루브릭 채점 → Solar Pro 2 보고서
+// 피드백 ①: competencyKey를 추출·채점·보고서 전 단계에 전달
 // =============================================
 
 export type PipelinePhase =
   | "idle"
-  | "extracting"  // TwelveLabs로 5채널 추출 중
+  | "extracting"  // m-항목별 추출 중
   | "scoring"     // 채점 엔진 처리 중
   | "reporting"   // Solar Pro 2 보고서 생성 중
   | "done"
@@ -32,21 +36,12 @@ export interface PipelineResult {
   reportModel: string;
 }
 
-const CHANNELS = ["gaze", "voice", "fluency", "posture", "face"];
-const CHANNEL_LABELS: Record<string, string> = {
-  gaze: "시선 분석",
-  voice: "음성 분석",
-  fluency: "유창성 분석",
-  posture: "자세·제스처 분석",
-  face: "표정·머리 분석",
-};
-
 export function useMultimodalPipeline() {
   const [progress, setProgress] = useState<PipelineProgress>({
     phase: "idle",
     currentChannel: "",
     completedChannels: [],
-    totalChannels: CHANNELS.length,
+    totalChannels: 5,
     percent: 0,
   });
   const [result, setResult] = useState<PipelineResult | null>(null);
@@ -54,141 +49,79 @@ export function useMultimodalPipeline() {
 
   const runPipeline = useCallback(async (
     videoId: string,
-    competencyLabel?: string,
+    competencyKey: LeadershipCompetencyKey | string,
     scenarioText?: string,
+    roleContext?: RoleContext,
   ) => {
     setError(null);
     setResult(null);
 
-    try {
-      // ═══ Phase 1: 5채널 병렬 추출 ═══
-      setProgress({
-        phase: "extracting",
-        currentChannel: "전체 채널",
-        completedChannels: [],
-        totalChannels: CHANNELS.length,
-        percent: 5,
-      });
+    const competency = ASSESSMENT_BY_KEY[competencyKey];
+    if (!competency) {
+      setError(`유효하지 않은 역량: ${competencyKey}`);
+      setProgress((p) => ({ ...p, phase: "error" }));
+      return;
+    }
 
-      // 병렬로 5채널 동시 추출
+    // 채널 = m-항목 코드 (m1~m5)
+    const channels = competency.mItems.map((m) => m.code.toLowerCase());
+
+    try {
+      // ═══ Phase 1: 항목별 병렬 추출 ═══
+      setProgress({ phase: "extracting", currentChannel: "전체 항목", completedChannels: [], totalChannels: channels.length, percent: 5 });
+
       const extractResults = await Promise.allSettled(
-        CHANNELS.map(async (ch) => {
+        channels.map(async (ch) => {
           const res = await fetch("/api/twelvelabs/multimodal-extract", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ videoId, channel: ch }),
+            body: JSON.stringify({ videoId, channel: ch, competencyKey, roleContext }),
           });
           if (!res.ok) throw new Error(`${ch} 추출 실패: ${res.status}`);
           const data = await res.json();
           return { channel: ch, data: data.data };
-        })
+        }),
       );
 
-      // 결과 조합 — TwelveLabs 응답 구조 유연하게 처리
       const signals: ExtractedSignals = {};
       const completed: string[] = [];
-
-      // 채널 → 데이터 키 매핑
-      const CHANNEL_DATA_KEYS: Record<string, string[]> = {
-        gaze: ["gaze"],
-        voice: ["voice"],
-        fluency: ["fluency"],
-        posture: ["posture_gesture", "posture"],
-        face: ["face_head", "face"],
-      };
-      // 채널 → signals 키 매핑
-      const SIGNAL_KEYS: Record<string, keyof ExtractedSignals> = {
-        gaze: "gaze",
-        voice: "voice",
-        fluency: "fluency",
-        posture: "posture_gesture",
-        face: "face_head",
-      };
-
       extractResults.forEach((r, i) => {
-        const ch = CHANNELS[i];
+        const ch = channels[i];
         if (r.status === "fulfilled" && r.value.data) {
-          let channelData = r.value.data;
-
-          // TwelveLabs 응답이 중첩 구조일 수 있음 (예: { gaze: { audience_facing_ratio: 0.72 } })
-          // 또는 평탄 구조 (예: { audience_facing_ratio: 0.72 })
-          const possibleKeys = CHANNEL_DATA_KEYS[ch] || [];
-          for (const key of possibleKeys) {
-            if (channelData[key] && typeof channelData[key] === "object") {
-              channelData = channelData[key];
-              break;
-            }
-          }
-
-          // parseError가 있으면 건너뛰기
-          if (channelData.parseError) return;
-
-          const signalKey = SIGNAL_KEYS[ch];
-          if (signalKey) {
-            // TwelveLabs API 응답은 동적 구조이므로 타입 단언이 불가피
-            (signals as Record<string, unknown>)[signalKey] = channelData;
-            completed.push(ch);
-          }
+          const channelData = r.value.data as Record<string, unknown>;
+          if (channelData.parseError) return; // 파싱 실패는 N/A 처리 (signals에 미포함)
+          signals[ch] = channelData as unknown as ChannelSignals;
+          completed.push(ch);
         }
       });
 
-      setProgress({
-        phase: "extracting",
-        currentChannel: "추출 완료",
-        completedChannels: completed,
-        totalChannels: CHANNELS.length,
-        percent: 60,
-      });
+      setProgress({ phase: "extracting", currentChannel: "추출 완료", completedChannels: completed, totalChannels: channels.length, percent: 60 });
 
-      // ═══ Phase 2: 채점 ═══
-      setProgress((p) => ({ ...p, phase: "scoring", percent: 70 }));
+      // ═══ Phase 2: 역량별 채점 ═══
+      setProgress((p) => ({ ...p, phase: "scoring", percent: 75 }));
+      const scoring = scoreMultimodalSignals(signals, competencyKey);
 
-      const scoring = scoreMultimodalSignals(signals);
-
-      setProgress((p) => ({ ...p, phase: "scoring", percent: 80 }));
-
-      // ═══ Phase 3: Solar Pro 2 보고서 생성 ═══
+      // ═══ Phase 3: Solar Pro 2 보고서 ═══
       setProgress((p) => ({ ...p, phase: "reporting", percent: 85 }));
-
       let report = "";
       let reportModel = "local-template";
-
       try {
         const reportRes = await fetch("/api/solar/report", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            scoringResult: scoring,
-            competencyLabel,
-            scenarioText,
-          }),
+          body: JSON.stringify({ scoringResult: scoring, competencyKey, competencyLabel: competency.label, scenarioText }),
         });
-
         if (reportRes.ok) {
           const reportData = await reportRes.json();
           report = reportData.report || "";
           reportModel = reportData.model || "local-template";
         }
       } catch {
-        // Solar API 실패 시 채점 결과만으로 진행
+        // Solar 실패 시 채점 결과만으로 진행
       }
 
-      // ═══ 완료 ═══
-      const pipelineResult: PipelineResult = {
-        signals,
-        scoring,
-        report,
-        reportModel,
-      };
-
-      setResult(pipelineResult);
-      setProgress({
-        phase: "done",
-        currentChannel: "",
-        completedChannels: completed,
-        totalChannels: CHANNELS.length,
-        percent: 100,
-      });
+      setResult({ signals, scoring, report, reportModel });
+      setProgress({ phase: "done", currentChannel: "", completedChannels: completed, totalChannels: channels.length, percent: 100 });
     } catch (e) {
       const msg = e instanceof Error ? e.message : "파이프라인 실패";
       setError(msg);
@@ -196,11 +129,5 @@ export function useMultimodalPipeline() {
     }
   }, []);
 
-  return {
-    progress,
-    result,
-    error,
-    runPipeline,
-    channelLabels: CHANNEL_LABELS,
-  };
+  return { progress, result, error, runPipeline };
 }

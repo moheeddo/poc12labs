@@ -26,8 +26,36 @@ import {
 } from "@/lib/leadership-analysis";
 import { useMultimodalPipeline } from "@/hooks/useMultimodalPipeline";
 import TranscriptTimeline from "./TranscriptTimeline";
+import SpeakerRoleMapping from "./SpeakerRoleMapping";
+import type { RoleContext } from "@/app/api/twelvelabs/multimodal-extract/route";
+import type { IndicatorJudgment } from "@/lib/multimodal-scoring";
 import type { Chapter, Highlight, LeadershipCompetencyKey } from "@/lib/types";
 import { formatTime, cn } from "@/lib/utils";
+
+// ─── 3색 등급 헬퍼 (상위 teal · 중위 amber · 하위 red) — 피드백 ⑤ ───
+function tierColorByJudgment(j: IndicatorJudgment["judgment"]): { bar: string; text: string; chipBg: string } {
+  if (j === "상위") return { bar: "bg-teal-500", text: "text-teal-600", chipBg: "bg-teal-100 text-teal-700" };
+  if (j === "중상" || j === "중하") return { bar: "bg-amber-400", text: "text-amber-600", chipBg: "bg-amber-100 text-amber-700" };
+  if (j === "미흡") return { bar: "bg-red-400", text: "text-red-500", chipBg: "bg-red-100 text-red-600" };
+  return { bar: "bg-slate-300", text: "text-slate-400", chipBg: "bg-slate-100 text-slate-500" }; // 참고/N/A
+}
+
+// 항목 점수(0~9) → 3색 등급
+function tierColorByScore(score: number | null): { text: string; chipBg: string; border: string; bg: string; bar: string } {
+  if (score === null) return { text: "text-slate-400", chipBg: "bg-slate-100 text-slate-400", border: "border-slate-200", bg: "bg-slate-50/30", bar: "bg-slate-300" };
+  if (score >= 7) return { text: "text-teal-700", chipBg: "bg-teal-100 text-teal-700", border: "border-teal-200", bg: "bg-teal-50/30", bar: "bg-teal-500" };
+  if (score >= 5) return { text: "text-amber-700", chipBg: "bg-amber-100 text-amber-700", border: "border-amber-200", bg: "bg-amber-50/30", bar: "bg-amber-400" };
+  return { text: "text-red-600", chipBg: "bg-red-100 text-red-600", border: "border-red-200", bg: "bg-red-50/30", bar: "bg-red-400" };
+}
+
+// 지표 값 표시 포맷 (% 변환은 unit 기준 — 균형지수 등 비율 외 0~1 값 오표기 방지)
+function formatIndicatorValue(ind: IndicatorJudgment): string {
+  if (ind.value === null || ind.value === undefined) return "—";
+  if (typeof ind.value === "boolean") return ind.value ? "예" : "아니오";
+  const v = ind.value;
+  if (ind.unit === "%") return v <= 1 ? `${(v * 100).toFixed(0)}%` : `${v.toFixed(0)}%`;
+  return `${v % 1 !== 0 ? v.toFixed(1) : v}${ind.unit ? ` ${ind.unit}` : ""}`;
+}
 
 // 분석 완료 시 조 세션에 자동 반영할 점수 데이터
 export interface AnalysisCompletePayload {
@@ -166,7 +194,6 @@ export default function LeadershipFeedback({
   // 분석 데이터
   const [chapters, setChapters] = useState<Chapter[]>([]);
   const [highlights, setHighlights] = useState<Highlight[]>([]);
-  const [summary, setSummary] = useState("");
   const [analysisError, setAnalysisError] = useState<string | null>(null);
   const [analysisStep, setAnalysisStep] = useState("");
   const [analysisLoading, setAnalysisLoading] = useState(true);
@@ -178,6 +205,10 @@ export default function LeadershipFeedback({
   // 멀티모달 파이프라인
   const { progress: mmProgress, result: mmResult, error: mmError, runPipeline } = useMultimodalPipeline();
   const [mmStarted, setMmStarted] = useState(false);
+  // 재분석(코치 보정) 중 여부 — 전체 로딩 화면 대신 인플레이스 로딩 유지
+  const [mmReanalyzing, setMmReanalyzing] = useState(false);
+  // 코치 보정 — 평가 대상자/화자 라벨 (피드백 ⑦)
+  const [roleContext, setRoleContext] = useState<RoleContext>({});
 
   // 단계별 완료 시각 기록 (로딩 스켈레톤 UX)
   const [phaseTimestamps, setPhaseTimestamps] = useState<PhaseTimestamps>({});
@@ -190,15 +221,18 @@ export default function LeadershipFeedback({
   const [activeEvidenceId, setActiveEvidenceId] = useState<string | null>(null);
   const [saved, setSaved] = useState(false);
   const [autoSaveToast, setAutoSaveToast] = useState(false);
+  const [copyToast, setCopyToast] = useState(false);
   // setTimeout cleanup 용 ref (언마운트 시 타이머 정리)
   const savedTimerRef = useRef<ReturnType<typeof setTimeout>>(null);
   const autoSaveTimerRef = useRef<ReturnType<typeof setTimeout>>(null);
+  const copyTimerRef = useRef<ReturnType<typeof setTimeout>>(null);
 
   // 컴포넌트 언마운트 시 타이머 정리
   useEffect(() => {
     return () => {
       if (savedTimerRef.current) clearTimeout(savedTimerRef.current);
       if (autoSaveTimerRef.current) clearTimeout(autoSaveTimerRef.current);
+      if (copyTimerRef.current) clearTimeout(copyTimerRef.current);
     };
   }, []);
 
@@ -282,7 +316,6 @@ export default function LeadershipFeedback({
         const sm = await analyze(videoId, "summary");
         if (cancelled) return;
         const summaryText = typeof sm === "string" && sm ? sm : "";
-        if (summaryText) setSummary(summaryText);
 
         // ═══════════════════════════════════════════
         // 4단계: 내용 기반 역량 매칭 + AI 자동 스코어링
@@ -381,15 +414,31 @@ export default function LeadershipFeedback({
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [videoId, analyze, fetchTranscription]);
 
+  // 멀티모달은 역량 1개 기준으로 실행 (파일럿: 한 번에 한 역량 선택)
+  const activeCompetency: LeadershipCompetencyKey = (selectedCompetencies?.[0] as LeadershipCompetencyKey) || "visionPresentation";
+
   // ── 멀티모달 파이프라인 자동 시작 (BARS 분석 완료 후) ──
   useEffect(() => {
     if (!analysisLoading && analysisPhase >= 6 && !mmStarted && videoId) {
       setMmStarted(true);
-      const compLabel = competencyKeysToUse.map((k) => COMP_MAP[k]?.label).filter(Boolean).join(", ");
-      runPipeline(videoId, compLabel, scenarioText);
+      runPipeline(videoId, activeCompetency, scenarioText, roleContext);
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [analysisLoading, analysisPhase, mmStarted, videoId]);
+
+  // ── 코치 보정 적용 → 해당 설정으로 재분석 (전체 로딩 화면 대신 인플레이스) ──
+  const handleRoleApply = useCallback((rc: RoleContext) => {
+    setRoleContext(rc);
+    setMmReanalyzing(true);
+    runPipeline(videoId, activeCompetency, scenarioText, rc);
+  }, [videoId, activeCompetency, scenarioText, runPipeline]);
+
+  // 재분석 완료/실패 시 플래그 해제
+  useEffect(() => {
+    if (mmReanalyzing && (mmProgress.phase === "done" || mmProgress.phase === "error")) {
+      setMmReanalyzing(false);
+    }
+  }, [mmReanalyzing, mmProgress.phase]);
 
   // ── 분석 완료 시 자동 저장 + 토스트 + 조 세션 자동 반영 ──
   const [analysisReported, setAnalysisReported] = useState(false);
@@ -546,6 +595,56 @@ export default function LeadershipFeedback({
     savedTimerRef.current = setTimeout(() => setSaved(false), 3000);
   }, [videoId, videoTitle, evidence, selectedCompetencies]);
 
+  // ── 보고서 PDF 내보내기 (보고서 영역만 별도 창에서 인쇄 → 저장) — 피드백 ⑥ ──
+  const buildReportHtml = useCallback((): string => {
+    const el = document.getElementById("multimodal-report");
+    const inner = el ? el.innerHTML : "<p>보고서를 찾을 수 없습니다.</p>";
+    const label = mmResult?.scoring.competencyLabel || "리더십";
+    const total = mmResult?.scoring.totalScore;
+    const totalLine = total !== null && total !== undefined
+      ? `<p class="meta">총점 ${total.toFixed(1)}/9 (${mmResult?.scoring.interpretation}) · 핵심 4개 항목(M1~M4) 평균 · M5 제외</p>`
+      : `<p class="meta">총점 산출 보류 (채점 가능 항목 3개 미만)</p>`;
+    return `<!DOCTYPE html><html lang="ko"><head><meta charset="utf-8"><title>${label} 멀티모달 행동분석 보고서 — ${videoTitle}</title>
+<style>
+  *{box-sizing:border-box} body{font-family:'Pretendard',system-ui,sans-serif;color:#1e293b;margin:32px;line-height:1.8}
+  h1{font-size:18px;margin:0 0 4px} .sub{color:#64748b;font-size:12px;margin:0 0 2px} .meta{color:#7c3aed;font-size:12px;margin:0 0 16px;font-weight:600}
+  h2{font-size:15px;border-bottom:1px solid #ddd6fe;padding-bottom:6px;margin:22px 0 10px}
+  h3{font-size:14px;margin:16px 0 6px} h4{font-size:13px;color:#6d28d9;margin:12px 0 4px}
+  table{width:100%;border-collapse:collapse;margin:10px 0;font-size:12px} th,td{border:1px solid #e2e8f0;padding:6px 8px;text-align:left} th{background:#f8fafc}
+  ul,ol{padding-left:20px} li{margin:3px 0} p{margin:6px 0}
+  @media print{body{margin:12mm}}
+</style></head><body>
+<h1>${label} 멀티모달 행동분석 종합보고서</h1>
+<p class="sub">${videoTitle} · KHNP 인재개발원 리더십 역량진단 v1.0</p>
+${totalLine}
+${inner}
+</body></html>`;
+  }, [mmResult, videoTitle]);
+
+  const handleExportReportPdf = useCallback(() => {
+    // document.write 대신 Blob URL 사용 (XSS·성능 회피). 콘텐츠는 renderReport에서 script/iframe/on* 제거 후 생성됨
+    const blob = new Blob([buildReportHtml()], { type: "text/html;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const w = window.open(url, "_blank", "width=900,height=1000");
+    if (!w) { alert("팝업이 차단되었습니다. 팝업 허용 후 다시 시도하세요."); URL.revokeObjectURL(url); return; }
+    // 로드 후 인쇄 다이얼로그 (사용자가 'PDF로 저장' 선택)
+    w.addEventListener("load", () => { w.focus(); w.print(); });
+    setTimeout(() => URL.revokeObjectURL(url), 60000);
+  }, [buildReportHtml]);
+
+  const handleDownloadReport = useCallback(() => {
+    const blob = new Blob([buildReportHtml()], { type: "text/html;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    const safe = (mmResult?.scoring.competencyLabel || "리더십").replace(/\s+/g, "");
+    a.href = url;
+    a.download = `${safe}_행동분석보고서_${videoTitle.replace(/\s+/g, "_").slice(0, 40)}.html`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  }, [buildReportHtml, mmResult, videoTitle]);
+
   // handleSearch: 향후 검색 UI 연동을 위해 보존 (현재 미사용)
   // const handleSearch = useCallback(
   //   (query: string) => search(TWELVELABS_INDEXES.leadership, query),
@@ -622,7 +721,8 @@ export default function LeadershipFeedback({
   // ── 섹션 A: 분석 진행 화면 (로딩 스크린) ──────────────────
   // BARS 완료 후 멀티모달 시작 전 1-프레임 갭 방지: mmPendingStart 추가
   const mmPendingStart = !analysisLoading && analysisPhase >= 6 && !mmStarted && !!videoId;
-  const isFullyLoading = analysisLoading || mmPendingStart || (mmStarted && mmProgress.phase !== "done" && mmProgress.phase !== "error");
+  // 재분석(mmReanalyzing) 중에는 전체 로딩 화면으로 되돌아가지 않고 결과 뷰·코치 패널을 유지 (인플레이스 로딩)
+  const isFullyLoading = analysisLoading || mmPendingStart || (mmStarted && !mmReanalyzing && mmProgress.phase !== "done" && mmProgress.phase !== "error");
   if (isFullyLoading) {
     return (
       <div className="max-w-[800px] mx-auto px-4 md:px-6 py-12 animate-slide-in-right">
@@ -795,6 +895,15 @@ export default function LeadershipFeedback({
           </div>
         </div>
       )}
+      {/* 보고서 복사 토스트 */}
+      {copyToast && (
+        <div className="fixed bottom-6 right-6 z-50 animate-fade-in-up">
+          <div className="flex items-center gap-2 px-4 py-3 rounded-xl bg-violet-600 text-white shadow-lg text-sm font-medium">
+            <CheckCircle2 className="w-4 h-4 shrink-0" />
+            보고서가 클립보드에 복사되었습니다
+          </div>
+        </div>
+      )}
       {/* 헤더 */}
       <div className="flex items-center justify-between mb-2">
         <div className="flex items-center gap-3">
@@ -920,33 +1029,79 @@ export default function LeadershipFeedback({
             </div>
           )}
 
-          {/* AI 요약 + 하이라이트 */}
-          {!analysisLoading && (summary || highlights.length > 0) && (
-            <div className="bg-white/40 border border-slate-200/30 rounded-xl p-4 space-y-3 animate-fade-in-up">
-              {summary && (
-                <div>
-                  <p className="text-sm text-slate-500 flex items-center gap-1.5 mb-1.5">
-                    <Sparkles className="w-3.5 h-3.5 text-teal-500/60" />
-                    AI 분석 요약
-                  </p>
-                  <p className="text-base text-slate-500 leading-relaxed">{summary}</p>
+          {/* ── 종합 평가 요약 (최상단 배치 — 피드백 ④) ── */}
+          {mmResult && (() => {
+            const s = mmResult.scoring;
+            const total = s.totalScore;
+            const totalColor = total === null ? "text-slate-400" : total >= 5.5 ? "text-teal-600" : total >= 3.0 ? "text-amber-600" : "text-red-500";
+            return (
+              <div className="bg-white border border-violet-200/40 rounded-2xl p-5 shadow-sm animate-fade-in-up">
+                <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center gap-2">
+                    <Sparkles className="w-4 h-4 text-violet-600" />
+                    <span className="text-sm font-bold text-slate-800">{s.competencyLabel} 멀티모달 종합 평가</span>
+                  </div>
+                  <span className="text-[11px] text-slate-400">핵심 4개(M1~M4) 평균 · M5 보조 제외</span>
                 </div>
-              )}
-              {highlights.length > 0 && (
-                <div className="flex flex-wrap gap-2 pt-1">
-                  {highlights.map((hl, i) => (
-                    <button
-                      key={i}
-                      onClick={() => seekTo(hl.start)}
-                      className="inline-flex items-center gap-1.5 bg-slate-100/50 hover:bg-teal-50 border border-slate-200/40 hover:border-teal-500/20 rounded-lg px-3 py-1.5 text-sm text-slate-500 hover:text-teal-600 transition-all"
-                    >
-                      <PlayCircle className="w-3 h-3" />
-                      <span className="font-mono">{formatTime(hl.start)}</span>
-                      <span className="max-w-[180px] truncate">{hl.text}</span>
-                    </button>
-                  ))}
+                <div className="flex items-end gap-4">
+                  <div className="text-center shrink-0">
+                    <div className="flex items-baseline gap-1">
+                      <span className={cn("text-4xl font-bold font-mono", totalColor)}>{total !== null ? total.toFixed(1) : "—"}</span>
+                      <span className="text-base text-slate-400">/9</span>
+                    </div>
+                    <p className={cn("text-sm font-medium mt-0.5", totalColor)}>{s.interpretation}</p>
+                    {s.totalScore100 !== null && <p className="text-[11px] text-slate-400">100점 환산 {s.totalScore100}점</p>}
+                  </div>
+                  {/* 항목별 미니 점수 (3색) */}
+                  <div className="flex-1 space-y-1.5 min-w-0">
+                    {s.items.filter((it) => it.totalReflected).map((it) => {
+                      const c = tierColorByScore(it.itemScore);
+                      const pct = it.itemScore !== null ? (it.itemScore / 9) * 100 : 0;
+                      return (
+                        <div key={it.id} className="flex items-center gap-2">
+                          <span className="text-[11px] text-slate-500 w-7 shrink-0 font-mono">{it.channel}</span>
+                          <span className="text-[11px] text-slate-600 truncate flex-1 min-w-0">{it.name}</span>
+                          <div className="w-20 h-1.5 rounded-full bg-slate-100 overflow-hidden shrink-0">
+                            <div className={cn("h-full rounded-full", c.bar)} style={{ width: `${pct}%` }} />
+                          </div>
+                          <span className={cn("text-[11px] font-mono font-bold w-10 text-right shrink-0", c.text)}>
+                            {it.itemScore !== null ? `${it.itemScore.toFixed(1)}` : "N/A"}
+                          </span>
+                        </div>
+                      );
+                    })}
+                  </div>
                 </div>
-              )}
+                <p className="text-[11px] text-slate-400 mt-3 pt-2 border-t border-slate-100">
+                  채점 가능 핵심 항목 {s.scorableItemCount}/{s.coreItemCount}개 · {mmResult.reportModel === "solar-pro2" ? "Solar Pro 2" : "로컬 템플릿"} 보고서
+                  {total === null && <span className="text-amber-600 ml-1">· 채점 가능 항목 3개 미만으로 총점 산출 보류</span>}
+                </p>
+              </div>
+            );
+          })()}
+
+          {/* ── 코치 보정 패널 (화자·역할) — 피드백 ⑦ ── */}
+          <SpeakerRoleMapping
+            competencyKey={activeCompetency}
+            value={roleContext}
+            onApply={handleRoleApply}
+            disabled={mmStarted && mmProgress.phase !== "done" && mmProgress.phase !== "error"}
+          />
+
+          {/* 핵심 장면 빠른 이동 (하이라이트 — 발언요약 프로세는 제거, 피드백 ④) */}
+          {highlights.length > 0 && (
+            <div className="flex flex-wrap gap-2">
+              {highlights.map((hl, i) => (
+                <button
+                  key={i}
+                  onClick={() => seekTo(hl.start)}
+                  className="inline-flex items-center gap-1.5 bg-slate-100/50 hover:bg-teal-50 border border-slate-200/40 hover:border-teal-500/20 rounded-lg px-3 py-1.5 text-sm text-slate-500 hover:text-teal-600 transition-all"
+                >
+                  <PlayCircle className="w-3 h-3" />
+                  <span className="font-mono">{formatTime(hl.start)}</span>
+                  <span className="max-w-[180px] truncate">{hl.text}</span>
+                </button>
+              ))}
             </div>
           )}
           {/* ── 탭 전환 (멀티모달 / 대본) ── */}
@@ -982,274 +1137,74 @@ export default function LeadershipFeedback({
           {rightTab === "multimodal" && (
             mmResult ? (
               <div className="space-y-4 animate-fade-in-up">
-                {/* 총점 */}
-                <div className="bg-violet-50/50 border border-violet-500/15 rounded-xl p-5 text-center">
-                  <p className="text-sm text-violet-600 font-medium mb-1">멀티모달 행동기반 총점</p>
-                  <div className="flex items-baseline justify-center gap-1.5">
-                    <span className="text-3xl font-bold font-mono text-violet-600">
-                      {mmResult.scoring.totalScore !== null ? mmResult.scoring.totalScore.toFixed(1) : "—"}
-                    </span>
-                    <span className="text-base text-slate-400">/9</span>
-                  </div>
-                  <p className="text-sm text-violet-500 mt-1">{mmResult.scoring.interpretation}</p>
-                  <p className="text-xs text-slate-400 mt-1">
-                    {mmResult.scoring.scorableItemCount}/5개 항목 채점 · {mmResult.reportModel === "solar-pro2" ? "Solar Pro 2" : "로컬"} 생성
-                  </p>
-                  {/* 산출 보류 시 안내 */}
-                  {mmResult.scoring.totalScore === null && (
-                    <div className="mt-3 pt-3 border-t border-violet-200/30">
-                      <p className="text-xs text-amber-600 font-medium">
-                        3개 이상 항목이 채점되어야 총점을 산출할 수 있습니다 (현재 {mmResult.scoring.scorableItemCount}개 채점됨)
-                      </p>
-                      {/* 채점된 항목들의 개별 점수 표시 */}
-                      {mmResult.scoring.scorableItemCount > 0 && (
-                        <div className="flex items-center justify-center gap-3 mt-2 flex-wrap">
-                          {mmResult.scoring.items
-                            .filter((item) => item.itemScore !== null)
-                            .map((item) => (
-                              <span key={item.id} className="inline-flex items-center gap-1 text-xs">
-                                <span className="text-slate-500">{item.name}</span>
-                                <span className={cn(
-                                  "font-mono font-bold px-1.5 py-0.5 rounded",
-                                  item.itemScore !== null && item.itemScore >= 7 ? "bg-teal-50 text-teal-600" :
-                                  item.itemScore !== null && item.itemScore >= 5 ? "bg-amber-50 text-amber-600" :
-                                  "bg-red-50 text-red-500"
-                                )}>
-                                  {item.itemScore!.toFixed(1)}
-                                </span>
-                              </span>
-                            ))}
-                        </div>
-                      )}
-                    </div>
-                  )}
-                </div>
-
-                {/* ── 시선 통제 요약 카드 ── */}
-                {mmResult.signals.gaze && (() => {
-                  const g = mmResult.signals.gaze;
-                  const audienceRatio = g.audience_facing_ratio;
-                  const screenRatio = g.downward_or_slide_fixation_ratio;
-                  const otherRatio = audienceRatio !== null && screenRatio !== null
-                    ? Math.max(0, 1 - audienceRatio - screenRatio) : null;
-                  const gazeItem = mmResult.scoring.items.find(i => i.id === "item1");
-                  const isGood = audienceRatio !== null && audienceRatio >= 0.55;
-                  const isBad = audienceRatio !== null && audienceRatio < 0.35;
-
+                {/* ── 역량 구동 항목별 카드 (M1~M5) — 피드백 ① ── */}
+                {mmResult.scoring.items.map((item, itemIdx) => {
+                  const c = tierColorByScore(item.itemScore);
+                  const scored = item.indicators.filter((i) => i.scoreReflected);
+                  const refs = item.indicators.filter((i) => !i.scoreReflected);
                   return (
-                    <div className={cn(
-                      "rounded-xl p-5 border",
-                      isBad ? "bg-red-50/60 border-red-200" :
-                      isGood ? "bg-teal-50/40 border-teal-200" :
-                      "bg-amber-50/40 border-amber-200"
-                    )}>
-                      <div className="flex items-center justify-between mb-3">
-                        <div className="flex items-center gap-2">
-                          <Eye className="w-4 h-4 text-violet-500" />
-                          <span className="text-sm font-semibold text-slate-800">청중 지향 시선 통제</span>
+                    <div
+                      key={item.id}
+                      className={cn("rounded-xl p-5 border cursor-pointer hover:shadow-md transition-all", c.border, c.bg)}
+                      onClick={() => {
+                        const v = videoRef.current;
+                        if (v && v.duration) seekTo((v.duration / mmResult.scoring.items.length) * itemIdx);
+                      }}
+                    >
+                      {/* 헤더 */}
+                      <div className="flex items-center justify-between mb-3 gap-2">
+                        <div className="flex items-center gap-2 min-w-0">
+                          <span className="text-[11px] font-mono font-bold text-slate-400 shrink-0">{item.channel}</span>
+                          <span className="text-sm font-semibold text-slate-800 truncate">{item.name}</span>
+                          {!item.totalReflected && (
+                            <span className="text-[10px] bg-slate-100 text-slate-500 px-1.5 py-0.5 rounded shrink-0">보조 · 총점 미반영</span>
+                          )}
                         </div>
-                        {gazeItem && (
-                          <span className={cn(
-                            "text-sm font-mono font-bold px-2 py-0.5 rounded",
-                            gazeItem.itemScore !== null && gazeItem.itemScore >= 7 ? "bg-teal-100 text-teal-700" :
-                            gazeItem.itemScore !== null && gazeItem.itemScore >= 5 ? "bg-amber-100 text-amber-700" :
-                            gazeItem.itemScore !== null ? "bg-red-100 text-red-600" :
-                            "bg-slate-100 text-slate-400"
-                          )}>
-                            {gazeItem.itemScore !== null ? `${gazeItem.itemScore.toFixed(1)}/9` : "N/A"}
+                        {item.totalReflected && (
+                          <span className={cn("text-sm font-mono font-bold px-2.5 py-1 rounded-lg shrink-0", c.chipBg)}>
+                            {item.itemScore !== null ? `${item.itemScore.toFixed(1)}/9` : "N/A"}
                           </span>
                         )}
                       </div>
 
-                      {/* 시선 분포 바 */}
-                      {audienceRatio !== null && screenRatio !== null && (
-                        <div className="mb-3">
-                          <div className="flex h-5 rounded-full overflow-hidden bg-slate-200">
-                            <div
-                              className="bg-teal-500 flex items-center justify-center"
-                              style={{ width: `${(audienceRatio * 100).toFixed(0)}%` }}
-                            >
-                              {audienceRatio >= 0.15 && (
-                                <span className="text-[10px] font-bold text-white">{(audienceRatio * 100).toFixed(0)}%</span>
-                              )}
-                            </div>
-                            <div
-                              className="bg-red-400 flex items-center justify-center"
-                              style={{ width: `${(screenRatio * 100).toFixed(0)}%` }}
-                            >
-                              {screenRatio >= 0.1 && (
-                                <span className="text-[10px] font-bold text-white">{(screenRatio * 100).toFixed(0)}%</span>
-                              )}
-                            </div>
-                            {otherRatio !== null && otherRatio > 0.05 && (
-                              <div
-                                className="bg-slate-300 flex items-center justify-center"
-                                style={{ width: `${(otherRatio * 100).toFixed(0)}%` }}
-                              >
-                                {otherRatio >= 0.1 && (
-                                  <span className="text-[10px] font-medium text-slate-600">{(otherRatio * 100).toFixed(0)}%</span>
-                                )}
+                      {/* 필수지표 게이지 (3색: 상위 teal · 중위 amber · 하위 red) */}
+                      {scored.length > 0 && (
+                        <div className="space-y-2">
+                          {scored.map((ind) => {
+                            const tc = tierColorByJudgment(ind.judgment);
+                            const pct = ind.score !== null ? (ind.score / 3) * 100 : 0;
+                            return (
+                              <div key={ind.name}>
+                                <div className="flex items-center justify-between text-[11px] mb-0.5">
+                                  <span className="text-slate-600">{ind.label}</span>
+                                  <span className="font-mono text-slate-700 font-semibold">{formatIndicatorValue(ind)}</span>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                  <div className="flex-1 h-2 rounded-full bg-slate-100 overflow-hidden">
+                                    <div className={cn("h-full rounded-full transition-all", tc.bar)} style={{ width: `${pct}%` }} />
+                                  </div>
+                                  <span className={cn("text-[10px] font-medium w-8 text-right", tc.text)}>{ind.judgment}</span>
+                                </div>
+                                {ind.band && <p className="text-[9px] text-slate-400 mt-0.5">상위 기준: {ind.band.upper}</p>}
                               </div>
-                            )}
-                          </div>
-                          <div className="flex items-center gap-4 mt-1.5 text-[10px]">
-                            <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-teal-500" /> 청중 응시</span>
-                            <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-red-400" /> 모니터/화면</span>
-                            <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-slate-300" /> 기타</span>
-                          </div>
+                            );
+                          })}
                         </div>
                       )}
 
-                      {/* 판정 메시지 */}
-                      <div className={cn(
-                        "text-sm leading-relaxed",
-                        isBad ? "text-red-700" : isGood ? "text-teal-700" : "text-amber-700"
-                      )}>
-                        {isBad ? (
-                          <p>청중 응시 비율이 <strong>{audienceRatio !== null ? `${(audienceRatio * 100).toFixed(0)}%` : "—"}</strong>로 기준(55%) 미달입니다. 발표 모니터나 화면을 보는 비중이 너무 큽니다. 핵심 키워드만 메모하고 청중을 바라보며 말하는 연습이 필요합니다.</p>
-                        ) : isGood ? (
-                          <p>청중 응시 비율 <strong>{audienceRatio !== null ? `${(audienceRatio * 100).toFixed(0)}%` : "—"}</strong>로 양호합니다. 발표 시 청중과 적절히 눈을 맞추고 있습니다.</p>
-                        ) : (
-                          <p>청중 응시 비율 <strong>{audienceRatio !== null ? `${(audienceRatio * 100).toFixed(0)}%` : "—"}</strong>로 보통 수준입니다. 모니터 참조를 줄이고 청중 쪽 시선을 늘리면 더 좋습니다.</p>
-                        )}
-                      </div>
-
-                      {/* 시선 이탈 빈도 */}
-                      {g.off_audience_episodes_per_min !== null && (
-                        <div className="mt-2 text-xs text-slate-500">
-                          시선 이탈: <span className="font-mono font-semibold">{g.off_audience_episodes_per_min.toFixed(1)}</span>회/분
-                          {g.off_audience_episodes_per_min > 5 && <span className="text-red-500 ml-1">(과다)</span>}
-                          {g.off_audience_episodes_per_min <= 1.5 && <span className="text-teal-500 ml-1">(양호)</span>}
-                        </div>
-                      )}
-
-                      {/* 기준 안내 */}
-                      <div className="mt-3 pt-2.5 border-t border-slate-200/50 grid grid-cols-3 gap-2 text-[10px] text-slate-400">
-                        <div>청중 응시 ≥70% <span className="text-teal-500 font-semibold">상위</span></div>
-                        <div>모니터 응시 ≤15% <span className="text-teal-500 font-semibold">상위</span></div>
-                        <div>이탈 ≤1.5회/분 <span className="text-teal-500 font-semibold">상위</span></div>
-                      </div>
-                    </div>
-                  );
-                })()}
-
-                {/* ── 채널별 시각화 카드 (시선은 상단 전용 카드에서 이미 표시) ── */}
-                {mmResult.scoring.items.filter((it) => it.id !== "item1").map((item, itemIdx) => {
-                  const sig = mmResult.signals;
-                  const score = item.itemScore;
-                  const isGood = score !== null && score >= 7;
-                  const isBad = score !== null && score < 5;
-                  const borderColor = isGood ? "border-teal-200" : isBad ? "border-red-200" : "border-amber-200";
-                  const bgColor = isGood ? "bg-teal-50/30" : isBad ? "bg-red-50/30" : "bg-amber-50/30";
-
-                  // 채널 아이콘
-                  const icons: Record<string, string> = { item1: "👁", item2: "🔊", item3: "💬", item4: "🤸", item5: "😊" };
-
-                  // 게이지 바 헬퍼
-                  const GaugeBar = ({ value, max, label, unit, optimal }: { value: number | null; max: number; label: string; unit: string; optimal?: string }) => {
-                    if (value === null) return null;
-                    const pct = Math.min(100, Math.max(0, (value / max) * 100));
-                    const ind = item.indicators.find(i => i.label === label);
-                    // 3분할 색상대: 우수(상위)=teal · 보통(중상·중하)=amber · 미흡=red
-                    const color = ind?.judgment === "상위" ? "bg-teal-500" : (ind?.judgment === "중상" || ind?.judgment === "중하") ? "bg-amber-400" : ind?.judgment === "미흡" ? "bg-red-400" : "bg-slate-300";
-                    return (
-                      <div className="mb-2">
-                        <div className="flex items-center justify-between text-[11px] mb-0.5">
-                          <span className="text-slate-600">{label}</span>
-                          <span className="font-mono text-slate-700 font-semibold">{typeof value === 'number' && value % 1 !== 0 ? value.toFixed(1) : value}{unit}</span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <div className="flex-1 h-2 rounded-full bg-slate-100 overflow-hidden">
-                            <div className={cn("h-full rounded-full transition-all", color)} style={{ width: `${pct}%` }} />
-                          </div>
-                          {ind && <span className={cn("text-[10px] font-medium w-8", ind.judgment === "상위" ? "text-teal-600" : ind.judgment === "미흡" ? "text-red-500" : "text-slate-400")}>{ind.judgment}</span>}
-                        </div>
-                        {optimal && <p className="text-[9px] text-slate-400 mt-0.5">{optimal}</p>}
-                      </div>
-                    );
-                  };
-
-                  return (
-                    <div
-                      key={item.id}
-                      className={cn("rounded-xl p-5 border cursor-pointer hover:shadow-md transition-all", borderColor, bgColor)}
-                      onClick={() => {
-                        const videoEl = videoRef.current;
-                        if (videoEl && videoEl.duration) seekTo((videoEl.duration / 5) * itemIdx);
-                      }}
-                    >
-                      {/* 헤더 */}
-                      <div className="flex items-center justify-between mb-3">
-                        <div className="flex items-center gap-2">
-                          <span className="text-lg">{icons[item.id] || "📊"}</span>
-                          <div>
-                            <span className="text-sm font-semibold text-slate-800">{item.name}</span>
-                            <span className="text-[10px] text-slate-400 ml-1.5">{item.channel}</span>
+                      {/* 참고지표 (미채점 — 피드백 ③) */}
+                      {refs.length > 0 && (
+                        <div className="mt-3 pt-2 border-t border-slate-200/40">
+                          <p className="text-[10px] uppercase tracking-wider text-slate-400 mb-1">참고지표 (미채점)</p>
+                          <div className="flex flex-wrap gap-x-3 gap-y-1">
+                            {refs.map((ind) => (
+                              <span key={ind.name} className="text-[11px] text-slate-500">
+                                {ind.label}: <span className="font-mono">{formatIndicatorValue(ind)}</span>
+                              </span>
+                            ))}
                           </div>
                         </div>
-                        <span className={cn(
-                          "text-sm font-mono font-bold px-2.5 py-1 rounded-lg",
-                          isGood ? "bg-teal-100 text-teal-700" : isBad ? "bg-red-100 text-red-600" : score !== null ? "bg-amber-100 text-amber-700" : "bg-slate-100 text-slate-400"
-                        )}>
-                          {score !== null ? `${score.toFixed(1)}/9` : "N/A"}
-                        </span>
-                      </div>
-
-                      {/* 채널별 게이지 */}
-                      {item.id === "item2" && sig.voice && (
-                        <div className="mb-2">
-                          <GaugeBar value={sig.voice.f0_dynamic_range_st} max={14} label="F0 변화폭" unit="st" optimal="최적: 4~10st" />
-                          <GaugeBar value={sig.voice.loudness_dynamic_range_db} max={16} label="음량 변화폭" unit="dB" optimal="최적: 5~12dB" />
-                          <GaugeBar value={sig.voice.emphasis_bursts_per_min} max={10} label="강조 burst" unit="회/분" optimal="최적: 2~6회/분" />
-                        </div>
                       )}
-                      {item.id === "item3" && sig.fluency && (
-                        <div className="mb-2">
-                          <GaugeBar value={sig.fluency.articulation_rate_syllables_per_sec} max={7} label="조음 속도" unit="음절/초" optimal="최적: 3.5~5.8" />
-                          <GaugeBar value={sig.fluency.filled_pauses_per_min} max={8} label="'어..음..' 빈도" unit="회/분" optimal="적을수록 좋음 (≤2)" />
-                          <GaugeBar value={sig.fluency.long_silent_pauses_per_min} max={6} label="장무음 멈춤" unit="회/분" optimal="적을수록 좋음 (≤1)" />
-                        </div>
-                      )}
-                      {item.id === "item4" && sig.posture_gesture && (
-                        <div className="mb-2">
-                          <GaugeBar value={sig.posture_gesture.open_posture_ratio !== null ? sig.posture_gesture.open_posture_ratio * 100 : null} max={100} label="개방적 자세" unit="%" optimal="≥70% 상위" />
-                          <GaugeBar value={sig.posture_gesture.purposeful_gesture_bouts_per_min} max={12} label="목적형 제스처" unit="회/분" optimal="최적: 2~8회/분" />
-                          <GaugeBar value={sig.posture_gesture.closed_or_fidget_ratio !== null ? sig.posture_gesture.closed_or_fidget_ratio * 100 : null} max={50} label="닫힌 자세/잔동작" unit="%" optimal="≤10% 상위 (적을수록 좋음)" />
-                        </div>
-                      )}
-                      {item.id === "item5" && sig.face_head && (
-                        <div className="mb-2">
-                          <GaugeBar value={sig.face_head.engaged_neutral_ratio !== null ? sig.face_head.engaged_neutral_ratio * 100 : null} max={100} label="안정적 표정" unit="%" optimal="≥75% 상위" />
-                          <GaugeBar value={sig.face_head.facial_tension_ratio !== null ? sig.face_head.facial_tension_ratio * 100 : null} max={50} label="얼굴 긴장" unit="%" optimal="≤10% 상위 (적을수록 좋음)" />
-                          <GaugeBar value={sig.face_head.abrupt_head_jerk_events_per_min} max={8} label="급격한 머리 움직임" unit="회/분" optimal="≤2회/분 상위" />
-                        </div>
-                      )}
-                      {/* 시선(item1)은 상단 전용 카드에서 이미 표시 — 하위지표 요약만 */}
-                      {item.id === "item1" && (
-                        <div className="space-y-1 mb-2">
-                          {item.indicators.map(ind => (
-                            <div key={ind.name} className="flex items-center justify-between text-[11px]">
-                              <span className="text-slate-600">{ind.label}</span>
-                              <div className="flex items-center gap-2">
-                                <span className="font-mono text-slate-700">{ind.value !== null ? (typeof ind.value === 'number' && ind.value < 1 ? `${(ind.value * 100).toFixed(0)}%` : ind.value.toFixed(1)) : "—"}</span>
-                                <span className={cn("text-[10px] font-medium px-1.5 py-0.5 rounded",
-                                  ind.judgment === "상위" ? "bg-teal-100 text-teal-700" : ind.judgment === "미흡" ? "bg-red-100 text-red-600" : "bg-slate-100 text-slate-500"
-                                )}>{ind.judgment}</span>
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      )}
-
-                      {/* 판정 메시지 */}
-                      <div className={cn("text-sm leading-relaxed mt-2 pt-2 border-t",
-                        isGood ? "text-teal-700 border-teal-200/50" : isBad ? "text-red-600 border-red-200/50" : "text-amber-700 border-amber-200/50"
-                      )}>
-                        {isGood && <p>양호한 수준입니다. 현재 패턴을 유지하세요.</p>}
-                        {!isGood && !isBad && score !== null && <p>보통 수준입니다. 약간의 개선이 있으면 더 효과적인 발표가 됩니다.</p>}
-                        {isBad && <p>개선이 필요합니다. 아래 AI 관찰 소견을 참고하세요.</p>}
-                        {score === null && <p className="text-slate-400">데이터 부족으로 채점을 보류합니다.</p>}
-                      </div>
 
                       {/* AI 관찰 소견 */}
                       {item.observation && (
@@ -1258,19 +1213,24 @@ export default function LeadershipFeedback({
                             <p className="text-[10px] uppercase tracking-wider text-violet-500/70 font-medium">AI 관찰 소견</p>
                             {item.observation.length > 120 && (
                               <button
-                                onClick={(e) => { e.stopPropagation(); setExpandedObs(prev => { const n = new Set(prev); if (n.has(itemIdx)) n.delete(itemIdx); else n.add(itemIdx); return n; }); }}
+                                onClick={(e) => { e.stopPropagation(); setExpandedObs((prev) => { const n = new Set(prev); if (n.has(itemIdx)) n.delete(itemIdx); else n.add(itemIdx); return n; }); }}
                                 className="text-[10px] text-violet-500 hover:text-violet-700 transition-colors min-h-[28px] min-w-[44px] flex items-center justify-center"
                               >
                                 {expandedObs.has(itemIdx) ? "접기" : "더보기"}
                               </button>
                             )}
                           </div>
-                          <p className={cn("text-sm text-slate-600 leading-relaxed bg-white/50 rounded-lg px-3 py-2",
-                            !expandedObs.has(itemIdx) && item.observation.length > 120 && "line-clamp-3"
-                          )}>
+                          <p className={cn("text-sm text-slate-600 leading-relaxed bg-white/50 rounded-lg px-3 py-2", !expandedObs.has(itemIdx) && item.observation.length > 120 && "line-clamp-3")}>
                             {item.observation}
                           </p>
                         </div>
+                      )}
+
+                      {/* N/A 안내 → 코치 보정 유도 (피드백 ⑦) */}
+                      {item.naCount > 0 && item.totalReflected && (
+                        <p className="text-[11px] text-amber-600 mt-2 pt-2 border-t border-amber-200/40">
+                          {item.naCount}개 필수지표 N/A — 화자분리·역할매핑 또는 화질·각도 한계 가능성. 상단 “화자·역할 보정”에서 평가 대상자를 지정 후 재분석을 권장합니다.
+                        </p>
                       )}
                     </div>
                   );
@@ -1351,27 +1311,35 @@ export default function LeadershipFeedback({
                               <Sparkles className="w-4 h-4 text-violet-600" />
                             </div>
                             <div>
-                              <h3 className="text-sm font-bold text-slate-800">멀티모달 행동분석 종합보고서</h3>
+                              <h3 className="text-sm font-bold text-slate-800">{mmResult.scoring.competencyLabel} 멀티모달 행동분석 종합보고서</h3>
                               <p className="text-[11px] text-slate-500">
-                                5채널 신호 기반 · {mmResult.reportModel === "solar-pro2" ? "Solar Pro 2" : "로컬 템플릿"} 생성
+                                핵심 4개 항목(M1~M4) 기반 · {mmResult.reportModel === "solar-pro2" ? "Solar Pro 2" : "로컬 템플릿"} 생성
                               </p>
                             </div>
                           </div>
                           <div className="flex items-center gap-1.5 print:hidden">
                             <button
-                              onClick={() => window.print()}
+                              onClick={handleExportReportPdf}
                               className="text-xs text-slate-500 hover:text-violet-600 px-2.5 py-1.5 rounded-lg border border-slate-200 hover:border-violet-300 transition-colors"
                             >
                               PDF 내보내기
                             </button>
                             <button
+                              onClick={handleDownloadReport}
+                              className="text-xs text-slate-500 hover:text-violet-600 px-2.5 py-1.5 rounded-lg border border-slate-200 hover:border-violet-300 transition-colors"
+                            >
+                              보고서 저장(HTML)
+                            </button>
+                            <button
                               onClick={() => {
                                 navigator.clipboard.writeText(mmResult.report);
-                                alert("보고서가 클립보드에 복사되었습니다.");
+                                setCopyToast(true);
+                                if (copyTimerRef.current) clearTimeout(copyTimerRef.current);
+                                copyTimerRef.current = setTimeout(() => setCopyToast(false), 2500);
                               }}
                               className="text-xs text-slate-500 hover:text-violet-600 px-2.5 py-1.5 rounded-lg border border-slate-200 hover:border-violet-300 transition-colors"
                             >
-                              복사
+                              {copyToast ? "복사됨" : "복사"}
                             </button>
                           </div>
                         </div>

@@ -780,7 +780,7 @@ export default function LeadershipCoaching() {
                       )}
                       {comp.rubric && (
                         <span className="text-[11px] px-2 py-0.5 rounded bg-teal-50 text-teal-600/70 font-medium ml-auto">
-                          BARS {comp.rubric.length}항목
+                          M1~M5 항목
                         </span>
                       )}
                     </div>
@@ -962,7 +962,7 @@ export default function LeadershipCoaching() {
               </div>
             ))}
           </div>
-          <p className="text-[10px] text-slate-400 mt-2 text-center">※ KHNP 역량 정의 · BARS 적용</p>
+          <p className="text-[10px] text-slate-400 mt-2 text-center">※ KHNP 역량 정의 · 멀티모달 행동지표 루브릭 v1.0</p>
         </div>
       </details>
     </div>
