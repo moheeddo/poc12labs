@@ -897,32 +897,25 @@ export default function LeadershipCoaching() {
         <div className="space-y-1">
           <div className="flex flex-wrap gap-1 p-1 rounded-lg bg-slate-50/60 border border-slate-200/40">
             {[
-              { key: "competency", label: "역량평가", color: "teal" },
-              { key: "evidence", label: "증거맵", color: "teal" },
-              { key: "derailer", label: "탈선탐지", color: "orange" },
-              { key: "bei", label: "BEI", color: "purple" },
-              { key: "growth", label: "성장추이", color: "blue" },
-              { key: "validation", label: "타당화", color: "slate" },
-              { key: "fairness", label: "공정성", color: "rose" },
-              { key: "iso", label: "ISO감사", color: "slate" },
-              { key: "report", label: "통합리포트", color: "teal" },
-              { key: "consent", label: "동의/HR", color: "slate" },
+              { key: "competency", label: "역량평가" },
+              { key: "evidence", label: "증거맵" },
+              { key: "derailer", label: "탈선탐지" },
+              { key: "bei", label: "BEI" },
+              { key: "growth", label: "성장추이" },
+              { key: "validation", label: "타당화" },
+              { key: "fairness", label: "공정성" },
+              { key: "iso", label: "ISO감사" },
+              { key: "report", label: "통합리포트" },
+              { key: "consent", label: "동의/HR" },
             ].map((tab) => {
-              const colorMap: Record<string, string> = {
-                teal: "bg-emerald-500/20 text-[#006341]",
-                orange: "bg-orange-500/20 text-orange-600",
-                purple: "bg-purple-500/20 text-purple-600",
-                blue: "bg-blue-500/20 text-blue-600",
-                rose: "bg-rose-500/20 text-rose-600",
-                slate: "bg-slate-200 text-slate-600",
-              };
+              // 서브탭 액센트는 KHNP 브랜드 단일색(emerald) — 무지개 금지(.impeccable 일관성)
               return (
                 <button
                   key={tab.key}
                   onClick={() => setAnalysisSubTab(tab.key as typeof analysisSubTab)}
                   className={`px-3 py-1.5 text-xs rounded-md transition-colors font-medium ${
                     analysisSubTab === tab.key
-                      ? colorMap[tab.color]
+                      ? "bg-khnp-emerald/12 text-[#006341]"
                       : "text-slate-500 hover:text-slate-700"
                   }`}
                 >

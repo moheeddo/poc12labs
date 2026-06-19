@@ -297,14 +297,14 @@ function MemberReportModal({
                   return num;
                 })()}. 평가자 코멘트
               </h3>
-              <div className="bg-violet-50 border border-violet-200 rounded-lg px-4 py-3">
+              <div className="bg-slate-50 border border-slate-200 rounded-lg px-4 py-3">
                 <p className="text-sm text-slate-700 leading-relaxed whitespace-pre-wrap">{data.note}</p>
               </div>
             </div>
           )}
 
           {/* 보고서 푸터 */}
-          <div className="text-center text-xs text-slate-400 pt-4 mt-6 border-t border-slate-200">
+          <div className="text-center text-xs text-slate-500 pt-4 mt-6 border-t border-slate-200">
             <p className="font-medium">KHNP Video AI Platform -- 리더십 역량진단 시스템</p>
             <p>본 보고서는 멀티모달 AI 행동분석을 통해 생성되었습니다.</p>
             <p>출력일: {today} | {sessionName} | {data.member.name} ({data.member.position})</p>
@@ -620,8 +620,8 @@ export default function GroupDashboard({ session, onBack, onViewMember }: GroupD
             {/* 메모 표시 */}
             {session.memberNotes?.[m.id] && (
               <div className="mt-2 flex items-start gap-1">
-                <MessageSquareText className="w-3 h-3 text-violet-400 shrink-0 mt-0.5" />
-                <p className="text-[10px] text-violet-600 leading-relaxed line-clamp-2">{session.memberNotes[m.id]}</p>
+                <MessageSquareText className="w-3 h-3 text-slate-500 shrink-0 mt-0.5" />
+                <p className="text-[10px] text-slate-600 leading-relaxed line-clamp-2">{session.memberNotes[m.id]}</p>
               </div>
             )}
 
@@ -831,7 +831,7 @@ export default function GroupDashboard({ session, onBack, onViewMember }: GroupD
           <div key={comp.key} className="bg-white border border-slate-200/40 rounded-xl p-4" style={{ borderLeftWidth: "3px", borderLeftColor: comp.color }}>
             <h4 className="text-sm font-bold mb-3" style={{ color: comp.color }}>
               {comp.label}
-              <span className="text-xs text-slate-400 font-normal ml-2">{comp.activityType}</span>
+              <span className="text-xs text-slate-500 font-normal ml-2">{comp.activityType}</span>
             </h4>
             <div className="space-y-1.5">
               {members.map((m, rank) => (

@@ -470,7 +470,7 @@ export default function GroupManager({
                           className={cn(
                             "p-1.5 rounded-lg transition-all shrink-0",
                             memberNote
-                              ? "text-violet-500 hover:bg-violet-50 hover:text-violet-600"
+                              ? "text-slate-500 hover:bg-slate-50 hover:text-slate-600"
                               : "text-slate-300 hover:bg-slate-50 hover:text-slate-500"
                           )}
                           title={memberNote ? "메모 편집" : "메모 추가"}
@@ -491,7 +491,7 @@ export default function GroupManager({
                             value={noteText}
                             onChange={(e) => setNoteText(e.target.value)}
                             placeholder="디브리핑 메모를 입력하세요..."
-                            className="w-full bg-violet-50/50 border border-violet-200/50 rounded-lg px-3 py-2 text-sm text-slate-800 placeholder:text-slate-400 outline-none focus:border-violet-400 transition-all resize-none leading-relaxed"
+                            className="w-full bg-slate-50/50 border border-slate-200/50 rounded-lg px-3 py-2 text-sm text-slate-800 placeholder:text-slate-400 outline-none focus:border-slate-400 transition-all resize-none leading-relaxed"
                             rows={2}
                             onKeyDown={(e) => { if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) saveNote(member.id); if (e.key === "Escape") { setEditingNoteFor(null); setNoteText(""); } }}
                           />
@@ -506,7 +506,7 @@ export default function GroupManager({
                               <button onClick={() => { setEditingNoteFor(null); setNoteText(""); }} className="text-[10px] text-slate-400 hover:text-slate-600 px-2 py-1 rounded transition-colors">
                                 취소
                               </button>
-                              <button onClick={() => saveNote(member.id)} className="text-[10px] font-medium text-violet-600 hover:text-violet-500 bg-violet-50 px-2.5 py-1 rounded-md border border-violet-200/50 transition-colors">
+                              <button onClick={() => saveNote(member.id)} className="text-[10px] font-medium text-slate-600 hover:text-slate-500 bg-slate-50 px-2.5 py-1 rounded-md border border-slate-200/50 transition-colors">
                                 저장
                               </button>
                             </div>
@@ -516,9 +516,9 @@ export default function GroupManager({
                       {!isEditingNote && memberNote && (
                         <div
                           onClick={() => startEditNote(member.id)}
-                          className="mb-3 bg-violet-50/40 border border-violet-200/30 rounded-lg px-3 py-2 cursor-pointer hover:bg-violet-50/60 transition-colors"
+                          className="mb-3 bg-slate-50/40 border border-slate-200/30 rounded-lg px-3 py-2 cursor-pointer hover:bg-slate-50/60 transition-colors"
                         >
-                          <p className="text-xs text-violet-700 leading-relaxed whitespace-pre-wrap">{memberNote}</p>
+                          <p className="text-xs text-slate-700 leading-relaxed whitespace-pre-wrap">{memberNote}</p>
                         </div>
                       )}
                       {hasVideo ? (
@@ -627,7 +627,7 @@ export default function GroupManager({
                       className={cn(
                         "p-1.5 rounded-lg transition-all shrink-0",
                         memberNote
-                          ? "text-violet-500 hover:bg-violet-50 hover:text-violet-600"
+                          ? "text-slate-500 hover:bg-slate-50 hover:text-slate-600"
                           : "text-slate-300 hover:bg-slate-50 hover:text-slate-500"
                       )}
                       title={memberNote ? "메모 편집" : "메모 추가"}
@@ -653,7 +653,7 @@ export default function GroupManager({
                         value={noteText}
                         onChange={(e) => setNoteText(e.target.value)}
                         placeholder="디브리핑 메모를 입력하세요..."
-                        className="w-full bg-violet-50/50 border border-violet-200/50 rounded-lg px-3 py-2 text-sm text-slate-800 placeholder:text-slate-400 outline-none focus:border-violet-400 transition-all resize-none leading-relaxed"
+                        className="w-full bg-slate-50/50 border border-slate-200/50 rounded-lg px-3 py-2 text-sm text-slate-800 placeholder:text-slate-400 outline-none focus:border-slate-400 transition-all resize-none leading-relaxed"
                         rows={2}
                         onKeyDown={(e) => { if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) saveNote(member.id); if (e.key === "Escape") { setEditingNoteFor(null); setNoteText(""); } }}
                       />
@@ -668,7 +668,7 @@ export default function GroupManager({
                           <button onClick={() => { setEditingNoteFor(null); setNoteText(""); }} className="text-[10px] text-slate-400 hover:text-slate-600 px-2 py-1 rounded transition-colors">
                             취소
                           </button>
-                          <button onClick={() => saveNote(member.id)} className="text-[10px] font-medium text-violet-600 hover:text-violet-500 bg-violet-50 px-2.5 py-1 rounded-md border border-violet-200/50 transition-colors">
+                          <button onClick={() => saveNote(member.id)} className="text-[10px] font-medium text-slate-600 hover:text-slate-500 bg-slate-50 px-2.5 py-1 rounded-md border border-slate-200/50 transition-colors">
                             저장
                           </button>
                         </div>
@@ -678,9 +678,9 @@ export default function GroupManager({
                   {!isEditingNote && memberNote && (
                     <div
                       onClick={() => startEditNote(member.id)}
-                      className="mb-3 bg-violet-50/40 border border-violet-200/30 rounded-lg px-3 py-2 cursor-pointer hover:bg-violet-50/60 transition-colors"
+                      className="mb-3 bg-slate-50/40 border border-slate-200/30 rounded-lg px-3 py-2 cursor-pointer hover:bg-slate-50/60 transition-colors"
                     >
-                      <p className="text-xs text-violet-700 leading-relaxed whitespace-pre-wrap">{memberNote}</p>
+                      <p className="text-xs text-slate-700 leading-relaxed whitespace-pre-wrap">{memberNote}</p>
                     </div>
                   )}
 

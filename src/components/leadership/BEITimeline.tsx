@@ -12,27 +12,29 @@ interface BEITimelineProps {
   loading?: boolean;
 }
 
-// ─── STAR 섹션 색상 정의 ───
+// ─── STAR 섹션 색상 — 무지개 대신 절제된 3톤(중립 slate=맥락 S·T / brand emerald=행동 A / amber=결과 R) ───
+// S·T·A·R는 글자 배지로 변별되므로 색은 의미(행동·결과)에만 부여
 const STAR_SECTIONS = [
-  { key: "situation" as const, label: "S", fullLabel: "상황", color: "bg-blue-500/10 border-blue-500/30 text-blue-700", badgeColor: "bg-blue-500/20 text-blue-700" },
-  { key: "task"      as const, label: "T", fullLabel: "과제", color: "bg-violet-500/10 border-violet-500/30 text-violet-700", badgeColor: "bg-violet-500/20 text-violet-700" },
+  { key: "situation" as const, label: "S", fullLabel: "상황", color: "bg-slate-500/10 border-slate-300 text-slate-700", badgeColor: "bg-slate-200 text-slate-700" },
+  { key: "task"      as const, label: "T", fullLabel: "과제", color: "bg-slate-500/10 border-slate-300 text-slate-700", badgeColor: "bg-slate-200 text-slate-700" },
   { key: "action"    as const, label: "A", fullLabel: "행동", color: "bg-emerald-500/10 border-emerald-600/30 text-emerald-700", badgeColor: "bg-emerald-500/20 text-emerald-700" },
   { key: "result"    as const, label: "R", fullLabel: "결과", color: "bg-amber-500/10 border-amber-500/30 text-amber-700", badgeColor: "bg-amber-500/20 text-amber-700" },
 ] as const;
 
-// ─── 역량 색상 팔레트 ───
+// ─── 역량 배지 — KHNP 브랜드 emerald 단색(역량 구분은 색이 아닌 라벨로). 무지개 제거(.impeccable 절제) ───
+const COMPETENCY_COLOR = "bg-emerald-500/12 text-emerald-700 border-emerald-600/25";
 const COMPETENCY_COLORS: Record<string, string> = {
-  visionPresentation:   "bg-fuchsia-500/15 text-fuchsia-700 border-fuchsia-500/30",
-  visionPractice:       "bg-cyan-500/15 text-cyan-700 border-cyan-500/30",
-  trustBuilding:        "bg-amber-500/15 text-amber-700 border-amber-500/30",
-  communication:        "bg-violet-500/15 text-violet-700 border-violet-500/30",
-  memberDevelopment:    "bg-red-500/15 text-red-700 border-red-500/30",
-  selfDevelopment:      "bg-emerald-500/15 text-emerald-700 border-emerald-600/30",
-  rationalDecision:     "bg-blue-500/15 text-blue-700 border-blue-500/30",
-  problemSolving:       "bg-orange-500/15 text-orange-700 border-orange-500/30",
+  visionPresentation: COMPETENCY_COLOR,
+  visionPractice: COMPETENCY_COLOR,
+  trustBuilding: COMPETENCY_COLOR,
+  communication: COMPETENCY_COLOR,
+  memberDevelopment: COMPETENCY_COLOR,
+  selfDevelopment: COMPETENCY_COLOR,
+  rationalDecision: COMPETENCY_COLOR,
+  problemSolving: COMPETENCY_COLOR,
 };
 
-const DEFAULT_COMPETENCY_COLOR = "bg-slate-500/15 text-slate-700 border-slate-500/30";
+const DEFAULT_COMPETENCY_COLOR = COMPETENCY_COLOR;
 
 // 역량 키 → 한국어 라벨
 const COMPETENCY_LABELS: Record<string, string> = {

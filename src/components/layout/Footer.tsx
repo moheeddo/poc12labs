@@ -21,7 +21,7 @@ export default function Footer({ onNavigate }: FooterProps) {
             <span className="text-sm font-semibold text-slate-600 tracking-[-0.01em]">
               KHNP HRDI
             </span>
-            <span className="text-xs text-slate-400 font-mono">
+            <span className="text-xs text-slate-500 font-mono">
               &copy; 2026 한국수력원자력 인재개발원
             </span>
           </div>
@@ -44,11 +44,11 @@ export default function Footer({ onNavigate }: FooterProps) {
           </nav>
 
           {/* 우측: 단축키 힌트 */}
-          <span className="text-xs text-slate-400 flex items-center gap-1.5">
+          <span className="text-xs text-slate-500 flex items-center gap-1.5">
             <kbd className="px-1.5 py-0.5 rounded bg-slate-100 border border-slate-200 text-slate-500 font-mono text-[11px]">
               ?
             </kbd>
-            <span className="text-slate-400">단축키</span>
+            <span className="text-slate-500">단축키</span>
           </span>
         </div>
       </div>
