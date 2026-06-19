@@ -1177,19 +1177,19 @@ ${inner}
             const headlineColor = headline === null ? "text-slate-400" : headline >= 5.5 ? "text-emerald-600" : headline >= 3.0 ? "text-amber-600" : "text-red-500";
             const consColor: Record<string, string> = { 높음: "bg-emerald-100 text-emerald-700", 보통: "bg-amber-100 text-amber-700", 낮음: "bg-red-100 text-red-600" };
             return (
-              <div className="bg-white border border-emerald-200/50 rounded-2xl p-5 shadow-sm animate-fade-in-up">
-                <div className="flex items-center justify-between mb-3">
+              <div className="relative bg-gradient-to-br from-white to-[#006341]/[0.05] border border-[#006341]/20 border-l-4 border-l-[#006341] rounded-2xl p-6 shadow-md shadow-[#002855]/5 animate-fade-in-up">
+                <div className="flex items-center justify-between mb-4">
                   <div className="flex items-center gap-2">
-                    <Sparkles className="w-4 h-4 text-emerald-600" />
-                    <span className="text-sm font-bold text-slate-800">{s.competencyLabel} 멀티모달 종합 평가</span>
+                    <span className="text-[11px] font-mono tracking-[0.14em] text-[#006341] uppercase">Result</span>
+                    <span className="text-[15px] font-bold text-[#002855]">{s.competencyLabel} 멀티모달 종합 평가</span>
                   </div>
-                  <span className="text-[11px] text-slate-400">핵심 4개(M1~M4) 평균 · M5 보조 제외</span>
+                  <span className="text-[11px] text-[#64748b]">핵심 4개(M1~M4) 평균 · M5 보조 제외</span>
                 </div>
                 <div className="flex items-end gap-4">
                   <div className="text-center shrink-0">
                     <div className="flex items-baseline gap-1">
-                      <span className={cn("text-4xl font-bold font-mono", headlineColor)}>{headline !== null ? headline.toFixed(1) : "—"}</span>
-                      <span className="text-base text-slate-400">/9</span>
+                      <span className={cn("text-[3.4rem] leading-none font-bold font-mono tracking-[-0.03em]", headlineColor)}>{headline !== null ? headline.toFixed(1) : "—"}</span>
+                      <span className="text-lg text-slate-400">/9</span>
                     </div>
                     <p className={cn("text-sm font-medium mt-0.5", headlineColor)}>{agg ? agg.interpretation : s.interpretation}</p>
                     {agg && tot

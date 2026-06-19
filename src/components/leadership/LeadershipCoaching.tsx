@@ -386,6 +386,7 @@ export default function LeadershipCoaching() {
   if (view.type === "group-feedback") {
     return (
       <LeadershipFeedback
+        key={`${view.sessionId}-${view.memberId}-${view.competencyKey}-${view.videoId}`}
         videoId={view.videoId}
         videoTitle={`${view.memberName} — ${LEADERSHIP_COMPETENCY_DEFS.find((d) => d.key === view.competencyKey)?.label || ""}`}
         videoUrl={view.videoUrl}
@@ -425,6 +426,7 @@ export default function LeadershipCoaching() {
   if (view.type === "feedback") {
     return (
       <LeadershipFeedback
+        key={view.videoId}
         videoId={view.videoId}
         videoTitle={view.videoTitle}
         videoUrl={view.videoUrl}
