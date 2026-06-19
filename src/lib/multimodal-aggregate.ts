@@ -39,7 +39,8 @@ export interface AggregateStat {
   mode: number;     // 0.5 단위 버킷 최빈값
   stdev: number;    // 표본표준편차
   sem: number;      // 평균의 표준오차 = stdev / √n
-  ci95: [number, number]; // 평균의 95% 신뢰구간 (소표본 t-분포 적용, 0~9 clamp)
+  ciHalfRaw: number; // 95% CI 반폭(t·sem, 0~9 clamp 전 원시값) — 정밀도 게이트용
+  ci95: [number, number]; // 평균의 95% 신뢰구간 (소표본 t-분포 적용, 0~9 clamp, 표시용)
   min: number;
   max: number;
   range: number;    // max - min
@@ -148,6 +149,9 @@ function computeStat(values: (number | null)[]): AggregateStat | null {
     mode: round1(mode(xs)),
     stdev: Math.round(sd * 100) / 100,
     sem: Math.round(sem * 100) / 100,
+    // 정밀도 판정용 비클램프 반폭(t·sem) — ci95는 0~9 clamp되어 천장/바닥에서 좁아지므로
+    // 게이트는 clamp 전 원시 반폭을 써야 fail-open(최상·최하위자 '추가진단 불필요' 오판) 방지
+    ciHalfRaw: Math.round(margin * 100) / 100,
     ci95: [round1(clamp09(mu - margin)), round1(clamp09(mu + margin))],
     min: round1(Math.min(...xs)),
     max: round1(Math.max(...xs)),
@@ -156,12 +160,12 @@ function computeStat(values: (number | null)[]): AggregateStat | null {
   };
 }
 
+// 실제 산출된 점수(0 포함)는 등급으로 해석 — '산출 보류'는 total=null일 때만(호출부에서 분기)
 function interpret(score: number): string {
   if (score >= 7.5) return "매우 우수";
   if (score >= 5.5) return "보통 이상";
   if (score >= 3.0) return "보통 미만";
-  if (score > 0) return "미흡";
-  return "산출 보류";
+  return "미흡";
 }
 
 // 총점 표준편차(0~9 scale) → 일관성 등급
@@ -224,12 +228,14 @@ export function aggregateRuns(results: MultimodalScoreResult[]): AggregatedScore
   }
 
   // ── 적응형 반복진단 권고 (신뢰구간 게이트 + 경계 HITL 에스컬레이션) ──
-  const ciHalf = total ? Math.round(((total.ci95[1] - total.ci95[0]) / 2) * 100) / 100 : null;
-  // straddle은 헤드라인(중앙값)과 동일 통계량 기준으로 판정 — median 중심 ±CI반폭 구간 사용
-  // (평균 기반 ci95와 median 헤드라인의 신호 불일치 방지). 경계에 '닿는' 경우(<=)도 경계사례로 포함.
+  // 정밀도는 clamp 전 원시 반폭(ciHalfRaw) 사용 — 최상·최하위 점수에서 ci95 clamp로 좁아져
+  // 'sufficient'로 새는 fail-open 방지.
+  const ciHalf = total ? total.ciHalfRaw : null;
+  // straddle은 헤드라인(중앙값)과 동일 통계량 기준 — median 중심 ±CI반폭. 경계에 '닿는' 경우 포함.
+  // 단 분산 0(ciHalf=0, 완전 일관)인데 median이 경계에 정확히 앉은 경우는 안정적이므로 HITL 제외.
   const medLo = total && ciHalf !== null ? total.median - ciHalf : 0;
   const medHi = total && ciHalf !== null ? total.median + ciHalf : 0;
-  const straddlesBand = total && ciHalf !== null
+  const straddlesBand = total && ciHalf !== null && ciHalf > 0
     ? BAND_CUTS.some((c) => medLo <= c && medHi >= c)
     : false;
   const n = results.length;

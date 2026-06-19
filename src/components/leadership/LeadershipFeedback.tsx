@@ -442,19 +442,25 @@ export default function LeadershipFeedback({
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [analysisLoading, analysisPhase, mmStarted, videoId]);
 
-  // ── 코치 보정 적용 → 해당 설정으로 재분석 (전체 로딩 화면 대신 인플레이스) ──
+  // ── 코치 보정 적용 → 재분석. 직전이 N차 집계였으면 집계 모드 유지(단일진단으로 폐기 방지) ──
   const handleRoleApply = useCallback((rc: RoleContext) => {
     setRoleContext(rc);
     setMmReanalyzing(true);
     setCoachConfirmed(false);
-    runPipeline(videoId, activeCompetency, scenarioText, rc);
-  }, [videoId, activeCompetency, scenarioText, runPipeline]);
+    if (mmResult?.aggregate) {
+      runConsistency(videoId, activeCompetency, mmResult.aggregate.runCount || consistencyRuns, scenarioText, rc);
+    } else {
+      runPipeline(videoId, activeCompetency, scenarioText, rc);
+    }
+  }, [videoId, activeCompetency, scenarioText, runPipeline, runConsistency, mmResult, consistencyRuns]);
 
-  // ── N차 반복 진단 (객관성 확보 — 평균/중앙값/신뢰구간) ──
-  const handleConsistencyRun = useCallback(() => {
+  // ── N차 반복 진단 (객관성 확보 — 평균/중앙값/신뢰구간). runs 인자 우선(적응형 권장 회차 stale 방지) ──
+  const handleConsistencyRun = useCallback((runs?: number) => {
+    const r = runs ?? consistencyRuns;
+    if (runs && runs !== consistencyRuns) setConsistencyRuns(runs);
     setMmReanalyzing(true);
     setCoachConfirmed(false);
-    runConsistency(videoId, activeCompetency, consistencyRuns, scenarioText, roleContext);
+    runConsistency(videoId, activeCompetency, r, scenarioText, roleContext);
   }, [videoId, activeCompetency, consistencyRuns, scenarioText, roleContext, runConsistency]);
 
   // ── 내용(content) 평가 — AI 초안 (행동 평가와 분리, fail-closed 인용 기반) ──
@@ -1126,7 +1132,7 @@ ${inner}
                           </button>
                         ))}
                       </div>
-                      <button onClick={handleConsistencyRun}
+                      <button onClick={() => handleConsistencyRun()}
                         className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium bg-[#006341]/[0.08] text-[#006341] border border-[#006341]/30 hover:bg-[#006341]/15 transition-colors">
                         <Sparkles className="w-3.5 h-3.5" />
                         {consistencyRuns}차 반복 진단 (객관성 확보)
@@ -1249,8 +1255,8 @@ ${inner}
                             {canMore && (
                               <button
                                 type="button"
-                                onClick={() => { setConsistencyRuns(rec.suggestedTotalRuns); handleConsistencyRun(); }}
-                                className="text-[10px] font-semibold px-2.5 py-0.5 rounded-full bg-emerald-600 text-white hover:bg-emerald-700 transition-colors"
+                                onClick={() => handleConsistencyRun(rec.suggestedTotalRuns)}
+                                className="text-[10px] font-semibold px-2.5 py-0.5 rounded-full bg-[#006341] text-white hover:bg-[#00543a] transition-colors"
                               >
                                 {rec.suggestedTotalRuns}회까지 추가 진단
                               </button>
