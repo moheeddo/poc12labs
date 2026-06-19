@@ -36,14 +36,14 @@ export default function Header({ activeTab, onTabChange }: HeaderProps) {
 
   /* 활성 탭 글로우 라인 색상 */
   const glowColorMap: Record<string, string> = {
-    leadership: "from-teal-500 via-teal-400/40 to-transparent",
+    leadership: "from-khnp-emerald via-khnp-emerald-light/40 to-transparent",
     pov: "from-amber-500 via-amber-400/40 to-transparent",
   };
   const activeGlow = activeTab ? glowColorMap[activeTab] : null;
 
-  /* 탭 언더라인 색상 매핑 */
+  /* 탭 언더라인 색상 매핑 (키 = SERVICE_TABS color) */
   const underlineColorMap: Record<string, string> = {
-    "text-teal-600": "after:bg-teal-500",
+    "text-emerald-700": "after:bg-khnp-emerald",
     "text-amber-600": "after:bg-amber-500",
   };
 

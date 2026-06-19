@@ -110,12 +110,12 @@ const ACTION_LABELS: Record<string, string> = {
 // 액터 배지
 function ActorBadge({ actor }: { actor: AuditEntry["actor"] }) {
   const config: Record<string, { label: string; className: string }> = {
-    system: { label: "시스템", className: "bg-blue-500/15 text-blue-400" },
-    evaluator: { label: "평가자", className: "bg-emerald-500/15 text-emerald-400" },
-    participant: { label: "참여자", className: "bg-amber-500/15 text-amber-400" },
-    admin: { label: "관리자", className: "bg-purple-500/15 text-purple-400" },
+    system: { label: "시스템", className: "bg-blue-500/15 text-blue-700" },
+    evaluator: { label: "평가자", className: "bg-emerald-500/15 text-emerald-700" },
+    participant: { label: "참여자", className: "bg-amber-500/15 text-amber-700" },
+    admin: { label: "관리자", className: "bg-purple-500/15 text-purple-700" },
   };
-  const { label, className } = config[actor] ?? { label: actor, className: "bg-white/10 text-white/50" };
+  const { label, className } = config[actor] ?? { label: actor, className: "bg-slate-200 text-slate-600" };
   return (
     <span className={`inline-flex items-center rounded px-1.5 py-0.5 text-[10px] font-semibold ${className}`}>
       {label}
@@ -157,10 +157,10 @@ export default function ISOAuditView({
   if (loading) {
     return (
       <div className="space-y-4 animate-pulse">
-        <div className="h-8 w-56 rounded bg-white/10" />
-        <div className="h-48 rounded-xl bg-white/10" />
-        <div className="h-40 rounded-xl bg-white/10" />
-        <div className="h-64 rounded-xl bg-white/10" />
+        <div className="h-8 w-56 rounded bg-slate-200" />
+        <div className="h-48 rounded-xl bg-slate-200" />
+        <div className="h-40 rounded-xl bg-slate-200" />
+        <div className="h-64 rounded-xl bg-slate-200" />
       </div>
     );
   }
@@ -192,24 +192,24 @@ export default function ISOAuditView({
     <div className="space-y-6">
       {/* 헤더 */}
       <div className="flex items-center gap-2">
-        <Shield className="h-5 w-5 text-emerald-400" />
+        <Shield className="h-5 w-5 text-emerald-700" />
         <h3 className="text-base font-semibold text-white">ISO 10667 감사 뷰</h3>
       </div>
 
       {/* ① ISO 10667 체크리스트 */}
-      <div className="rounded-xl border border-white/10 bg-white/[0.02] overflow-hidden">
-        <div className="px-5 py-4 border-b border-white/10 space-y-3">
+      <div className="rounded-xl border border-slate-200/60 bg-white overflow-hidden">
+        <div className="px-5 py-4 border-b border-slate-200/60 space-y-3">
           <div className="flex items-center justify-between">
-            <h4 className="text-xs font-semibold uppercase tracking-widest text-white/40">
+            <h4 className="text-xs font-semibold uppercase tracking-widest text-slate-500">
               ISO 10667 준수 체크리스트
             </h4>
             <span
               className={`text-sm font-bold ${
                 completionPct >= 80
-                  ? "text-emerald-400"
+                  ? "text-emerald-700"
                   : completionPct >= 50
-                  ? "text-amber-400"
-                  : "text-red-400"
+                  ? "text-amber-700"
+                  : "text-red-600"
               }`}
             >
               {completedCount}/{totalCount} 완료
@@ -217,50 +217,50 @@ export default function ISOAuditView({
           </div>
           {/* 진행 막대 */}
           <div className="space-y-1">
-            <div className="h-2 w-full overflow-hidden rounded-full bg-white/10">
+            <div className="h-2 w-full overflow-hidden rounded-full bg-slate-200">
               <div
                 className={`h-full rounded-full transition-all duration-500 ${progressBarColor}`}
                 style={{ width: `${completionPct}%` }}
               />
             </div>
-            <p className="text-xs text-white/30">{completionPct}% 달성</p>
+            <p className="text-xs text-slate-500">{completionPct}% 달성</p>
           </div>
         </div>
-        <ul className="divide-y divide-white/[0.06]">
+        <ul className="divide-y divide-slate-200/60">
           {ISO_CHECKLIST.map((item) => {
             const done = item.check(auditEntries, consents);
             return (
               <li
                 key={item.id}
-                className="flex items-start gap-3 px-5 py-3 hover:bg-white/[0.03] transition-colors"
+                className="flex items-start gap-3 px-5 py-3 hover:bg-slate-50 transition-colors"
               >
                 {/* 체크박스 아이콘 */}
                 <div className="mt-0.5 shrink-0">
                   {done ? (
-                    <CheckCircle className="h-4.5 w-4.5 text-emerald-400 h-5 w-5" />
+                    <CheckCircle className="h-4.5 w-4.5 text-emerald-700 h-5 w-5" />
                   ) : (
-                    <div className="h-5 w-5 rounded-full border-2 border-white/20 bg-transparent" />
+                    <div className="h-5 w-5 rounded-full border-2 border-slate-300 bg-transparent" />
                   )}
                 </div>
                 {/* 텍스트 */}
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 flex-wrap">
                     <span
-                      className={`text-sm font-medium ${done ? "text-white/80" : "text-white/40"}`}
+                      className={`text-sm font-medium ${done ? "text-slate-800" : "text-slate-500"}`}
                     >
                       {item.id}. {item.label}
                     </span>
                     {done ? (
-                      <span className="text-[10px] font-semibold text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 rounded px-1.5 py-0.5">
+                      <span className="text-[10px] font-semibold text-emerald-700 bg-emerald-500/10 border border-emerald-500/20 rounded px-1.5 py-0.5">
                         완료
                       </span>
                     ) : (
-                      <span className="text-[10px] font-semibold text-white/30 bg-white/5 border border-white/10 rounded px-1.5 py-0.5">
+                      <span className="text-[10px] font-semibold text-slate-500 bg-slate-100 border border-slate-200/60 rounded px-1.5 py-0.5">
                         미완료
                       </span>
                     )}
                   </div>
-                  <p className="mt-0.5 text-xs text-white/30 leading-relaxed">
+                  <p className="mt-0.5 text-xs text-slate-500 leading-relaxed">
                     {item.description}
                   </p>
                 </div>
@@ -271,26 +271,26 @@ export default function ISOAuditView({
       </div>
 
       {/* ② 동의 매트릭스 */}
-      <div className="rounded-xl border border-white/10 bg-white/[0.02] overflow-hidden">
-        <div className="px-5 py-3 border-b border-white/10 flex items-center gap-2">
-          <FileText className="h-4 w-4 text-white/40" />
-          <h4 className="text-xs font-semibold uppercase tracking-widest text-white/40">
+      <div className="rounded-xl border border-slate-200/60 bg-white overflow-hidden">
+        <div className="px-5 py-3 border-b border-slate-200/60 flex items-center gap-2">
+          <FileText className="h-4 w-4 text-slate-500" />
+          <h4 className="text-xs font-semibold uppercase tracking-widest text-slate-500">
             참여자 동의 매트릭스
           </h4>
-          <span className="ml-auto text-xs text-white/30">{participants.length}명</span>
+          <span className="ml-auto text-xs text-slate-500">{participants.length}명</span>
         </div>
         {participants.length === 0 ? (
-          <p className="py-6 text-center text-sm text-white/30">동의 기록이 없습니다.</p>
+          <p className="py-6 text-center text-sm text-slate-500">동의 기록이 없습니다.</p>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-left text-sm">
               <thead>
-                <tr className="bg-white/[0.03]">
-                  <th className="py-2.5 px-4 text-xs font-semibold text-white/40">참여자 ID</th>
+                <tr className="bg-slate-50">
+                  <th className="py-2.5 px-4 text-xs font-semibold text-slate-500">참여자 ID</th>
                   {consentTypes.map((type) => (
                     <th
                       key={type}
-                      className="py-2.5 px-3 text-xs font-semibold text-white/40 text-center"
+                      className="py-2.5 px-3 text-xs font-semibold text-slate-500 text-center"
                     >
                       {CONSENT_TYPE_LABELS[type]}
                     </th>
@@ -301,19 +301,19 @@ export default function ISOAuditView({
                 {participants.map((pid) => (
                   <tr
                     key={pid}
-                    className="border-t border-white/[0.06] hover:bg-white/[0.03] transition-colors"
+                    className="border-t border-slate-200/60 hover:bg-slate-50 transition-colors"
                   >
-                    <td className="py-2.5 px-4 font-mono text-xs text-white/60">{pid}</td>
+                    <td className="py-2.5 px-4 font-mono text-xs text-slate-700">{pid}</td>
                     {consentTypes.map((type) => {
                       const status = getConsentStatus(consents, pid, type);
                       return (
                         <td key={type} className="py-2.5 px-3 text-center">
                           {status === null ? (
-                            <span className="text-white/20 text-lg">—</span>
+                            <span className="text-slate-400 text-lg">—</span>
                           ) : status ? (
-                            <CheckCircle className="h-4 w-4 text-emerald-400 mx-auto" />
+                            <CheckCircle className="h-4 w-4 text-emerald-700 mx-auto" />
                           ) : (
-                            <AlertTriangle className="h-4 w-4 text-red-400 mx-auto" />
+                            <AlertTriangle className="h-4 w-4 text-red-600 mx-auto" />
                           )}
                         </td>
                       );
@@ -327,27 +327,27 @@ export default function ISOAuditView({
       </div>
 
       {/* ③ 감사 로그 테이블 */}
-      <div className="rounded-xl border border-white/10 bg-white/[0.02] overflow-hidden">
-        <div className="px-5 py-3 border-b border-white/10 flex items-center gap-2">
-          <Clock className="h-4 w-4 text-white/40" />
-          <h4 className="text-xs font-semibold uppercase tracking-widest text-white/40">
+      <div className="rounded-xl border border-slate-200/60 bg-white overflow-hidden">
+        <div className="px-5 py-3 border-b border-slate-200/60 flex items-center gap-2">
+          <Clock className="h-4 w-4 text-slate-500" />
+          <h4 className="text-xs font-semibold uppercase tracking-widest text-slate-500">
             감사 로그
           </h4>
-          <span className="ml-auto text-xs text-white/30">총 {auditEntries.length}건</span>
+          <span className="ml-auto text-xs text-slate-500">총 {auditEntries.length}건</span>
         </div>
         {sortedEntries.length === 0 ? (
-          <p className="py-8 text-center text-sm text-white/30">감사 로그가 없습니다.</p>
+          <p className="py-8 text-center text-sm text-slate-500">감사 로그가 없습니다.</p>
         ) : (
           <div className="overflow-x-auto max-h-[420px] overflow-y-auto">
             <table className="w-full text-left">
-              <thead className="sticky top-0 bg-[#0f1117] z-10">
-                <tr className="bg-white/[0.04]">
-                  <th className="py-2.5 px-4 text-xs font-semibold text-white/40 whitespace-nowrap">
+              <thead className="sticky top-0 bg-slate-100 z-10">
+                <tr className="bg-slate-100/70">
+                  <th className="py-2.5 px-4 text-xs font-semibold text-slate-500 whitespace-nowrap">
                     타임스탬프
                   </th>
-                  <th className="py-2.5 px-3 text-xs font-semibold text-white/40">액터</th>
-                  <th className="py-2.5 px-3 text-xs font-semibold text-white/40">액션</th>
-                  <th className="py-2.5 px-3 text-xs font-semibold text-white/40">세부사항</th>
+                  <th className="py-2.5 px-3 text-xs font-semibold text-slate-500">액터</th>
+                  <th className="py-2.5 px-3 text-xs font-semibold text-slate-500">액션</th>
+                  <th className="py-2.5 px-3 text-xs font-semibold text-slate-500">세부사항</th>
                 </tr>
               </thead>
               <tbody>
@@ -370,24 +370,24 @@ export default function ISOAuditView({
                   return (
                     <tr
                       key={entry.id}
-                      className="border-t border-white/[0.05] hover:bg-white/[0.03] transition-colors"
+                      className="border-t border-slate-200/60 hover:bg-slate-50 transition-colors"
                     >
                       <td className="py-2 px-4 whitespace-nowrap">
-                        <span className="font-mono text-xs text-white/50">
+                        <span className="font-mono text-xs text-slate-600">
                           {dateStr}{" "}
-                          <span className="text-white/30">{timeStr}</span>
+                          <span className="text-slate-500">{timeStr}</span>
                         </span>
                       </td>
                       <td className="py-2 px-3">
                         <ActorBadge actor={entry.actor} />
                       </td>
                       <td className="py-2 px-3">
-                        <span className="text-xs text-white/70 whitespace-nowrap">
+                        <span className="text-xs text-slate-700 whitespace-nowrap">
                           {ACTION_LABELS[entry.action] ?? entry.action}
                         </span>
                       </td>
                       <td className="py-2 px-3">
-                        <span className="text-xs text-white/30 font-mono truncate block max-w-[260px]">
+                        <span className="text-xs text-slate-500 font-mono truncate block max-w-[260px]">
                           {detailStr || "—"}
                         </span>
                       </td>

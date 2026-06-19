@@ -21,9 +21,9 @@ export const SERVICE_TABS: {
     key: "leadership",
     label: "리더십 - 역량진단 2.0",
     description: "3인 토의·1:1 면담·5분 전략 브리핑 영상에서 멀티모달 행동지표로 리더십 역량을 평가합니다.",
-    color: "text-teal-600",
-    bgColor: "bg-teal-500/10",
-    borderColor: "border-teal-500/30",
+    color: "text-emerald-700",
+    bgColor: "bg-khnp-emerald/10",
+    borderColor: "border-khnp-emerald/30",
   },
 ];
 
@@ -176,7 +176,7 @@ export const LEADERSHIP_COMPETENCY_DEFS: LeadershipCompetencyDef[] = [
     key: "selfDevelopment",
     label: "자기개발",
     definition: "전문성 강화를 위해 새로운 기술과 업무를 배우는데 적극적이며, 스스로 동기부여하고 목표를 설정하여 지속적으로 성장하는 역량",
-    color: "#10b981", // emerald
+    color: "#00955f", // KHNP 브랜드 mid (민트 #10b981 대체)
     subElements: {
       4: [
         { name: "직무 역량 강화", behaviorIndicator: "자신의 업무 분야에서 요구되는 핵심 역량을 지속적으로 개발하고, 새로운 기술과 지식을 습득하여 자기 성장을 도모한다." },

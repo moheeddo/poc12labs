@@ -298,8 +298,8 @@ function IntegratedRadar({
           <Radar
             name="역량 점수"
             dataKey="competency"
-            stroke="#10b981"
-            fill="#10b981"
+            stroke="#006341"
+            fill="#006341"
             fillOpacity={0.25}
             strokeWidth={2}
           />

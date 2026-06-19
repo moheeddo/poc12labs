@@ -14,25 +14,25 @@ interface BEITimelineProps {
 
 // ─── STAR 섹션 색상 정의 ───
 const STAR_SECTIONS = [
-  { key: "situation" as const, label: "S", fullLabel: "상황", color: "bg-blue-500/15 border-blue-400/30 text-blue-400", badgeColor: "bg-blue-500/20 text-blue-300" },
-  { key: "task"      as const, label: "T", fullLabel: "과제", color: "bg-violet-500/15 border-violet-400/30 text-violet-400", badgeColor: "bg-violet-500/20 text-violet-300" },
-  { key: "action"    as const, label: "A", fullLabel: "행동", color: "bg-emerald-500/15 border-emerald-400/30 text-emerald-400", badgeColor: "bg-emerald-500/20 text-emerald-300" },
-  { key: "result"    as const, label: "R", fullLabel: "결과", color: "bg-amber-500/15 border-amber-400/30 text-amber-400", badgeColor: "bg-amber-500/20 text-amber-300" },
+  { key: "situation" as const, label: "S", fullLabel: "상황", color: "bg-blue-500/10 border-blue-500/30 text-blue-700", badgeColor: "bg-blue-500/20 text-blue-700" },
+  { key: "task"      as const, label: "T", fullLabel: "과제", color: "bg-violet-500/10 border-violet-500/30 text-violet-700", badgeColor: "bg-violet-500/20 text-violet-700" },
+  { key: "action"    as const, label: "A", fullLabel: "행동", color: "bg-emerald-500/10 border-emerald-600/30 text-emerald-700", badgeColor: "bg-emerald-500/20 text-emerald-700" },
+  { key: "result"    as const, label: "R", fullLabel: "결과", color: "bg-amber-500/10 border-amber-500/30 text-amber-700", badgeColor: "bg-amber-500/20 text-amber-700" },
 ] as const;
 
 // ─── 역량 색상 팔레트 ───
 const COMPETENCY_COLORS: Record<string, string> = {
-  visionPresentation:   "bg-fuchsia-500/20 text-fuchsia-300 border-fuchsia-500/30",
-  visionPractice:       "bg-cyan-500/20 text-cyan-300 border-cyan-500/30",
-  trustBuilding:        "bg-amber-500/20 text-amber-300 border-amber-500/30",
-  communication:        "bg-violet-500/20 text-violet-300 border-violet-500/30",
-  memberDevelopment:    "bg-red-500/20 text-red-300 border-red-500/30",
-  selfDevelopment:      "bg-emerald-500/20 text-emerald-300 border-emerald-500/30",
-  rationalDecision:     "bg-blue-500/20 text-blue-300 border-blue-500/30",
-  problemSolving:       "bg-orange-500/20 text-orange-300 border-orange-500/30",
+  visionPresentation:   "bg-fuchsia-500/15 text-fuchsia-700 border-fuchsia-500/30",
+  visionPractice:       "bg-cyan-500/15 text-cyan-700 border-cyan-500/30",
+  trustBuilding:        "bg-amber-500/15 text-amber-700 border-amber-500/30",
+  communication:        "bg-violet-500/15 text-violet-700 border-violet-500/30",
+  memberDevelopment:    "bg-red-500/15 text-red-700 border-red-500/30",
+  selfDevelopment:      "bg-emerald-500/15 text-emerald-700 border-emerald-600/30",
+  rationalDecision:     "bg-blue-500/15 text-blue-700 border-blue-500/30",
+  problemSolving:       "bg-orange-500/15 text-orange-700 border-orange-500/30",
 };
 
-const DEFAULT_COMPETENCY_COLOR = "bg-slate-500/20 text-slate-300 border-slate-500/30";
+const DEFAULT_COMPETENCY_COLOR = "bg-slate-500/15 text-slate-700 border-slate-500/30";
 
 // 역량 키 → 한국어 라벨
 const COMPETENCY_LABELS: Record<string, string> = {
@@ -55,11 +55,11 @@ function QualityStars({ score }: { score: number }) {
           key={i}
           className={cn(
             "w-3 h-3",
-            i < score ? "text-amber-400 fill-amber-400" : "text-slate-600"
+            i < score ? "text-amber-500 fill-amber-500" : "text-slate-300"
           )}
         />
       ))}
-      <span className="ml-1 text-xs font-mono text-slate-400">{score}/5</span>
+      <span className="ml-1 text-xs font-mono text-slate-600">{score}/5</span>
     </div>
   );
 }
@@ -74,13 +74,13 @@ function CompletenessBar({ value }: { value: number }) {
 
   return (
     <div className="flex items-center gap-2">
-      <div className="flex-1 h-1.5 rounded-full bg-slate-700 overflow-hidden">
+      <div className="flex-1 h-1.5 rounded-full bg-slate-200 overflow-hidden">
         <div
           className={cn("h-full rounded-full transition-all", color)}
           style={{ width: `${pct}%` }}
         />
       </div>
-      <span className="text-xs font-mono text-slate-400 w-8 text-right">{pct}%</span>
+      <span className="text-xs font-mono text-slate-600 w-8 text-right">{pct}%</span>
     </div>
   );
 }
@@ -104,17 +104,17 @@ function BEIEventCard({
     <div className="relative flex gap-4">
       {/* 타임라인 세로선 + 번호 버블 */}
       <div className="flex flex-col items-center shrink-0">
-        <div className="w-8 h-8 rounded-full bg-emerald-500/20 border border-emerald-500/40 flex items-center justify-center text-xs font-bold text-emerald-400 z-10">
+        <div className="w-8 h-8 rounded-full bg-emerald-500/15 border border-emerald-600/40 flex items-center justify-center text-xs font-bold text-emerald-700 z-10">
           {index + 1}
         </div>
-        <div className="w-px flex-1 bg-slate-700/60 mt-1" />
+        <div className="w-px flex-1 bg-slate-200 mt-1" />
       </div>
 
       {/* 카드 본체 */}
       <div className="flex-1 pb-6">
-        <div className="rounded-xl border border-slate-700/60 bg-slate-800/40 overflow-hidden">
+        <div className="rounded-xl border border-slate-200/60 bg-white shadow-sm overflow-hidden">
           {/* 카드 헤더 */}
-          <div className="flex items-center justify-between px-4 py-2.5 border-b border-slate-700/40 bg-slate-800/60">
+          <div className="flex items-center justify-between px-4 py-2.5 border-b border-slate-200/60 bg-slate-50">
             <div className="flex items-center gap-3">
               <QualityStars score={event.qualityScore} />
               <span className="text-xs text-slate-500 font-mono">화자 {event.speakerId}</span>
@@ -151,7 +151,7 @@ function BEIEventCard({
                     {hasData && onSeekVideo && (
                       <button
                         onClick={() => onSeekVideo(startTs)}
-                        className="inline-flex items-center gap-1 text-[10px] font-mono text-slate-400 hover:text-emerald-400 transition-colors"
+                        className="inline-flex items-center gap-1 text-[10px] font-mono text-slate-600 hover:text-emerald-700 transition-colors"
                         title={`${formatTime(startTs)}으로 이동`}
                       >
                         <PlayCircle className="w-3 h-3" />
@@ -160,7 +160,7 @@ function BEIEventCard({
                     )}
                   </div>
                   {/* 텍스트 프리뷰 */}
-                  <p className="text-xs text-slate-300 leading-relaxed line-clamp-3">
+                  <p className="text-xs text-slate-700 leading-relaxed line-clamp-3">
                     {hasData ? element.text : "—"}
                   </p>
                 </div>
@@ -221,16 +221,16 @@ function CompetencyDistributionBar({ distribution }: { distribution: Record<stri
 
         return (
           <div key={key} className="flex items-center gap-3">
-            <span className="text-xs text-slate-400 w-24 truncate shrink-0">
+            <span className="text-xs text-slate-600 w-24 truncate shrink-0">
               {COMPETENCY_LABELS[key] ?? key}
             </span>
-            <div className="flex-1 h-2 rounded-full bg-slate-700/60 overflow-hidden">
+            <div className="flex-1 h-2 rounded-full bg-slate-200 overflow-hidden">
               <div
                 className={cn("h-full rounded-full", barColor)}
                 style={{ width: `${pct}%` }}
               />
             </div>
-            <span className="text-xs font-mono text-slate-500 w-10 text-right">
+            <span className="text-xs font-mono text-slate-600 w-10 text-right">
               {value.toFixed(2)}
             </span>
           </div>
@@ -269,34 +269,34 @@ export default function BEITimeline({ analysis, onSeekVideo, loading = false }: 
   return (
     <div className="space-y-6">
       {/* ─── 요약 바 ─── */}
-      <div className="rounded-xl border border-slate-700/50 bg-slate-800/40 p-4">
+      <div className="rounded-xl border border-slate-200/60 bg-white p-4 shadow-sm">
         <div className="flex flex-wrap items-center gap-4">
           {/* 총 이벤트 수 */}
           <div className="flex items-center gap-2">
-            <span className="text-2xl font-bold font-mono text-emerald-400">{totalEvents}</span>
-            <span className="text-sm text-slate-400">행동사건</span>
+            <span className="text-2xl font-bold font-mono text-emerald-700">{totalEvents}</span>
+            <span className="text-sm text-slate-600">행동사건</span>
           </div>
 
-          <div className="h-8 w-px bg-slate-700/60" />
+          <div className="h-8 w-px bg-slate-200" />
 
           {/* 평균 완성도 */}
           <div className="flex items-center gap-2">
-            <span className="text-2xl font-bold font-mono text-amber-400">
+            <span className="text-2xl font-bold font-mono text-amber-600">
               {Math.round(averageCompleteness * 100)}%
             </span>
-            <span className="text-sm text-slate-400">평균 STAR 완성도</span>
+            <span className="text-sm text-slate-600">평균 STAR 완성도</span>
           </div>
 
           {/* 차별화 역량 배지 */}
           {differentiatingCompetencies.length > 0 && (
             <>
-              <div className="h-8 w-px bg-slate-700/60" />
+              <div className="h-8 w-px bg-slate-200" />
               <div className="flex items-center gap-2 flex-wrap">
                 <span className="text-xs text-slate-500 uppercase tracking-wider">차별화 역량</span>
                 {differentiatingCompetencies.map((key) => (
                   <span
                     key={key}
-                    className="inline-flex items-center gap-1 text-[11px] px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-300 border border-amber-500/30 font-medium"
+                    className="inline-flex items-center gap-1 text-[11px] px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-700 border border-amber-500/30 font-medium"
                   >
                     <Star className="w-2.5 h-2.5 fill-amber-400 text-amber-400" />
                     {COMPETENCY_LABELS[key] ?? key}
@@ -329,7 +329,7 @@ export default function BEITimeline({ analysis, onSeekVideo, loading = false }: 
 
       {/* ─── 역량 분포 차트 ─── */}
       {Object.keys(competencyDistribution).length > 0 && (
-        <div className="rounded-xl border border-slate-700/50 bg-slate-800/40 p-4">
+        <div className="rounded-xl border border-slate-200/60 bg-white p-4 shadow-sm">
           <h4 className="text-xs uppercase tracking-widest text-slate-500 mb-4">역량별 분포</h4>
           <CompetencyDistributionBar distribution={competencyDistribution} />
         </div>

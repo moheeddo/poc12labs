@@ -24,19 +24,20 @@ interface GrowthChartProps {
 // ─── 역량 색상 팔레트 ───
 // 평가 대상 3개 역량(비전제시·신뢰형성·구성원육성)은 KHNP emerald 계열로 통일
 // — 점수 시맨틱(red=미흡/amber=보통)과 식별색 충돌 방지 (constants.ts와 동일 값)
+// 3개 평가 역량은 constants.ts와 동일 값(ΔE2000≥11·AA) — 드리프트 방지. 민트 #10b981 제거.
 const COMPETENCY_COLORS: Record<string, string> = {
   visionPresentation:  "#006341", // KHNP emerald (brand primary)
   visionPractice:      "#06b6d4",
-  trustBuilding:       "#00865a", // KHNP emerald (mid)
+  trustBuilding:       "#15803d", // green-700 (constants 동일, ΔE≥11)
   communication:       "#8b5cf6",
-  memberDevelopment:   "#0f7a4f", // KHNP emerald (variant)
-  selfDevelopment:     "#10b981",
+  memberDevelopment:   "#0e7490", // cyan-700 (constants 동일, ΔE≥11)
+  selfDevelopment:     "#00955f", // 브랜드 mid (민트 #10b981 대체)
   rationalDecision:    "#3b82f6",
   problemSolving:      "#f97316",
 };
 
 const DEFAULT_LINE_COLORS = [
-  "#006341", "#f59e0b", "#8b5cf6", "#ef4444", "#3b82f6", "#10b981", "#f97316", "#06b6d4",
+  "#006341", "#f59e0b", "#8b5cf6", "#ef4444", "#3b82f6", "#00955f", "#f97316", "#06b6d4",
 ];
 
 const COMPETENCY_LABELS: Record<string, string> = {
