@@ -225,7 +225,13 @@ export function aggregateRuns(results: MultimodalScoreResult[]): AggregatedScore
 
   // ── 적응형 반복진단 권고 (신뢰구간 게이트 + 경계 HITL 에스컬레이션) ──
   const ciHalf = total ? Math.round(((total.ci95[1] - total.ci95[0]) / 2) * 100) / 100 : null;
-  const straddlesBand = total ? BAND_CUTS.some((c) => total.ci95[0] < c && total.ci95[1] > c) : false;
+  // straddle은 헤드라인(중앙값)과 동일 통계량 기준으로 판정 — median 중심 ±CI반폭 구간 사용
+  // (평균 기반 ci95와 median 헤드라인의 신호 불일치 방지). 경계에 '닿는' 경우(<=)도 경계사례로 포함.
+  const medLo = total && ciHalf !== null ? total.median - ciHalf : 0;
+  const medHi = total && ciHalf !== null ? total.median + ciHalf : 0;
+  const straddlesBand = total && ciHalf !== null
+    ? BAND_CUTS.some((c) => medLo <= c && medHi >= c)
+    : false;
   const n = results.length;
   let recommendation: DiagnosisRecommendation;
   // 회차 부족 가드: n<3이면 표본분산이 없거나(퇴화 CI) 무릎(knee) 미만이라

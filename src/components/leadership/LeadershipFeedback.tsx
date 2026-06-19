@@ -1118,16 +1118,16 @@ ${inner}
                     <div className="flex items-center gap-2">
                       <span className="text-xs text-slate-500">반복 횟수</span>
                       <div className="flex items-center gap-1">
-                        {[2, 3, 5].map((r) => (
+                        {[3, 5, 7].map((r) => (
                           <button key={r} onClick={() => setConsistencyRuns(r)}
                             className={cn("w-8 h-8 rounded-lg text-sm font-mono font-semibold transition-colors",
-                              consistencyRuns === r ? "bg-teal-600 text-white" : "bg-slate-100 text-slate-500 hover:bg-slate-200")}>
+                              consistencyRuns === r ? "bg-[#006341] text-white" : "bg-slate-100 text-slate-500 hover:bg-slate-200")}>
                             {r}
                           </button>
                         ))}
                       </div>
                       <button onClick={handleConsistencyRun}
-                        className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium bg-teal-50 text-teal-700 border border-teal-500/30 hover:bg-teal-100 transition-colors">
+                        className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium bg-[#006341]/[0.08] text-[#006341] border border-[#006341]/30 hover:bg-[#006341]/15 transition-colors">
                         <Sparkles className="w-3.5 h-3.5" />
                         {consistencyRuns}차 반복 진단 (객관성 확보)
                       </button>

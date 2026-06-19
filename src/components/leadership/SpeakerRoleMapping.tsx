@@ -74,29 +74,29 @@ export default function SpeakerRoleMapping({ competencyKey, value, onApply, disa
     : "평가 대상자·화자 미지정 — 코치 보정 권장";
 
   return (
-    <div className="bg-white/60 border border-violet-200/40 rounded-xl overflow-hidden">
+    <div className="bg-white/60 border border-[#006341]/20 rounded-xl overflow-hidden">
       {/* 헤더 (접기/펼치기) */}
       <button
         onClick={() => setOpen((o) => !o)}
-        className="w-full flex items-center justify-between px-4 py-3 hover:bg-violet-50/40 transition-colors"
+        className="w-full flex items-center justify-between px-4 py-3 hover:bg-[#006341]/[0.05] transition-colors"
       >
         <div className="flex items-center gap-2 min-w-0">
-          <div className="w-7 h-7 rounded-lg bg-violet-100 flex items-center justify-center shrink-0">
-            <Users className="w-4 h-4 text-violet-600" />
+          <div className="w-7 h-7 rounded-lg bg-[#006341]/12 flex items-center justify-center shrink-0">
+            <Users className="w-4 h-4 text-[#006341]" />
           </div>
           <div className="text-left min-w-0">
             <p className="text-sm font-semibold text-slate-800">화자·역할 보정 (코치)</p>
             <p className={cn("text-xs truncate", value.targetName ? "text-slate-500" : "text-amber-600")}>{summary}</p>
           </div>
         </div>
-        <span className="text-xs text-violet-600 shrink-0 ml-2">{open ? "접기" : "보정"}</span>
+        <span className="text-xs text-[#006341] shrink-0 ml-2">{open ? "접기" : "보정"}</span>
       </button>
 
       {open && (
-        <div className="px-4 pb-4 pt-1 space-y-3 border-t border-violet-100/60">
+        <div className="px-4 pb-4 pt-1 space-y-3 border-t border-[#006341]/12">
           {/* 안내 */}
           <div className="flex items-start gap-1.5 text-[11px] text-slate-500 bg-slate-50/60 rounded-lg px-2.5 py-2">
-            <Info className="w-3.5 h-3.5 text-violet-400 shrink-0 mt-0.5" />
+            <Info className="w-3.5 h-3.5 text-[#006341]/60 shrink-0 mt-0.5" />
             <p>화자분리·STT 인식 오류가 있을 수 있습니다. 평가 대상자와 화자 라벨을 지정하면 해당 1인 기준으로 다시 분석합니다. (스펙: 화자분리·역할매핑은 평가의 전제)</p>
           </div>
 
@@ -186,15 +186,15 @@ export default function SpeakerRoleMapping({ competencyKey, value, onApply, disa
             <p className="text-[10px] text-slate-400 mt-1">※ 근본 해결은 온프렘 한국어 STT — 현재는 인식 보정 단계입니다.</p>
           </div>
 
-          {/* 재분석 버튼 */}
+          {/* 재분석 버튼 — 화자분리(targetName) 또는 용어사전(glossary) 변경이면 활성 */}
           <button
             onClick={apply}
-            disabled={disabled || !dirty || !targetName.trim()}
+            disabled={disabled || !dirty || (!targetName.trim() && glossary.length === 0)}
             className={cn(
               "w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium transition-all",
-              disabled || !dirty || !targetName.trim()
+              disabled || !dirty || (!targetName.trim() && glossary.length === 0)
                 ? "bg-slate-100 text-slate-400 cursor-not-allowed"
-                : "bg-teal-600 text-white hover:bg-teal-700",
+                : "bg-[#006341] text-white hover:bg-[#00543a]",
             )}
           >
             <RefreshCw className={cn("w-4 h-4", disabled && "animate-spin")} />
