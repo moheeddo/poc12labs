@@ -234,12 +234,12 @@ export function aggregateRuns(results: MultimodalScoreResult[]): AggregatedScore
   // 정밀도는 clamp 전 원시 반폭(ciHalfRaw) 사용 — 최상·최하위 점수에서 ci95 clamp로 좁아져
   // 'sufficient'로 새는 fail-open 방지.
   const ciHalf = total ? total.ciHalfRaw : null;
-  // straddle은 헤드라인(중앙값)과 동일 통계량 기준 — median 중심 ±CI반폭. 경계에 '닿는' 경우 포함.
-  // 단 분산 0(ciHalf=0, 완전 일관)인데 median이 경계에 정확히 앉은 경우는 안정적이므로 HITL 제외.
-  const medLo = total && ciHalf !== null ? total.median - ciHalf : 0;
-  const medHi = total && ciHalf !== null ? total.median + ciHalf : 0;
+  // straddle은 '사용자에게 표시되는 바로 그 ci95 끝점'으로 판정 — 표시 CI = 판정구간 불변식 강제
+  // (반폭/반올림 입도가 다른 별도 계산을 쓰면 경계부에서 표시와 판정이 갈라져 자기모순·fail-open 발생).
+  // 분산 0(ciHalf=0, 완전 일관)인데 median이 경계에 정확히 앉은 안정 케이스는 HITL에서 제외.
+  // 정밀도 sufficient 판정은 별도로 ciHalfRaw(비클램프)를 써서 극단부 clamp fail-open을 막는다.
   const straddlesBand = total && ciHalf !== null && ciHalf > 0
-    ? BAND_CUTS.some((c) => medLo <= c && medHi >= c)
+    ? BAND_CUTS.some((c) => total.ci95[0] <= c && total.ci95[1] >= c)
     : false;
   const n = results.length;
   let recommendation: DiagnosisRecommendation;

@@ -22,12 +22,14 @@ interface GrowthChartProps {
 }
 
 // ─── 역량 색상 팔레트 ───
+// 평가 대상 3개 역량(비전제시·신뢰형성·구성원육성)은 KHNP emerald 계열로 통일
+// — 점수 시맨틱(red=미흡/amber=보통)과 식별색 충돌 방지 (constants.ts와 동일 값)
 const COMPETENCY_COLORS: Record<string, string> = {
-  visionPresentation:  "#14b8a6",
+  visionPresentation:  "#006341", // KHNP emerald (brand primary)
   visionPractice:      "#06b6d4",
-  trustBuilding:       "#f59e0b",
+  trustBuilding:       "#00865a", // KHNP emerald (mid)
   communication:       "#8b5cf6",
-  memberDevelopment:   "#ef4444",
+  memberDevelopment:   "#0f7a4f", // KHNP emerald (variant)
   selfDevelopment:     "#10b981",
   rationalDecision:    "#3b82f6",
   problemSolving:      "#f97316",

@@ -55,7 +55,8 @@ export const LEADERSHIP_COMPETENCY_DEFS: LeadershipCompetencyDef[] = [
     key: "visionPresentation",
     label: "비전제시",
     definition: "회사 및 조직이 나아가야 할 비전 및 전략 방향을 제시하고 구성원과 이를 적극적으로 공유하여 실행에 옮기며, 목표 달성과 성과 창출을 이끄는 역량",
-    color: "#14b8a6", // teal
+    // 식별색은 KHNP 브랜드 emerald 계열로 통일 — 점수 시맨틱(red=미흡/amber=보통)과 분리
+    color: "#006341", // KHNP emerald (brand primary)
     subElements: {
       1: [
         { name: "전략적 방향 제시", behaviorIndicator: "회사 성과에 영향을 미치는 주요 경영 환경에 대한 이해를 바탕으로 조직의 중장기 비전과 경영전략 방향을 제시한다." },
@@ -98,7 +99,8 @@ export const LEADERSHIP_COMPETENCY_DEFS: LeadershipCompetencyDef[] = [
     key: "trustBuilding",
     label: "신뢰형성",
     definition: "공정한 기준과 일관된 소통을 바탕으로 조직 구성원의 자율성과 책임감을 높이고, 신뢰와 협력을 이끄는 조직 문화를 조성하는 역량",
-    color: "#f59e0b", // amber
+    // amber는 점수 '보통' 시맨틱과 충돌 — emerald 중간 변주로 교체
+    color: "#00865a", // KHNP emerald (mid)
     subElements: {
       1: [
         { name: "투명한 의사결정", behaviorIndicator: "주요 의사결정에 대한 명확한 배경, 방향성, 기준 등을 공유하고 이행한다." },
@@ -141,7 +143,9 @@ export const LEADERSHIP_COMPETENCY_DEFS: LeadershipCompetencyDef[] = [
     key: "memberDevelopment",
     label: "구성원육성",
     definition: "구성원의 성장 가능성과 경력 단계에 맞춰 중장기 육성 계획을 수립하고, 단계별 목표 설정과 피드백, 코칭을 통해 주도적 성장을 촉진하는 역량",
-    color: "#ef4444", // red
+    // red는 점수 '미흡/실패' 시맨틱과 강하게 충돌 — emerald 변주로 교체
+    // (#4fa988는 흰 배경 텍스트 대비 2.85:1로 WCAG AA 미달 → 텍스트로도 쓰이는 comp.color는 AA 통과값 사용)
+    color: "#0f7a4f", // KHNP emerald (variant) — 대비 5.36:1
     subElements: {
       1: [
         { name: "인재육성 전략 수립", behaviorIndicator: "조직의 지속 가능한 성장을 위해 중장기 관점에서 확보해야 할 핵심역량을 정의하고, 직무 전문가와 미래 리더의 체계적 육성을 위한 전략을 수립한다." },

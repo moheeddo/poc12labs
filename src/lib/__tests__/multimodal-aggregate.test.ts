@@ -94,6 +94,22 @@ describe("적응형 반복진단 권고 (신뢰구간 게이트 + 경계 HITL)",
       expect(a2.recommendation.status).toBe("more_runs");
     }
   });
+  it("불변식: 표시 ci95가 등급경계를 포함하면 반드시 straddle=true·non-sufficient (iter8 재현케이스)", () => {
+    for (const runs of [[2.4, 2.6, 2.7], [4.9, 5.1, 5.2]]) {
+      const agg = aggregateRuns(runs.map((v) => run(v, { m1: v })));
+      const tot = agg.total!;
+      const touchesCut = [3.0, 5.5, 7.5].some((c) => tot.ci95[0] <= c && tot.ci95[1] >= c);
+      expect(touchesCut).toBe(true); // 이 케이스들은 표시 CI가 경계에 닿음
+      expect(agg.recommendation.straddlesBand).toBe(true);
+      expect(agg.recommendation.status).not.toBe("sufficient");
+      expect(agg.recommendation.status).toBe("hitl_required");
+    }
+  });
+  it("분산 0 + 경계 정좌(3,3,3)는 안정적이므로 straddle 제외·sufficient", () => {
+    const agg = aggregateRuns([run(3, { m1: 3 }), run(3, { m1: 3 }), run(3, { m1: 3 })]);
+    expect(agg.recommendation.straddlesBand).toBe(false);
+    expect(agg.recommendation.status).toBe("sufficient");
+  });
   it("CI가 등급 경계(5.5) 가로지르면 HITL 강제", () => {
     // 5.3/5.7/5.5 → 평균 5.5 근처, CI가 5.5 경계 straddle
     const agg = aggregateRuns([run(5.2, { m1: 5 }), run(5.8, { m1: 6 }), run(5.5, { m1: 5 })]);

@@ -834,7 +834,7 @@ ${inner}
                   <div className="flex-1">
                     <p className={cn(
                       "text-base font-medium transition-colors",
-                      isDone ? "text-emerald-600" : isCurrent ? "text-slate-800" : "text-slate-400"
+                      isDone ? "text-emerald-600" : isCurrent ? "text-slate-800" : "text-slate-500"
                     )}>
                       {step.label}
                       {isDone && (
@@ -848,7 +848,7 @@ ${inner}
                     </p>
                     <p className={cn(
                       "mt-0.5 transition-colors",
-                      isCurrent ? "text-base text-slate-700 font-medium" : "text-sm text-slate-400"
+                      isCurrent ? "text-base text-slate-700 font-medium" : "text-sm text-slate-500"
                     )}>
                       {step.desc}
                     </p>
@@ -860,7 +860,7 @@ ${inner}
 
           {/* 프로그레스 바 */}
           <div className="mt-8">
-            <div className="flex items-center justify-between text-sm text-slate-400 mb-2">
+            <div className="flex items-center justify-between text-sm text-slate-500 mb-2">
               <span>{analysisStep}</span>
               <span className="font-mono">{Math.min(Math.round((effectivePhase / 9) * 100), 98)}%</span>
             </div>
@@ -873,7 +873,7 @@ ${inner}
           </div>
 
           {/* 소요 시간 안내 */}
-          <p className="text-xs text-slate-400 mt-4 text-center">약 2~5분 소요됩니다</p>
+          <p className="text-xs text-slate-500 mt-4 text-center">약 2~5분 소요됩니다</p>
 
           {/* 취소 / 뒤로가기 버튼 */}
           <div className="mt-4 flex justify-center">
@@ -1060,7 +1060,7 @@ ${inner}
                 분석 결과를 불러오지 못했습니다
               </p>
               <p className="text-sm text-slate-500">{analysisError}</p>
-              <p className="text-sm text-slate-400 mt-2">영상 인덱싱이 완료된 후 다시 시도해 주세요</p>
+              <p className="text-sm text-slate-500 mt-2">영상 인덱싱이 완료된 후 다시 시도해 주세요</p>
               <div className="flex items-center gap-2 mt-3">
                 <button
                   onClick={onBack}
@@ -1652,7 +1652,7 @@ ${inner}
             ) : mmProgress.phase === "error" ? (
               <div className="bg-white border border-amber-200 rounded-xl p-6 text-center">
                 <p className="text-base text-amber-600 mb-1">멀티모달 분석 오류</p>
-                <p className="text-sm text-slate-400 mb-3">{mmError || "행동 신호 추출에 실패했습니다"}</p>
+                <p className="text-sm text-slate-500 mb-3">{mmError || "행동 신호 추출에 실패했습니다"}</p>
                 <div className="flex items-center justify-center gap-2">
                   <button
                     onClick={onBack}
@@ -1674,7 +1674,7 @@ ${inner}
               <div className="bg-white border border-emerald-200/30 rounded-xl p-8 text-center">
                 <Loader2 className="w-8 h-8 mx-auto mb-3 text-emerald-400 animate-spin" />
                 <p className="text-base text-emerald-600 mb-1">멀티모달 행동 분석 진행 중</p>
-                <p className="text-sm text-slate-400">5채널 신호 추출 → 채점 → 보고서 생성</p>
+                <p className="text-sm text-slate-500">5채널 신호 추출 → 채점 → 보고서 생성</p>
               </div>
             )
           )}

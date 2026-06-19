@@ -493,7 +493,7 @@ export default function LeadershipCoaching() {
             <div className="bg-white border border-slate-200/30 rounded-xl p-8 text-center">
               <Video className="w-10 h-10 mx-auto mb-3 text-slate-300" />
               <p className="text-base text-slate-500">아직 평가 이력이 없습니다</p>
-              <p className="text-sm text-slate-400 mt-1">영상을 업로드하고 분석을 시작해보세요</p>
+              <p className="text-sm text-slate-500 mt-1">영상을 업로드하고 분석을 시작해보세요</p>
             </div>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
@@ -764,13 +764,13 @@ export default function LeadershipCoaching() {
               <button
                 key={comp.key}
                 onClick={() => toggleCompetency(comp.key)}
-                className="animate-fade-in-up group relative text-left rounded-xl overflow-hidden border transition-all duration-200 hover:-translate-y-0.5"
+                className="animate-fade-in-up group relative text-left rounded-xl overflow-hidden border elev-sm hover:elev-md hover:-translate-y-0.5 transition-[transform,box-shadow,border-color,background] duration-300 [transition-timing-function:cubic-bezier(0.22,1,0.36,1)]"
                 style={{
                   animationDelay: `${idx * 70}ms`,
                   animationFillMode: "backwards",
                   borderColor: isSelected ? comp.color : "rgba(0,40,85,0.10)",
                   background: isSelected ? `${comp.color}0a` : "#fff",
-                  boxShadow: isSelected ? `0 8px 24px -12px ${comp.color}55` : "none",
+                  ...(isSelected ? { boxShadow: `0 10px 28px -12px ${comp.color}55` } : {}),
                 }}
               >
                 {/* 좌측 정밀 액센트 룰 */}
@@ -831,7 +831,7 @@ export default function LeadershipCoaching() {
                 역량 선택
               </span>
               <span className="text-slate-300 hidden sm:inline">→</span>
-              <span className="flex items-center gap-1.5 text-slate-400">
+              <span className="flex items-center gap-1.5 text-slate-500">
                 <Circle className="w-4 h-4" />
                 AI 분석
               </span>
@@ -892,7 +892,7 @@ export default function LeadershipCoaching() {
                   className={`px-3 py-1.5 text-xs rounded-md transition-colors font-medium ${
                     analysisSubTab === tab.key
                       ? colorMap[tab.color]
-                      : "text-slate-400 hover:text-slate-600"
+                      : "text-slate-500 hover:text-slate-700"
                   }`}
                 >
                   {tab.label}
@@ -904,7 +904,7 @@ export default function LeadershipCoaching() {
 
         {/* 서브탭 콘텐츠 */}
         {analysisSubTab === "competency" && (
-          <div className="bg-white border border-slate-200/30 rounded-xl p-5 text-center text-slate-400 text-sm">
+          <div className="bg-white border border-slate-200/30 rounded-xl p-5 text-center text-slate-500 text-sm">
             영상을 업로드하고 역량을 선택한 뒤 AI 분석을 시작하면 역량 평가 결과가 표시됩니다.
           </div>
         )}
