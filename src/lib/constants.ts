@@ -99,8 +99,9 @@ export const LEADERSHIP_COMPETENCY_DEFS: LeadershipCompetencyDef[] = [
     key: "trustBuilding",
     label: "신뢰형성",
     definition: "공정한 기준과 일관된 소통을 바탕으로 조직 구성원의 자율성과 책임감을 높이고, 신뢰와 협력을 이끄는 조직 문화를 조성하는 역량",
-    // amber는 점수 '보통' 시맨틱과 충돌 — emerald 중간 변주로 교체
-    color: "#00865a", // KHNP emerald (mid)
+    // amber는 점수 '보통' 시맨틱과 충돌 — emerald 계열 내에서 명도·색상 분리
+    // (이전 #00865a는 member #0f7a4f와 ΔE2000=4.3 → JND 미만으로 카테고리 구분 불가)
+    color: "#15803d", // green-700 — vision/member와 ΔE2000≥11.9, 대비 5.02:1 (AA)
     subElements: {
       1: [
         { name: "투명한 의사결정", behaviorIndicator: "주요 의사결정에 대한 명확한 배경, 방향성, 기준 등을 공유하고 이행한다." },
@@ -143,9 +144,9 @@ export const LEADERSHIP_COMPETENCY_DEFS: LeadershipCompetencyDef[] = [
     key: "memberDevelopment",
     label: "구성원육성",
     definition: "구성원의 성장 가능성과 경력 단계에 맞춰 중장기 육성 계획을 수립하고, 단계별 목표 설정과 피드백, 코칭을 통해 주도적 성장을 촉진하는 역량",
-    // red는 점수 '미흡/실패' 시맨틱과 강하게 충돌 — emerald 변주로 교체
-    // (#4fa988는 흰 배경 텍스트 대비 2.85:1로 WCAG AA 미달 → 텍스트로도 쓰이는 comp.color는 AA 통과값 사용)
-    color: "#0f7a4f", // KHNP emerald (variant) — 대비 5.36:1
+    // red는 점수 '미흡/실패' 시맨틱과 강하게 충돌 — emerald 인접(blue-green) 계열로 분리
+    // (이전 #0f7a4f는 trust와 ΔE2000=4.3 → 색상환에서 cyan 방향으로 분리해 카테고리 변별 확보)
+    color: "#0e7490", // cyan-700 — vision/trust와 ΔE2000≥27, 대비 5.36:1 (AA)
     subElements: {
       1: [
         { name: "인재육성 전략 수립", behaviorIndicator: "조직의 지속 가능한 성장을 위해 중장기 관점에서 확보해야 할 핵심역량을 정의하고, 직무 전문가와 미래 리더의 체계적 육성을 위한 전략을 수립한다." },

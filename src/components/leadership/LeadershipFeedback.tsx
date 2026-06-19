@@ -1258,7 +1258,7 @@ ${inner}
                                 onClick={() => handleConsistencyRun(rec.suggestedTotalRuns)}
                                 className="text-[10px] font-semibold px-2.5 py-0.5 rounded-full bg-[#006341] text-white hover:bg-[#00543a] transition-colors"
                               >
-                                {rec.suggestedTotalRuns}회까지 추가 진단
+                                {rec.suggestedTotalRuns}회로 재진단
                               </button>
                             )}
                           </div>

@@ -26,6 +26,7 @@ import {
   Tooltip,
   ResponsiveContainer,
   Legend,
+  Symbols,
 } from "recharts";
 import VideoUploader from "@/components/shared/VideoUploader";
 import ChartTooltip from "@/components/shared/ChartTooltip";
@@ -392,6 +393,7 @@ export default function LeadershipCoaching() {
         videoUrl={view.videoUrl}
         selectedCompetencies={[view.competencyKey]}
         scenarioText={view.scenarioText}
+        initialGlossary={glossaryTerms}
         onBack={() => setView({ type: "group-manage", sessionId: view.sessionId })}
         onAnalysisComplete={(payload) => {
           // 분석 결과를 GroupSession.competencies[].memberScores에 자동 반영
@@ -523,19 +525,46 @@ export default function LeadershipCoaching() {
                 <YAxis domain={[0, 9]} ticks={[0, 3, 5, 7, 9]} tick={{ fill: "#475569", fontSize: 11 }} />
                 <Tooltip cursor={{ fill: "rgba(0,0,0,0.03)" }} content={<ChartTooltip unit="점" />} />
                 <Legend wrapperStyle={{ fontSize: "11px" }} />
-                {competencyDefs.map((comp, idx) => (
-                  <Line
-                    key={comp.key}
-                    type="monotone"
-                    dataKey={comp.label}
-                    stroke={comp.color}
-                    strokeWidth={2}
-                    dot={{ r: 3 }}
-                    activeDot={{ r: 5, strokeWidth: 2, stroke: "#ffffff" }}
-                    animationBegin={100 + idx * 100}
-                    animationDuration={600}
-                  />
-                ))}
+                {competencyDefs.map((comp, idx) => {
+                  // 색+패턴 이중 인코딩 — 색맹/인쇄(흑백) 시에도 계열 변별 가능
+                  // (실선 / 파선 / 점선) × (원 / 사각 / 마름모) — Data Clarity·Accessibility 원칙
+                  const dashPatterns = [undefined, "8 4", "2 6"];
+                  const dotShapes = ["circle", "square", "diamond"] as const;
+                  const shape = dotShapes[idx % dotShapes.length];
+                  const dash = dashPatterns[idx % dashPatterns.length];
+                  // Recharts의 dot 객체는 type(모양)을 지원하지 않으므로 Symbols로 직접 그린다
+                  const drawDot = (props: unknown, size: number, withRing: boolean) => {
+                    const { cx, cy, key } = (props ?? {}) as {
+                      cx?: number;
+                      cy?: number;
+                      key?: string | number;
+                    };
+                    if (cx == null || cy == null) return <g key={key} />;
+                    return (
+                      <g key={key}>
+                        {withRing && (
+                          <Symbols cx={cx} cy={cy} type={shape} size={size * 26} fill="#ffffff" />
+                        )}
+                        <Symbols cx={cx} cy={cy} type={shape} size={size * 16} fill={comp.color} />
+                      </g>
+                    );
+                  };
+                  return (
+                    <Line
+                      key={comp.key}
+                      type="monotone"
+                      dataKey={comp.label}
+                      stroke={comp.color}
+                      strokeWidth={2}
+                      strokeDasharray={dash}
+                      dot={(props: unknown) => drawDot(props, 1, false)}
+                      activeDot={(props: unknown) => drawDot(props, 1.6, true)}
+                      legendType={shape}
+                      animationBegin={100 + idx * 100}
+                      animationDuration={600}
+                    />
+                  );
+                })}
               </LineChart>
             </ResponsiveContainer>
           </div>

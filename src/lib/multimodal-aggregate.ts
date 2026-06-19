@@ -191,9 +191,8 @@ export function aggregateRuns(results: MultimodalScoreResult[]): AggregatedScore
   // 총점 집계
   const totalRuns = results.map((r) => r.totalScore);
   const total = computeStat(totalRuns);
-  // 판정용 원시값(반올림 전) — 표시는 반올림값, 등급/대표회차 판정은 원시값으로 분리
+  // 대표회차 선정용 원시 중앙값(반올림 전)
   const validTotals = totalRuns.filter((v): v is number => v !== null && !isNaN(v));
-  const rawSd = sampleStdev(validTotals);
   const rawMedian = validTotals.length ? median(validTotals) : 0;
 
   // 항목 집계 — base의 항목 구조 기준, 회차별 itemScore 수집
@@ -211,7 +210,9 @@ export function aggregateRuns(results: MultimodalScoreResult[]): AggregatedScore
 
   const sd = total?.stdev ?? 0;          // 표시용(반올림)
   const range = total?.range ?? 0;
-  const level = total ? consistencyLevel(rawSd) : "낮음"; // 판정은 원시 stdev (경계 뒤집힘 방지)
+  // 판정과 표시를 동일 통계량으로(표시되는 round2 sd로 판정) — '0.50점=높음' 같은 라벨-판정 모순 및
+  // 동일 σ가 점수 크기(부동소수 잔차)로 등급이 갈리는 현상 제거
+  const level = total ? consistencyLevel(sd) : "낮음";
   const requiresReview = level === "낮음";
   const consistencyLabelMap: Record<ConsistencyLevel, string> = {
     높음: `회차 간 총점 표준편차 ${sd.toFixed(2)}점 — 진단이 안정적입니다.`,
@@ -255,7 +256,7 @@ export function aggregateRuns(results: MultimodalScoreResult[]): AggregatedScore
         ? `채점 가능 항목 부족 — 최소 ${RECOMMENDED_RUNS}회 진단으로 객관성 확보를 권장합니다.`
         : n >= MAX_RUNS
           ? `유효 채점 회차가 ${validN}회뿐입니다(다수 회차 N/A). 전문가(코치) 검토·확정이 필요합니다.`
-          : `유효 채점 회차가 ${validN}회로 부족합니다. ${suggested}회까지 추가 진단을 권장합니다.` };
+          : `유효 채점 회차가 ${validN}회로 부족합니다. ${suggested}회로 재진단을 권장합니다.` };
   } else if (straddlesBand) {
     recommendation = { status: "hitl_required", ciHalfWidth: ciHalf, straddlesBand: true, suggestedTotalRuns: n,
       message: `신뢰구간(${total.ci95[0].toFixed(1)}~${total.ci95[1].toFixed(1)})이 등급 경계를 가로지릅니다. 반복만으로 해소되지 않는 경계 사례 — 전문가(코치) 확정이 필요합니다.` };
@@ -265,7 +266,7 @@ export function aggregateRuns(results: MultimodalScoreResult[]): AggregatedScore
   } else if (n < MAX_RUNS) {
     const next = Math.min(MAX_RUNS, n + 2);
     recommendation = { status: "more_runs", ciHalfWidth: ciHalf, straddlesBand: false, suggestedTotalRuns: next,
-      message: `정밀도 미달(95% CI ±${ciHalf?.toFixed(2)} > ±${PRECISION_TARGET}). ${next}회까지 추가 진단을 권장합니다.` };
+      message: `정밀도 미달(95% CI ±${ciHalf?.toFixed(2)} > ±${PRECISION_TARGET}). ${next}회로 재진단을 권장합니다.` };
   } else {
     recommendation = { status: "hitl_required", ciHalfWidth: ciHalf, straddlesBand: false, suggestedTotalRuns: MAX_RUNS,
       message: `최대 ${MAX_RUNS}회에도 변동이 큽니다(95% CI ±${ciHalf?.toFixed(2)}). 전문가(코치) 검토·확정이 필요합니다.` };
