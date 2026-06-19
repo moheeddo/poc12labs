@@ -130,6 +130,25 @@ describe("적응형 반복진단 권고 (신뢰구간 게이트 + 경계 HITL)",
     }
   });
 
+  it("[속성] straddle 메시지 구간은 반드시 등급경계를 포함한다 — 거짓 진술 차단(fail-closed)", () => {
+    const BAND_CUTS = [3.0, 5.5, 7.5];
+    let straddleCases = 0;
+    for (let a = 0; a <= 88; a += 1) {
+      for (let d = 0; d <= 17; d += 1) {
+        const xs = [a / 10, a / 10, Math.min(9, (a + d) / 10)];
+        const agg = aggregateRuns(xs.map((v) => run(v, { m1: v })));
+        const rec = agg.recommendation;
+        if (!rec.straddlesBand) continue;
+        straddleCases++;
+        // straddle이면 표시 구간이 존재하고, 그 구간이 적어도 한 경계를 실제로 포함해야 함
+        expect(rec.straddleInterval, `runs=${xs}`).not.toBeNull();
+        const [lo, hi] = rec.straddleInterval!;
+        expect(BAND_CUTS.some((c) => lo <= c && hi >= c), `interval=[${lo},${hi}] runs=${xs}`).toBe(true);
+      }
+    }
+    expect(straddleCases).toBeGreaterThan(10);
+  });
+
   // 속성 테스트(그리드 전수) — fail-open 영구 잠금:
   // 기대 straddle을 코드 필드가 아닌 '입력에서 raw로 독립 재계산'해 반올림 맹점을 제거(iter21 지적).
   // raw 평균·중앙값 중 어느 CI라도 경계를 넘으면(분산>0) 절대 sufficient 금지.

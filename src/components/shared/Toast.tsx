@@ -16,14 +16,14 @@ const TOAST_STYLES: Record<
   { icon: React.ReactNode; border: string; accent: string }
 > = {
   success: {
-    icon: <CheckCircle className="w-[18px] h-[18px] text-teal-400" />,
-    border: "border-teal-500/30",
-    accent: "bg-teal-500",
+    icon: <CheckCircle className="w-[18px] h-[18px] text-khnp-emerald" />,
+    border: "border-khnp-emerald/30",
+    accent: "bg-khnp-emerald",
   },
   error: {
-    icon: <AlertCircle className="w-[18px] h-[18px] text-coral-400" />,
-    border: "border-coral-500/30",
-    accent: "bg-coral-500",
+    icon: <AlertCircle className="w-[18px] h-[18px] text-red-600" />,
+    border: "border-red-500/30",
+    accent: "bg-red-600",
   },
   warning: {
     icon: <AlertTriangle className="w-[18px] h-[18px] text-amber-400" />,
@@ -67,10 +67,13 @@ export default function Toast({ toast, onDismiss }: ToastProps) {
     return () => clearTimeout(timer);
   }, [handleDismiss]);
 
+  // 에러·경고는 즉시 낭독(assertive), 성공·정보는 polite — WCAG 4.1.3
+  const isUrgent = toast.type === "error" || toast.type === "warning";
   return (
     <div
-      role="alert"
-      aria-live="polite"
+      role={isUrgent ? "alert" : "status"}
+      aria-live={isUrgent ? "assertive" : "polite"}
+      aria-atomic="true"
       className={cn(
         "relative flex items-start gap-3 overflow-hidden",
         "bg-white border rounded-lg p-3.5 pr-9",

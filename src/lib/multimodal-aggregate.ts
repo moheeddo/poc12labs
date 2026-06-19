@@ -31,6 +31,7 @@ export interface DiagnosisRecommendation {
   straddlesBand: boolean;       // CI가 등급 경계를 가로지르는가 (경계 사례)
   suggestedTotalRuns: number;   // 권장 누적 회차
   message: string;
+  straddleInterval: [number, number] | null; // straddle 시 메시지에 표시되는 실제 구간(판정과 동일, 경계 포함 보장)
 }
 
 export interface AggregateStat {
@@ -253,6 +254,16 @@ export function aggregateRuns(results: MultimodalScoreResult[]): AggregatedScore
         return (meanLo <= c && meanHi >= c) || (medLo <= c && medHi >= c);
       })
     : false;
+  // straddle 시 메시지·표시에 쓸 '판정과 동일한' 구간 — 평균·중앙값 raw 중심의 합집합 포락선(envelope).
+  // 합집합으로 발화했으므로 이 포락선은 교차한 경계를 반드시 포함 → 메시지가 거짓이 되지 않음(검증가능).
+  // 0~9 clamp는 경계(3.0/5.5/7.5가 내부값)를 가리지 않으므로 표시에 안전.
+  const straddleInterval: [number, number] | null =
+    total && straddlesBand && ciHalf !== null
+      ? [
+          round1(clamp09(Math.min(total.meanRaw, total.medianRaw) - ciHalf)),
+          round1(clamp09(Math.max(total.meanRaw, total.medianRaw) + ciHalf)),
+        ]
+      : null;
   const n = results.length;
   let recommendation: DiagnosisRecommendation;
   // 회차 부족 가드: n<3이면 표본분산이 없거나(퇴화 CI) 무릎(knee) 미만이라
@@ -262,24 +273,24 @@ export function aggregateRuns(results: MultimodalScoreResult[]): AggregatedScore
     // 일부 회차가 N/A라 유효표본이 부족할 수 있으므로(runCount는 이미 클 수 있음),
     // 권장 누적회차는 현재 회차보다 항상 크게 잡아 '추가 진단' 버튼이 사라지는 막다른 길 방지.
     const suggested = Math.min(MAX_RUNS, Math.max(RECOMMENDED_RUNS, n + 1));
-    recommendation = { status: n >= MAX_RUNS ? "hitl_required" : "more_runs", ciHalfWidth: total ? ciHalf : null, straddlesBand: false, suggestedTotalRuns: suggested,
+    recommendation = { status: n >= MAX_RUNS ? "hitl_required" : "more_runs", ciHalfWidth: total ? ciHalf : null, straddlesBand: false, suggestedTotalRuns: suggested, straddleInterval: null,
       message: !total
         ? `채점 가능 항목 부족 — 최소 ${RECOMMENDED_RUNS}회 진단으로 객관성 확보를 권장합니다.`
         : n >= MAX_RUNS
           ? `유효 채점 회차가 ${validN}회뿐입니다(다수 회차 N/A). 전문가(코치) 검토·확정이 필요합니다.`
           : `유효 채점 회차가 ${validN}회로 부족합니다. ${suggested}회로 재진단을 권장합니다.` };
-  } else if (straddlesBand) {
-    recommendation = { status: "hitl_required", ciHalfWidth: ciHalf, straddlesBand: true, suggestedTotalRuns: n,
-      message: `신뢰구간(${total.ci95[0].toFixed(1)}~${total.ci95[1].toFixed(1)})이 등급 경계를 가로지릅니다. 반복만으로 해소되지 않는 경계 사례 — 전문가(코치) 확정이 필요합니다.` };
+  } else if (straddlesBand && straddleInterval) {
+    recommendation = { status: "hitl_required", ciHalfWidth: ciHalf, straddlesBand: true, suggestedTotalRuns: n, straddleInterval,
+      message: `신뢰구간(${straddleInterval[0].toFixed(1)}~${straddleInterval[1].toFixed(1)})이 등급 경계를 가로지릅니다. 반복만으로 해소되지 않는 경계 사례 — 전문가(코치) 확정이 필요합니다.` };
   } else if (ciHalf !== null && ciHalf <= PRECISION_TARGET) {
-    recommendation = { status: "sufficient", ciHalfWidth: ciHalf, straddlesBand: false, suggestedTotalRuns: n,
+    recommendation = { status: "sufficient", ciHalfWidth: ciHalf, straddlesBand: false, suggestedTotalRuns: n, straddleInterval: null,
       message: `목표 정밀도 달성(95% CI ±${ciHalf.toFixed(2)} ≤ ±${PRECISION_TARGET}). 추가 진단 없이 신뢰할 수 있습니다.` };
   } else if (n < MAX_RUNS) {
     const next = Math.min(MAX_RUNS, n + 2);
-    recommendation = { status: "more_runs", ciHalfWidth: ciHalf, straddlesBand: false, suggestedTotalRuns: next,
+    recommendation = { status: "more_runs", ciHalfWidth: ciHalf, straddlesBand: false, suggestedTotalRuns: next, straddleInterval: null,
       message: `정밀도 미달(95% CI ±${ciHalf?.toFixed(2)} > ±${PRECISION_TARGET}). ${next}회로 재진단을 권장합니다.` };
   } else {
-    recommendation = { status: "hitl_required", ciHalfWidth: ciHalf, straddlesBand: false, suggestedTotalRuns: MAX_RUNS,
+    recommendation = { status: "hitl_required", ciHalfWidth: ciHalf, straddlesBand: false, suggestedTotalRuns: MAX_RUNS, straddleInterval: null,
       message: `최대 ${MAX_RUNS}회에도 변동이 큽니다(95% CI ±${ciHalf?.toFixed(2)}). 전문가(코치) 검토·확정이 필요합니다.` };
   }
 
