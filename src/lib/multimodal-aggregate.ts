@@ -158,9 +158,13 @@ function computeStat(values: (number | null)[]): AggregateStat | null {
     // 정밀도 판정용 비클램프 반폭(t·sem) — clamp 전 원시값을 게이트에 써야
     // fail-open(최상·최하위자 '추가진단 불필요' 오판) 방지
     ciHalfRaw: Math.round(margin * 100) / 100,
-    // ci95는 헤드라인(중앙값)을 중심으로 표시 — 표시 CI = 판정구간 = 헤드라인을 단일 통계량으로 통일
-    // (평균 중심이면 비대칭 분포에서 표시 CI와 straddle 판정구간이 갈라져 자기모순 발생)
-    ci95: [round1(clamp09(med - margin)), round1(clamp09(med + margin))],
+    // ci95 = 평균·중앙값 raw 중심의 95% 구간 합집합 포락선(round1·clamp09).
+    // 이 단일 구간을 배지 표시·straddle 판정·HITL 메시지가 모두 공유 → display==judgment==message 보장
+    // (검증가능·fail-closed). 치우친 분포에서도 평균쪽 경계 초과를 포락선이 포함해 fail-open 차단.
+    ci95: [
+      round1(clamp09(Math.min(mu, med) - margin)),
+      round1(clamp09(Math.max(mu, med) + margin)),
+    ],
     min: round1(Math.min(...xs)),
     max: round1(Math.max(...xs)),
     range: round1(Math.max(...xs) - Math.min(...xs)),
@@ -245,25 +249,15 @@ export function aggregateRuns(results: MultimodalScoreResult[]): AggregatedScore
   // median 5.0 구간은 5.5 미달이나 mean 5.1±0.43=[4.67,5.53]은 5.5 통과) 'sufficient'로 새는 fail-open 발생.
   // 정밀도(sufficient)도 동일 ciHalfRaw(t·sem) 기반이라 두 게이트가 같은 산포로 일관.
   // 분산 0(ciHalf=0, 완전 일관)인 안정 케이스는 HITL에서 제외.
+  // straddle은 '화면에 표시되는 바로 그 ci95(포락선)' 끝점으로 판정 → display==judgment 동치 보장.
+  // round1 끝점으로 판정하므로 경계에 근접(반올림으로 닿음)하면 보수적으로 HITL(fail-closed, 안전방향).
+  // 분산 0(ciHalf=0)인 안정 케이스는 제외.
   const straddlesBand = total && ciHalf !== null && ciHalf > 0
-    ? BAND_CUTS.some((c) => {
-        // 반올림 전 raw 중심 사용 — round1(중심)+raw반폭 비대칭으로 경계사례를 놓치던 fail-open 차단
-        // (예 [2.5,2.6,2.8]: rawMean 2.6333+0.38=3.013≥3.0 통과인데 round1 2.6은 2.98로 놓침)
-        const meanLo = total.meanRaw - ciHalf, meanHi = total.meanRaw + ciHalf;
-        const medLo = total.medianRaw - ciHalf, medHi = total.medianRaw + ciHalf;
-        return (meanLo <= c && meanHi >= c) || (medLo <= c && medHi >= c);
-      })
+    ? BAND_CUTS.some((c) => total.ci95[0] <= c && total.ci95[1] >= c)
     : false;
-  // straddle 시 메시지·표시에 쓸 '판정과 동일한' 구간 — 평균·중앙값 raw 중심의 합집합 포락선(envelope).
-  // 합집합으로 발화했으므로 이 포락선은 교차한 경계를 반드시 포함 → 메시지가 거짓이 되지 않음(검증가능).
-  // 0~9 clamp는 경계(3.0/5.5/7.5가 내부값)를 가리지 않으므로 표시에 안전.
+  // 메시지에 쓰는 구간 = ci95 (배지와 동일). straddle이면 정의상 이 구간이 경계를 포함 → 거짓 진술 불가.
   const straddleInterval: [number, number] | null =
-    total && straddlesBand && ciHalf !== null
-      ? [
-          round1(clamp09(Math.min(total.meanRaw, total.medianRaw) - ciHalf)),
-          round1(clamp09(Math.max(total.meanRaw, total.medianRaw) + ciHalf)),
-        ]
-      : null;
+    total && straddlesBand ? total.ci95 : null;
   const n = results.length;
   let recommendation: DiagnosisRecommendation;
   // 회차 부족 가드: n<3이면 표본분산이 없거나(퇴화 CI) 무릎(knee) 미만이라

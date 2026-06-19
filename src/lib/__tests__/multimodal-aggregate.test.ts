@@ -103,11 +103,20 @@ describe("적응형 반복진단 권고 (신뢰구간 게이트 + 경계 HITL)",
       expect(agg.recommendation.status).toBe("hitl_required");
     }
   });
-  it("경계 미달(평균·중앙값 raw 모두 cut 미통과)은 sufficient — 반올림 아티팩트로 과진단하지 않음", () => {
-    // [2.4,2.6,2.7]: mean 2.6±0.38=[2.22,2.98], cut 3.0 미달 → 충분
-    const agg = aggregateRuns([2.4, 2.6, 2.7].map((v) => run(v, { m1: v })));
+  it("경계에서 충분히 떨어진 안정 케이스는 sufficient (포락선이 어떤 cut도 비포함)", () => {
+    // [4.0,4.0,4.2]: 포락선 ≈ [3.6,4.5], cut(3.0/5.5/7.5) 어디에도 안 닿음 → 충분
+    const agg = aggregateRuns([4.0, 4.0, 4.2].map((v) => run(v, { m1: v })));
     expect(agg.recommendation.straddlesBand).toBe(false);
     expect(agg.recommendation.status).toBe("sufficient");
+  });
+  it("표시 구간(ci95) == 판정 구간 == 메시지 구간 — 단일 통계량(자기모순 차단)", () => {
+    const agg = aggregateRuns([0, 0, 2.1].map((v) => run(v, { m1: v })));
+    if (agg.recommendation.straddlesBand) {
+      // 메시지에 박힌 구간이 ci95 배지와 정확히 동일
+      expect(agg.recommendation.straddleInterval).toEqual(agg.total!.ci95);
+      const [lo, hi] = agg.recommendation.straddleInterval!;
+      expect(agg.recommendation.message).toContain(`${lo.toFixed(1)}~${hi.toFixed(1)}`);
+    }
   });
   it("분산 0 + 경계 정좌(3,3,3)는 안정적이므로 straddle 제외·sufficient", () => {
     const agg = aggregateRuns([run(3, { m1: 3 }), run(3, { m1: 3 }), run(3, { m1: 3 })]);

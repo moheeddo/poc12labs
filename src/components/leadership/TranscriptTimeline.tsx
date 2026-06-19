@@ -317,7 +317,7 @@ export default function TranscriptTimeline({
                       {formatTime(seg.start)}
                     </button>
                     <span className="text-slate-300">—</span>
-                    <span className="text-sm font-mono text-slate-400">{formatTime(seg.end)}</span>
+                    <span className="text-sm font-mono text-slate-600">{formatTime(seg.end)}</span>
 
                     {!isCompact && (
                       <span className="text-[10px] font-mono text-slate-400 bg-slate-100/60 px-1.5 py-0.5 rounded">

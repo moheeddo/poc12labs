@@ -241,8 +241,8 @@ function MultimodalIndicatorTable({
       {/* 채점 유의사항 */}
       {item.scoringNotes.length > 0 && (
         <div className="flex items-start gap-1.5 px-1">
-          <Info className="w-3 h-3 text-slate-400 mt-0.5 shrink-0" />
-          <div className="text-sm text-slate-400 leading-relaxed space-y-0.5">
+          <Info className="w-3 h-3 text-slate-500 mt-0.5 shrink-0" />
+          <div className="text-sm text-slate-600 leading-relaxed space-y-0.5">
             {item.scoringNotes.map((note, ni) => (
               <p key={ni}>· {note}</p>
             ))}
@@ -508,8 +508,8 @@ export default function CompetencyAssessment({ data, onBack }: CompetencyAssessm
                 <p className="text-sm font-medium text-slate-500">{data.scenario.title}</p>
                 <p className="text-base text-slate-500 leading-relaxed whitespace-pre-line">{data.scenario.description}</p>
                 <div className="flex items-start gap-1.5 pt-1">
-                  <Info className="w-3 h-3 text-slate-400 mt-0.5 shrink-0" />
-                  <p className="text-sm text-slate-400 leading-relaxed">{data.scenario.reference}</p>
+                  <Info className="w-3 h-3 text-slate-500 mt-0.5 shrink-0" />
+                  <p className="text-sm text-slate-600 leading-relaxed">{data.scenario.reference}</p>
                 </div>
               </div>
             )}

@@ -74,7 +74,7 @@ export default function KeyboardHelp({ isOpen, onClose }: KeyboardHelpProps) {
         {/* 헤더 */}
         <div className="mb-5 flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <Keyboard className="w-5 h-5 text-teal-600" />
+            <Keyboard className="w-5 h-5 text-emerald-700" />
             <h2 className="text-lg font-semibold text-slate-900">키보드 단축키</h2>
           </div>
           <button
@@ -98,7 +98,7 @@ export default function KeyboardHelp({ isOpen, onClose }: KeyboardHelpProps) {
                     className="flex items-center justify-between text-sm py-1.5 px-2 -mx-2 rounded-lg hover:bg-slate-50 transition-colors duration-150"
                   >
                     <span className="text-slate-700">{description}</span>
-                    <kbd className="inline-flex min-w-[2rem] items-center justify-center rounded-md border border-slate-200 bg-slate-100 px-2 py-1 font-mono text-xs font-medium text-teal-600">
+                    <kbd className="inline-flex min-w-[2rem] items-center justify-center rounded-md border border-slate-200 bg-slate-100 px-2 py-1 font-mono text-xs font-medium text-emerald-700">
                       {key}
                     </kbd>
                   </li>

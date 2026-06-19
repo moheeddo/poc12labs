@@ -35,8 +35,8 @@ export default class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBo
           role="alert"
           aria-live="assertive"
         >
-          <div className="w-12 h-12 rounded-full bg-coral-500/10 flex items-center justify-center mb-4">
-            <AlertTriangle className="w-6 h-6 text-coral-400" />
+          <div className="w-12 h-12 rounded-full bg-red-500/10 flex items-center justify-center mb-4">
+            <AlertTriangle className="w-6 h-6 text-red-600" />
           </div>
           <h3 className="text-lg font-semibold text-slate-900 mb-2">
             {this.props.fallbackTitle || "오류가 발생했습니다"}
