@@ -325,7 +325,7 @@ const VISION_PRESENTATION: CompetencyAssessmentData = {
   key: "visionPresentation",
   label: "비전제시",
   icon: "Target",
-  color: "#14b8a6",
+  color: "#006341", // KHNP emerald — 흰 배경 대비 7.34:1 (WCAG AA). constants.ts 정본값과 통일
   scenario: {
     title: "신재생에너지 확대 전략 브리핑 (5분 발표)",
     description:
@@ -576,7 +576,7 @@ const TRUST_BUILDING: CompetencyAssessmentData = {
   key: "trustBuilding",
   label: "신뢰형성",
   icon: "Handshake",
-  color: "#f59e0b",
+  color: "#15803d", // green-700 — 흰 배경 대비 5.02:1 (WCAG AA). constants.ts 정본값과 통일
   scenario: {
     title: "부서간 설비 교체 일정 갈등 조율 (협상형 그룹토의)",
     description:
@@ -803,7 +803,7 @@ const MEMBER_DEVELOPMENT: CompetencyAssessmentData = {
   key: "memberDevelopment",
   label: "구성원육성",
   icon: "GraduationCap",
-  color: "#ef4444",
+  color: "#0e7490", // cyan-700 — 흰 배경 대비 5.36:1 (WCAG AA). constants.ts 정본값과 통일
   scenario: {
     title: "1:1 코칭·피드백 면담 — 회의문화 개선 (6분)",
     description:

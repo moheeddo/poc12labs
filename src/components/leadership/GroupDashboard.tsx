@@ -719,8 +719,8 @@ export default function GroupDashboard({ session, onBack, onViewMember }: GroupD
                           <div className={cn(
                             "inline-flex items-center justify-center w-12 h-8 rounded-lg text-sm font-mono font-bold transition-all",
                             s.score >= 7 ? "bg-emerald-600 text-white" :
-                            s.score >= 5 ? "bg-amber-400 text-white" :
-                            s.score > 0 ? "bg-red-400 text-white" :
+                            s.score >= 5 ? "bg-amber-400 text-amber-950" :
+                            s.score > 0 ? "bg-red-600 text-white" :
                             "bg-slate-100 text-slate-300"
                           )}>
                             {s.score > 0 ? s.score.toFixed(1) : "-"}

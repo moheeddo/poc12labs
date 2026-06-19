@@ -36,6 +36,8 @@ export interface DiagnosisRecommendation {
 export interface AggregateStat {
   mean: number;
   median: number;   // 대표값 (강건 — 이상치 회차에 둔감)
+  meanRaw: number;   // 반올림 전 평균 — 경계 straddle 판정용(반올림 중심+raw반폭 비대칭 fail-open 방지)
+  medianRaw: number; // 반올림 전 중앙값 — straddle 판정용
   mode: number;     // 0.5 단위 버킷 최빈값
   stdev: number;    // 표본표준편차
   sem: number;      // 평균의 표준오차 = stdev / √n
@@ -147,6 +149,8 @@ function computeStat(values: (number | null)[]): AggregateStat | null {
   return {
     mean: round1(mu),
     median: round1(med),
+    meanRaw: mu,
+    medianRaw: med,
     mode: round1(mode(xs)),
     stdev: Math.round(sd * 100) / 100,
     sem: Math.round(sem * 100) / 100,
@@ -242,8 +246,10 @@ export function aggregateRuns(results: MultimodalScoreResult[]): AggregatedScore
   // 분산 0(ciHalf=0, 완전 일관)인 안정 케이스는 HITL에서 제외.
   const straddlesBand = total && ciHalf !== null && ciHalf > 0
     ? BAND_CUTS.some((c) => {
-        const meanLo = total.mean - ciHalf, meanHi = total.mean + ciHalf;
-        const medLo = total.median - ciHalf, medHi = total.median + ciHalf;
+        // 반올림 전 raw 중심 사용 — round1(중심)+raw반폭 비대칭으로 경계사례를 놓치던 fail-open 차단
+        // (예 [2.5,2.6,2.8]: rawMean 2.6333+0.38=3.013≥3.0 통과인데 round1 2.6은 2.98로 놓침)
+        const meanLo = total.meanRaw - ciHalf, meanHi = total.meanRaw + ciHalf;
+        const medLo = total.medianRaw - ciHalf, medHi = total.medianRaw + ciHalf;
         return (meanLo <= c && meanHi >= c) || (medLo <= c && medHi >= c);
       })
     : false;

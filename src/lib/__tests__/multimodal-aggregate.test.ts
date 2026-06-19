@@ -121,31 +121,43 @@ describe("적응형 반복진단 권고 (신뢰구간 게이트 + 경계 HITL)",
     expect(agg.recommendation.status).toBe("hitl_required");
   });
 
+  it("정좌 경계사례 6종(반올림 중심으로 놓치던 fail-open)은 모두 HITL", () => {
+    // iter21 전수스캔으로 도달 가능했던 6개 — raw 중심으로 판정해야 straddle=true
+    for (const runs of [[2.5, 2.6, 2.8], [3.2, 3.4, 3.5], [5, 5.1, 5.3], [5.7, 5.9, 6], [7, 7.1, 7.3], [7.7, 7.9, 8]]) {
+      const agg = aggregateRuns(runs.map((v) => run(v, { m1: v })));
+      expect(agg.recommendation.straddlesBand, `runs=${runs}`).toBe(true);
+      expect(agg.recommendation.status, `runs=${runs}`).toBe("hitl_required");
+    }
+  });
+
   // 속성 테스트(그리드 전수) — fail-open 영구 잠금:
-  // 평균·중앙값 중 어느 쪽 신뢰구간이라도 등급경계를 가로지르면(분산>0) 절대 'sufficient' 금지.
-  // 중앙값/평균/반올림 긴장으로 여러 번 재발한 결함을 런타임 강제로 차단.
-  it("[속성] 평균·중앙값 CI 합집합이 경계를 넘으면 어떤 표본도 sufficient가 아니다(3회 그리드 전수)", () => {
+  // 기대 straddle을 코드 필드가 아닌 '입력에서 raw로 독립 재계산'해 반올림 맹점을 제거(iter21 지적).
+  // raw 평균·중앙값 중 어느 CI라도 경계를 넘으면(분산>0) 절대 sufficient 금지.
+  it("[속성] raw 재계산 기준 경계 교차 시 어떤 표본도 sufficient가 아니다(3회 그리드 전수)", () => {
     const BAND_CUTS = [3.0, 5.5, 7.5];
+    const T95_DF2 = 4.30; // n=3 → df=2
+    const rawMean = (xs: number[]) => xs.reduce((a, b) => a + b, 0) / xs.length;
+    const rawMedian = (xs: number[]) => { const s = [...xs].sort((a, b) => a - b); return s[1]; };
+    const rawSd = (xs: number[]) => {
+      const m = rawMean(xs);
+      return Math.sqrt(xs.reduce((s, x) => s + (x - m) ** 2, 0) / (xs.length - 1));
+    };
     let crossingCases = 0;
-    for (let a = 0; a <= 90; a += 3) {
-      for (let d = 0; d <= 12; d += 2) {
-        const xs = [a / 10, a / 10, (a + d) / 10].map((v) => Math.min(9, v));
-        const agg = aggregateRuns(xs.map((v) => run(v, { m1: v })));
-        const tot = agg.total;
-        if (!tot || tot.ciHalfRaw <= 0) continue;
-        const h = tot.ciHalfRaw;
+    for (let a = 0; a <= 88; a += 1) {
+      for (let d = 0; d <= 14; d += 1) {
+        const xs = [a / 10, a / 10, Math.min(9, (a + d) / 10)];
+        const margin = T95_DF2 * (rawSd(xs) / Math.sqrt(3)); // 코드와 무관한 독립 계산
+        if (margin <= 0) continue;
+        const mu = rawMean(xs), md = rawMedian(xs);
         const crosses = BAND_CUTS.some(
-          (c) =>
-            (tot.mean - h <= c && tot.mean + h >= c) ||
-            (tot.median - h <= c && tot.median + h >= c),
+          (c) => (mu - margin <= c && mu + margin >= c) || (md - margin <= c && md + margin >= c),
         );
-        if (crosses) {
-          crossingCases++;
-          expect(agg.recommendation.straddlesBand).toBe(true);
-          expect(agg.recommendation.status).not.toBe("sufficient");
-        }
+        if (!crosses) continue;
+        crossingCases++;
+        const agg = aggregateRuns(xs.map((v) => run(v, { m1: v })));
+        expect(agg.recommendation.status, `runs=${xs}`).not.toBe("sufficient");
       }
     }
-    expect(crossingCases).toBeGreaterThan(0); // 그리드가 실제 경계사례를 포함함을 보장
+    expect(crossingCases).toBeGreaterThan(5); // 그리드가 실제 경계사례를 충분히 포함
   });
 });
