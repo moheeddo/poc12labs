@@ -111,7 +111,7 @@ export default function Landing({ onNavigate }: LandingProps) {
 
           {/* 우: 계측 인덱스 패널 */}
           <div className="lg:col-span-5 lg:border-l lg:border-[#002855]/10 lg:pl-12" style={reveal(380)}>
-            <p className="text-[10px] font-mono tracking-[0.2em] text-[#94a3b8] uppercase mb-5">평가 역량 / Index</p>
+            <p className="text-[10px] font-mono tracking-[0.2em] text-[#64748b] uppercase mb-5">평가 역량 / Index</p>
             <ul>
               {COMPETENCY_INDEX.map((c, i) => (
                 <li
@@ -121,7 +121,7 @@ export default function Landing({ onNavigate }: LandingProps) {
                 >
                   <span className="text-[12px] font-mono text-[#006341] w-6 shrink-0">{c.no}</span>
                   <span className="text-[17px] font-semibold text-[#002855] tracking-[-0.01em]">{c.label}</span>
-                  <span className="ml-auto text-[12px] text-[#94a3b8] font-mono">{c.task}</span>
+                  <span className="ml-auto text-[12px] text-[#64748b] font-mono">{c.task}</span>
                 </li>
               ))}
             </ul>
@@ -130,7 +130,7 @@ export default function Landing({ onNavigate }: LandingProps) {
             <dl className="mt-7 grid grid-cols-2 gap-x-5 gap-y-4 border-t border-[#002855]/10 pt-6">
               {META.map(([k, v]) => (
                 <div key={k}>
-                  <dt className="text-[10px] font-mono tracking-[0.12em] text-[#94a3b8] uppercase">{k}</dt>
+                  <dt className="text-[10px] font-mono tracking-[0.12em] text-[#64748b] uppercase">{k}</dt>
                   <dd className="text-[14px] font-semibold text-[#002855] mt-0.5">{v}</dd>
                 </div>
               ))}
@@ -140,8 +140,8 @@ export default function Landing({ onNavigate }: LandingProps) {
 
         {/* ── 푸터 ── */}
         <footer className="flex items-center justify-between py-6 border-t border-[#002855]/8" style={reveal(480)}>
-          <span className="text-[11px] text-[#94a3b8] font-mono">© 2026 한국수력원자력 인재개발원</span>
-          <span className="text-[11px] text-[#94a3b8] font-mono hidden sm:block">Powered by TwelveLabs · Upstage Solar</span>
+          <span className="text-[11px] text-[#64748b] font-mono">© 2026 한국수력원자력 인재개발원</span>
+          <span className="text-[11px] text-[#64748b] font-mono hidden sm:block">Powered by TwelveLabs · Upstage Solar</span>
         </footer>
       </div>
     </div>

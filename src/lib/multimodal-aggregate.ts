@@ -228,9 +228,14 @@ export function aggregateRuns(results: MultimodalScoreResult[]): AggregatedScore
   const straddlesBand = total ? BAND_CUTS.some((c) => total.ci95[0] < c && total.ci95[1] > c) : false;
   const n = results.length;
   let recommendation: DiagnosisRecommendation;
-  if (!total) {
-    recommendation = { status: "more_runs", ciHalfWidth: null, straddlesBand: false, suggestedTotalRuns: RECOMMENDED_RUNS,
-      message: `채점 가능 항목 부족 — 최소 ${RECOMMENDED_RUNS}회 진단으로 객관성 확보를 권장합니다.` };
+  // 회차 부족 가드: n<3이면 표본분산이 없거나(퇴화 CI) 무릎(knee) 미만이라
+  // 정밀도를 '증명'할 수 없음 — 영점분산을 영점불확실성으로 단정하지 않도록 'sufficient' 차단.
+  const validN = total ? total.n : 0;
+  if (!total || validN < RECOMMENDED_RUNS) {
+    recommendation = { status: "more_runs", ciHalfWidth: total ? ciHalf : null, straddlesBand: false, suggestedTotalRuns: RECOMMENDED_RUNS,
+      message: !total
+        ? `채점 가능 항목 부족 — 최소 ${RECOMMENDED_RUNS}회 진단으로 객관성 확보를 권장합니다.`
+        : `${validN}회로는 정밀도를 검증할 수 없습니다(신뢰구간 불충분). 최소 ${RECOMMENDED_RUNS}회 진단으로 객관성 확보를 권장합니다.` };
   } else if (straddlesBand) {
     recommendation = { status: "hitl_required", ciHalfWidth: ciHalf, straddlesBand: true, suggestedTotalRuns: n,
       message: `신뢰구간(${total.ci95[0].toFixed(1)}~${total.ci95[1].toFixed(1)})이 등급 경계를 가로지릅니다. 반복만으로 해소되지 않는 경계 사례 — 전문가(코치) 확정이 필요합니다.` };

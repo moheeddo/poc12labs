@@ -470,13 +470,13 @@ export default function LeadershipCoaching() {
         <div className="flex items-center gap-3">
           <button
             onClick={() => setView({ type: "main" })}
-            className="flex items-center gap-1.5 text-base text-slate-500 hover:text-teal-600 transition-colors"
+            className="flex items-center gap-1.5 text-base text-slate-500 hover:text-[#006341] transition-colors"
           >
             <ArrowLeft className="w-4 h-4" />
             돌아가기
           </button>
           <ChevronRight className="w-3.5 h-3.5 text-slate-400" />
-          <h2 className="text-xl font-bold text-teal-600">평가 이력 & 성장 추이</h2>
+          <h2 className="text-xl font-bold text-[#006341]">평가 이력 & 성장 추이</h2>
         </div>
 
         {/* 평가 이력 스코어카드 */}
@@ -560,7 +560,7 @@ export default function LeadershipCoaching() {
         <div className="flex items-center gap-2 shrink-0">
           <button
             onClick={() => setView({ type: "group-create" })}
-            className="flex items-center gap-2 text-sm font-semibold text-white bg-teal-600 hover:bg-teal-500 px-5 py-2.5 rounded-xl shadow-md shadow-teal-500/15 hover:shadow-lg transition-all active:scale-[0.97] whitespace-nowrap"
+            className="flex items-center gap-2 text-sm font-semibold text-white bg-[#006341] hover:bg-[#00543a] px-5 py-2.5 rounded-xl shadow-md shadow-[#006341]/15 hover:shadow-lg transition-all active:scale-[0.97] whitespace-nowrap"
           >
             <Users className="w-4 h-4" />
             수업 시작 (6인 조)
@@ -568,7 +568,7 @@ export default function LeadershipCoaching() {
           {speakers.length > 0 && (
             <button
               onClick={() => setView({ type: "history" })}
-              className="flex items-center gap-1.5 text-sm text-slate-500 hover:text-teal-600 transition-colors px-3 py-1.5 rounded-lg border border-slate-200/40 hover:border-teal-500/30 whitespace-nowrap"
+              className="flex items-center gap-1.5 text-sm text-slate-500 hover:text-[#006341] transition-colors px-3 py-1.5 rounded-lg border border-slate-200/40 hover:border-teal-500/30 whitespace-nowrap"
             >
               <TrendingUp className="w-3.5 h-3.5" />
               이력
@@ -581,10 +581,10 @@ export default function LeadershipCoaching() {
       {groupSessions.length > 0 && (
         <div className="bg-gradient-to-br from-teal-50/60 to-emerald-50/30 border border-teal-200/30 rounded-xl p-4">
           <div className="flex items-center justify-between mb-3">
-            <p className="text-xs uppercase tracking-wider text-teal-600 font-medium">진행 중인 조</p>
+            <p className="text-xs uppercase tracking-wider text-[#006341] font-medium">진행 중인 조</p>
             <button
               onClick={() => setView({ type: "group-create" })}
-              className="text-xs text-teal-600 hover:text-teal-500 transition-colors"
+              className="text-xs text-[#006341] hover:text-[#004a31] transition-colors"
             >
               + 새 조 만들기
             </button>
@@ -607,8 +607,8 @@ export default function LeadershipCoaching() {
                   onKeyDown={(e) => { if (e.key === "Enter") setView({ type: "group-manage", sessionId: gs.id }); }}
                 >
                   <div className="flex items-center justify-between mb-1.5">
-                    <p className="text-sm font-bold text-teal-700 pr-7">{gs.name}</p>
-                    <span className="text-[10px] font-mono text-teal-600 bg-teal-50 px-1.5 py-0.5 rounded">
+                    <p className="text-sm font-bold text-[#006341] pr-7">{gs.name}</p>
+                    <span className="text-[10px] font-mono text-[#006341] bg-[#006341]/[0.06] px-1.5 py-0.5 rounded">
                       {gs.currentStep + 1}/4
                     </span>
                   </div>
@@ -619,7 +619,7 @@ export default function LeadershipCoaching() {
                     <div className="flex-1 h-1.5 bg-teal-100 rounded-full overflow-hidden">
                       <div className="h-full bg-teal-500 rounded-full transition-all duration-500" style={{ width: `${pct}%` }} />
                     </div>
-                    <span className="text-[10px] font-mono text-teal-600 w-10 text-right">
+                    <span className="text-[10px] font-mono text-[#006341] w-10 text-right">
                       {totalAnalyzed > 0 ? `${totalAnalyzed}건` : "대기"}
                     </span>
                   </div>
@@ -648,7 +648,7 @@ export default function LeadershipCoaching() {
       <div className="relative">
         <div className="flex items-center gap-3 mb-4">
           <div className="h-px flex-1 bg-[#002855]/8" />
-          <span className="text-[10px] font-mono text-[#94a3b8] tracking-[0.18em] uppercase">또는 개별 분석</span>
+          <span className="text-[10px] font-mono text-[#64748b] tracking-[0.18em] uppercase">또는 개별 분석</span>
           <div className="h-px flex-1 bg-[#002855]/8" />
         </div>
       </div>
@@ -682,14 +682,14 @@ export default function LeadershipCoaching() {
                 </div>
               )}
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-lg bg-teal-50 flex items-center justify-center shrink-0">
-                  <CheckCircle2 className="w-5 h-5 text-teal-600" />
+                <div className="w-10 h-10 rounded-lg bg-[#006341]/[0.06] flex items-center justify-center shrink-0">
+                  <CheckCircle2 className="w-5 h-5 text-[#006341]" />
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="text-base text-slate-900 font-medium truncate">
                     {uploadedFileName}
                   </p>
-                  <p className="text-sm text-teal-600">업로드 완료 — AI 인덱싱 진행 중</p>
+                  <p className="text-sm text-[#006341]">업로드 완료 — AI 인덱싱 진행 중</p>
                 </div>
                 <button
                   onClick={() => {
@@ -719,20 +719,20 @@ export default function LeadershipCoaching() {
                 value={scenarioText}
                 onChange={(e) => setScenarioText(e.target.value)}
                 placeholder={`예시:\n• 신재생에너지 분야 전략 수립 TFT 발표 영상\n• 부서 간 설비 교체 일정 갈등 조율 회의\n• 회의 비효율성 문제에 대한 1:1 코칭 면담`}
-                className="w-full bg-[#f7f8f6] border border-[#002855]/10 rounded-lg px-4 py-3 text-[15px] text-[#002855] placeholder:text-[#94a3b8] outline-none focus:border-[#006341]/40 focus:ring-1 focus:ring-[#006341]/15 transition-all resize-none leading-relaxed"
+                className="w-full bg-[#f7f8f6] border border-[#002855]/10 rounded-lg px-4 py-3 text-[15px] text-[#002855] placeholder:text-[#64748b] outline-none focus:border-[#006341]/40 focus:ring-1 focus:ring-[#006341]/15 transition-all resize-none leading-relaxed"
                 rows={3}
               />
             </div>
             <div className="border-t border-[#002855]/8 pt-4">
-              <label className="text-[13px] font-semibold text-[#002855] block mb-1">주요 용어·명단 <span className="font-normal text-[#94a3b8]">(음성인식 보정)</span></label>
+              <label className="text-[13px] font-semibold text-[#002855] block mb-1">주요 용어·명단 <span className="font-normal text-[#64748b]">(음성인식 보정)</span></label>
               <textarea
                 value={glossaryText}
                 onChange={(e) => setGlossaryText(e.target.value)}
                 placeholder={`인명·직책·부서를 쉼표로 (예: 엄사방, 주무차장, A부장, 안전부서)`}
-                className="w-full bg-[#f7f8f6] border border-[#002855]/10 rounded-lg px-4 py-2.5 text-[14px] text-[#002855] placeholder:text-[#94a3b8] outline-none focus:border-[#006341]/40 focus:ring-1 focus:ring-[#006341]/15 transition-all resize-none leading-relaxed"
+                className="w-full bg-[#f7f8f6] border border-[#002855]/10 rounded-lg px-4 py-2.5 text-[14px] text-[#002855] placeholder:text-[#64748b] outline-none focus:border-[#006341]/40 focus:ring-1 focus:ring-[#006341]/15 transition-all resize-none leading-relaxed"
                 rows={2}
               />
-              <p className="text-[11px] text-[#94a3b8] mt-1.5">
+              <p className="text-[11px] text-[#64748b] mt-1.5">
                 ※ TwelveLabs는 원본 음성인식 어휘를 바꿀 수 없습니다. 입력한 용어는 <span className="text-[#475569]">AI 분석·보고서가 정확한 표기를 쓰도록</span> 전달됩니다(근본 보정은 온프렘 한국어 STT).
               </p>
             </div>
@@ -786,7 +786,7 @@ export default function LeadershipCoaching() {
                       {comp.label}
                     </h4>
                     {comp.rubric && (
-                      <span className="text-[10px] font-mono tracking-[0.08em] text-[#94a3b8]">M1–M5</span>
+                      <span className="text-[10px] font-mono tracking-[0.08em] text-[#64748b]">M1–M5</span>
                     )}
                     {/* 정밀 선택 체크박스 */}
                     <span
@@ -818,12 +818,12 @@ export default function LeadershipCoaching() {
         {!canStartAnalysis && (
           <div className="mb-4">
             <div className="flex items-center justify-center gap-3 sm:gap-6 text-sm flex-wrap">
-              <span className={`flex items-center gap-1.5 ${uploadedVideoId ? "text-teal-600" : "text-slate-400"}`}>
+              <span className={`flex items-center gap-1.5 ${uploadedVideoId ? "text-[#006341]" : "text-slate-400"}`}>
                 {uploadedVideoId ? <CheckCircle2 className="w-4 h-4" /> : <Circle className="w-4 h-4" />}
                 영상 업로드
               </span>
               <span className="text-slate-300 hidden sm:inline">→</span>
-              <span className={`flex items-center gap-1.5 ${selectedCompetencies.size > 0 ? "text-teal-600" : "text-slate-400"}`}>
+              <span className={`flex items-center gap-1.5 ${selectedCompetencies.size > 0 ? "text-[#006341]" : "text-slate-400"}`}>
                 {selectedCompetencies.size > 0 ? <CheckCircle2 className="w-4 h-4" /> : <Circle className="w-4 h-4" />}
                 역량 선택
               </span>
@@ -840,7 +840,7 @@ export default function LeadershipCoaching() {
           disabled={!canStartAnalysis}
           className={`inline-flex items-center gap-3 px-6 sm:px-10 py-3.5 sm:py-4 rounded-2xl text-base sm:text-lg font-semibold transition-all duration-300 ${
             canStartAnalysis
-              ? "bg-teal-600 hover:bg-teal-500 text-white shadow-xl shadow-teal-500/20 hover:shadow-2xl hover:shadow-teal-500/30 hover:scale-[1.02] active:scale-[0.98]"
+              ? "bg-[#006341] hover:bg-[#00543a] text-white shadow-xl shadow-[#006341]/20 hover:shadow-2xl hover:shadow-[#006341]/30 hover:scale-[1.02] active:scale-[0.98]"
               : "bg-slate-200/80 text-slate-400 cursor-not-allowed"
           }`}
         >
@@ -856,7 +856,7 @@ export default function LeadershipCoaching() {
       {speakers.length > 0 && (
         <div className="space-y-4">
         <h3 className="text-sm font-semibold text-slate-700 flex items-center gap-2">
-          <Sparkles className="w-3.5 h-3.5 text-teal-600" />
+          <Sparkles className="w-3.5 h-3.5 text-[#006341]" />
           심층 분석
         </h3>
         {/* 서브탭 내비게이션 — 행 1: 핵심 분석 */}
@@ -875,7 +875,7 @@ export default function LeadershipCoaching() {
               { key: "consent", label: "동의/HR", color: "slate" },
             ].map((tab) => {
               const colorMap: Record<string, string> = {
-                teal: "bg-teal-500/20 text-teal-600",
+                teal: "bg-teal-500/20 text-[#006341]",
                 orange: "bg-orange-500/20 text-orange-600",
                 purple: "bg-purple-500/20 text-purple-600",
                 blue: "bg-blue-500/20 text-blue-600",
@@ -964,8 +964,8 @@ export default function LeadershipCoaching() {
         <div className="bg-white border border-slate-200/30 rounded-xl p-4 mt-2">
           <div className="grid grid-cols-5 gap-2 text-center">
             {[
-              { range: "8-9", label: "탁월", color: "text-teal-600", bg: "bg-teal-50" },
-              { range: "7", label: "우수", color: "text-teal-600/70", bg: "bg-teal-500/5" },
+              { range: "8-9", label: "탁월", color: "text-[#006341]", bg: "bg-teal-50" },
+              { range: "7", label: "우수", color: "text-[#006341]/70", bg: "bg-teal-500/5" },
               { range: "5-6", label: "보통", color: "text-amber-600", bg: "bg-amber-500/10" },
               { range: "3-4", label: "미흡", color: "text-red-600/70", bg: "bg-red-500/5" },
               { range: "1-2", label: "부족", color: "text-red-600", bg: "bg-red-500/10" },

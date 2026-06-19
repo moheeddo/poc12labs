@@ -1235,9 +1235,37 @@ ${inner}
                       ))}
                     </div>
                     <p className="text-[11px] text-slate-500">{agg.consistency.label}</p>
-                    {agg.consistency.requiresReview && (
-                      <p className="text-[11px] text-red-600 font-medium mt-1">→ 변동이 커 전문가(코치) 검토가 필요합니다 (HITL).</p>
-                    )}
+                    {/* 적응형 권고 (신뢰구간 게이트 + 등급경계 HITL) — 단일 출처 = agg.recommendation */}
+                    {(() => {
+                      const rec = agg.recommendation;
+                      if (rec.status === "sufficient") {
+                        return <p className="text-[11px] text-teal-700 font-medium mt-1">✓ {rec.message}</p>;
+                      }
+                      if (rec.status === "more_runs") {
+                        const canMore = rec.suggestedTotalRuns > agg.runCount && !coachConfirmed && !mmReanalyzing;
+                        return (
+                          <div className="mt-1.5 flex items-center gap-2 flex-wrap">
+                            <p className="text-[11px] text-amber-600 font-medium">{rec.message}</p>
+                            {canMore && (
+                              <button
+                                type="button"
+                                onClick={() => { setConsistencyRuns(rec.suggestedTotalRuns); handleConsistencyRun(); }}
+                                className="text-[10px] font-semibold px-2.5 py-0.5 rounded-full bg-teal-600 text-white hover:bg-teal-700 transition-colors"
+                              >
+                                {rec.suggestedTotalRuns}회까지 추가 진단
+                              </button>
+                            )}
+                          </div>
+                        );
+                      }
+                      // hitl_required — 등급경계 straddle 또는 상한 초과 변동
+                      return (
+                        <p className="text-[11px] text-red-600 font-semibold mt-1">
+                          → {rec.message}
+                          {rec.straddlesBand && <span className="ml-1 font-mono font-normal">(등급경계 사례)</span>}
+                        </p>
+                      );
+                    })()}
                   </div>
                 )}
 

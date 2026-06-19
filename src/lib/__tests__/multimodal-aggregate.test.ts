@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { aggregateRuns } from "../multimodal-aggregate";
+import { aggregateRuns, RECOMMENDED_RUNS } from "../multimodal-aggregate";
 import type { MultimodalScoreResult, ItemScore } from "../multimodal-scoring";
 
 // 최소 MultimodalScoreResult 스텁 (aggregate가 읽는 필드만)
@@ -84,6 +84,15 @@ describe("적응형 반복진단 권고 (신뢰구간 게이트 + 경계 HITL)",
     const agg = aggregateRuns([run(8, { m1: 8 }), run(6, { m1: 6 }), run(4, { m1: 4 })]);
     expect(["more_runs", "hitl_required"]).toContain(agg.recommendation.status);
     expect(agg.recommendation.ciHalfWidth).toBeGreaterThan(0.5);
+  });
+  it("단일/부족 회차(n<3): 퇴화 CI가 'sufficient'로 새지 않고 more_runs로 보류 (fail-open 방지)", () => {
+    for (const v of [7.0, 6.0, 8.5, 7.5, 3.0]) {
+      const a1 = aggregateRuns([run(v, { m1: v })]); // n=1
+      expect(a1.recommendation.status).toBe("more_runs");
+      expect(a1.recommendation.suggestedTotalRuns).toBe(RECOMMENDED_RUNS);
+      const a2 = aggregateRuns([run(v, { m1: v }), run(v, { m1: v })]); // n=2 분산0
+      expect(a2.recommendation.status).toBe("more_runs");
+    }
   });
   it("CI가 등급 경계(5.5) 가로지르면 HITL 강제", () => {
     // 5.3/5.7/5.5 → 평균 5.5 근처, CI가 5.5 경계 straddle
