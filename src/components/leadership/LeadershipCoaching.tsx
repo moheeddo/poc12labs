@@ -568,7 +568,7 @@ export default function LeadershipCoaching() {
           {speakers.length > 0 && (
             <button
               onClick={() => setView({ type: "history" })}
-              className="flex items-center gap-1.5 text-sm text-slate-500 hover:text-[#006341] transition-colors px-3 py-1.5 rounded-lg border border-slate-200/40 hover:border-teal-500/30 whitespace-nowrap"
+              className="flex items-center gap-1.5 text-sm text-slate-500 hover:text-[#006341] transition-colors px-3 py-1.5 rounded-lg border border-slate-200/40 hover:border-emerald-500/30 whitespace-nowrap"
             >
               <TrendingUp className="w-3.5 h-3.5" />
               이력
@@ -579,7 +579,7 @@ export default function LeadershipCoaching() {
 
       {/* ── 진행 중인 조 세션 목록 ── */}
       {groupSessions.length > 0 && (
-        <div className="bg-gradient-to-br from-teal-50/60 to-emerald-50/30 border border-teal-200/30 rounded-xl p-4">
+        <div className="bg-gradient-to-br from-emerald-50/60 to-emerald-50/30 border border-emerald-200/30 rounded-xl p-4">
           <div className="flex items-center justify-between mb-3">
             <p className="text-xs uppercase tracking-wider text-[#006341] font-medium">진행 중인 조</p>
             <button
@@ -600,7 +600,7 @@ export default function LeadershipCoaching() {
               return (
                 <div
                   key={gs.id}
-                  className="relative group/card text-left p-4 rounded-xl bg-white border border-teal-200/30 hover:border-teal-300 hover:shadow-md transition-all cursor-pointer"
+                  className="relative group/card text-left p-4 rounded-xl bg-white border border-emerald-200/30 hover:border-emerald-300 hover:shadow-md transition-all cursor-pointer"
                   onClick={() => setView({ type: "group-manage", sessionId: gs.id })}
                   role="button"
                   tabIndex={0}
@@ -616,8 +616,8 @@ export default function LeadershipCoaching() {
                     {gs.members.length}명 · {gs.members.map((m) => m.name).join(", ")}
                   </p>
                   <div className="flex items-center gap-2">
-                    <div className="flex-1 h-1.5 bg-teal-100 rounded-full overflow-hidden">
-                      <div className="h-full bg-teal-500 rounded-full transition-all duration-500" style={{ width: `${pct}%` }} />
+                    <div className="flex-1 h-1.5 bg-emerald-100 rounded-full overflow-hidden">
+                      <div className="h-full bg-emerald-500 rounded-full transition-all duration-500" style={{ width: `${pct}%` }} />
                     </div>
                     <span className="text-[10px] font-mono text-[#006341] w-10 text-right">
                       {totalAnalyzed > 0 ? `${totalAnalyzed}건` : "대기"}
@@ -670,7 +670,7 @@ export default function LeadershipCoaching() {
               accentColor="teal"
             />
           ) : (
-            <div className="bg-white border border-teal-500/20 rounded-xl p-5 space-y-3">
+            <div className="bg-white border border-emerald-500/20 rounded-xl p-5 space-y-3">
               {/* 업로드된 영상 미리보기 */}
               {uploadedBlobUrl && (
                 <div className="rounded-xl overflow-hidden border border-slate-200/40 bg-black">
@@ -812,7 +812,7 @@ export default function LeadershipCoaching() {
       {/* ── 분석 시작 영역 ── */}
       <div className={`rounded-2xl p-6 text-center transition-all duration-300 ${
         canStartAnalysis
-          ? "bg-gradient-to-r from-teal-50 to-emerald-50 border border-teal-200/50"
+          ? "bg-gradient-to-r from-emerald-50 to-emerald-50 border border-emerald-200/50"
           : "bg-slate-50/50 border border-dashed border-slate-200/60"
       }`}>
         {!canStartAnalysis && (
@@ -875,7 +875,7 @@ export default function LeadershipCoaching() {
               { key: "consent", label: "동의/HR", color: "slate" },
             ].map((tab) => {
               const colorMap: Record<string, string> = {
-                teal: "bg-teal-500/20 text-[#006341]",
+                teal: "bg-emerald-500/20 text-[#006341]",
                 orange: "bg-orange-500/20 text-orange-600",
                 purple: "bg-purple-500/20 text-purple-600",
                 blue: "bg-blue-500/20 text-blue-600",
@@ -964,8 +964,8 @@ export default function LeadershipCoaching() {
         <div className="bg-white border border-slate-200/30 rounded-xl p-4 mt-2">
           <div className="grid grid-cols-5 gap-2 text-center">
             {[
-              { range: "8-9", label: "탁월", color: "text-[#006341]", bg: "bg-teal-50" },
-              { range: "7", label: "우수", color: "text-[#006341]/70", bg: "bg-teal-500/5" },
+              { range: "8-9", label: "탁월", color: "text-[#006341]", bg: "bg-emerald-50" },
+              { range: "7", label: "우수", color: "text-[#006341]/70", bg: "bg-emerald-500/5" },
               { range: "5-6", label: "보통", color: "text-amber-600", bg: "bg-amber-500/10" },
               { range: "3-4", label: "미흡", color: "text-red-600/70", bg: "bg-red-500/5" },
               { range: "1-2", label: "부족", color: "text-red-600", bg: "bg-red-500/10" },
