@@ -94,16 +94,20 @@ describe("적응형 반복진단 권고 (신뢰구간 게이트 + 경계 HITL)",
       expect(a2.recommendation.status).toBe("more_runs");
     }
   });
-  it("불변식: 표시 ci95가 등급경계를 포함하면 반드시 straddle=true·non-sufficient (iter8 재현케이스)", () => {
-    for (const runs of [[2.4, 2.6, 2.7], [4.9, 5.1, 5.2]]) {
+  it("fail-open 차단: 평균 신뢰구간이 경계를 넘는 치우친 경계사례는 HITL (중앙값 구간만 보면 놓침)", () => {
+    // [5,5,5.3]: median 5.0(보통미만) 구간은 5.5 미달이나 mean 5.1±0.43=[4.67,5.53]은 5.5 통과
+    // [2.5,2.5,2.8]: mean 2.6±0.43=[2.17,3.03]이 3.0 경계 통과
+    for (const runs of [[5, 5, 5.3], [2.5, 2.5, 2.8]]) {
       const agg = aggregateRuns(runs.map((v) => run(v, { m1: v })));
-      const tot = agg.total!;
-      const touchesCut = [3.0, 5.5, 7.5].some((c) => tot.ci95[0] <= c && tot.ci95[1] >= c);
-      expect(touchesCut).toBe(true); // 이 케이스들은 표시 CI가 경계에 닿음
       expect(agg.recommendation.straddlesBand).toBe(true);
-      expect(agg.recommendation.status).not.toBe("sufficient");
       expect(agg.recommendation.status).toBe("hitl_required");
     }
+  });
+  it("경계 미달(평균·중앙값 raw 모두 cut 미통과)은 sufficient — 반올림 아티팩트로 과진단하지 않음", () => {
+    // [2.4,2.6,2.7]: mean 2.6±0.38=[2.22,2.98], cut 3.0 미달 → 충분
+    const agg = aggregateRuns([2.4, 2.6, 2.7].map((v) => run(v, { m1: v })));
+    expect(agg.recommendation.straddlesBand).toBe(false);
+    expect(agg.recommendation.status).toBe("sufficient");
   });
   it("분산 0 + 경계 정좌(3,3,3)는 안정적이므로 straddle 제외·sufficient", () => {
     const agg = aggregateRuns([run(3, { m1: 3 }), run(3, { m1: 3 }), run(3, { m1: 3 })]);

@@ -622,11 +622,13 @@ export default function LeadershipCoaching() {
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
             {groupSessions.map((gs) => {
+              // 멤버(m.id) 키만 집계 — hybrid '경청'의 memberScores['shared'] 같은 비-멤버 키가
+              // 진행률을 100% 초과로 부풀리는 오염 방지. 분모와 동일 정의로 일치 + 클램프.
               const totalAnalyzed = gs.competencies.reduce(
-                (sum, c) => sum + Object.values(c.memberScores).filter((s) => s?.analyzed).length, 0
+                (sum, c) => sum + gs.members.filter((m) => c.memberScores[m.id]?.analyzed).length, 0
               );
               const totalExpected = gs.members.length * Math.max(gs.competencies.length, 1);
-              const pct = totalExpected > 0 ? Math.round((totalAnalyzed / totalExpected) * 100) : 0;
+              const pct = totalExpected > 0 ? Math.min(100, Math.round((totalAnalyzed / totalExpected) * 100)) : 0;
 
               return (
                 <div

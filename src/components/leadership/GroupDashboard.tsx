@@ -327,7 +327,8 @@ export default function GroupDashboard({ session, onBack, onViewMember }: GroupD
 
       session.members.forEach((m) => {
         const score = compState?.memberScores[m.id];
-        row[m.name] = score?.overallScore || 0;
+        // 고유 id로 키잉 — 동명이인이 있어도 시리즈가 충돌·손실되지 않음(라벨만 이름)
+        row[m.id] = score?.overallScore || 0;
       });
 
       return row;
@@ -808,7 +809,7 @@ export default function GroupDashboard({ session, onBack, onViewMember }: GroupD
                 <Radar
                   key={m.id}
                   name={m.name}
-                  dataKey={m.name}
+                  dataKey={m.id}
                   stroke={MEMBER_COLORS[m.order - 1] || "#94a3b8"}
                   fill={MEMBER_COLORS[m.order - 1] || "#94a3b8"}
                   fillOpacity={0.08}
