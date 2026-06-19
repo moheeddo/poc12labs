@@ -1837,7 +1837,7 @@ ${inner}
                               <button
                                 type="button"
                                 onClick={(e) => { e.stopPropagation(); applyAIScore(ev.id); }}
-                                className="mt-2 flex items-center gap-1.5 text-sm text-emerald-600 hover:text-emerald-300 transition-colors"
+                                className="mt-2 flex items-center gap-1.5 text-sm text-emerald-600 hover:text-emerald-700 hover:underline transition-colors"
                               >
                                 <Wand2 className="w-3 h-3" />
                                 AI 추천 점수 적용
@@ -1871,7 +1871,7 @@ ${inner}
                                   e.stopPropagation();
                                   updateFeedback(ev.id, ev.autoFeedback);
                                 }}
-                                className="text-sm text-emerald-600 hover:text-emerald-300 flex items-center gap-1 transition-colors"
+                                className="text-sm text-emerald-600 hover:text-emerald-700 hover:underline flex items-center gap-1 transition-colors"
                               >
                                 <Wand2 className="w-3 h-3" />
                                 AI 피드백 채우기

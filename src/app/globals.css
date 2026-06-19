@@ -17,14 +17,20 @@
   --color-khnp-emerald-dark: #004a31;
   --color-khnp-navy: #002855;
 
-  /* Tailwind emerald 중간~다크 셰이드만 KHNP 브랜드로 오버라이드 —
-     emerald-600 === #006341(브랜드 primary)로 bg-[#006341]·khnp-emerald와 단일화.
-     라이트 셰이드(50~400)는 Tailwind 기본(밝은 민트) 유지 — 다크 패널(ValidationConsole 등)에서
-     밝은 accent로 쓰이므로 어둡게 바꾸면 대비가 붕괴됨(라이트 표면 chrome만 브랜드 통일 대상). */
-  --color-emerald-500: #00955f;  /* 데이터 바/게이지(라이트 위) 브랜드 mid */
+  /* Tailwind emerald 전 스케일을 KHNP 브랜드 그린 램프로 오버라이드 —
+     앱은 라이트 테마(warm paper)이므로 emerald-*는 라이트 표면 위에서 brand green이어야 함.
+     emerald-600 === #006341(브랜드 primary). 민트(#10b981/#34d399) 완전 제거. */
+  --color-emerald-50: #e9f4ef;
+  --color-emerald-100: #c6e4d6;
+  --color-emerald-200: #95c9b0;
+  --color-emerald-300: #5faa88;
+  --color-emerald-400: #2d8a64;
+  --color-emerald-500: #00955f;
   --color-emerald-600: #006341;  /* = 브랜드 primary (solid chrome) */
   --color-emerald-700: #00543a;
   --color-emerald-800: #004a31;  /* = khnp-emerald-dark */
+  --color-emerald-900: #00382a;
+  --color-emerald-950: #002a20;
 
   /* 서비스별 컬러 코딩 — 정제된 팔레트 */
   --color-coral-50: #fff5f2;

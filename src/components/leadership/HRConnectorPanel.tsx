@@ -84,11 +84,11 @@ export default function HRConnectorPanel({ onImport }: HRConnectorPanelProps) {
   const hasSuccess = result && result.imported > 0;
 
   return (
-    <div className="rounded-lg border border-white/10 bg-white/[0.02] p-6 space-y-5">
+    <div className="rounded-lg border border-slate-200/60 bg-white p-6 space-y-5 shadow-sm">
       {/* 헤더 */}
       <div>
-        <h3 className="text-base font-semibold text-white">인사 DB 연동</h3>
-        <p className="mt-1 text-xs text-white/50">
+        <h3 className="text-base font-semibold text-slate-900">인사 DB 연동</h3>
+        <p className="mt-1 text-xs text-slate-500">
           CSV 파일로 참가자 명단을 불러옵니다. 필수 컬럼: 사원번호, 성명, 부서, 직급
         </p>
       </div>
@@ -101,21 +101,21 @@ export default function HRConnectorPanel({ onImport }: HRConnectorPanelProps) {
         onClick={() => fileInputRef.current?.click()}
         className={`flex cursor-pointer flex-col items-center justify-center gap-3 rounded-lg border-2 border-dashed px-6 py-10 transition-colors ${
           isDragging
-            ? "border-emerald-500 bg-emerald-500/10"
-            : "border-white/15 bg-white/[0.02] hover:border-white/30 hover:bg-white/[0.04]"
+            ? "border-emerald-600 bg-emerald-50"
+            : "border-slate-300 bg-slate-50 hover:border-slate-400 hover:bg-slate-100"
         }`}
       >
         <Upload
           className={`h-8 w-8 transition-colors ${
-            isDragging ? "text-emerald-400" : "text-white/30"
+            isDragging ? "text-emerald-700" : "text-slate-400"
           }`}
         />
         <div className="text-center">
-          <p className="text-sm font-medium text-white/70">
+          <p className="text-sm font-medium text-slate-700">
             CSV 파일을 드래그하거나{" "}
-            <span className="text-emerald-400 underline underline-offset-2">클릭하여 선택</span>
+            <span className="text-emerald-700 underline underline-offset-2">클릭하여 선택</span>
           </p>
-          <p className="mt-1 text-xs text-white/35">UTF-8 인코딩 CSV만 지원</p>
+          <p className="mt-1 text-xs text-slate-500">UTF-8 인코딩 CSV만 지원</p>
         </div>
         <input
           ref={fileInputRef}
@@ -128,9 +128,9 @@ export default function HRConnectorPanel({ onImport }: HRConnectorPanelProps) {
 
       {/* 파싱 오류 메시지 */}
       {parseError && (
-        <div className="flex items-center gap-2 rounded-md border border-red-500/30 bg-red-500/10 px-3 py-2">
-          <AlertCircle className="h-4 w-4 shrink-0 text-red-400" />
-          <p className="text-xs text-red-300">{parseError}</p>
+        <div className="flex items-center gap-2 rounded-md border border-red-300 bg-red-50 px-3 py-2">
+          <AlertCircle className="h-4 w-4 shrink-0 text-red-600" />
+          <p className="text-xs text-red-700">{parseError}</p>
         </div>
       )}
 
@@ -140,13 +140,13 @@ export default function HRConnectorPanel({ onImport }: HRConnectorPanelProps) {
           {/* 성공/오류 요약 배지 */}
           <div className="flex items-center gap-3 flex-wrap">
             {hasSuccess && (
-              <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-500/15 border border-emerald-500/30 px-3 py-1 text-xs font-medium text-emerald-300">
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 border border-emerald-300 px-3 py-1 text-xs font-medium text-emerald-700">
                 <CheckCircle className="h-3.5 w-3.5" />
                 {result.imported}명 불러오기 완료
               </span>
             )}
             {hasErrors && (
-              <span className="inline-flex items-center gap-1.5 rounded-full bg-amber-500/15 border border-amber-500/30 px-3 py-1 text-xs font-medium text-amber-300">
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-amber-50 border border-amber-300 px-3 py-1 text-xs font-medium text-amber-700">
                 <AlertCircle className="h-3.5 w-3.5" />
                 {result.errors.length}건 오류
               </span>
@@ -155,14 +155,14 @@ export default function HRConnectorPanel({ onImport }: HRConnectorPanelProps) {
 
           {/* 오류 목록 */}
           {hasErrors && (
-            <ul className="rounded-md border border-amber-500/20 bg-amber-500/5 px-3 py-2 space-y-1">
+            <ul className="rounded-md border border-amber-200 bg-amber-50 px-3 py-2 space-y-1">
               {result.errors.slice(0, 5).map((err, i) => (
-                <li key={i} className="text-xs text-amber-300/80">
+                <li key={i} className="text-xs text-amber-700">
                   • {err}
                 </li>
               ))}
               {result.errors.length > 5 && (
-                <li className="text-xs text-amber-300/50">
+                <li className="text-xs text-amber-600">
                   ... 외 {result.errors.length - 5}건
                 </li>
               )}
@@ -171,34 +171,34 @@ export default function HRConnectorPanel({ onImport }: HRConnectorPanelProps) {
 
           {/* 직원 미리보기 테이블 */}
           {hasSuccess && (
-            <div className="overflow-hidden rounded-md border border-white/[0.07]">
-              <div className="flex items-center gap-2 border-b border-white/[0.07] bg-white/[0.03] px-3 py-2">
-                <Users className="h-3.5 w-3.5 text-emerald-400" />
-                <span className="text-xs font-medium text-white/70">
+            <div className="overflow-hidden rounded-md border border-slate-200/60">
+              <div className="flex items-center gap-2 border-b border-slate-200 bg-slate-50 px-3 py-2">
+                <Users className="h-3.5 w-3.5 text-emerald-700" />
+                <span className="text-xs font-medium text-slate-700">
                   참가자 미리보기 (최대 5명)
                 </span>
               </div>
               <table className="w-full text-xs">
                 <thead>
-                  <tr className="border-b border-white/[0.07] bg-white/[0.02]">
-                    <th className="px-3 py-2 text-left font-medium text-white/40">이름</th>
-                    <th className="px-3 py-2 text-left font-medium text-white/40">부서</th>
-                    <th className="px-3 py-2 text-left font-medium text-white/40">직급</th>
-                    <th className="px-3 py-2 text-left font-medium text-white/40">근속</th>
+                  <tr className="border-b border-slate-200 bg-slate-100">
+                    <th className="px-3 py-2 text-left font-medium text-slate-500">이름</th>
+                    <th className="px-3 py-2 text-left font-medium text-slate-500">부서</th>
+                    <th className="px-3 py-2 text-left font-medium text-slate-500">직급</th>
+                    <th className="px-3 py-2 text-left font-medium text-slate-500">근속</th>
                   </tr>
                 </thead>
                 <tbody>
                   {result.employees.slice(0, 5).map((emp) => (
                     <tr
                       key={emp.employeeId}
-                      className="border-b border-white/[0.04] last:border-0 hover:bg-white/[0.03] transition-colors"
+                      className="border-b border-slate-200 last:border-0 hover:bg-slate-50 transition-colors"
                     >
-                      <td className="px-3 py-2 font-mono text-white/70">
+                      <td className="px-3 py-2 font-mono text-slate-700">
                         {maskName(emp.name)}
                       </td>
-                      <td className="px-3 py-2 text-white/60">{emp.department}</td>
-                      <td className="px-3 py-2 text-white/60">{emp.jobLevel}직급</td>
-                      <td className="px-3 py-2 text-white/50">
+                      <td className="px-3 py-2 text-slate-600">{emp.department}</td>
+                      <td className="px-3 py-2 text-slate-600">{emp.jobLevel}직급</td>
+                      <td className="px-3 py-2 text-slate-500">
                         {emp.tenureYears != null ? `${emp.tenureYears}년` : "—"}
                       </td>
                     </tr>
@@ -206,7 +206,7 @@ export default function HRConnectorPanel({ onImport }: HRConnectorPanelProps) {
                 </tbody>
               </table>
               {result.employees.length > 5 && (
-                <p className="border-t border-white/[0.07] px-3 py-2 text-center text-xs text-white/30">
+                <p className="border-t border-slate-200 px-3 py-2 text-center text-xs text-slate-500">
                   외 {result.employees.length - 5}명
                 </p>
               )}

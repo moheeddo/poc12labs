@@ -21,17 +21,17 @@ function FourFifthsGauge({
   const pct = Math.min(100, (ratio / maxRatio) * 100);
   const thresholdPct = (0.8 / maxRatio) * 100; // 66.67%
 
-  const barColor = impacted ? "bg-red-500" : ratio >= 0.9 ? "bg-emerald-600" : "bg-amber-500";
+  const barColor = impacted ? "bg-red-600" : ratio >= 0.9 ? "bg-emerald-600" : "bg-amber-500";
 
   return (
     <div className="space-y-1.5">
-      <div className="flex justify-between text-xs text-white/50">
+      <div className="flex justify-between text-xs text-slate-500">
         <span>4/5 비율 (Adverse Impact)</span>
-        <span className={impacted ? "text-red-400 font-semibold" : "text-emerald-400 font-semibold"}>
+        <span className={impacted ? "text-red-700 font-semibold" : "text-emerald-700 font-semibold"}>
           {ratio.toFixed(2)}
         </span>
       </div>
-      <div className="relative h-3 w-full overflow-hidden rounded-full bg-white/10">
+      <div className="relative h-3 w-full overflow-hidden rounded-full bg-slate-200">
         {/* 진행 막대 */}
         <div
           className={`h-full rounded-full transition-all duration-500 ${barColor}`}
@@ -39,12 +39,12 @@ function FourFifthsGauge({
         />
         {/* 0.8 임계선 */}
         <div
-          className="absolute top-0 bottom-0 w-px bg-white/60"
+          className="absolute top-0 bottom-0 w-px bg-slate-500"
           style={{ left: `${thresholdPct}%` }}
         />
       </div>
       <div
-        className="text-[10px] text-white/30"
+        className="text-[10px] text-slate-500"
         style={{ marginLeft: `${thresholdPct}%`, transform: "translateX(-50%)" }}
       >
         ▲ 0.80 기준선
@@ -60,16 +60,16 @@ function EffectSizeIndicator({ d }: { d: number }) {
   let className: string;
   if (abs < 0.2) {
     label = "무시가능";
-    className = "bg-white/10 text-white/40";
+    className = "bg-slate-100 text-slate-600";
   } else if (abs < 0.5) {
     label = "소 (Small)";
-    className = "bg-blue-500/15 text-blue-400";
+    className = "bg-blue-50 text-blue-700";
   } else if (abs < 0.8) {
     label = "중 (Medium)";
-    className = "bg-amber-500/15 text-amber-400";
+    className = "bg-amber-50 text-amber-700";
   } else {
     label = "대 (Large)";
-    className = "bg-red-500/15 text-red-400";
+    className = "bg-red-50 text-red-700";
   }
   return (
     <span className={`inline-flex items-center rounded px-2 py-0.5 text-xs font-semibold ${className}`}>
@@ -93,17 +93,17 @@ function VariableCard({ dist }: { dist: GroupDistribution }) {
   const displayName = variableLabels[variable] ?? variable;
 
   return (
-    <div className="rounded-xl border border-white/10 bg-white/[0.02] p-5 space-y-4">
+    <div className="rounded-xl border border-slate-200/60 bg-white p-5 space-y-4 shadow-sm">
       {/* 카드 헤더 */}
       <div className="flex items-center justify-between">
-        <h5 className="text-sm font-semibold text-white/80">{displayName}</h5>
+        <h5 className="text-sm font-semibold text-slate-900">{displayName}</h5>
         {adverseImpact.impacted ? (
-          <span className="inline-flex items-center gap-1 rounded-full border border-red-500/30 bg-red-500/10 px-2.5 py-0.5 text-xs font-semibold text-red-400">
+          <span className="inline-flex items-center gap-1 rounded-full border border-red-200 bg-red-50 px-2.5 py-0.5 text-xs font-semibold text-red-700">
             <AlertTriangle className="h-3 w-3" />
             편향 감지
           </span>
         ) : (
-          <span className="inline-flex items-center gap-1 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2.5 py-0.5 text-xs font-semibold text-emerald-400">
+          <span className="inline-flex items-center gap-1 rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-0.5 text-xs font-semibold text-emerald-700">
             <CheckCircle className="h-3 w-3" />
             공정
           </span>
@@ -115,25 +115,25 @@ function VariableCard({ dist }: { dist: GroupDistribution }) {
 
       {/* 그룹별 평균 ± SD */}
       <div className="space-y-2">
-        <p className="text-xs text-white/40 uppercase tracking-widest">그룹별 점수 분포</p>
+        <p className="text-xs text-slate-500 uppercase tracking-widest">그룹별 점수 분포</p>
         {groups.map((g) => {
           const stats = scoreDistributions[g];
           if (!stats) return null;
           return (
             <div
               key={g}
-              className="flex items-center justify-between gap-4 rounded-lg border border-white/[0.07] bg-white/[0.03] px-3 py-2"
+              className="flex items-center justify-between gap-4 rounded-lg border border-slate-200/60 bg-slate-50 px-3 py-2"
             >
-              <span className="text-sm text-white/70 min-w-[80px]">{g}</span>
+              <span className="text-sm text-slate-700 min-w-[80px]">{g}</span>
               <div className="flex items-center gap-4 text-xs font-mono">
-                <span className="text-white/60">
-                  N = <span className="text-white/80">{stats.n}</span>
+                <span className="text-slate-500">
+                  N = <span className="text-slate-900">{stats.n}</span>
                 </span>
-                <span className="text-white/60">
-                  M = <span className="text-white/80">{stats.mean.toFixed(2)}</span>
+                <span className="text-slate-500">
+                  M = <span className="text-slate-900">{stats.mean.toFixed(2)}</span>
                 </span>
-                <span className="text-white/60">
-                  SD = <span className="text-white/80">{stats.sd.toFixed(2)}</span>
+                <span className="text-slate-500">
+                  SD = <span className="text-slate-900">{stats.sd.toFixed(2)}</span>
                 </span>
               </div>
               <EffectSizeIndicator d={stats.effectSize} />
@@ -150,9 +150,9 @@ export default function FairnessMonitor({ report, loading = false }: FairnessMon
   if (loading) {
     return (
       <div className="space-y-4 animate-pulse">
-        <div className="h-24 rounded-xl bg-white/10" />
-        <div className="h-40 rounded-xl bg-white/10" />
-        <div className="h-40 rounded-xl bg-white/10" />
+        <div className="h-24 rounded-xl bg-slate-200" />
+        <div className="h-40 rounded-xl bg-slate-200" />
+        <div className="h-40 rounded-xl bg-slate-200" />
       </div>
     );
   }
@@ -160,9 +160,9 @@ export default function FairnessMonitor({ report, loading = false }: FairnessMon
   // 데이터 없음
   if (!report) {
     return (
-      <div className="rounded-xl border border-white/10 bg-white/[0.02] p-10 flex flex-col items-center gap-3 text-center">
-        <Shield className="h-10 w-10 text-white/20" />
-        <p className="text-sm text-white/40">
+      <div className="rounded-xl border border-slate-200/60 bg-white p-10 flex flex-col items-center gap-3 text-center shadow-sm">
+        <Shield className="h-10 w-10 text-slate-400" />
+        <p className="text-sm text-slate-500">
           편향 분석을 위해 최소 10명 이상의 데이터가 필요합니다.
         </p>
       </div>
@@ -173,20 +173,20 @@ export default function FairnessMonitor({ report, loading = false }: FairnessMon
   const fairnessConfig = {
     pass: {
       label: "PASS — 편향 없음",
-      icon: <CheckCircle className="h-8 w-8 text-emerald-400" />,
-      className: "border-emerald-500/30 bg-emerald-500/10 text-emerald-400",
+      icon: <CheckCircle className="h-8 w-8 text-emerald-700" />,
+      className: "border-emerald-200 bg-emerald-50 text-emerald-700",
       textSize: "text-2xl",
     },
     warning: {
       label: "WARNING — 주의 필요",
-      icon: <AlertTriangle className="h-8 w-8 text-amber-400" />,
-      className: "border-amber-500/30 bg-amber-500/10 text-amber-400",
+      icon: <AlertTriangle className="h-8 w-8 text-amber-700" />,
+      className: "border-amber-200 bg-amber-50 text-amber-700",
       textSize: "text-2xl",
     },
     fail: {
       label: "FAIL — 편향 감지",
-      icon: <AlertTriangle className="h-8 w-8 text-red-400" />,
-      className: "border-red-500/30 bg-red-500/10 text-red-400",
+      icon: <AlertTriangle className="h-8 w-8 text-red-700" />,
+      className: "border-red-200 bg-red-50 text-red-700",
       textSize: "text-2xl",
     },
   };
@@ -197,8 +197,8 @@ export default function FairnessMonitor({ report, loading = false }: FairnessMon
     <div className="space-y-6">
       {/* 헤더 */}
       <div className="flex items-center gap-2">
-        <Shield className="h-5 w-5 text-emerald-400" />
-        <h3 className="text-base font-semibold text-white">공정성 모니터</h3>
+        <Shield className="h-5 w-5 text-emerald-700" />
+        <h3 className="text-base font-semibold text-slate-900">공정성 모니터</h3>
       </div>
 
       {/* ① 전체 공정성 배지 — 크고 중앙 정렬 */}
@@ -214,17 +214,17 @@ export default function FairnessMonitor({ report, loading = false }: FairnessMon
 
       {/* ② 경고 알림 패널 */}
       {report.alerts.length > 0 && (
-        <div className="rounded-xl border border-amber-500/20 bg-amber-500/5 p-4 space-y-2">
+        <div className="rounded-xl border border-amber-200 bg-amber-50 p-4 space-y-2 shadow-sm">
           <div className="flex items-center gap-2 mb-1">
-            <AlertTriangle className="h-4 w-4 text-amber-400" />
-            <h4 className="text-xs font-semibold uppercase tracking-widest text-amber-400/70">
+            <AlertTriangle className="h-4 w-4 text-amber-700" />
+            <h4 className="text-xs font-semibold uppercase tracking-widest text-amber-700">
               경고 목록
             </h4>
           </div>
           <ul className="space-y-1.5">
             {report.alerts.map((alert, i) => (
-              <li key={i} className="flex items-start gap-2 text-sm text-amber-300/80">
-                <AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0 text-amber-400" />
+              <li key={i} className="flex items-start gap-2 text-sm text-amber-800">
+                <AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0 text-amber-700" />
                 {alert}
               </li>
             ))}
@@ -235,7 +235,7 @@ export default function FairnessMonitor({ report, loading = false }: FairnessMon
       {/* ③ 변수별 분석 카드 */}
       {report.analyzedGroups.length > 0 ? (
         <div className="space-y-4">
-          <h4 className="text-xs font-semibold uppercase tracking-widest text-white/40">
+          <h4 className="text-xs font-semibold uppercase tracking-widest text-slate-500">
             변수별 상세 분석
           </h4>
           {report.analyzedGroups.map((dist) => (
@@ -243,8 +243,8 @@ export default function FairnessMonitor({ report, loading = false }: FairnessMon
           ))}
         </div>
       ) : (
-        <div className="rounded-xl border border-white/10 bg-white/[0.02] p-6 text-center">
-          <p className="text-sm text-white/40">분석된 그룹 데이터가 없습니다.</p>
+        <div className="rounded-xl border border-slate-200/60 bg-white p-6 text-center shadow-sm">
+          <p className="text-sm text-slate-500">분석된 그룹 데이터가 없습니다.</p>
         </div>
       )}
     </div>
