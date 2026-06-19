@@ -10,11 +10,11 @@ interface ScoreCardProps {
   rank: number;
 }
 
-/** 9점 척도 점수 구간별 뱃지 색상 */
+/** 9점 척도 점수 구간별 뱃지 색상 — WCAG AA(흰/틴트 배경 ≥4.5:1) 충족 + 브랜드 emerald */
 const scoreBadgeMap: Record<string, { bg: string; text: string }> = {
-  high: { bg: "bg-teal-50", text: "text-teal-600" },
-  mid: { bg: "bg-amber-50", text: "text-amber-600" },
-  low: { bg: "bg-red-50", text: "text-red-400" },
+  high: { bg: "bg-emerald-50", text: "text-emerald-700" }, // emerald-700 ≈ AA, 브랜드 우수색
+  mid: { bg: "bg-amber-50", text: "text-amber-700" },      // amber-700 5.02:1 (amber-600 3.1:1 미달)
+  low: { bg: "bg-red-50", text: "text-red-700" },          // red-700 5.91:1 (red-400 2.5:1 미달)
 };
 
 function getScoreTier(score: number) {
@@ -25,7 +25,7 @@ function getScoreTier(score: number) {
 
 /** 역량 바 색상 (9점 척도 기준) */
 function getBarColor(score: number) {
-  if (score >= 7) return "bg-teal-500";
+  if (score >= 7) return "bg-emerald-500";
   if (score >= 5) return "bg-amber-500";
   return "bg-red-500";
 }
@@ -47,7 +47,7 @@ export default function ScoreCard({ speaker, rank }: ScoreCardProps) {
   const competencies = getCompetenciesForLevel(speaker.jobLevel);
 
   return (
-    <div className="bg-white border border-slate-200 rounded-xl p-5 border-l-[3px] border-l-transparent hover:border-l-teal-400 hover:bg-white hover:shadow-lg hover:shadow-slate-200/60 transition-all duration-200">
+    <div className="bg-white border border-slate-200 rounded-xl p-5 border-l-[3px] border-l-transparent hover:border-l-emerald-500 hover:bg-white hover:shadow-lg hover:shadow-slate-200/60 transition-all duration-200">
       <div className="flex items-center gap-3 mb-4">
         {/* 순위 배지 */}
         <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${rankBgColors[rank - 1] || "bg-slate-100"}`}>
@@ -75,7 +75,7 @@ export default function ScoreCard({ speaker, rank }: ScoreCardProps) {
             <div key={comp.key} className="group" aria-label={`${comp.label} ${score}점`}>
               <div className="flex items-center justify-between mb-1">
                 <span className="text-sm text-slate-500 group-hover:text-slate-700 transition-colors">{comp.label}</span>
-                <span className={`text-sm font-mono tabular-nums ${score >= 7 ? "text-teal-600" : score >= 5 ? "text-slate-400" : "text-amber-600"}`}>{score}/9</span>
+                <span className={`text-sm font-mono tabular-nums ${score >= 7 ? "text-emerald-700" : score >= 5 ? "text-amber-700" : "text-red-700"}`}>{score}/9</span>
               </div>
               <div className="h-1.5 bg-slate-100 rounded-full overflow-hidden">
                 <div
@@ -91,7 +91,7 @@ export default function ScoreCard({ speaker, rank }: ScoreCardProps) {
       {/* 하위요소 확장 토글 */}
       <button
         onClick={() => setExpanded(!expanded)}
-        className="mt-4 flex items-center gap-1.5 text-xs text-slate-400 hover:text-teal-600 transition-colors duration-200 w-full pt-3 border-t border-slate-200"
+        className="mt-4 flex items-center gap-1.5 text-xs text-slate-500 hover:text-emerald-700 transition-colors duration-200 w-full pt-3 border-t border-slate-200"
       >
         {expanded ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
         {expanded ? "접기" : "하위요소 · 행동지표 보기"}
@@ -145,10 +145,10 @@ export default function ScoreCard({ speaker, rank }: ScoreCardProps) {
       {(speaker.strengths || speaker.improvements) && (
         <div className="mt-3 border-t border-slate-200 pt-3 space-y-2">
           {speaker.strengths && speaker.strengths.length > 0 && (
-            <div className="flex items-start gap-2 group/feedback rounded-lg hover:bg-teal-50 transition-colors duration-200 p-1 -m-1">
-              <TrendingUp className="w-3.5 h-3.5 text-teal-500 shrink-0 mt-0.5" />
+            <div className="flex items-start gap-2 group/feedback rounded-lg hover:bg-emerald-50 transition-colors duration-200 p-1 -m-1">
+              <TrendingUp className="w-3.5 h-3.5 text-emerald-500 shrink-0 mt-0.5" />
               <div>
-                <p className="text-sm text-teal-600 font-medium mb-0.5">강점</p>
+                <p className="text-sm text-emerald-700 font-medium mb-0.5">강점</p>
                 {speaker.strengths.map((s, i) => (
                   <p key={i} className="text-sm text-slate-500 leading-relaxed">· {s}</p>
                 ))}
@@ -159,7 +159,7 @@ export default function ScoreCard({ speaker, rank }: ScoreCardProps) {
             <div className="flex items-start gap-2 group/feedback rounded-lg hover:bg-amber-50 transition-colors duration-200 p-1 -m-1">
               <Target className="w-3.5 h-3.5 text-amber-500 shrink-0 mt-0.5" />
               <div>
-                <p className="text-sm text-amber-600 font-medium mb-0.5">개선점</p>
+                <p className="text-sm text-amber-700 font-medium mb-0.5">개선점</p>
                 {speaker.improvements.map((s, i) => (
                   <p key={i} className="text-sm text-slate-500 leading-relaxed">· {s}</p>
                 ))}
@@ -171,8 +171,8 @@ export default function ScoreCard({ speaker, rank }: ScoreCardProps) {
 
       {/* 기존 피드백 (호환) */}
       {speaker.feedback && !speaker.strengths && (
-        <div className="mt-3 flex items-start gap-2 border-t border-slate-200 pt-3 group/feedback rounded-b-lg -mx-1 px-1 hover:bg-teal-50 transition-colors duration-200">
-          <Lightbulb className="w-3.5 h-3.5 text-teal-500 shrink-0 mt-0.5 group-hover/feedback:drop-shadow-[0_0_4px_rgba(20,184,166,0.5)] transition-all duration-300" />
+        <div className="mt-3 flex items-start gap-2 border-t border-slate-200 pt-3 group/feedback rounded-b-lg -mx-1 px-1 hover:bg-emerald-50 transition-colors duration-200">
+          <Lightbulb className="w-3.5 h-3.5 text-emerald-500 shrink-0 mt-0.5 group-hover/feedback:drop-shadow-[0_0_4px_rgba(16,185,129,0.5)] transition-all duration-300" />
           <p className="text-sm text-slate-500 leading-relaxed group-hover/feedback:text-slate-700 transition-colors duration-200">
             {speaker.feedback}
           </p>

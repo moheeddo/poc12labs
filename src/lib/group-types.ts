@@ -5,6 +5,7 @@
 // =============================================
 
 import type { LeadershipCompetencyKey } from "./types";
+import { LEADERSHIP_COMPETENCY_COLOR } from "./constants";
 
 // 참가자
 export interface GroupMember {
@@ -61,7 +62,7 @@ export const COMPETENCY_ORDER: {
     type: "individual",
     activityType: "발표",
     description: "6명 각자 개별 발표 영상 업로드",
-    color: "#14b8a6",
+    color: LEADERSHIP_COMPETENCY_COLOR.visionPresentation,
   },
   {
     key: "trustBuilding",
@@ -69,7 +70,7 @@ export const COMPETENCY_ORDER: {
     type: "hybrid",
     activityType: "집단 토론",
     description: "개별 클로즈업(발언 분석) + 전체 와이드샷(경청 태도)",
-    color: "#f59e0b",
+    color: LEADERSHIP_COMPETENCY_COLOR.trustBuilding,
   },
   {
     key: "memberDevelopment",
@@ -77,7 +78,7 @@ export const COMPETENCY_ORDER: {
     type: "individual",
     activityType: "역할 연기",
     description: "6명 각자 코칭 면담 영상 업로드",
-    color: "#ef4444",
+    color: LEADERSHIP_COMPETENCY_COLOR.memberDevelopment,
   },
 ];
 

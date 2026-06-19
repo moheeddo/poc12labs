@@ -248,6 +248,12 @@ const ACTIVE_COMPETENCY_KEYS = new Set<LeadershipCompetencyKey>([
   "selfDevelopment",
   "problemSolving",
 ]);
+// 역량 식별색 단일 출처 — 그룹/개별 플로우 어디서나 이 값을 참조(중복 하드코딩 금지·드리프트 방지)
+// emerald 계열(ΔE2000≥11·WCAG AA), 점수 시맨틱(red 미흡/amber 보통)과 분리
+export const LEADERSHIP_COMPETENCY_COLOR = Object.fromEntries(
+  LEADERSHIP_COMPETENCY_DEFS.map((d) => [d.key, d.color]),
+) as Record<LeadershipCompetencyKey, string>;
+
 export const LEADERSHIP_COMPETENCY_CONFIG: {
   key: LeadershipCompetencyKey;
   label: string;
