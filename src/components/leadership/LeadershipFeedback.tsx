@@ -203,12 +203,21 @@ export default function LeadershipFeedback({
   const [evidence, setEvidence] = useState<EvidenceItem[]>([]);
 
   // 멀티모달 파이프라인
-  const { progress: mmProgress, result: mmResult, error: mmError, runPipeline } = useMultimodalPipeline();
+  const { progress: mmProgress, result: mmResult, error: mmError, runPipeline, runConsistency } = useMultimodalPipeline();
   const [mmStarted, setMmStarted] = useState(false);
-  // 재분석(코치 보정) 중 여부 — 전체 로딩 화면 대신 인플레이스 로딩 유지
+  // 재분석(코치 보정/반복 진단) 중 여부 — 전체 로딩 화면 대신 인플레이스 로딩 유지
   const [mmReanalyzing, setMmReanalyzing] = useState(false);
   // 코치 보정 — 평가 대상자/화자 라벨 (피드백 ⑦)
   const [roleContext, setRoleContext] = useState<RoleContext>({});
+  // N차 반복 진단 회차 (객관성 확보 — 보고서 26.6.18)
+  const [consistencyRuns, setConsistencyRuns] = useState(3);
+  // HITL — 전문가(코치) 평가 확정 상태
+  const [coachConfirmed, setCoachConfirmed] = useState(false);
+  const [coachName, setCoachName] = useState("");
+  // 내용(content) 평가 — AI 초안 (행동 평가와 분리, fail-closed)
+  type ContentCriterion = { criteria: string; score: number | null; grade: string; evidence: string; rationale: string };
+  const [contentEval, setContentEval] = useState<{ criteria: ContentCriterion[]; overallNote: string; model: string } | null>(null);
+  const [contentEvalLoading, setContentEvalLoading] = useState(false);
 
   // 단계별 완료 시각 기록 (로딩 스켈레톤 UX)
   const [phaseTimestamps, setPhaseTimestamps] = useState<PhaseTimestamps>({});
@@ -226,6 +235,8 @@ export default function LeadershipFeedback({
   const savedTimerRef = useRef<ReturnType<typeof setTimeout>>(null);
   const autoSaveTimerRef = useRef<ReturnType<typeof setTimeout>>(null);
   const copyTimerRef = useRef<ReturnType<typeof setTimeout>>(null);
+  // 마지막으로 대시보드에 보고한 멀티모달 점수 (N차 집계 갱신 시 재보고용)
+  const lastMmReportedRef = useRef<number | null>(null);
 
   // 컴포넌트 언마운트 시 타이머 정리
   useEffect(() => {
@@ -430,8 +441,40 @@ export default function LeadershipFeedback({
   const handleRoleApply = useCallback((rc: RoleContext) => {
     setRoleContext(rc);
     setMmReanalyzing(true);
+    setCoachConfirmed(false);
     runPipeline(videoId, activeCompetency, scenarioText, rc);
   }, [videoId, activeCompetency, scenarioText, runPipeline]);
+
+  // ── N차 반복 진단 (객관성 확보 — 평균/중앙값/신뢰구간) ──
+  const handleConsistencyRun = useCallback(() => {
+    setMmReanalyzing(true);
+    setCoachConfirmed(false);
+    runConsistency(videoId, activeCompetency, consistencyRuns, scenarioText, roleContext);
+  }, [videoId, activeCompetency, consistencyRuns, scenarioText, roleContext, runConsistency]);
+
+  // ── 내용(content) 평가 — AI 초안 (행동 평가와 분리, fail-closed 인용 기반) ──
+  const handleContentEval = useCallback(async () => {
+    setContentEvalLoading(true);
+    try {
+      const transcript = transcriptSegments.map((s) => s.text || s.value || "").join(" ").trim();
+      const res = await fetch("/api/solar/content-eval", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ competencyKey: activeCompetency, transcript, scenarioText }),
+      });
+      if (res.ok) {
+        const d = await res.json();
+        setContentEval({ criteria: d.criteria || [], overallNote: d.overallNote || "", model: d.model || "" });
+      } else {
+        // fail-closed는 '왜 보류됐는지 알리는 것'까지 — 침묵 실패 방지
+        setContentEval({ criteria: [], overallNote: "내용 평가 보류 — 서버 오류 또는 루브릭 없음. 잠시 후 다시 시도하세요.", model: "error" });
+      }
+    } catch {
+      setContentEval({ criteria: [], overallNote: "내용 평가 보류 — 네트워크 오류. 다시 시도하세요.", model: "error" });
+    } finally {
+      setContentEvalLoading(false);
+    }
+  }, [transcriptSegments, activeCompetency, scenarioText]);
 
   // 재분석 완료/실패 시 플래그 해제
   useEffect(() => {
@@ -459,9 +502,13 @@ export default function LeadershipFeedback({
       if (autoSaveTimerRef.current) clearTimeout(autoSaveTimerRef.current);
       autoSaveTimerRef.current = setTimeout(() => setAutoSaveToast(false), 4000);
 
-      // 조 세션에 점수 자동 반영 (최초 1회만)
-      if (onAnalysisComplete && !analysisReported) {
+      // 조 세션에 점수 자동 반영 — N차 집계 대표값(중앙값) 우선, 집계 갱신 시 재보고
+      // 멀티모달 점수: 반복 진단 시 집계 중앙값(강건) → 단일 진단 totalScore 순
+      const multimodalScore = mmResult?.aggregate?.total?.median ?? mmResult?.scoring?.totalScore ?? undefined;
+      const shouldReport = onAnalysisComplete && (!analysisReported || lastMmReportedRef.current !== (multimodalScore ?? null));
+      if (shouldReport && onAnalysisComplete) {
         setAnalysisReported(true);
+        lastMmReportedRef.current = multimodalScore ?? null;
         // evidence에서 역량별 점수 집계
         const competencyScores: Record<string, number[]> = {};
         evidence.forEach((ev) => {
@@ -482,18 +529,11 @@ export default function LeadershipFeedback({
           totalCount++;
         });
         const overallScore = totalCount > 0 ? Math.round((totalSum / totalCount) * 10) / 10 : 0;
-        // 멀티모달 점수 (scoring.totalScore: 0~9 or null)
-        const multimodalScore = mmResult?.scoring?.totalScore ?? undefined;
-        onAnalysisComplete({
-          videoId,
-          overallScore,
-          bars,
-          multimodal: multimodalScore,
-        });
+        onAnalysisComplete({ videoId, overallScore, bars, multimodal: multimodalScore });
       }
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [analysisLoading, analysisPhase, mmProgress.phase, evidence.length]);
+  }, [analysisLoading, analysisPhase, mmProgress.phase, evidence.length, mmResult?.aggregate?.total?.median, mmResult?.scoring?.totalScore]);
 
   // ── 비디오 시간 추적 (로딩 완료 후 재등록) ──
   useEffect(() => {
@@ -1029,16 +1069,107 @@ ${inner}
             </div>
           )}
 
-          {/* ── 종합 평가 요약 (최상단 배치 — 피드백 ④) ── */}
-          {mmResult && (() => {
-            const s = mmResult.scoring;
-            const total = s.totalScore;
-            const totalColor = total === null ? "text-slate-400" : total >= 5.5 ? "text-teal-600" : total >= 3.0 ? "text-amber-600" : "text-red-500";
+          {/* ── HITL 운영 스테퍼 + N차 반복 진단 컨트롤 (보고서 26.6.18: HITL·객관성) ── */}
+          {(mmResult || mmReanalyzing) && (() => {
+            const busy = mmReanalyzing;
+            // HITL 단계: 1 AI 진단 → 2 전문가 검토·일관성 → 3 확정
+            const step = coachConfirmed ? 3 : ((mmResult || busy) ? 2 : 1);
+            const steps = [
+              { n: 1, label: "AI 진단", done: !!mmResult },
+              { n: 2, label: "전문가 검토·일관성", done: coachConfirmed },
+              { n: 3, label: "평가 확정", done: coachConfirmed },
+            ];
             return (
-              <div className="bg-white border border-violet-200/40 rounded-2xl p-5 shadow-sm animate-fade-in-up">
+              <div className="bg-white border border-teal-200/50 rounded-2xl p-5 shadow-sm animate-fade-in-up">
+                {/* HITL 스테퍼 */}
+                <div className="flex items-center gap-2 mb-4">
+                  {steps.map((st, i) => (
+                    <div key={st.n} className="flex items-center gap-2">
+                      <div className={cn(
+                        "flex items-center gap-1.5 text-xs font-medium px-2.5 py-1 rounded-full transition-colors",
+                        st.done ? "bg-teal-600 text-white" : step === st.n ? "bg-teal-50 text-teal-700 ring-1 ring-teal-500/30" : "bg-slate-100 text-slate-400",
+                      )}>
+                        {st.done ? <CheckCircle2 className="w-3.5 h-3.5" /> : <span className="w-4 h-4 rounded-full bg-current/20 grid place-items-center text-[10px]">{st.n}</span>}
+                        {st.label}
+                      </div>
+                      {i < steps.length - 1 && <div className="w-4 h-px bg-slate-200" />}
+                    </div>
+                  ))}
+                  <span className="ml-auto text-[10px] text-slate-400">Human-in-the-Loop · EU AI Act 준수</span>
+                </div>
+
+                {/* 반복 진단 진행 중 */}
+                {busy ? (
+                  <div className="flex items-center gap-3 py-2">
+                    <Loader2 className="w-5 h-5 text-teal-600 animate-spin shrink-0" />
+                    <div className="text-sm text-slate-600">
+                      {mmProgress.totalRuns && mmProgress.totalRuns > 1
+                        ? `N차 반복 진단 중 — ${mmProgress.currentRun}/${mmProgress.totalRuns}회차 (${mmProgress.completedChannels.length}/${mmProgress.totalChannels} 항목)`
+                        : "재분석 중..."}
+                    </div>
+                  </div>
+                ) : (
+                  <div className="flex items-center justify-between gap-3 flex-wrap">
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs text-slate-500">반복 횟수</span>
+                      <div className="flex items-center gap-1">
+                        {[2, 3, 5].map((r) => (
+                          <button key={r} onClick={() => setConsistencyRuns(r)}
+                            className={cn("w-8 h-8 rounded-lg text-sm font-mono font-semibold transition-colors",
+                              consistencyRuns === r ? "bg-teal-600 text-white" : "bg-slate-100 text-slate-500 hover:bg-slate-200")}>
+                            {r}
+                          </button>
+                        ))}
+                      </div>
+                      <button onClick={handleConsistencyRun}
+                        className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium bg-teal-50 text-teal-700 border border-teal-500/30 hover:bg-teal-100 transition-colors">
+                        <Sparkles className="w-3.5 h-3.5" />
+                        {consistencyRuns}차 반복 진단 (객관성 확보)
+                      </button>
+                    </div>
+                    {mmResult && !coachConfirmed && (
+                      <div className="flex items-center gap-2">
+                        <input type="text" value={coachName} onChange={(e) => setCoachName(e.target.value)} placeholder="평가자(코치)명"
+                          className="w-28 bg-white border border-slate-200 rounded-lg px-2.5 py-2 text-sm outline-none focus:border-teal-500/40" />
+                        <button onClick={() => coachName.trim() && setCoachConfirmed(true)} disabled={!coachName.trim()}
+                          className={cn("flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium transition-colors",
+                            coachName.trim() ? "bg-teal-600 text-white hover:bg-teal-700" : "bg-slate-100 text-slate-400 cursor-not-allowed")}>
+                          <CheckCircle2 className="w-3.5 h-3.5" /> 전문가 평가 확정
+                        </button>
+                      </div>
+                    )}
+                    {coachConfirmed && (
+                      <span className="flex items-center gap-1.5 text-sm text-teal-700 font-medium">
+                        <CheckCircle2 className="w-4 h-4" /> {coachName} 확정 완료
+                      </span>
+                    )}
+                  </div>
+                )}
+
+                {/* 컴플라이언스 안내 */}
+                {!coachConfirmed && !busy && (
+                  <p className="text-[11px] text-amber-600 mt-3 pt-2.5 border-t border-slate-100">
+                    ⚠ 본 결과는 <strong>AI 초안</strong>입니다. 음성인식 오차가 있을 수 있어 전문가(코치) 검토·확정 전까지는 참고용입니다. 점수가 회차마다 다를 수 있어 반복 진단으로 객관성을 확보하길 권장합니다.
+                  </p>
+                )}
+              </div>
+            );
+          })()}
+
+          {/* ── 종합 평가 요약 + 일관성(신뢰구간) (최상단 배치 — 피드백 ④, 보고서 26.6.18) ── */}
+          {mmResult && !mmReanalyzing && (() => {
+            const s = mmResult.scoring;
+            const agg = mmResult.aggregate;
+            const tot = agg?.total;
+            // 대표값: 반복 진단 시 중앙값(강건), 단일 진단 시 총점
+            const headline = tot ? tot.median : s.totalScore;
+            const headlineColor = headline === null ? "text-slate-400" : headline >= 5.5 ? "text-teal-600" : headline >= 3.0 ? "text-amber-600" : "text-red-500";
+            const consColor: Record<string, string> = { 높음: "bg-teal-100 text-teal-700", 보통: "bg-amber-100 text-amber-700", 낮음: "bg-red-100 text-red-600" };
+            return (
+              <div className="bg-white border border-teal-200/50 rounded-2xl p-5 shadow-sm animate-fade-in-up">
                 <div className="flex items-center justify-between mb-3">
                   <div className="flex items-center gap-2">
-                    <Sparkles className="w-4 h-4 text-violet-600" />
+                    <Sparkles className="w-4 h-4 text-teal-600" />
                     <span className="text-sm font-bold text-slate-800">{s.competencyLabel} 멀티모달 종합 평가</span>
                   </div>
                   <span className="text-[11px] text-slate-400">핵심 4개(M1~M4) 평균 · M5 보조 제외</span>
@@ -1046,17 +1177,21 @@ ${inner}
                 <div className="flex items-end gap-4">
                   <div className="text-center shrink-0">
                     <div className="flex items-baseline gap-1">
-                      <span className={cn("text-4xl font-bold font-mono", totalColor)}>{total !== null ? total.toFixed(1) : "—"}</span>
+                      <span className={cn("text-4xl font-bold font-mono", headlineColor)}>{headline !== null ? headline.toFixed(1) : "—"}</span>
                       <span className="text-base text-slate-400">/9</span>
                     </div>
-                    <p className={cn("text-sm font-medium mt-0.5", totalColor)}>{s.interpretation}</p>
-                    {s.totalScore100 !== null && <p className="text-[11px] text-slate-400">100점 환산 {s.totalScore100}점</p>}
+                    <p className={cn("text-sm font-medium mt-0.5", headlineColor)}>{agg ? agg.interpretation : s.interpretation}</p>
+                    {agg && tot
+                      ? <p className="text-[11px] text-slate-400">{agg.runCount}회 중앙값 · 평균 {tot.mean.toFixed(1)}</p>
+                      : (s.totalScore100 !== null && <p className="text-[11px] text-slate-400">100점 환산 {s.totalScore100}점</p>)}
                   </div>
                   {/* 항목별 미니 점수 (3색) */}
                   <div className="flex-1 space-y-1.5 min-w-0">
                     {s.items.filter((it) => it.totalReflected).map((it) => {
-                      const c = tierColorByScore(it.itemScore);
-                      const pct = it.itemScore !== null ? (it.itemScore / 9) * 100 : 0;
+                      const aItem = agg?.items.find((a) => a.id === it.id);
+                      const val = aItem?.stat ? aItem.stat.median : it.itemScore;
+                      const c = tierColorByScore(val);
+                      const pct = val !== null && val !== undefined ? (val / 9) * 100 : 0;
                       return (
                         <div key={it.id} className="flex items-center gap-2">
                           <span className="text-[11px] text-slate-500 w-7 shrink-0 font-mono">{it.channel}</span>
@@ -1065,16 +1200,46 @@ ${inner}
                             <div className={cn("h-full rounded-full", c.bar)} style={{ width: `${pct}%` }} />
                           </div>
                           <span className={cn("text-[11px] font-mono font-bold w-10 text-right shrink-0", c.text)}>
-                            {it.itemScore !== null ? `${it.itemScore.toFixed(1)}` : "N/A"}
+                            {val !== null && val !== undefined ? `${val.toFixed(1)}` : "N/A"}
                           </span>
                         </div>
                       );
                     })}
                   </div>
                 </div>
+
+                {/* 일관성(신뢰구간) — 반복 진단 시에만 */}
+                {agg && tot && (
+                  <div className="mt-3 pt-3 border-t border-slate-100">
+                    <div className="flex items-center gap-2 flex-wrap mb-2">
+                      <span className={cn("text-xs font-semibold px-2 py-0.5 rounded-full", consColor[agg.consistency.level])}>
+                        진단 일관성 {agg.consistency.level}
+                      </span>
+                      <span className="text-[11px] text-slate-500 font-mono">
+                        95% 신뢰구간 {tot.ci95[0].toFixed(1)}~{tot.ci95[1].toFixed(1)} · σ {tot.stdev.toFixed(2)} · 최빈값 {tot.mode.toFixed(1)}
+                      </span>
+                    </div>
+                    {/* 회차별 점 */}
+                    <div className="flex items-center gap-1.5 mb-1.5">
+                      <span className="text-[10px] text-slate-400 w-10 shrink-0">회차별</span>
+                      {agg.totalRuns.map((r, i) => (
+                        <span key={i} className={cn("text-[10px] font-mono px-1.5 py-0.5 rounded",
+                          r === null ? "bg-slate-100 text-slate-400" : "bg-slate-100 text-slate-600")}>
+                          {r === null ? "N/A" : r.toFixed(1)}
+                        </span>
+                      ))}
+                    </div>
+                    <p className="text-[11px] text-slate-500">{agg.consistency.label}</p>
+                    {agg.consistency.requiresReview && (
+                      <p className="text-[11px] text-red-600 font-medium mt-1">→ 변동이 커 전문가(코치) 검토가 필요합니다 (HITL).</p>
+                    )}
+                  </div>
+                )}
+
                 <p className="text-[11px] text-slate-400 mt-3 pt-2 border-t border-slate-100">
                   채점 가능 핵심 항목 {s.scorableItemCount}/{s.coreItemCount}개 · {mmResult.reportModel === "solar-pro2" ? "Solar Pro 2" : "로컬 템플릿"} 보고서
-                  {total === null && <span className="text-amber-600 ml-1">· 채점 가능 항목 3개 미만으로 총점 산출 보류</span>}
+                  {!agg && <span className="ml-1">· 단일 진단 (반복 진단으로 객관성 확보 권장)</span>}
+                  {s.totalScore === null && !agg && <span className="text-amber-600 ml-1">· 채점 가능 항목 3개 미만으로 총점 산출 보류</span>}
                 </p>
               </div>
             );
@@ -1104,6 +1269,86 @@ ${inner}
               ))}
             </div>
           )}
+          {/* ── 내용(content) 평가 — AI 초안 (행동 평가와 분리, fail-closed 인용 기반) [최소 프로토타입] ── */}
+          <div className="bg-white border border-slate-200/50 rounded-2xl overflow-hidden">
+            <div className="flex items-center justify-between px-5 py-3.5 border-b border-slate-100">
+              <div className="flex items-center gap-2 min-w-0">
+                <FileText className="w-4 h-4 text-slate-500 shrink-0" />
+                <div className="min-w-0">
+                  <p className="text-sm font-bold text-slate-800">내용 평가 <span className="text-[11px] font-normal text-amber-600">(AI 초안 · 교수 확정 필요)</span></p>
+                  <p className="text-[11px] text-slate-400 truncate">전사 인용 근거 기반 · 행동 점수와 합산하지 않는 별도 레이어</p>
+                </div>
+              </div>
+              {!contentEval && (
+                <button
+                  onClick={handleContentEval}
+                  disabled={contentEvalLoading || transcriptSegments.length === 0}
+                  className={cn(
+                    "flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium transition-colors shrink-0",
+                    contentEvalLoading || transcriptSegments.length === 0
+                      ? "bg-slate-100 text-slate-400 cursor-not-allowed"
+                      : "bg-slate-800 text-white hover:bg-slate-700",
+                  )}
+                >
+                  {contentEvalLoading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Sparkles className="w-3.5 h-3.5" />}
+                  {contentEvalLoading ? "분석 중..." : "내용 평가 실행"}
+                </button>
+              )}
+            </div>
+            <div className="px-5 py-4">
+              {!contentEval ? (
+                <p className="text-[12px] text-slate-500 leading-relaxed">
+                  내용 평가는 “전략이 타당한가·논리가 적절한가” 같은 <strong>내용의 질</strong>을 전사(대본) 인용 근거로만 채점하는 별도 레이어입니다.
+                  할루시네이션 위험이 큰 영역이라 <strong>인용 근거가 없으면 점수를 보류(fail-closed)</strong>하고, 결과는 항상 <strong>전문가(교수) 확정</strong>을 거칩니다.
+                  {transcriptSegments.length === 0 && <span className="text-amber-600"> (전사 데이터가 아직 없어 실행할 수 없습니다.)</span>}
+                </p>
+              ) : (
+                <div className={cn("space-y-3", !coachConfirmed && "opacity-95")}>
+                  {coachConfirmed ? (
+                    <div className="flex items-start gap-2 bg-teal-50/70 border border-teal-200/60 rounded-lg px-3 py-2">
+                      <CheckCircle2 className="w-4 h-4 text-teal-600 shrink-0 mt-0.5" />
+                      <p className="text-[12px] text-teal-700 leading-relaxed">
+                        <strong>{coachName} 전문가 확정 완료.</strong> 내용 평가 초안을 전문가가 검토·확정했습니다. 행동 점수와 합산하지 않습니다.
+                      </p>
+                    </div>
+                  ) : (
+                    <div className="flex items-start gap-2 bg-amber-50/70 border border-amber-200/60 rounded-lg px-3 py-2">
+                      <span className="text-amber-600 text-sm shrink-0">⚠</span>
+                      <p className="text-[12px] text-amber-700 leading-relaxed">
+                        <strong>전문가 미확정 AI 초안 · 참고용.</strong> 내용 평가는 전문가들 사이에서도 일치도가 낮은 영역이므로, 상단에서 평가자(코치)가 검토·확정하기 전까지는 참고용입니다. 행동 점수와 합산하지 않습니다.
+                      </p>
+                    </div>
+                  )}
+                  {contentEval.criteria.map((c, i) => {
+                    const held = c.score === null || !c.evidence?.trim(); // 인용 없는 점수는 UI에서도 보류 (이중 방어)
+                    const gc = held ? "bg-slate-100 text-slate-500" : c.score! >= 7 ? "bg-teal-100 text-teal-700" : c.score! >= 4 ? "bg-amber-100 text-amber-700" : "bg-red-100 text-red-600";
+                    return (
+                      <div key={i} className="border border-slate-100 rounded-lg p-3">
+                        <div className="flex items-center justify-between gap-2 mb-1">
+                          <span className="text-[13px] font-semibold text-slate-700">{c.criteria}</span>
+                          <span className={cn("text-[11px] font-mono font-bold px-2 py-0.5 rounded shrink-0", gc)}>
+                            {held ? "보류" : `${c.score}/9 ${c.grade}`}
+                          </span>
+                        </div>
+                        {c.evidence && (
+                          <p className="text-[12px] text-slate-600 bg-slate-50 rounded px-2.5 py-1.5 my-1 border-l-2 border-slate-300">“{c.evidence}”</p>
+                        )}
+                        <p className="text-[12px] text-slate-500 leading-relaxed">{c.rationale}</p>
+                      </div>
+                    );
+                  })}
+                  {contentEval.overallNote && (
+                    <p className="text-[12px] text-slate-600 leading-relaxed pt-1">{contentEval.overallNote}</p>
+                  )}
+                  <button onClick={handleContentEval} disabled={contentEvalLoading}
+                    className="text-[11px] text-slate-500 hover:text-slate-700 flex items-center gap-1">
+                    <Loader2 className={cn("w-3 h-3", contentEvalLoading && "animate-spin")} /> 다시 실행
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
+
           {/* ── 탭 전환 (멀티모달 / 대본) ── */}
           {/* 탭 헤더 — 2탭 */}
           <div className="flex items-center gap-1 p-1 bg-white/40 border border-slate-200/30 rounded-xl">
@@ -1112,12 +1357,12 @@ ${inner}
               className={cn(
                 "flex-1 flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-lg text-sm font-medium transition-all",
                 rightTab === "multimodal"
-                  ? "bg-violet-50 text-violet-600 shadow-sm"
+                  ? "bg-teal-50 text-teal-700 shadow-sm"
                   : "text-slate-500 hover:text-slate-500"
               )}
             >
               <Eye className="w-3.5 h-3.5" />
-              멀티모달 분석
+              멀티모달 행동분석
             </button>
             <button
               onClick={() => setRightTab("transcript")}
@@ -1210,11 +1455,11 @@ ${inner}
                       {item.observation && (
                         <div className="mt-3 pt-2.5 border-t border-slate-200/30">
                           <div className="flex items-center justify-between mb-1">
-                            <p className="text-[10px] uppercase tracking-wider text-violet-500/70 font-medium">AI 관찰 소견</p>
+                            <p className="text-[10px] uppercase tracking-wider text-teal-600/70 font-medium">AI 관찰 소견</p>
                             {item.observation.length > 120 && (
                               <button
                                 onClick={(e) => { e.stopPropagation(); setExpandedObs((prev) => { const n = new Set(prev); if (n.has(itemIdx)) n.delete(itemIdx); else n.add(itemIdx); return n; }); }}
-                                className="text-[10px] text-violet-500 hover:text-violet-700 transition-colors min-h-[28px] min-w-[44px] flex items-center justify-center"
+                                className="text-[10px] text-teal-600 hover:text-teal-800 transition-colors min-h-[28px] min-w-[44px] flex items-center justify-center"
                               >
                                 {expandedObs.has(itemIdx) ? "접기" : "더보기"}
                               </button>
@@ -1304,11 +1549,11 @@ ${inner}
                   return (
                     <div className="bg-white border border-slate-200/30 rounded-2xl overflow-hidden print:shadow-none" id="multimodal-report">
                       {/* 헤더 */}
-                      <div className="bg-gradient-to-r from-violet-50 to-indigo-50 px-6 py-4 border-b border-slate-200/30">
+                      <div className="bg-gradient-to-r from-teal-50 to-emerald-50 px-6 py-4 border-b border-slate-200/30">
                         <div className="flex items-center justify-between">
                           <div className="flex items-center gap-2">
-                            <div className="w-8 h-8 rounded-lg bg-violet-100 flex items-center justify-center">
-                              <Sparkles className="w-4 h-4 text-violet-600" />
+                            <div className="w-8 h-8 rounded-lg bg-teal-100 flex items-center justify-center">
+                              <Sparkles className="w-4 h-4 text-teal-600" />
                             </div>
                             <div>
                               <h3 className="text-sm font-bold text-slate-800">{mmResult.scoring.competencyLabel} 멀티모달 행동분석 종합보고서</h3>
@@ -1320,13 +1565,13 @@ ${inner}
                           <div className="flex items-center gap-1.5 print:hidden">
                             <button
                               onClick={handleExportReportPdf}
-                              className="text-xs text-slate-500 hover:text-violet-600 px-2.5 py-1.5 rounded-lg border border-slate-200 hover:border-violet-300 transition-colors"
+                              className="text-xs text-slate-500 hover:text-teal-600 px-2.5 py-1.5 rounded-lg border border-slate-200 hover:border-teal-300 transition-colors"
                             >
                               PDF 내보내기
                             </button>
                             <button
                               onClick={handleDownloadReport}
-                              className="text-xs text-slate-500 hover:text-violet-600 px-2.5 py-1.5 rounded-lg border border-slate-200 hover:border-violet-300 transition-colors"
+                              className="text-xs text-slate-500 hover:text-teal-600 px-2.5 py-1.5 rounded-lg border border-slate-200 hover:border-teal-300 transition-colors"
                             >
                               보고서 저장(HTML)
                             </button>
@@ -1337,7 +1582,7 @@ ${inner}
                                 if (copyTimerRef.current) clearTimeout(copyTimerRef.current);
                                 copyTimerRef.current = setTimeout(() => setCopyToast(false), 2500);
                               }}
-                              className="text-xs text-slate-500 hover:text-violet-600 px-2.5 py-1.5 rounded-lg border border-slate-200 hover:border-violet-300 transition-colors"
+                              className="text-xs text-slate-500 hover:text-teal-600 px-2.5 py-1.5 rounded-lg border border-slate-200 hover:border-teal-300 transition-colors"
                             >
                               {copyToast ? "복사됨" : "복사"}
                             </button>
@@ -1349,7 +1594,7 @@ ${inner}
                         className="px-6 py-5 text-[13px] text-slate-700 leading-[1.9] max-w-none
                           [&_h2]:text-[15px] [&_h2]:font-bold [&_h2]:text-slate-800 [&_h2]:mt-6 [&_h2]:mb-3 [&_h2]:pb-2 [&_h2]:border-b [&_h2]:border-violet-100
                           [&_h3]:text-[14px] [&_h3]:font-bold [&_h3]:text-slate-700 [&_h3]:mt-5 [&_h3]:mb-2
-                          [&_h4]:text-[13px] [&_h4]:font-semibold [&_h4]:text-violet-700 [&_h4]:mt-4 [&_h4]:mb-1.5
+                          [&_h4]:text-[13px] [&_h4]:font-semibold [&_h4]:text-teal-700 [&_h4]:mt-4 [&_h4]:mb-1.5
                           [&_strong]:font-semibold [&_strong]:text-slate-800
                           [&_ul]:list-disc [&_ul]:pl-5 [&_ul]:space-y-1.5 [&_ul]:my-3
                           [&_ol]:list-decimal [&_ol]:pl-5 [&_ol]:space-y-1.5 [&_ol]:my-3
@@ -1387,9 +1632,9 @@ ${inner}
                 </div>
               </div>
             ) : (
-              <div className="bg-white border border-violet-200/30 rounded-xl p-8 text-center">
-                <Loader2 className="w-8 h-8 mx-auto mb-3 text-violet-400 animate-spin" />
-                <p className="text-base text-violet-600 mb-1">멀티모달 행동 분석 진행 중</p>
+              <div className="bg-white border border-teal-200/30 rounded-xl p-8 text-center">
+                <Loader2 className="w-8 h-8 mx-auto mb-3 text-teal-400 animate-spin" />
+                <p className="text-base text-teal-600 mb-1">멀티모달 행동 분석 진행 중</p>
                 <p className="text-sm text-slate-400">5채널 신호 추출 → 채점 → 보고서 생성</p>
               </div>
             )

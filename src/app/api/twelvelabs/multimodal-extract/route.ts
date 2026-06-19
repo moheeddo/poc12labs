@@ -23,6 +23,7 @@ export type RoleContext = {
   targetName?: string;       // 평가 대상자(target/Leader) 이름·라벨
   targetRole?: string;       // 부여 역할 (효율성/안전성/비용 등)
   otherParticipants?: string[]; // 맥락 참여자 라벨 목록
+  glossary?: string[];       // 도메인 고유명사 사전 (STT 오인식 보정 — 엄사방·주무차장 등)
 };
 
 // m-항목 1개 → 추출 프롬프트 (루브릭 band를 그대로 가이드로 사용)
@@ -47,6 +48,12 @@ function buildItemPrompt(
     if (roleContext.otherParticipants?.length) {
       lines.push(`- 다른 참여자(context): ${roleContext.otherParticipants.join(", ")}`);
     }
+  }
+
+  // 도메인 용어 사전 — 음성인식(STT) 오인식 보정 (예: "엄사방"→"비만부장 검사반" 오인식 방지)
+  if (roleContext?.glossary?.length) {
+    lines.push(`- 도메인 고유명사 사전(정확히 사용): ${roleContext.glossary.join(", ")}`);
+    lines.push(`  → 관찰 소견에 인명·직책·부서를 적을 때 위 사전의 정확한 표기를 사용하고, 유사 발음 오인식을 피하세요.`);
   }
 
   lines.push("");

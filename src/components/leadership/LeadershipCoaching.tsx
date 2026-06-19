@@ -238,7 +238,7 @@ export default function LeadershipCoaching() {
     }
   }, [view]);
 
-  // 역량 정의 (평가 대상 4개)
+  // 역량 정의 (평가 대상 3개)
   const competencyDefs = useMemo(
     () => LEADERSHIP_COMPETENCY_DEFS.filter((d) => EVALUATION_COMPETENCIES.includes(d.key)),
     []
@@ -549,8 +549,9 @@ export default function LeadershipCoaching() {
       {/* 헤더 — 컴팩트 + 조 관리 강화 */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>
-          <h2 className="text-xl font-bold text-teal-600 tracking-tight">리더십코칭 역량진단</h2>
-          <p className="text-sm text-slate-500 mt-0.5">발표·토론 영상 AI 역량 분석</p>
+          <p className="text-[11px] font-mono tracking-[0.18em] text-[#006341] uppercase mb-1">Leadership Assessment 2.0</p>
+          <h2 className="text-2xl font-bold text-[#002855] tracking-[-0.02em]">리더십코칭 역량진단</h2>
+          <p className="text-sm text-[#64748b] mt-1">발표·토의·면담 영상에서 멀티모달 행동지표로 역량을 정량 평가합니다</p>
         </div>
         <div className="flex items-center gap-2 shrink-0">
           <button
@@ -740,54 +741,53 @@ export default function LeadershipCoaching() {
           </button>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           {competencyDefs.map((comp, idx) => {
-            const IconComp = COMPETENCY_ICONS[comp.key] || Target;
             const isSelected = selectedCompetencies.has(comp.key);
-
             return (
               <button
                 key={comp.key}
                 onClick={() => toggleCompetency(comp.key)}
-                className={`animate-fade-in-up text-left rounded-xl p-5 border-2 transition-all duration-200 group ${
-                  isSelected
-                    ? "bg-white shadow-lg shadow-slate-200/60"
-                    : "bg-white/60 border-slate-200/40 hover:border-slate-300 hover:bg-white hover:shadow-md"
-                }`}
+                className="animate-fade-in-up group relative text-left rounded-xl overflow-hidden border transition-all duration-200 hover:-translate-y-0.5"
                 style={{
-                  animationDelay: `${idx * 80}ms`,
+                  animationDelay: `${idx * 70}ms`,
                   animationFillMode: "backwards",
-                  borderColor: isSelected ? comp.color : undefined,
+                  borderColor: isSelected ? comp.color : "rgba(0,40,85,0.10)",
+                  background: isSelected ? `${comp.color}0a` : "#fff",
+                  boxShadow: isSelected ? `0 8px 24px -12px ${comp.color}55` : "none",
                 }}
               >
-                <div className="flex items-start gap-3">
-                  <div
-                    className="w-11 h-11 rounded-xl flex items-center justify-center shrink-0 transition-colors"
-                    style={{ backgroundColor: `${comp.color}15` }}
-                  >
-                    <IconComp className="w-5 h-5" style={{ color: comp.color }} />
+                {/* 좌측 정밀 액센트 룰 */}
+                <span
+                  className="absolute left-0 top-0 bottom-0 w-[3px] transition-colors"
+                  style={{ background: isSelected ? comp.color : "transparent" }}
+                  aria-hidden
+                />
+                <div className="p-5 pl-6">
+                  <div className="flex items-center gap-3 mb-2">
+                    <span className="font-mono text-[13px] font-medium tabular-nums" style={{ color: comp.color }}>
+                      {String(idx + 1).padStart(2, "0")}
+                    </span>
+                    <h4 className="text-[16px] font-bold tracking-[-0.01em]" style={{ color: isSelected ? comp.color : "#002855" }}>
+                      {comp.label}
+                    </h4>
+                    {comp.rubric && (
+                      <span className="text-[10px] font-mono tracking-[0.08em] text-[#94a3b8]">M1–M5</span>
+                    )}
+                    {/* 정밀 선택 체크박스 */}
+                    <span
+                      className="ml-auto w-5 h-5 rounded-md grid place-items-center shrink-0 transition-all"
+                      style={{
+                        border: isSelected ? `1px solid ${comp.color}` : "1px solid rgba(0,40,85,0.18)",
+                        background: isSelected ? comp.color : "transparent",
+                      }}
+                    >
+                      {isSelected && <CheckCircle2 className="w-3.5 h-3.5 text-white" strokeWidth={3} />}
+                    </span>
                   </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 mb-1.5">
-                      <h4
-                        className="text-[15px] font-bold transition-colors"
-                        style={{ color: isSelected ? comp.color : "#334155" }}
-                      >
-                        {comp.label}
-                      </h4>
-                      {isSelected && (
-                        <CheckCircle2 className="w-4.5 h-4.5 shrink-0" style={{ color: comp.color }} />
-                      )}
-                      {comp.rubric && (
-                        <span className="text-[11px] px-2 py-0.5 rounded bg-teal-50 text-teal-600/70 font-medium ml-auto">
-                          M1~M5 항목
-                        </span>
-                      )}
-                    </div>
-                    <p className="text-sm text-slate-500 leading-relaxed line-clamp-3">
-                      {comp.definition}
-                    </p>
-                  </div>
+                  <p className="text-[13px] text-[#64748b] leading-relaxed line-clamp-2">
+                    {comp.definition}
+                  </p>
                 </div>
               </button>
             );

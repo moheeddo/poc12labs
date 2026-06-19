@@ -1,5 +1,7 @@
 "use client";
-// v3 glass redesign
+/* Hallmark · macrostructure: Asymmetric Split (headline-left / instrument-index-right)
+ * genre: modern-minimal (editorial precision) · theme: KHNP brand (emerald #006341 · navy #002855 · warm paper)
+ * nav: N6 masthead · tone: 신뢰·전문성·안전 (control-room) · pre-emit critique: P5 H5 E4 S5 R4 V5 */
 import { useState, useEffect } from "react";
 import type { ServiceTab } from "@/lib/types";
 import KhnpLogo from "@/components/shared/KhnpLogo";
@@ -8,204 +10,138 @@ interface LandingProps {
   onNavigate: (tab: ServiceTab) => void;
 }
 
+// 진단 역량 인덱스 (계측 패널)
+const COMPETENCY_INDEX = [
+  { no: "01", label: "비전제시", task: "전략 브리핑 발표" },
+  { no: "02", label: "신뢰형성", task: "협상형 그룹토의" },
+  { no: "03", label: "구성원육성", task: "1:1 코칭 면담" },
+];
+
+const META = [
+  ["측정 항목", "M1–M5"],
+  ["척도", "9점 · 4밴드"],
+  ["검증", "HITL · N차 일관성"],
+  ["신호", "시선·음성·자세·언어"],
+];
+
 export default function Landing({ onNavigate }: LandingProps) {
-  const [hovered, setHovered] = useState<ServiceTab | null>(null);
   const [ready, setReady] = useState(false);
+  const [hovered, setHovered] = useState(false);
 
   useEffect(() => {
     const raf = requestAnimationFrame(() => setReady(true));
     return () => cancelAnimationFrame(raf);
   }, []);
 
-  const isLeadership = hovered === "leadership";
+  const reveal = (delay: number) => ({
+    opacity: ready ? 1 : 0,
+    transform: ready ? "none" : "translateY(14px)",
+    transition: `opacity 0.7s cubic-bezier(0.16,1,0.3,1) ${delay}ms, transform 0.7s cubic-bezier(0.16,1,0.3,1) ${delay}ms`,
+  });
 
   return (
-    <div className="relative min-h-screen overflow-hidden">
-      {/* ═══ 배경: 소프트 그라데이션 블롭 ═══ */}
-      <div className="fixed inset-0 -z-10">
-        <div className="absolute inset-0 bg-[#f5f7fa]" />
-        {/* Teal 블롭 — 좌측 */}
-        <div
-          className="absolute -top-[20%] -left-[10%] w-[60%] h-[70%] rounded-full transition-all duration-1000 ease-out"
-          style={{
-            background: "radial-gradient(circle, rgba(20,184,166,0.14) 0%, rgba(20,184,166,0.04) 50%, transparent 70%)",
-            transform: isLeadership ? "scale(1.15)" : "scale(1)",
-          }}
-        />
-        {/* Emerald 블롭 — 중앙 상단 */}
-        <div
-          className="absolute top-[10%] left-1/2 -translate-x-1/2 w-[50%] h-[50%] rounded-full"
-          style={{
-            background: "radial-gradient(circle, rgba(0,99,65,0.08) 0%, transparent 60%)",
-          }}
-        />
-      </div>
+    <div className="relative min-h-screen bg-[#f7f8f6] text-[#002855] overflow-x-clip">
+      {/* 좌측 정밀 레일 — 브랜드 에메랄드 헤어라인 (제어실 계측감) */}
+      <div className="fixed left-0 top-0 bottom-0 w-px bg-gradient-to-b from-transparent via-[#006341]/25 to-transparent hidden md:block" aria-hidden />
 
-      {/* ═══ 콘텐츠 ═══ */}
-      <div className="relative z-10 min-h-screen flex flex-col">
-
-        {/* 헤더 */}
-        <header
-          className="px-6 md:px-12 py-5"
-          style={{
-            opacity: ready ? 1 : 0,
-            transition: "opacity 0.8s cubic-bezier(0.16,1,0.3,1)",
-          }}
-        >
-          <div className="max-w-[1280px] mx-auto flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <KhnpLogo size={28} />
-              <span className="text-[14px] font-semibold tracking-[-0.01em] text-slate-700">
-                KHNP HRDI
-              </span>
+      <div className="relative z-10 mx-auto max-w-[1240px] px-6 md:px-10 min-h-screen flex flex-col">
+        {/* ── 마스트헤드 ── */}
+        <header className="flex items-center justify-between py-6" style={reveal(0)}>
+          <div className="flex items-center gap-3">
+            <KhnpLogo size={26} />
+            <div className="leading-tight">
+              <p className="text-[13px] font-bold tracking-[-0.01em] text-[#002855]">KHNP 인재개발원</p>
+              <p className="text-[10px] font-mono tracking-[0.18em] text-[#006341] uppercase">HRDI · Video AI</p>
             </div>
-            <div className="flex items-center gap-2">
-              <div className="w-[5px] h-[5px] rounded-full bg-emerald-500" />
-              <span className="text-[11px] font-mono text-slate-400 tracking-[0.12em]">
-                ONLINE
-              </span>
-            </div>
+          </div>
+          <div className="flex items-center gap-2 px-3 py-1.5 rounded-full border border-[#006341]/20 bg-white/50">
+            <span className="inline-flex rounded-full w-1.5 h-1.5 bg-[#006341]" />
+            <span className="text-[10px] font-mono tracking-[0.16em] text-[#006341]">SYSTEM ONLINE</span>
           </div>
         </header>
 
-        {/* 메인 */}
-        <main className="flex-1 flex flex-col justify-center px-6 md:px-12 py-8 md:py-0">
-          <div className="max-w-[1280px] mx-auto w-full">
-
-            {/* 타이틀 */}
-            <div
-              className="text-center mb-12 md:mb-16"
-              style={{
-                opacity: ready ? 1 : 0,
-                transform: ready ? "none" : "translateY(16px)",
-                transition: "opacity 0.8s cubic-bezier(0.16,1,0.3,1) 100ms, transform 0.8s cubic-bezier(0.16,1,0.3,1) 100ms",
-              }}
+        {/* ── 본문: 비대칭 분할 ── */}
+        <main className="flex-1 grid grid-cols-1 lg:grid-cols-12 gap-y-12 lg:gap-x-16 items-center py-10 lg:py-0">
+          {/* 좌: 헤드라인 + 진입 */}
+          <div className="lg:col-span-7">
+            <p className="text-[12px] font-mono tracking-[0.1em] text-[#006341] mb-6" style={reveal(80)}>
+              한수원 리더십 역량, 영상으로 측정한다
+            </p>
+            <h1
+              className="font-bold tracking-[-0.045em] leading-[0.98] text-[#002855] text-[clamp(2.6rem,6.5vw,5rem)]"
+              style={{ ...reveal(140), overflowWrap: "anywhere" }}
             >
-              <p className="text-[12px] font-mono text-slate-400 tracking-[0.3em] uppercase mb-5">
-                Video AI Platform
-              </p>
-              <h1 className="text-[clamp(2.2rem,6vw,4rem)] font-extrabold tracking-[-0.05em] leading-[1.05] text-slate-900">
-                영상 AI 역량 평가
-              </h1>
-              <p className="mt-4 text-[16px] text-slate-400 leading-relaxed">
-                분석할 서비스를 선택하세요
-              </p>
-            </div>
+              영상 AI<br />
+              <span className="text-[#006341]">역량 진단</span>
+            </h1>
+            <p className="mt-7 max-w-[440px] text-[16px] leading-[1.7] text-[#475569]" style={reveal(220)}>
+              발표·토의·면담 영상에서 멀티모달 행동지표를 추출해
+              리더십 역량을 정량 평가합니다. 점수가 아니라 <span className="text-[#002855] font-semibold">행동 근거</span>로 말합니다.
+            </p>
 
-            {/* 서비스 카드 — 리더십 단독 */}
-            <div className="max-w-[640px] mx-auto">
-
-              {/* 리더십 - 역량진단 2.0 */}
-              <button
-                type="button"
-                onClick={() => onNavigate("leadership")}
-                onMouseEnter={() => setHovered("leadership")}
-                onMouseLeave={() => setHovered(null)}
-                className="block w-full group text-left outline-none focus-visible:ring-2 focus-visible:ring-teal-400 focus-visible:ring-offset-4 rounded-3xl"
-                style={{
-                  opacity: ready ? 1 : 0,
-                  transform: ready ? "none" : "translateY(24px)",
-                  transition: "opacity 0.8s cubic-bezier(0.16,1,0.3,1) 200ms, transform 0.8s cubic-bezier(0.16,1,0.3,1) 200ms",
-                }}
-                aria-label="리더십 역량진단 2.0 서비스"
-              >
-                <div
-                  className="relative rounded-3xl p-10 md:p-12 transition-all duration-500 ease-out"
-                  style={{
-                    background: isLeadership
-                      ? "rgba(255,255,255,0.78)"
-                      : "rgba(255,255,255,0.5)",
-                    backdropFilter: "blur(40px) saturate(1.4)",
-                    WebkitBackdropFilter: "blur(40px) saturate(1.4)",
-                    border: isLeadership
-                      ? "1px solid rgba(20,184,166,0.3)"
-                      : "1px solid rgba(255,255,255,0.6)",
-                    boxShadow: isLeadership
-                      ? "0 24px 48px -12px rgba(20,184,166,0.14), 0 0 0 1px rgba(20,184,166,0.06), inset 0 1px 0 rgba(255,255,255,0.8)"
-                      : "0 4px 16px -4px rgba(0,0,0,0.04), inset 0 1px 0 rgba(255,255,255,0.8)",
-                    transform: isLeadership ? "translateY(-4px)" : "none",
-                  }}
+            {/* 진입 — 카드가 아닌 에디토리얼 행 */}
+            <button
+              type="button"
+              onClick={() => onNavigate("leadership")}
+              onMouseEnter={() => setHovered(true)}
+              onMouseLeave={() => setHovered(false)}
+              className="group mt-10 inline-flex flex-col text-left outline-none focus-visible:ring-2 focus-visible:ring-[#006341] focus-visible:ring-offset-4 focus-visible:ring-offset-[#f7f8f6] rounded-sm"
+              style={reveal(300)}
+              aria-label="리더십 역량진단 2.0 시작"
+            >
+              <span className="flex items-baseline gap-4">
+                <span className="text-[clamp(1.6rem,3.5vw,2.3rem)] font-bold tracking-[-0.03em] text-[#002855] group-hover:text-[#006341] transition-colors duration-300">
+                  리더십 역량진단 2.0
+                </span>
+                <span
+                  className="text-[#006341] text-2xl transition-transform duration-300"
+                  style={{ transform: hovered ? "translateX(6px)" : "none" }}
+                  aria-hidden
                 >
-                  {/* 레이블 */}
-                  <span className="text-[11px] font-mono font-medium tracking-[0.2em] uppercase text-teal-600/70 block mb-6">
-                    Leadership · v2.0
-                  </span>
+                  →
+                </span>
+              </span>
+              {/* 언더라인 grow */}
+              <span className="mt-2 h-[2px] bg-[#006341] transition-all duration-400 ease-out" style={{ width: hovered ? "100%" : "44px" }} />
+              <span className="mt-3 text-[13px] text-[#64748b] font-mono tracking-[0.02em]">
+                3대 핵심 역량 · M1–M5 멀티모달 채점 · 근거 기반 피드백
+              </span>
+            </button>
+          </div>
 
-                  {/* 타이틀 */}
-                  <h2 className="text-[1.8rem] md:text-[2.1rem] font-bold tracking-[-0.03em] leading-[1.2] text-slate-900 mb-1">
-                    리더십
-                  </h2>
-                  <p
-                    className="text-[1.2rem] font-semibold tracking-[-0.01em] mb-6 transition-colors duration-300"
-                    style={{ color: isLeadership ? "#0d9488" : "#94a3b8" }}
-                  >
-                    역량진단 2.0
-                  </p>
+          {/* 우: 계측 인덱스 패널 */}
+          <div className="lg:col-span-5 lg:border-l lg:border-[#002855]/10 lg:pl-12" style={reveal(380)}>
+            <p className="text-[10px] font-mono tracking-[0.2em] text-[#94a3b8] uppercase mb-5">평가 역량 / Index</p>
+            <ul>
+              {COMPETENCY_INDEX.map((c, i) => (
+                <li
+                  key={c.no}
+                  className="flex items-baseline gap-4 py-3.5"
+                  style={{ borderTop: i === 0 ? "none" : "1px solid rgba(0,40,85,0.08)" }}
+                >
+                  <span className="text-[12px] font-mono text-[#006341] w-6 shrink-0">{c.no}</span>
+                  <span className="text-[17px] font-semibold text-[#002855] tracking-[-0.01em]">{c.label}</span>
+                  <span className="ml-auto text-[12px] text-[#94a3b8] font-mono">{c.task}</span>
+                </li>
+              ))}
+            </ul>
 
-                  {/* 설명 */}
-                  <p className="text-[14px] text-slate-500 leading-[1.7] mb-6">
-                    비전제시·신뢰형성·구성원육성 3대 핵심 역량을 멀티모달 행동지표로 평가합니다.
-                    <br />
-                    M1~M5 항목별 시선·음성·자세·언어 신호를 정량 분석합니다.
-                  </p>
-
-                  {/* 태그 */}
-                  <div className="flex flex-wrap gap-2">
-                    {["멀티모달 행동지표", "M1~M5 평가", "근거 기반 피드백"].map((tag) => (
-                      <span
-                        key={tag}
-                        className="text-[11px] font-medium px-3 py-1.5 rounded-full transition-all duration-300"
-                        style={{
-                          backgroundColor: isLeadership ? "rgba(20,184,166,0.1)" : "rgba(0,0,0,0.03)",
-                          color: isLeadership ? "#0f766e" : "#94a3b8",
-                        }}
-                      >
-                        {tag}
-                      </span>
-                    ))}
-                  </div>
-
-                  {/* 화살표 */}
-                  <div
-                    className="absolute top-10 md:top-12 right-10 md:right-12 w-9 h-9 rounded-full flex items-center justify-center transition-all duration-300"
-                    style={{
-                      backgroundColor: isLeadership ? "rgba(20,184,166,0.12)" : "transparent",
-                      transform: isLeadership ? "translateX(2px)" : "none",
-                    }}
-                  >
-                    <svg
-                      className="w-4 h-4 transition-colors duration-300"
-                      style={{ color: isLeadership ? "#0d9488" : "#cbd5e1" }}
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                      strokeWidth={2}
-                    >
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
-                    </svg>
-                  </div>
+            {/* 메타 그리드 */}
+            <dl className="mt-7 grid grid-cols-2 gap-x-5 gap-y-4 border-t border-[#002855]/10 pt-6">
+              {META.map(([k, v]) => (
+                <div key={k}>
+                  <dt className="text-[10px] font-mono tracking-[0.12em] text-[#94a3b8] uppercase">{k}</dt>
+                  <dd className="text-[14px] font-semibold text-[#002855] mt-0.5">{v}</dd>
                 </div>
-              </button>
-            </div>
+              ))}
+            </dl>
           </div>
         </main>
 
-        {/* 푸터 */}
-        <footer
-          className="px-6 md:px-12 py-5"
-          style={{
-            opacity: ready ? 1 : 0,
-            transition: "opacity 0.8s cubic-bezier(0.16,1,0.3,1) 500ms",
-          }}
-        >
-          <div className="max-w-[1280px] mx-auto flex items-center justify-between">
-            <span className="text-[11px] text-slate-300 font-mono">
-              &copy; 2026 한국수력원자력 인재개발원
-            </span>
-            <span className="text-[11px] text-slate-300 font-mono hidden sm:block">
-              Powered by TwelveLabs
-            </span>
-          </div>
+        {/* ── 푸터 ── */}
+        <footer className="flex items-center justify-between py-6 border-t border-[#002855]/8" style={reveal(480)}>
+          <span className="text-[11px] text-[#94a3b8] font-mono">© 2026 한국수력원자력 인재개발원</span>
+          <span className="text-[11px] text-[#94a3b8] font-mono hidden sm:block">Powered by TwelveLabs · Upstage Solar</span>
         </footer>
       </div>
     </div>

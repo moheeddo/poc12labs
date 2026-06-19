@@ -1,0 +1,10 @@
+# 내부 자료·산출물은 배포 업로드에서 제외 (프라이버시 · 0-egress)
+추가 업데이트/
+capture/
+test-screenshots/
+.playwright-mcp/
+*.png
+docs/
+standards/
+pov standards/
+snapshot-leadership.md

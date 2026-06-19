@@ -908,6 +908,7 @@ export const DEPARTMENT_HEAD_ASSESSMENTS: CompetencyAssessmentData[] = [
   VISION_PRESENTATION,
   TRUST_BUILDING,
   MEMBER_DEVELOPMENT,
+  // 합리적의사결정(rationalDecision)은 서면(In-basket) 평가라 영상 멀티모달 대상에서 제외
 ];
 
 // 역량 키 → 데이터 빠른 조회

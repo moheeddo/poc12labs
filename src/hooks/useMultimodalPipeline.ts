@@ -3,23 +3,21 @@
 import { useState, useCallback } from "react";
 import { scoreMultimodalSignals } from "@/lib/multimodal-scoring";
 import type { ExtractedSignals, ChannelSignals, MultimodalScoreResult } from "@/lib/multimodal-scoring";
+import { aggregateRuns } from "@/lib/multimodal-aggregate";
+import type { AggregatedScore } from "@/lib/multimodal-aggregate";
 import { ASSESSMENT_BY_KEY } from "@/lib/leadership-rubric-data";
+import type { CompetencyAssessmentData } from "@/lib/leadership-rubric-data";
 import type { RoleContext } from "@/app/api/twelvelabs/multimodal-extract/route";
 import type { LeadershipCompetencyKey } from "@/lib/types";
 
 // =============================================
-// 멀티모달 분석 파이프라인 훅 (역량별) v1.0
+// 멀티모달 분석 파이프라인 훅 (역량별 + N차 반복 진단) v1.1
 // m-항목별 행동 신호 추출 → 역량 루브릭 채점 → Solar Pro 2 보고서
 // 피드백 ①: competencyKey를 추출·채점·보고서 전 단계에 전달
+// 보고서(26.6.18): runConsistency로 N회 진단 후 평균/최빈값/표준편차 집계 (객관성 확보)
 // =============================================
 
-export type PipelinePhase =
-  | "idle"
-  | "extracting"  // m-항목별 추출 중
-  | "scoring"     // 채점 엔진 처리 중
-  | "reporting"   // Solar Pro 2 보고서 생성 중
-  | "done"
-  | "error";
+export type PipelinePhase = "idle" | "extracting" | "scoring" | "reporting" | "done" | "error";
 
 export interface PipelineProgress {
   phase: PipelinePhase;
@@ -27,26 +25,86 @@ export interface PipelineProgress {
   completedChannels: string[];
   totalChannels: number;
   percent: number;
+  currentRun?: number;   // N차 반복 시 현재 회차
+  totalRuns?: number;    // N차 반복 시 총 회차
 }
 
 export interface PipelineResult {
   signals: ExtractedSignals;
-  scoring: MultimodalScoreResult;
+  scoring: MultimodalScoreResult;   // 단일 회차(또는 대표 회차) 상세
   report: string;
   reportModel: string;
+  aggregate?: AggregatedScore;      // N차 반복 시 집계 (단일 회차면 undefined)
+  runCount: number;
 }
 
 export function useMultimodalPipeline() {
   const [progress, setProgress] = useState<PipelineProgress>({
-    phase: "idle",
-    currentChannel: "",
-    completedChannels: [],
-    totalChannels: 5,
-    percent: 0,
+    phase: "idle", currentChannel: "", completedChannels: [], totalChannels: 5, percent: 0,
   });
   const [result, setResult] = useState<PipelineResult | null>(null);
   const [error, setError] = useState<string | null>(null);
 
+  // ── 단일 회차: 추출 → 채점 (보고서 제외) ──
+  const runOnce = useCallback(async (
+    videoId: string,
+    competency: CompetencyAssessmentData,
+    competencyKey: string,
+    roleContext: RoleContext | undefined,
+    onChannelProgress?: (completed: string[]) => void,
+  ): Promise<{ signals: ExtractedSignals; scoring: MultimodalScoreResult }> => {
+    const channels = competency.mItems.map((m) => m.code.toLowerCase());
+
+    // 항목별 추출 — 완료되는 대로 진행 표시 갱신 (로딩 UX 정확도 개선)
+    const completed: string[] = [];
+    const signals: ExtractedSignals = {};
+    await Promise.all(channels.map(async (ch) => {
+      try {
+        const res = await fetch("/api/twelvelabs/multimodal-extract", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ videoId, channel: ch, competencyKey, roleContext }),
+        });
+        if (!res.ok) throw new Error(`${ch} 추출 실패: ${res.status}`);
+        const data = await res.json();
+        const channelData = data.data as Record<string, unknown> | undefined;
+        if (channelData && !channelData.parseError) {
+          signals[ch] = channelData as unknown as ChannelSignals;
+        }
+      } catch {
+        /* 개별 채널 실패는 N/A 처리 (signals에 미포함) */
+      } finally {
+        completed.push(ch);
+        onChannelProgress?.([...completed]);
+      }
+    }));
+
+    const scoring = scoreMultimodalSignals(signals, competencyKey);
+    return { signals, scoring };
+  }, []);
+
+  // ── Solar 보고서 생성 ──
+  const buildReport = useCallback(async (
+    scoring: MultimodalScoreResult,
+    competency: CompetencyAssessmentData,
+    competencyKey: string,
+    scenarioText?: string,
+  ): Promise<{ report: string; reportModel: string }> => {
+    try {
+      const res = await fetch("/api/solar/report", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ scoringResult: scoring, competencyKey, competencyLabel: competency.label, scenarioText }),
+      });
+      if (res.ok) {
+        const d = await res.json();
+        return { report: d.report || "", reportModel: d.model || "local-template" };
+      }
+    } catch { /* 실패 시 채점 결과만 */ }
+    return { report: "", reportModel: "local-template" };
+  }, []);
+
+  // ── 단일 진단 ──
   const runPipeline = useCallback(async (
     videoId: string,
     competencyKey: LeadershipCompetencyKey | string,
@@ -55,79 +113,82 @@ export function useMultimodalPipeline() {
   ) => {
     setError(null);
     setResult(null);
-
     const competency = ASSESSMENT_BY_KEY[competencyKey];
     if (!competency) {
       setError(`유효하지 않은 역량: ${competencyKey}`);
       setProgress((p) => ({ ...p, phase: "error" }));
       return;
     }
-
-    // 채널 = m-항목 코드 (m1~m5)
-    const channels = competency.mItems.map((m) => m.code.toLowerCase());
-
+    const totalChannels = competency.mItems.length;
     try {
-      // ═══ Phase 1: 항목별 병렬 추출 ═══
-      setProgress({ phase: "extracting", currentChannel: "전체 항목", completedChannels: [], totalChannels: channels.length, percent: 5 });
+      setProgress({ phase: "extracting", currentChannel: "전체 항목", completedChannels: [], totalChannels, percent: 5 });
+      const { signals, scoring } = await runOnce(videoId, competency, competencyKey, roleContext,
+        (completed) => setProgress((p) => ({ ...p, completedChannels: completed, percent: 5 + Math.round((completed.length / totalChannels) * 55) })));
 
-      const extractResults = await Promise.allSettled(
-        channels.map(async (ch) => {
-          const res = await fetch("/api/twelvelabs/multimodal-extract", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ videoId, channel: ch, competencyKey, roleContext }),
-          });
-          if (!res.ok) throw new Error(`${ch} 추출 실패: ${res.status}`);
-          const data = await res.json();
-          return { channel: ch, data: data.data };
-        }),
-      );
-
-      const signals: ExtractedSignals = {};
-      const completed: string[] = [];
-      extractResults.forEach((r, i) => {
-        const ch = channels[i];
-        if (r.status === "fulfilled" && r.value.data) {
-          const channelData = r.value.data as Record<string, unknown>;
-          if (channelData.parseError) return; // 파싱 실패는 N/A 처리 (signals에 미포함)
-          signals[ch] = channelData as unknown as ChannelSignals;
-          completed.push(ch);
-        }
-      });
-
-      setProgress({ phase: "extracting", currentChannel: "추출 완료", completedChannels: completed, totalChannels: channels.length, percent: 60 });
-
-      // ═══ Phase 2: 역량별 채점 ═══
       setProgress((p) => ({ ...p, phase: "scoring", percent: 75 }));
-      const scoring = scoreMultimodalSignals(signals, competencyKey);
-
-      // ═══ Phase 3: Solar Pro 2 보고서 ═══
       setProgress((p) => ({ ...p, phase: "reporting", percent: 85 }));
-      let report = "";
-      let reportModel = "local-template";
-      try {
-        const reportRes = await fetch("/api/solar/report", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ scoringResult: scoring, competencyKey, competencyLabel: competency.label, scenarioText }),
-        });
-        if (reportRes.ok) {
-          const reportData = await reportRes.json();
-          report = reportData.report || "";
-          reportModel = reportData.model || "local-template";
-        }
-      } catch {
-        // Solar 실패 시 채점 결과만으로 진행
-      }
+      const { report, reportModel } = await buildReport(scoring, competency, competencyKey, scenarioText);
 
-      setResult({ signals, scoring, report, reportModel });
-      setProgress({ phase: "done", currentChannel: "", completedChannels: completed, totalChannels: channels.length, percent: 100 });
+      setResult({ signals, scoring, report, reportModel, runCount: 1 });
+      setProgress({ phase: "done", currentChannel: "", completedChannels: competency.mItems.map((m) => m.code.toLowerCase()), totalChannels, percent: 100 });
     } catch (e) {
-      const msg = e instanceof Error ? e.message : "파이프라인 실패";
-      setError(msg);
+      setError(e instanceof Error ? e.message : "파이프라인 실패");
       setProgress((p) => ({ ...p, phase: "error", percent: 0 }));
     }
-  }, []);
+  }, [runOnce, buildReport]);
 
-  return { progress, result, error, runPipeline };
+  // ── N차 반복 진단 (객관성 확보 — 평균/최빈값/표준편차) ──
+  const runConsistency = useCallback(async (
+    videoId: string,
+    competencyKey: LeadershipCompetencyKey | string,
+    runs: number,
+    scenarioText?: string,
+    roleContext?: RoleContext,
+  ) => {
+    setError(null);
+    setResult(null);
+    const competency = ASSESSMENT_BY_KEY[competencyKey];
+    if (!competency) {
+      setError(`유효하지 않은 역량: ${competencyKey}`);
+      setProgress((p) => ({ ...p, phase: "error" }));
+      return;
+    }
+    const totalChannels = competency.mItems.length;
+    const n = Math.max(2, Math.min(7, runs));
+    try {
+      const scorings: MultimodalScoreResult[] = [];
+      const signalsPerRun: ExtractedSignals[] = [];
+      for (let i = 0; i < n; i++) {
+        setProgress({
+          phase: "extracting", currentChannel: `${i + 1}회차`, completedChannels: [], totalChannels,
+          currentRun: i + 1, totalRuns: n, percent: Math.round((i / n) * 80) + 3,
+        });
+        const { signals, scoring } = await runOnce(videoId, competency, competencyKey, roleContext,
+          (completed) => setProgress((p) => ({ ...p, completedChannels: completed, percent: Math.round((i / n) * 80) + 3 + Math.round((completed.length / totalChannels) * (80 / n)) })));
+        scorings.push(scoring);
+        signalsPerRun.push(signals);
+      }
+
+      setProgress((p) => ({ ...p, phase: "scoring", percent: 85, currentRun: n, totalRuns: n }));
+      const aggregate = aggregateRuns(scorings);
+      const repIdx = aggregate.representativeIndex;
+
+      setProgress((p) => ({ ...p, phase: "reporting", percent: 90 }));
+      const { report, reportModel } = await buildReport(scorings[repIdx], competency, competencyKey, scenarioText);
+
+      setResult({
+        signals: signalsPerRun[repIdx],
+        scoring: scorings[repIdx],
+        report, reportModel,
+        aggregate,
+        runCount: n,
+      });
+      setProgress({ phase: "done", currentChannel: "", completedChannels: competency.mItems.map((m) => m.code.toLowerCase()), totalChannels, percent: 100, currentRun: n, totalRuns: n });
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "반복 진단 실패");
+      setProgress((p) => ({ ...p, phase: "error", percent: 0 }));
+    }
+  }, [runOnce, buildReport]);
+
+  return { progress, result, error, runPipeline, runConsistency };
 }
