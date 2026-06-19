@@ -26,24 +26,28 @@ export default function VideoUploader({ onUpload, onUrlUpload, progress, accentC
   const progressColorMap: Record<string, string> = {
     coral: "bg-coral-500",
     teal: "bg-teal-500",
+    emerald: "bg-khnp-emerald", // KHNP 브랜드 #006341 (리더십 2.0)
     amber: "bg-amber-500",
   };
 
   const iconAccentColorMap: Record<string, string> = {
     coral: "text-coral-600",
     teal: "text-teal-600",
+    emerald: "text-khnp-emerald",
     amber: "text-amber-600",
   };
 
   const accentBtnMap: Record<string, string> = {
     coral: "bg-coral-600 hover:bg-coral-500 active:bg-coral-700",
     teal: "bg-teal-600 hover:bg-teal-500 active:bg-teal-700",
+    emerald: "bg-khnp-emerald hover:bg-khnp-emerald-dark active:bg-khnp-emerald-dark",
     amber: "bg-amber-600 hover:bg-amber-500 active:bg-amber-700",
   };
 
   const accentBorderMap: Record<string, string> = {
     coral: "border-coral-500/40 bg-coral-500/5",
     teal: "border-teal-500/40 bg-teal-500/5",
+    emerald: "border-khnp-emerald/40 bg-khnp-emerald/5",
     amber: "border-amber-500/40 bg-amber-500/5",
   };
 

@@ -940,7 +940,7 @@ ${inner}
       {/* 자동 저장 토스트 */}
       {autoSaveToast && (
         <div className="fixed bottom-6 right-6 z-50 animate-fade-in-up">
-          <div className="flex items-center gap-2 px-4 py-3 rounded-xl bg-emerald-600 text-white shadow-lg text-sm font-medium">
+          <div className="flex items-center gap-2 px-4 py-3 rounded-xl bg-khnp-emerald text-white shadow-lg text-sm font-medium">
             <CheckCircle2 className="w-4 h-4 shrink-0" />
             분석 결과가 자동 저장되었습니다
           </div>
@@ -949,7 +949,7 @@ ${inner}
       {/* 보고서 복사 토스트 */}
       {copyToast && (
         <div className="fixed bottom-6 right-6 z-50 animate-fade-in-up">
-          <div className="flex items-center gap-2 px-4 py-3 rounded-xl bg-emerald-600 text-white shadow-lg text-sm font-medium">
+          <div className="flex items-center gap-2 px-4 py-3 rounded-xl bg-khnp-emerald text-white shadow-lg text-sm font-medium">
             <CheckCircle2 className="w-4 h-4 shrink-0" />
             보고서가 클립보드에 복사되었습니다
           </div>
@@ -1098,7 +1098,7 @@ ${inner}
                     <div key={st.n} className="flex items-center gap-2">
                       <div className={cn(
                         "flex items-center gap-1.5 text-xs font-medium px-2.5 py-1 rounded-full transition-colors",
-                        st.done ? "bg-emerald-600 text-white" : step === st.n ? "bg-emerald-50 text-emerald-700 ring-1 ring-emerald-500/30" : "bg-slate-100 text-slate-400",
+                        st.done ? "bg-khnp-emerald text-white" : step === st.n ? "bg-emerald-50 text-emerald-700 ring-1 ring-emerald-500/30" : "bg-slate-100 text-slate-400",
                       )}>
                         {st.done ? <CheckCircle2 className="w-3.5 h-3.5" /> : <span className="w-4 h-4 rounded-full bg-current/20 grid place-items-center text-[10px]">{st.n}</span>}
                         {st.label}
@@ -1144,7 +1144,7 @@ ${inner}
                           className="w-28 bg-white border border-slate-200 rounded-lg px-2.5 py-2 text-sm outline-none focus:border-emerald-500/40" />
                         <button onClick={() => coachName.trim() && setCoachConfirmed(true)} disabled={!coachName.trim()}
                           className={cn("flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium transition-colors",
-                            coachName.trim() ? "bg-emerald-600 text-white hover:bg-emerald-700" : "bg-slate-100 text-slate-400 cursor-not-allowed")}>
+                            coachName.trim() ? "bg-khnp-emerald text-white hover:bg-khnp-emerald-dark" : "bg-slate-100 text-slate-400 cursor-not-allowed")}>
                           <CheckCircle2 className="w-3.5 h-3.5" /> 전문가 평가 확정
                         </button>
                       </div>

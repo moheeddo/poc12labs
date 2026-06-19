@@ -640,7 +640,7 @@ export default function LeadershipCoaching() {
                   <div className="flex items-center justify-between mb-1.5">
                     <p className="text-sm font-bold text-[#006341] pr-7">{gs.name}</p>
                     <span className="text-[10px] font-mono text-[#006341] bg-[#006341]/[0.06] px-1.5 py-0.5 rounded">
-                      {gs.currentStep + 1}/4
+                      {Math.min(gs.currentStep + 1, gs.competencies.length)}/{gs.competencies.length}
                     </span>
                   </div>
                   <p className="text-xs text-slate-500 mb-2">
@@ -698,7 +698,7 @@ export default function LeadershipCoaching() {
               onUpload={handleUpload}
               onUrlUpload={handleUrlUpload}
               progress={uploadProgress}
-              accentColor="teal"
+              accentColor="emerald"
             />
           ) : (
             <div className="bg-white border border-emerald-500/20 rounded-xl p-5 space-y-3">

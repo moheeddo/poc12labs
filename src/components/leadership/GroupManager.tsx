@@ -134,8 +134,11 @@ export default function GroupManager({
     return () => window.removeEventListener("beforeunload", handler);
   }, [uploadingFor]);
 
-  const currentComp = COMPETENCY_ORDER[session.currentStep];
-  const currentState = session.competencies[session.currentStep];
+  // 단계 인덱스를 유효 범위로 보정 — 잘못된 currentStep(예: 마지막 역량에서 '다음' 클릭)이
+  // 들어와도 currentComp undefined 역참조 크래시를 막는다(역량 수 변경에 자동 추종).
+  const safeStep = Math.min(Math.max(0, session.currentStep), COMPETENCY_ORDER.length - 1);
+  const currentComp = COMPETENCY_ORDER[safeStep];
+  const currentState = session.competencies[safeStep];
   const isGroupType = currentComp?.type === "group";
   const isHybridType = currentComp?.type === "hybrid";
   const isIndividualType = currentComp?.type === "individual";
@@ -182,7 +185,7 @@ export default function GroupManager({
   }, [session, upload, onUpdate]);
 
   const goStep = useCallback((step: number) => {
-    const updated = { ...session, currentStep: Math.max(0, Math.min(3, step)) };
+    const updated = { ...session, currentStep: Math.max(0, Math.min(COMPETENCY_ORDER.length - 1, step)) };
     saveSession(updated);
     onUpdate(updated);
   }, [session, onUpdate]);
@@ -201,7 +204,7 @@ export default function GroupManager({
           </button>
           <div>
             <h2 className="text-xl font-bold text-emerald-700">{session.name}</h2>
-            <p className="text-sm text-slate-500">{session.members.length}명 · {completedSteps}/4 역량 완료</p>
+            <p className="text-sm text-slate-500">{session.members.length}명 · {completedSteps}/{session.competencies.length} 역량 완료</p>
           </div>
         </div>
         <button
@@ -297,7 +300,7 @@ export default function GroupManager({
                     </div>
                   </div>
                 )}
-                {i < 3 && <ChevronRight className="w-3 h-3 text-slate-300 shrink-0 mx-1" />}
+                {i < COMPETENCY_ORDER.length - 1 && <ChevronRight className="w-3 h-3 text-slate-300 shrink-0 mx-1" />}
               </div>
             );
           })}
@@ -780,7 +783,7 @@ export default function GroupManager({
         <div className="flex items-center justify-between mt-6 pt-4 border-t border-slate-200/30">
           <button onClick={() => goStep(session.currentStep - 1)} disabled={session.currentStep === 0} className="text-sm text-slate-500 hover:text-slate-700 disabled:opacity-30 transition-colors">&larr; 이전 역량</button>
           <div className="text-sm text-slate-400">{uploadedCount}/{totalExpected}건 업로드</div>
-          <button onClick={() => goStep(session.currentStep + 1)} disabled={session.currentStep >= 3} className="text-sm font-semibold text-white bg-emerald-600 hover:bg-emerald-700 disabled:bg-slate-200 disabled:text-slate-400 px-4 py-2 rounded-lg shadow-sm transition-all active:scale-[0.97]">다음 역량 &rarr;</button>
+          <button onClick={() => goStep(session.currentStep + 1)} disabled={session.currentStep >= COMPETENCY_ORDER.length - 1} className="text-sm font-semibold text-white bg-khnp-emerald hover:bg-khnp-emerald-dark disabled:bg-slate-200 disabled:text-slate-400 px-4 py-2 rounded-lg shadow-sm transition-all active:scale-[0.97]">다음 역량 &rarr;</button>
         </div>
       </div>
     </div>
@@ -925,7 +928,7 @@ export function GroupCreateForm({ onSubmit, onCancel }: GroupCreateFormProps) {
             <div key={c.key} className="flex items-center gap-1">
               <span className="font-medium" style={{ color: c.color }}>{c.label}</span>
               <span className="text-[10px] text-slate-400">({c.activityType})</span>
-              {i < 3 && <ChevronRight className="w-3 h-3 text-slate-300" />}
+              {i < COMPETENCY_ORDER.length - 1 && <ChevronRight className="w-3 h-3 text-slate-300" />}
             </div>
           ))}
         </div>

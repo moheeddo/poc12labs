@@ -614,7 +614,7 @@ export default function GroupDashboard({ session, onBack, onViewMember }: GroupD
               </span>
               <span className="text-xs text-slate-400">/9</span>
             </div>
-            <p className="text-[10px] text-slate-400 mt-0.5">{m.analyzedCount}/4 역량</p>
+            <p className="text-[10px] text-slate-500 mt-0.5">{m.analyzedCount}/{COMPETENCY_ORDER.length} 역량</p>
 
             {/* 메모 표시 */}
             {session.memberNotes?.[m.id] && (
