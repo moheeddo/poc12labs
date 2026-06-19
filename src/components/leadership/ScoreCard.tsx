@@ -57,7 +57,7 @@ export default function ScoreCard({ speaker, rank }: ScoreCardProps) {
         </div>
         <div className="flex-1">
           <p className="text-base font-medium text-slate-900">{speaker.speakerName}</p>
-          <p className="text-[11px] text-slate-400 font-mono mt-0.5">{getGradeLabel(speaker.totalScore)}</p>
+          <p className="text-[11px] text-slate-500 font-mono mt-0.5">{getGradeLabel(speaker.totalScore)}</p>
         </div>
         {/* 종합 점수 뱃지 */}
         <div className={`px-3 py-1.5 rounded-lg ${badge.bg}`}>
@@ -114,19 +114,19 @@ export default function ScoreCard({ speaker, rank }: ScoreCardProps) {
                   {subs.map((sub, si) => (
                     <div key={si} className="text-sm">
                       <p className="text-slate-500 font-medium">{sub.name}</p>
-                      <p className="text-slate-400 mt-0.5 leading-relaxed">{sub.behaviorIndicator}</p>
+                      <p className="text-slate-600 mt-0.5 leading-relaxed">{sub.behaviorIndicator}</p>
                     </div>
                   ))}
                 </div>
                 {/* 루브릭 세부 점수 (있을 경우) */}
                 {rubricScores && rubricScores.length > 0 && comp.rubric && (
                   <div className="mt-2 pt-2 border-t border-slate-200">
-                    <p className="text-sm text-slate-400 mb-1.5">루브릭 세부 평가</p>
+                    <p className="text-sm text-slate-500 mb-1.5">루브릭 세부 평가</p>
                     {comp.rubric.map((r, ri) => {
                       const rs = rubricScores.find((s) => s.criteriaIndex === ri);
                       return (
                         <div key={ri} className="flex items-center gap-2 py-0.5">
-                          <span className="text-sm text-slate-400 flex-1 truncate">{r.criteria}</span>
+                          <span className="text-sm text-slate-600 flex-1 truncate">{r.criteria}</span>
                           <span className={`text-sm font-mono ${rs ? getScoreTier(rs.score).text : "text-slate-400"}`}>
                             {rs ? `${rs.score}/9` : "-"}
                           </span>

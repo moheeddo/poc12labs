@@ -169,7 +169,10 @@ export default function GroupManager({
       const videoId = await upload(TWELVELABS_INDEXES.leadership, file);
       const blobUrl = URL.createObjectURL(file);
       const updated = { ...session };
-      const comp = updated.competencies[session.currentStep];
+      // 읽기와 동일한 보정 인덱스 사용 — stale 세션(과거 4역량 시절 currentStep=3 등)에서
+      // 원시 인덱스로 쓰면 undefined 역참조 크래시 또는 보이지 않는 슬롯에 silent mis-write 발생
+      const comp = updated.competencies[safeStep];
+      if (!comp) return;
       if (memberId === "shared") {
         comp.sharedVideoId = videoId;
         comp.sharedFileName = file.name;
@@ -252,7 +255,7 @@ export default function GroupManager({
                   </div>
                   <div className="min-w-0">
                     <p className={cn("text-xs font-semibold truncate", isCurrent ? "text-slate-800" : "text-slate-500")}>{comp.label}</p>
-                    <p className="text-[10px] text-slate-400 truncate">
+                    <p className="text-[10px] text-slate-500 truncate">
                       {comp.activityType}
                       {stepAnalyzed > 0 && (
                         <span className="ml-1 text-emerald-700 font-medium">
@@ -312,7 +315,7 @@ export default function GroupManager({
         <div className="flex items-center gap-2 mb-2">
           <FileText className="w-4 h-4 text-emerald-700" />
           <span className="text-sm font-medium text-slate-700">상황사례 (선택)</span>
-          <span className="text-[10px] text-slate-400">— 입력하면 더 정확한 평가가 가능합니다</span>
+          <span className="text-[10px] text-slate-500">— 입력하면 더 정확한 평가가 가능합니다</span>
         </div>
         <textarea
           value={scenarioText}
@@ -432,7 +435,7 @@ export default function GroupManager({
                     <Upload className="w-6 h-6 mx-auto text-amber-400 mb-1" />
                   )}
                   <p className="text-sm text-slate-600">전체 와이드샷 영상 업로드</p>
-                  <p className="text-xs text-slate-400 mt-0.5">6명이 모두 보이는 전체 촬영 영상</p>
+                  <p className="text-xs text-slate-500 mt-0.5">6명이 모두 보이는 전체 촬영 영상</p>
                   <input type="file" accept="video/*" className="hidden" onChange={(e) => { const f = e.target.files?.[0]; if (f) handleUpload(f, "shared"); }} />
                 </label>
               )}
@@ -459,7 +462,7 @@ export default function GroupManager({
                         <div className={cn("w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold", hasVideo ? "bg-amber-100 text-amber-700" : "bg-slate-100 text-slate-500")}>{member.order}</div>
                         <div className="flex-1 min-w-0">
                           <p className="text-sm font-bold text-slate-800">{member.name}</p>
-                          <p className="text-xs text-slate-400">{member.position}</p>
+                          <p className="text-xs text-slate-500">{member.position}</p>
                         </div>
                         {/* 메모 아이콘 */}
                         <button
@@ -580,7 +583,7 @@ export default function GroupManager({
                   <Upload className="w-8 h-8 mx-auto text-slate-400 mb-2" />
                 )}
                 <p className="text-sm text-slate-600">집단 토론 영상 업로드</p>
-                <p className="text-xs text-slate-400 mt-1">MP4, AVI, MOV</p>
+                <p className="text-xs text-slate-500 mt-1">MP4, AVI, MOV</p>
                 <input type="file" accept="video/*" className="hidden" onChange={(e) => { const f = e.target.files?.[0]; if (f) handleUpload(f, "shared"); }} />
               </label>
             )}
@@ -616,7 +619,7 @@ export default function GroupManager({
                     </div>
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-bold text-slate-800">{member.name}</p>
-                      <p className="text-xs text-slate-400">{member.position}</p>
+                      <p className="text-xs text-slate-500">{member.position}</p>
                     </div>
                     {/* 메모 아이콘 */}
                     <button
@@ -927,7 +930,7 @@ export function GroupCreateForm({ onSubmit, onCancel }: GroupCreateFormProps) {
           {COMPETENCY_ORDER.map((c, i) => (
             <div key={c.key} className="flex items-center gap-1">
               <span className="font-medium" style={{ color: c.color }}>{c.label}</span>
-              <span className="text-[10px] text-slate-400">({c.activityType})</span>
+              <span className="text-[10px] text-slate-500">({c.activityType})</span>
               {i < COMPETENCY_ORDER.length - 1 && <ChevronRight className="w-3 h-3 text-slate-300" />}
             </div>
           ))}

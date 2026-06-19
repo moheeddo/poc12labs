@@ -137,10 +137,10 @@ export default function VideoUploader({ onUpload, onUrlUpload, progress, accentC
               <p className="text-base text-slate-600 mb-1">
                 클릭하여 파일 선택 또는 드래그앤드롭
               </p>
-              <p className="text-sm text-slate-400">MP4, AVI, MOV 지원 · 용량 제한 없음</p>
+              <p className="text-sm text-slate-500">MP4, AVI, MOV 지원 · 용량 제한 없음</p>
             </div>
             {isRejected && (
-              <p className="text-xs text-red-400 mt-2 animate-fade-in-up">
+              <p className="text-xs text-red-600 mt-2 animate-fade-in-up">
                 영상 파일만 업로드할 수 있습니다
               </p>
             )}
@@ -165,7 +165,7 @@ export default function VideoUploader({ onUpload, onUrlUpload, progress, accentC
           <div className="border-2 border-dashed rounded-xl p-6 text-center border-slate-200">
             <Link2 className={cn("w-8 h-8 mx-auto mb-3", iconAccentColorMap[accentColor])} />
             <p className="text-base text-slate-600 mb-1">영상 URL을 입력하세요</p>
-            <p className="text-sm text-slate-400 mb-4">
+            <p className="text-sm text-slate-500 mb-4">
               Google Drive, Dropbox, S3 등 공개 접근 가능한 영상 URL
             </p>
             <div className="flex gap-2 max-w-lg mx-auto">
@@ -193,7 +193,7 @@ export default function VideoUploader({ onUpload, onUrlUpload, progress, accentC
                 <ArrowRight className="w-4 h-4" />
               </button>
             </div>
-            {urlError && <p className="text-xs text-red-400 mt-2">{urlError}</p>}
+            {urlError && <p className="text-xs text-red-600 mt-2">{urlError}</p>}
           </div>
           <button
             onClick={() => setShowUrlInput(false)}
@@ -212,7 +212,7 @@ export default function VideoUploader({ onUpload, onUrlUpload, progress, accentC
             <FileVideo className={cn("w-5 h-5 shrink-0", iconAccentColorMap[accentColor])} />
             <div className="flex-1 min-w-0">
               <p className="text-base text-slate-900 truncate">{selectedFile.name}</p>
-              <p className="text-sm text-slate-400">{formatFileSize(selectedFile.size)}</p>
+              <p className="text-sm text-slate-500">{formatFileSize(selectedFile.size)}</p>
             </div>
             <button onClick={() => setSelectedFile(null)} className="p-2 text-slate-400 hover:text-slate-700 transition-colors duration-200" aria-label="파일 선택 취소">
               <X className="w-4 h-4" />
@@ -241,7 +241,7 @@ export default function VideoUploader({ onUpload, onUrlUpload, progress, accentC
             {progress.status === "complete" ? (
               <CheckCircle className="w-5 h-5 text-emerald-400 shrink-0 animate-bounce [animation-iteration-count:1]" />
             ) : progress.status === "error" ? (
-              <AlertCircle className="w-5 h-5 text-red-400 shrink-0" />
+              <AlertCircle className="w-5 h-5 text-red-600 shrink-0" />
             ) : (
               <FileVideo className="w-5 h-5 text-slate-400 shrink-0 animate-pulse" />
             )}
@@ -260,7 +260,7 @@ export default function VideoUploader({ onUpload, onUrlUpload, progress, accentC
           {/* 업로드 에러 상세 표시 */}
           {progress.status === "error" && progress.error && (
             <div className="mt-1 p-3 rounded-lg bg-red-500/5 border border-red-500/15">
-              <p className="text-xs text-red-400 font-medium">
+              <p className="text-xs text-red-700 font-medium">
                 {progress.error}
               </p>
               {/* 파일 크기 관련 에러 시 URL 업로드 전환 버튼 */}

@@ -4,8 +4,24 @@
 // =============================================
 
 import type { GroupSession } from "./group-types";
+import { COMPETENCY_ORDER } from "./group-types";
 
 const STORAGE_KEY = "khnp-group-sessions";
+
+// 로드 시 정규화 — 과거 4역량 시절 저장된 세션(currentStep=3·orphan 슬롯)이
+// 3역량 코드에서 인덱스 범위를 벗어나 크래시/silent mis-write를 내지 않도록 1회 보정
+function normalizeSession(s: GroupSession): GroupSession {
+  if (!s || !Array.isArray(s.competencies)) return s;
+  const max = COMPETENCY_ORDER.length - 1;
+  const currentStep = Math.min(Math.max(0, s.currentStep ?? 0), max);
+  // 역량 수가 현재(3)보다 많으면 orphan 슬롯 절단
+  const competencies = s.competencies.length > COMPETENCY_ORDER.length
+    ? s.competencies.slice(0, COMPETENCY_ORDER.length)
+    : s.competencies;
+  return currentStep === s.currentStep && competencies === s.competencies
+    ? s
+    : { ...s, currentStep, competencies };
+}
 
 // localStorage 접근 가능 여부 확인
 function isStorageAvailable(): boolean {
@@ -25,8 +41,8 @@ export function loadAllSessions(): GroupSession[] {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (!raw) return [];
     const parsed = JSON.parse(raw);
-    // 배열인지 검증
-    return Array.isArray(parsed) ? parsed : [];
+    // 배열인지 검증 + 단계/역량 인덱스 정규화(stale 세션 방어)
+    return Array.isArray(parsed) ? parsed.map(normalizeSession) : [];
   } catch {
     return [];
   }
