@@ -140,19 +140,22 @@ function computeStat(values: (number | null)[]): AggregateStat | null {
   const xs = values.filter((v): v is number => v !== null && !isNaN(v));
   if (xs.length === 0) return null;
   const mu = mean(xs);
+  const med = median(xs);
   const sd = sampleStdev(xs);
   const sem = xs.length >= 2 ? sd / Math.sqrt(xs.length) : 0;
   const margin = tValue95(xs.length) * sem;
   return {
     mean: round1(mu),
-    median: round1(median(xs)),
+    median: round1(med),
     mode: round1(mode(xs)),
     stdev: Math.round(sd * 100) / 100,
     sem: Math.round(sem * 100) / 100,
-    // 정밀도 판정용 비클램프 반폭(t·sem) — ci95는 0~9 clamp되어 천장/바닥에서 좁아지므로
-    // 게이트는 clamp 전 원시 반폭을 써야 fail-open(최상·최하위자 '추가진단 불필요' 오판) 방지
+    // 정밀도 판정용 비클램프 반폭(t·sem) — clamp 전 원시값을 게이트에 써야
+    // fail-open(최상·최하위자 '추가진단 불필요' 오판) 방지
     ciHalfRaw: Math.round(margin * 100) / 100,
-    ci95: [round1(clamp09(mu - margin)), round1(clamp09(mu + margin))],
+    // ci95는 헤드라인(중앙값)을 중심으로 표시 — 표시 CI = 판정구간 = 헤드라인을 단일 통계량으로 통일
+    // (평균 중심이면 비대칭 분포에서 표시 CI와 straddle 판정구간이 갈라져 자기모순 발생)
+    ci95: [round1(clamp09(med - margin)), round1(clamp09(med + margin))],
     min: round1(Math.min(...xs)),
     max: round1(Math.max(...xs)),
     range: round1(Math.max(...xs) - Math.min(...xs)),
@@ -244,10 +247,15 @@ export function aggregateRuns(results: MultimodalScoreResult[]): AggregatedScore
   // 정밀도를 '증명'할 수 없음 — 영점분산을 영점불확실성으로 단정하지 않도록 'sufficient' 차단.
   const validN = total ? total.n : 0;
   if (!total || validN < RECOMMENDED_RUNS) {
-    recommendation = { status: "more_runs", ciHalfWidth: total ? ciHalf : null, straddlesBand: false, suggestedTotalRuns: RECOMMENDED_RUNS,
+    // 일부 회차가 N/A라 유효표본이 부족할 수 있으므로(runCount는 이미 클 수 있음),
+    // 권장 누적회차는 현재 회차보다 항상 크게 잡아 '추가 진단' 버튼이 사라지는 막다른 길 방지.
+    const suggested = Math.min(MAX_RUNS, Math.max(RECOMMENDED_RUNS, n + 1));
+    recommendation = { status: n >= MAX_RUNS ? "hitl_required" : "more_runs", ciHalfWidth: total ? ciHalf : null, straddlesBand: false, suggestedTotalRuns: suggested,
       message: !total
         ? `채점 가능 항목 부족 — 최소 ${RECOMMENDED_RUNS}회 진단으로 객관성 확보를 권장합니다.`
-        : `${validN}회로는 정밀도를 검증할 수 없습니다(신뢰구간 불충분). 최소 ${RECOMMENDED_RUNS}회 진단으로 객관성 확보를 권장합니다.` };
+        : n >= MAX_RUNS
+          ? `유효 채점 회차가 ${validN}회뿐입니다(다수 회차 N/A). 전문가(코치) 검토·확정이 필요합니다.`
+          : `유효 채점 회차가 ${validN}회로 부족합니다. ${suggested}회까지 추가 진단을 권장합니다.` };
   } else if (straddlesBand) {
     recommendation = { status: "hitl_required", ciHalfWidth: ciHalf, straddlesBand: true, suggestedTotalRuns: n,
       message: `신뢰구간(${total.ci95[0].toFixed(1)}~${total.ci95[1].toFixed(1)})이 등급 경계를 가로지릅니다. 반복만으로 해소되지 않는 경계 사례 — 전문가(코치) 확정이 필요합니다.` };

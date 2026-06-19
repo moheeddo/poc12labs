@@ -1093,7 +1093,7 @@ ${inner}
             return (
               <div className="bg-white border border-emerald-200/50 rounded-2xl p-5 shadow-sm animate-fade-in-up">
                 {/* HITL 스테퍼 */}
-                <div className="flex items-center gap-2 mb-4">
+                <div className="flex flex-wrap items-center gap-2 mb-4">
                   {steps.map((st, i) => (
                     <div key={st.n} className="flex items-center gap-2">
                       <div className={cn(
@@ -1106,7 +1106,7 @@ ${inner}
                       {i < steps.length - 1 && <div className="w-4 h-px bg-slate-200" />}
                     </div>
                   ))}
-                  <span className="ml-auto text-[10px] text-slate-400">Human-in-the-Loop · EU AI Act 준수</span>
+                  <span className="w-full md:w-auto md:ml-auto mt-1 md:mt-0 text-[10px] text-slate-400">Human-in-the-Loop · EU AI Act 준수</span>
                 </div>
 
                 {/* 반복 진단 진행 중 */}

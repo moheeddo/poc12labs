@@ -781,10 +781,11 @@ export default function LeadershipCoaching() {
                 />
                 <div className="p-5 pl-6">
                   <div className="flex items-center gap-3 mb-2">
-                    <span className="font-mono text-[13px] font-medium tabular-nums" style={{ color: comp.color }}>
+                    {/* 식별색(comp.color)은 좌측 룰·체크박스 등 비-텍스트에만 — 텍스트는 navy 고정(WCAG·red 의미충돌 방지) */}
+                    <span className="font-mono text-[13px] font-medium tabular-nums text-[#006341]">
                       {String(idx + 1).padStart(2, "0")}
                     </span>
-                    <h4 className="text-[16px] font-bold tracking-[-0.01em]" style={{ color: isSelected ? comp.color : "#002855" }}>
+                    <h4 className="text-[16px] font-bold tracking-[-0.01em] text-[#002855]">
                       {comp.label}
                     </h4>
                     {comp.rubric && (
