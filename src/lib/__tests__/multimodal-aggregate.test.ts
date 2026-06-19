@@ -120,4 +120,32 @@ describe("적응형 반복진단 권고 (신뢰구간 게이트 + 경계 HITL)",
     expect(agg.recommendation.straddlesBand).toBe(true);
     expect(agg.recommendation.status).toBe("hitl_required");
   });
+
+  // 속성 테스트(그리드 전수) — fail-open 영구 잠금:
+  // 평균·중앙값 중 어느 쪽 신뢰구간이라도 등급경계를 가로지르면(분산>0) 절대 'sufficient' 금지.
+  // 중앙값/평균/반올림 긴장으로 여러 번 재발한 결함을 런타임 강제로 차단.
+  it("[속성] 평균·중앙값 CI 합집합이 경계를 넘으면 어떤 표본도 sufficient가 아니다(3회 그리드 전수)", () => {
+    const BAND_CUTS = [3.0, 5.5, 7.5];
+    let crossingCases = 0;
+    for (let a = 0; a <= 90; a += 3) {
+      for (let d = 0; d <= 12; d += 2) {
+        const xs = [a / 10, a / 10, (a + d) / 10].map((v) => Math.min(9, v));
+        const agg = aggregateRuns(xs.map((v) => run(v, { m1: v })));
+        const tot = agg.total;
+        if (!tot || tot.ciHalfRaw <= 0) continue;
+        const h = tot.ciHalfRaw;
+        const crosses = BAND_CUTS.some(
+          (c) =>
+            (tot.mean - h <= c && tot.mean + h >= c) ||
+            (tot.median - h <= c && tot.median + h >= c),
+        );
+        if (crosses) {
+          crossingCases++;
+          expect(agg.recommendation.straddlesBand).toBe(true);
+          expect(agg.recommendation.status).not.toBe("sufficient");
+        }
+      }
+    }
+    expect(crossingCases).toBeGreaterThan(0); // 그리드가 실제 경계사례를 포함함을 보장
+  });
 });
