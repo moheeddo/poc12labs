@@ -1733,7 +1733,7 @@ ${inner}
                         : "bg-white/40 border border-transparent hover:bg-white/70 hover:border-slate-200/30",
                       isEvidencePlaying && !isActive && "ring-1 ring-emerald-500/20"
                     )}
-                    style={{ borderLeftColor: comp?.color || "#14b8a6" }}
+                    style={{ borderLeftColor: comp?.color || "#006341" }}
                   >
                     {/* 카드 헤더 */}
                     <div

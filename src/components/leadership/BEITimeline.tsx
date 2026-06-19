@@ -16,13 +16,13 @@ interface BEITimelineProps {
 const STAR_SECTIONS = [
   { key: "situation" as const, label: "S", fullLabel: "상황", color: "bg-blue-500/15 border-blue-400/30 text-blue-400", badgeColor: "bg-blue-500/20 text-blue-300" },
   { key: "task"      as const, label: "T", fullLabel: "과제", color: "bg-violet-500/15 border-violet-400/30 text-violet-400", badgeColor: "bg-violet-500/20 text-violet-300" },
-  { key: "action"    as const, label: "A", fullLabel: "행동", color: "bg-teal-500/15 border-teal-400/30 text-teal-400", badgeColor: "bg-teal-500/20 text-teal-300" },
+  { key: "action"    as const, label: "A", fullLabel: "행동", color: "bg-emerald-500/15 border-emerald-400/30 text-emerald-400", badgeColor: "bg-emerald-500/20 text-emerald-300" },
   { key: "result"    as const, label: "R", fullLabel: "결과", color: "bg-amber-500/15 border-amber-400/30 text-amber-400", badgeColor: "bg-amber-500/20 text-amber-300" },
 ] as const;
 
 // ─── 역량 색상 팔레트 ───
 const COMPETENCY_COLORS: Record<string, string> = {
-  visionPresentation:   "bg-teal-500/20 text-teal-300 border-teal-500/30",
+  visionPresentation:   "bg-fuchsia-500/20 text-fuchsia-300 border-fuchsia-500/30",
   visionPractice:       "bg-cyan-500/20 text-cyan-300 border-cyan-500/30",
   trustBuilding:        "bg-amber-500/20 text-amber-300 border-amber-500/30",
   communication:        "bg-violet-500/20 text-violet-300 border-violet-500/30",
@@ -69,7 +69,7 @@ function CompletenessBar({ value }: { value: number }) {
   const pct = Math.round(value * 100);
   const color =
     pct >= 80 ? "bg-emerald-500" :
-    pct >= 60 ? "bg-teal-500" :
+    pct >= 60 ? "bg-lime-500" :
     pct >= 40 ? "bg-amber-500" : "bg-red-500";
 
   return (
@@ -104,7 +104,7 @@ function BEIEventCard({
     <div className="relative flex gap-4">
       {/* 타임라인 세로선 + 번호 버블 */}
       <div className="flex flex-col items-center shrink-0">
-        <div className="w-8 h-8 rounded-full bg-teal-500/20 border border-teal-500/40 flex items-center justify-center text-xs font-bold text-teal-400 z-10">
+        <div className="w-8 h-8 rounded-full bg-emerald-500/20 border border-emerald-500/40 flex items-center justify-center text-xs font-bold text-emerald-400 z-10">
           {index + 1}
         </div>
         <div className="w-px flex-1 bg-slate-700/60 mt-1" />
@@ -151,7 +151,7 @@ function BEIEventCard({
                     {hasData && onSeekVideo && (
                       <button
                         onClick={() => onSeekVideo(startTs)}
-                        className="inline-flex items-center gap-1 text-[10px] font-mono text-slate-400 hover:text-teal-400 transition-colors"
+                        className="inline-flex items-center gap-1 text-[10px] font-mono text-slate-400 hover:text-emerald-400 transition-colors"
                         title={`${formatTime(startTs)}으로 이동`}
                       >
                         <PlayCircle className="w-3 h-3" />
@@ -247,7 +247,7 @@ export default function BEITimeline({ analysis, onSeekVideo, loading = false }: 
     return (
       <div className="flex items-center justify-center py-16">
         <div className="flex flex-col items-center gap-3">
-          <div className="w-8 h-8 border-2 border-teal-500/30 border-t-teal-400 rounded-full animate-spin" />
+          <div className="w-8 h-8 border-2 border-emerald-500/30 border-t-emerald-400 rounded-full animate-spin" />
           <p className="text-sm text-slate-500">BEI 분석 중...</p>
         </div>
       </div>
@@ -273,7 +273,7 @@ export default function BEITimeline({ analysis, onSeekVideo, loading = false }: 
         <div className="flex flex-wrap items-center gap-4">
           {/* 총 이벤트 수 */}
           <div className="flex items-center gap-2">
-            <span className="text-2xl font-bold font-mono text-teal-400">{totalEvents}</span>
+            <span className="text-2xl font-bold font-mono text-emerald-400">{totalEvents}</span>
             <span className="text-sm text-slate-400">행동사건</span>
           </div>
 

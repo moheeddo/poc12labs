@@ -18,7 +18,7 @@ import { cn } from "@/lib/utils";
 
 // 6인 색상 팔레트
 const MEMBER_COLORS = [
-  "#14b8a6", // teal
+  "#006341", // emerald (brand primary)
   "#f59e0b", // amber
   "#8b5cf6", // violet
   "#ef4444", // red
@@ -110,13 +110,13 @@ function MemberReportModal({
         {/* 화면용 상단 바 */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-slate-200 no-print">
           <div className="flex items-center gap-2">
-            <FileText className="w-5 h-5 text-teal-600" />
+            <FileText className="w-5 h-5 text-emerald-700" />
             <h3 className="text-base font-bold text-slate-800">개인별 역량진단 보고서 미리보기</h3>
           </div>
           <div className="flex items-center gap-2">
             <button
               onClick={handlePrint}
-              className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium bg-teal-600 text-white hover:bg-teal-700 transition-colors"
+              className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium bg-emerald-700 text-white hover:bg-emerald-800 transition-colors"
             >
               <Printer className="w-4 h-4" />
               인쇄 / PDF 저장
@@ -149,7 +149,7 @@ function MemberReportModal({
             <div className="flex items-center gap-6 mb-3">
               <div className={cn(
                 "px-6 py-4 rounded-xl border-2 text-center",
-                data.avgScore >= 7 ? "border-teal-500 bg-teal-50" :
+                data.avgScore >= 7 ? "border-emerald-600 bg-emerald-50" :
                 data.avgScore >= 5 ? "border-amber-500 bg-amber-50" :
                 data.avgScore > 0 ? "border-red-400 bg-red-50" :
                 "border-slate-200 bg-slate-50"
@@ -157,18 +157,18 @@ function MemberReportModal({
                 <p className="text-sm text-slate-500 mb-1">종합 점수</p>
                 <p className={cn(
                   "text-3xl font-bold font-mono",
-                  data.avgScore >= 7 ? "text-teal-600" :
-                  data.avgScore >= 5 ? "text-amber-600" :
-                  data.avgScore > 0 ? "text-red-500" :
+                  data.avgScore >= 7 ? "text-emerald-700" :
+                  data.avgScore >= 5 ? "text-amber-700" :
+                  data.avgScore > 0 ? "text-red-700" :
                   "text-slate-300"
                 )}>
                   {data.avgScore > 0 ? data.avgScore.toFixed(1) : "-"}<span className="text-base text-slate-400">/9</span>
                 </p>
                 <p className={cn(
                   "text-sm font-medium mt-1",
-                  data.avgScore >= 7 ? "text-teal-600" :
-                  data.avgScore >= 5 ? "text-amber-600" :
-                  data.avgScore > 0 ? "text-red-500" :
+                  data.avgScore >= 7 ? "text-emerald-700" :
+                  data.avgScore >= 5 ? "text-amber-700" :
+                  data.avgScore > 0 ? "text-red-700" :
                   "text-slate-400"
                 )}>
                   {getScoreLabel(data.avgScore)}
@@ -191,10 +191,10 @@ function MemberReportModal({
             <table className="w-full border-collapse text-sm mb-3">
               <thead>
                 <tr>
-                  <th className="bg-[#f0fdfa] border border-[#ccfbf1] px-3 py-2 text-left font-semibold text-[#0f766e]">역량</th>
-                  <th className="bg-[#f0fdfa] border border-[#ccfbf1] px-3 py-2 text-left font-semibold text-[#0f766e]">활동유형</th>
-                  <th className="bg-[#f0fdfa] border border-[#ccfbf1] px-3 py-2 text-right font-semibold text-[#0f766e] w-20">점수</th>
-                  <th className="bg-[#f0fdfa] border border-[#ccfbf1] px-3 py-2 text-center font-semibold text-[#0f766e] w-16">판정</th>
+                  <th className="bg-[#ecfdf5] border border-[#a7f3d0] px-3 py-2 text-left font-semibold text-[#065f46]">역량</th>
+                  <th className="bg-[#ecfdf5] border border-[#a7f3d0] px-3 py-2 text-left font-semibold text-[#065f46]">활동유형</th>
+                  <th className="bg-[#ecfdf5] border border-[#a7f3d0] px-3 py-2 text-right font-semibold text-[#065f46] w-20">점수</th>
+                  <th className="bg-[#ecfdf5] border border-[#a7f3d0] px-3 py-2 text-center font-semibold text-[#065f46] w-16">판정</th>
                 </tr>
               </thead>
               <tbody>
@@ -207,9 +207,9 @@ function MemberReportModal({
                     <td className="border border-slate-200 px-3 py-2 text-slate-500">{c.activityType}</td>
                     <td className={cn(
                       "border border-slate-200 px-3 py-2 text-right font-mono font-bold",
-                      c.score >= 7 ? "score-excellent text-teal-600" :
-                      c.score >= 5 ? "score-good text-amber-600" :
-                      c.score > 0 ? "score-poor text-red-500" :
+                      c.score >= 7 ? "score-excellent text-emerald-700" :
+                      c.score >= 5 ? "score-good text-amber-700" :
+                      c.score > 0 ? "score-poor text-red-700" :
                       "text-slate-300"
                     )}>
                       {c.score > 0 ? c.score.toFixed(1) : "-"}
@@ -229,8 +229,8 @@ function MemberReportModal({
               <h3 className="text-base font-bold text-[#006341] mb-3 pb-1 border-b border-slate-200">3. 강점 영역</h3>
               <div className="space-y-2">
                 {strengths.map((c) => (
-                  <div key={c.label} className="bg-teal-50 border border-teal-200 rounded-lg px-4 py-3">
-                    <p className="text-sm font-semibold text-teal-700 mb-1">
+                  <div key={c.label} className="bg-emerald-50 border border-emerald-200 rounded-lg px-4 py-3">
+                    <p className="text-sm font-semibold text-emerald-700 mb-1">
                       {c.label} ({c.score.toFixed(1)}/9 — {getScoreLabel(c.score)})
                     </p>
                     <p className="text-sm text-slate-600">{getImprovementAdvice(c.score, c.label)}</p>
@@ -280,7 +280,7 @@ function MemberReportModal({
                   </div>
                 ))}
               {data.competencyScores.filter((c) => c.score > 0 && c.score < 8).length === 0 && (
-                <p className="text-sm text-teal-600">모든 평가된 역량에서 탁월한 수준을 보이고 있습니다.</p>
+                <p className="text-sm text-emerald-700">모든 평가된 역량에서 탁월한 수준을 보이고 있습니다.</p>
               )}
             </div>
           </div>
@@ -490,17 +490,17 @@ export default function GroupDashboard({ session, onBack, onViewMember }: GroupD
       {/* 헤더 */}
       <div className="flex items-center justify-between no-print">
         <div className="flex items-center gap-3">
-          <button onClick={onBack} className="text-slate-500 hover:text-teal-600 transition-colors" aria-label="뒤로 가기">
+          <button onClick={onBack} className="text-slate-500 hover:text-emerald-700 transition-colors" aria-label="뒤로 가기">
             <ArrowLeft className="w-4 h-4" />
           </button>
           <div>
-            <h2 className="text-xl font-bold text-teal-600">{session.name} -- 비교 대시보드</h2>
+            <h2 className="text-xl font-bold text-emerald-700">{session.name} -- 비교 대시보드</h2>
             <p className="text-sm text-slate-500">{session.members.length}명 역량 비교 -- 디브리핑용</p>
           </div>
         </div>
         <button
           onClick={() => window.print()}
-          className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium bg-white text-slate-700 border border-slate-200 hover:border-teal-500/30 hover:text-teal-600 transition-all duration-200"
+          className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium bg-white text-slate-700 border border-slate-200 hover:border-emerald-600/30 hover:text-emerald-700 transition-all duration-200"
         >
           <Printer className="w-4 h-4" />
           전체 보고서 인쇄
@@ -568,7 +568,7 @@ export default function GroupDashboard({ session, onBack, onViewMember }: GroupD
           <p className="text-sm text-amber-700 mb-1">
             비교 대시보드를 보려면 먼저 역량별 영상 분석을 진행해주세요.
           </p>
-          <p className="text-xs text-amber-600/70">
+          <p className="text-xs text-amber-700/80">
             조 관리 화면에서 영상을 업로드하고 &ldquo;분석 시작&rdquo; 버튼을 눌러주세요.
           </p>
           <button
@@ -605,9 +605,9 @@ export default function GroupDashboard({ session, onBack, onViewMember }: GroupD
             <div className="mt-2 flex items-baseline gap-1">
               <span className={cn(
                 "text-lg font-bold font-mono",
-                m.avgScore >= 7 ? "text-teal-600" :
-                m.avgScore >= 5 ? "text-amber-600" :
-                m.avgScore > 0 ? "text-red-500" :
+                m.avgScore >= 7 ? "text-emerald-700" :
+                m.avgScore >= 5 ? "text-amber-700" :
+                m.avgScore > 0 ? "text-red-700" :
                 "text-slate-300"
               )}>
                 {m.avgScore > 0 ? m.avgScore.toFixed(1) : "\u2014"}
@@ -628,13 +628,13 @@ export default function GroupDashboard({ session, onBack, onViewMember }: GroupD
             <div className="mt-3 flex gap-1.5 no-print">
               <button
                 onClick={() => onViewMember(m.id)}
-                className="flex-1 text-[10px] font-medium px-2 py-1.5 rounded-lg bg-slate-50 text-slate-600 border border-slate-200/60 hover:border-teal-500/30 hover:text-teal-600 transition-all"
+                className="flex-1 text-[10px] font-medium px-2 py-1.5 rounded-lg bg-slate-50 text-slate-600 border border-slate-200/60 hover:border-emerald-600/30 hover:text-emerald-700 transition-all"
               >
                 분석 보기
               </button>
               <button
                 onClick={(e) => { e.stopPropagation(); setReportMemberId(m.id); }}
-                className="flex items-center gap-0.5 text-[10px] font-medium px-2 py-1.5 rounded-lg bg-teal-50 text-teal-600 border border-teal-200/60 hover:bg-teal-100 transition-all"
+                className="flex items-center gap-0.5 text-[10px] font-medium px-2 py-1.5 rounded-lg bg-emerald-50 text-emerald-700 border border-emerald-200/60 hover:bg-emerald-100 transition-all"
                 title="개인 보고서 인쇄"
               >
                 <FileText className="w-3 h-3" />
@@ -647,20 +647,20 @@ export default function GroupDashboard({ session, onBack, onViewMember }: GroupD
 
       {/* ── 조 자동 요약 카드 (디브리핑 오프닝용) ── */}
       {groupSummary && groupSummary.length > 0 && (
-        <div className="bg-gradient-to-br from-teal-50 to-emerald-50/50 border border-teal-200/50 rounded-xl p-5 print-group-summary">
+        <div className="bg-gradient-to-br from-emerald-50 to-emerald-100/40 border border-emerald-200/50 rounded-xl p-5 print-group-summary">
           <div className="flex items-center gap-2 mb-3">
-            <div className="w-8 h-8 rounded-lg bg-teal-100 flex items-center justify-center">
-              <Lightbulb className="w-4 h-4 text-teal-600" />
+            <div className="w-8 h-8 rounded-lg bg-emerald-100 flex items-center justify-center">
+              <Lightbulb className="w-4 h-4 text-emerald-700" />
             </div>
             <div>
-              <h3 className="text-sm font-bold text-teal-700">이 조의 핵심 특징</h3>
-              <p className="text-[10px] text-teal-500">AI 자동 요약 -- 디브리핑 시작 멘트에 활용하세요</p>
+              <h3 className="text-sm font-bold text-emerald-700">이 조의 핵심 특징</h3>
+              <p className="text-[10px] text-emerald-700">AI 자동 요약 -- 디브리핑 시작 멘트에 활용하세요</p>
             </div>
           </div>
           <div className="space-y-1.5">
             {groupSummary.map((line, i) => (
               <div key={i} className="flex items-start gap-2">
-                <span className="text-xs font-mono font-bold text-teal-500 bg-teal-100/80 rounded px-1.5 py-0.5 shrink-0 mt-0.5">
+                <span className="text-xs font-mono font-bold text-emerald-700 bg-emerald-100/80 rounded px-1.5 py-0.5 shrink-0 mt-0.5">
                   {i + 1}
                 </span>
                 <p className="text-sm text-slate-700 leading-relaxed">{line}</p>
@@ -674,10 +674,10 @@ export default function GroupDashboard({ session, onBack, onViewMember }: GroupD
       {hasAnyAnalysis && (
         <div className="bg-white border border-slate-200/40 rounded-xl p-5 print-heatmap">
           <div className="flex items-center gap-2 mb-4">
-            <Grid3X3 className="w-4 h-4 text-teal-600" />
+            <Grid3X3 className="w-4 h-4 text-emerald-700" />
             <h3 className="text-base font-semibold text-slate-800">역량별 비교 히트맵</h3>
-            <div className="ml-auto flex items-center gap-3 text-[10px] text-slate-400">
-              <span className="flex items-center gap-1"><span className="w-3 h-3 rounded bg-teal-500 inline-block" />7+</span>
+            <div className="ml-auto flex items-center gap-3 text-[10px] text-slate-500">
+              <span className="flex items-center gap-1"><span className="w-3 h-3 rounded bg-emerald-600 inline-block" />7+</span>
               <span className="flex items-center gap-1"><span className="w-3 h-3 rounded bg-amber-400 inline-block" />5-6</span>
               <span className="flex items-center gap-1"><span className="w-3 h-3 rounded bg-red-400 inline-block" />~4</span>
               <span className="flex items-center gap-1"><span className="w-3 h-3 rounded bg-slate-200 inline-block" />미평가</span>
@@ -717,7 +717,7 @@ export default function GroupDashboard({ session, onBack, onViewMember }: GroupD
                         <td key={s.competencyKey} className="px-3 py-2.5 text-center">
                           <div className={cn(
                             "inline-flex items-center justify-center w-12 h-8 rounded-lg text-sm font-mono font-bold transition-all",
-                            s.score >= 7 ? "bg-teal-500 text-white" :
+                            s.score >= 7 ? "bg-emerald-600 text-white" :
                             s.score >= 5 ? "bg-amber-400 text-white" :
                             s.score > 0 ? "bg-red-400 text-white" :
                             "bg-slate-100 text-slate-300"
@@ -729,9 +729,9 @@ export default function GroupDashboard({ session, onBack, onViewMember }: GroupD
                       <td className="px-3 py-2.5 text-center">
                         <div className={cn(
                           "inline-flex items-center justify-center w-12 h-8 rounded-lg text-sm font-mono font-bold border-2",
-                          avg >= 7 ? "border-teal-500 text-teal-600 bg-teal-50" :
-                          avg >= 5 ? "border-amber-400 text-amber-600 bg-amber-50" :
-                          avg > 0 ? "border-red-400 text-red-500 bg-red-50" :
+                          avg >= 7 ? "border-emerald-600 text-emerald-700 bg-emerald-50" :
+                          avg >= 5 ? "border-amber-400 text-amber-700 bg-amber-50" :
+                          avg > 0 ? "border-red-400 text-red-700 bg-red-50" :
                           "border-slate-200 text-slate-300 bg-slate-50"
                         )}>
                           {avg > 0 ? avg.toFixed(1) : "-"}
@@ -755,9 +755,9 @@ export default function GroupDashboard({ session, onBack, onViewMember }: GroupD
                       <td key={comp.key} className="px-3 py-2.5 text-center">
                         <span className={cn(
                           "text-xs font-mono font-bold",
-                          avg >= 7 ? "text-teal-600" :
-                          avg >= 5 ? "text-amber-600" :
-                          avg > 0 ? "text-red-500" :
+                          avg >= 7 ? "text-emerald-700" :
+                          avg >= 5 ? "text-amber-700" :
+                          avg > 0 ? "text-red-700" :
                           "text-slate-300"
                         )}>
                           {avg > 0 ? avg.toFixed(1) : "-"}
@@ -774,9 +774,9 @@ export default function GroupDashboard({ session, onBack, onViewMember }: GroupD
                       return (
                         <span className={cn(
                           "text-xs font-mono font-bold",
-                          totalAvg >= 7 ? "text-teal-600" :
-                          totalAvg >= 5 ? "text-amber-600" :
-                          totalAvg > 0 ? "text-red-500" :
+                          totalAvg >= 7 ? "text-emerald-700" :
+                          totalAvg >= 5 ? "text-amber-700" :
+                          totalAvg > 0 ? "text-red-700" :
                           "text-slate-300"
                         )}>
                           {totalAvg > 0 ? totalAvg.toFixed(1) : "-"}
@@ -794,7 +794,7 @@ export default function GroupDashboard({ session, onBack, onViewMember }: GroupD
       {/* 6명 겹침 레이더 차트 */}
       <div className="bg-white border border-slate-200/40 rounded-xl p-6 print-page-break-after-chart">
         <div className="flex items-center gap-2 mb-4">
-          <Users className="w-4 h-4 text-teal-600" />
+          <Users className="w-4 h-4 text-emerald-700" />
           <h3 className="text-base font-semibold text-slate-800">6명 역량 프로파일 비교</h3>
         </div>
         <div className="flex justify-center">
@@ -851,7 +851,7 @@ export default function GroupDashboard({ session, onBack, onViewMember }: GroupD
                       className="h-full rounded-full transition-all duration-500"
                       style={{
                         width: `${(m.score / 9) * 100}%`,
-                        backgroundColor: m.score >= 7 ? "#14b8a6" : m.score >= 5 ? "#f59e0b" : m.score > 0 ? "#ef4444" : "#e2e8f0",
+                        backgroundColor: m.score >= 7 ? "#059669" : m.score >= 5 ? "#f59e0b" : m.score > 0 ? "#ef4444" : "#e2e8f0",
                       }}
                     />
                   </div>
@@ -873,13 +873,13 @@ export default function GroupDashboard({ session, onBack, onViewMember }: GroupD
                     className="h-full rounded-full transition-all duration-500"
                     style={{
                       width: `${(groupAvg / 9) * 100}%`,
-                      backgroundColor: groupAvg >= 7 ? "#14b8a6" : groupAvg >= 5 ? "#f59e0b" : groupAvg > 0 ? "#ef4444" : "#e2e8f0",
+                      backgroundColor: groupAvg >= 7 ? "#059669" : groupAvg >= 5 ? "#f59e0b" : groupAvg > 0 ? "#ef4444" : "#e2e8f0",
                     }}
                   />
                 </div>
                 <span className={cn(
                   "text-xs font-mono font-bold w-8 text-right",
-                  groupAvg >= 7 ? "text-teal-600" : groupAvg >= 5 ? "text-amber-600" : groupAvg > 0 ? "text-red-500" : "text-slate-300"
+                  groupAvg >= 7 ? "text-emerald-700" : groupAvg >= 5 ? "text-amber-700" : groupAvg > 0 ? "text-red-700" : "text-slate-300"
                 )}>
                   {groupAvg > 0 ? groupAvg.toFixed(1) : "\u2014"}
                 </span>
@@ -893,24 +893,24 @@ export default function GroupDashboard({ session, onBack, onViewMember }: GroupD
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         {/* Top performer */}
         {overallRanking[0]?.avgScore > 0 && (
-          <div className="bg-teal-50/50 border border-teal-200/50 rounded-xl p-4">
+          <div className="bg-emerald-50/50 border border-emerald-200/50 rounded-xl p-4">
             <div className="flex items-center gap-2 mb-2">
-              <Trophy className="w-4 h-4 text-teal-600" />
-              <p className="text-sm font-semibold text-teal-700">최고 평가자</p>
+              <Trophy className="w-4 h-4 text-emerald-700" />
+              <p className="text-sm font-semibold text-emerald-700">최고 평가자</p>
             </div>
-            <p className="text-base font-bold text-teal-800">{overallRanking[0].name}</p>
-            <p className="text-sm text-teal-600">종합 {overallRanking[0].avgScore.toFixed(1)}/9</p>
+            <p className="text-base font-bold text-emerald-800">{overallRanking[0].name}</p>
+            <p className="text-sm text-emerald-700">종합 {overallRanking[0].avgScore.toFixed(1)}/9</p>
           </div>
         )}
         {/* 개선 필요 */}
         {overallRanking.length > 1 && overallRanking[overallRanking.length - 1]?.avgScore > 0 && (
           <div className="bg-amber-50/50 border border-amber-200/50 rounded-xl p-4">
             <div className="flex items-center gap-2 mb-2">
-              <TrendingDown className="w-4 h-4 text-amber-600" />
+              <TrendingDown className="w-4 h-4 text-amber-700" />
               <p className="text-sm font-semibold text-amber-700">집중 코칭 대상</p>
             </div>
             <p className="text-base font-bold text-amber-800">{overallRanking[overallRanking.length - 1].name}</p>
-            <p className="text-sm text-amber-600">종합 {overallRanking[overallRanking.length - 1].avgScore.toFixed(1)}/9</p>
+            <p className="text-sm text-amber-700">종합 {overallRanking[overallRanking.length - 1].avgScore.toFixed(1)}/9</p>
           </div>
         )}
       </div>

@@ -101,19 +101,19 @@ export default function HRConnectorPanel({ onImport }: HRConnectorPanelProps) {
         onClick={() => fileInputRef.current?.click()}
         className={`flex cursor-pointer flex-col items-center justify-center gap-3 rounded-lg border-2 border-dashed px-6 py-10 transition-colors ${
           isDragging
-            ? "border-teal-500 bg-teal-500/10"
+            ? "border-emerald-500 bg-emerald-500/10"
             : "border-white/15 bg-white/[0.02] hover:border-white/30 hover:bg-white/[0.04]"
         }`}
       >
         <Upload
           className={`h-8 w-8 transition-colors ${
-            isDragging ? "text-teal-400" : "text-white/30"
+            isDragging ? "text-emerald-400" : "text-white/30"
           }`}
         />
         <div className="text-center">
           <p className="text-sm font-medium text-white/70">
             CSV 파일을 드래그하거나{" "}
-            <span className="text-teal-400 underline underline-offset-2">클릭하여 선택</span>
+            <span className="text-emerald-400 underline underline-offset-2">클릭하여 선택</span>
           </p>
           <p className="mt-1 text-xs text-white/35">UTF-8 인코딩 CSV만 지원</p>
         </div>
@@ -140,7 +140,7 @@ export default function HRConnectorPanel({ onImport }: HRConnectorPanelProps) {
           {/* 성공/오류 요약 배지 */}
           <div className="flex items-center gap-3 flex-wrap">
             {hasSuccess && (
-              <span className="inline-flex items-center gap-1.5 rounded-full bg-teal-500/15 border border-teal-500/30 px-3 py-1 text-xs font-medium text-teal-300">
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-500/15 border border-emerald-500/30 px-3 py-1 text-xs font-medium text-emerald-300">
                 <CheckCircle className="h-3.5 w-3.5" />
                 {result.imported}명 불러오기 완료
               </span>
@@ -173,7 +173,7 @@ export default function HRConnectorPanel({ onImport }: HRConnectorPanelProps) {
           {hasSuccess && (
             <div className="overflow-hidden rounded-md border border-white/[0.07]">
               <div className="flex items-center gap-2 border-b border-white/[0.07] bg-white/[0.03] px-3 py-2">
-                <Users className="h-3.5 w-3.5 text-teal-400" />
+                <Users className="h-3.5 w-3.5 text-emerald-400" />
                 <span className="text-xs font-medium text-white/70">
                   참가자 미리보기 (최대 5명)
                 </span>

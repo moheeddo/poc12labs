@@ -17,10 +17,10 @@ function getRiskColors(level: DerailerPattern["riskLevel"]) {
   switch (level) {
     case "low":
       return {
-        gauge: "#14b8a6",    // teal-500
-        badge: "bg-teal-100 text-teal-700 border-teal-300",
-        card: "border-teal-200/40 bg-teal-50/20",
-        text: "text-teal-600",
+        gauge: "#006341",    // emerald (brand primary)
+        badge: "bg-emerald-100 text-emerald-700 border-emerald-300",
+        card: "border-emerald-200/40 bg-emerald-50/20",
+        text: "text-emerald-700",
         label: "낮음",
       };
     case "moderate":
@@ -54,7 +54,7 @@ function getRiskColors(level: DerailerPattern["riskLevel"]) {
 function getOverallRiskStyle(level: DerailerProfile["overallRiskLevel"]) {
   switch (level) {
     case "low":
-      return { cls: "bg-teal-50 text-teal-700 border-teal-300", label: "낮음", Icon: ShieldCheck };
+      return { cls: "bg-emerald-50 text-emerald-700 border-emerald-300", label: "낮음", Icon: ShieldCheck };
     case "moderate":
       return { cls: "bg-amber-50 text-amber-700 border-amber-300", label: "보통", Icon: Shield };
     case "high":
@@ -183,7 +183,7 @@ function PatternCard({ pattern, onSeekVideo }: PatternCardProps) {
                 <li key={i} className="flex items-center gap-1.5">
                   <button
                     onClick={() => onSeekVideo?.(ev.timestamp.start)}
-                    className="inline-flex items-center gap-0.5 text-[10px] font-mono text-teal-600 bg-teal-50 hover:bg-teal-100 border border-teal-200 rounded px-1.5 py-1 min-h-[28px] transition-colors whitespace-nowrap shrink-0"
+                    className="inline-flex items-center gap-0.5 text-[10px] font-mono text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 rounded px-1.5 py-1 min-h-[28px] transition-colors whitespace-nowrap shrink-0"
                   >
                     <PlayCircle className="w-2.5 h-2.5" />
                     {formatTime(ev.timestamp.start)}
@@ -338,7 +338,7 @@ export default function DerailerDashboard({
                         <button
                           key={i}
                           onClick={() => onSeekVideo?.(ev.timestamp.start)}
-                          className="inline-flex items-center gap-0.5 text-[10px] font-mono text-teal-600 bg-teal-50 hover:bg-teal-100 border border-teal-200 rounded px-1.5 py-1 min-h-[28px] transition-colors"
+                          className="inline-flex items-center gap-0.5 text-[10px] font-mono text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 rounded px-1.5 py-1 min-h-[28px] transition-colors"
                           title={ev.description}
                         >
                           <PlayCircle className="w-2.5 h-2.5" />

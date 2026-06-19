@@ -17,7 +17,7 @@ import { formatTime, cn } from "@/lib/utils";
 
 // ─── 화자 색상 팔레트 ───
 const SPEAKER_PALETTE = [
-  { name: "화자 A", color: "#14b8a6", bg: "bg-teal-500/12", border: "border-teal-500/25", text: "text-teal-600", ring: "ring-teal-500/20" },
+  { name: "화자 A", color: "#006341", bg: "bg-emerald-600/12", border: "border-emerald-600/25", text: "text-emerald-700", ring: "ring-emerald-600/20" },
   { name: "화자 B", color: "#f59e0b", bg: "bg-amber-500/12", border: "border-amber-500/25", text: "text-amber-600", ring: "ring-amber-500/20" },
   { name: "화자 C", color: "#8b5cf6", bg: "bg-violet-500/12", border: "border-violet-500/25", text: "text-violet-600", ring: "ring-violet-500/20" },
   { name: "화자 D", color: "#ef4444", bg: "bg-red-500/12", border: "border-red-500/25", text: "text-red-400", ring: "ring-red-500/20" },
@@ -190,7 +190,7 @@ export default function TranscriptTimeline({
     return (
       <div className="flex items-center justify-center py-16">
         <div className="flex flex-col items-center gap-3">
-          <div className="w-8 h-8 border-2 border-teal-500/30 border-t-teal-400 rounded-full animate-spin" />
+          <div className="w-8 h-8 border-2 border-emerald-600/30 border-t-emerald-600 rounded-full animate-spin" />
           <p className="text-base text-slate-500">전사 데이터 로딩 중...</p>
         </div>
       </div>
@@ -202,8 +202,8 @@ export default function TranscriptTimeline({
       {/* ─── 헤더 바 ─── */}
       <div className="flex items-center justify-between px-1 mb-4">
         <div className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded-lg bg-teal-50 flex items-center justify-center">
-            <FileText className="w-4 h-4 text-teal-600" />
+          <div className="w-8 h-8 rounded-lg bg-emerald-50 flex items-center justify-center">
+            <FileText className="w-4 h-4 text-emerald-700" />
           </div>
           <div>
             <h4 className="text-base font-semibold text-slate-700">디브리핑 대본</h4>
@@ -218,7 +218,7 @@ export default function TranscriptTimeline({
             onClick={() => setAutoScroll(!autoScroll)}
             className={cn(
               "min-h-[44px] min-w-[44px] flex items-center justify-center rounded-md text-sm transition-colors",
-              autoScroll ? "bg-teal-50 text-teal-600" : "text-slate-400 hover:text-slate-500"
+              autoScroll ? "bg-emerald-50 text-emerald-700" : "text-slate-500 hover:text-slate-700"
             )}
             title="자동 스크롤"
             aria-label={autoScroll ? "자동 스크롤 끄기" : "자동 스크롤 켜기"}
@@ -248,10 +248,10 @@ export default function TranscriptTimeline({
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           placeholder="대본 내 검색..."
-          className="w-full pl-9 pr-3 py-2 bg-slate-50/50 border border-slate-200/40 rounded-lg text-sm text-slate-900 placeholder:text-slate-400 outline-none focus:border-teal-500/30 focus:ring-1 focus:ring-teal-500/15 transition-all"
+          className="w-full pl-9 pr-3 py-2 bg-slate-50/50 border border-slate-200/40 rounded-lg text-sm text-slate-900 placeholder:text-slate-400 outline-none focus:border-emerald-600/30 focus:ring-1 focus:ring-emerald-600/15 transition-all"
         />
         {searchQuery && (
-          <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-teal-600 font-mono">
+          <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-emerald-700 font-mono">
             {filtered.length}건
           </span>
         )}
@@ -283,11 +283,11 @@ export default function TranscriptTimeline({
               {/* 챕터 구분선 */}
               {showChapterBoundary && (
                 <div className="flex items-center gap-3 py-3 mt-2 first:mt-0">
-                  <div className="h-px flex-1 bg-gradient-to-r from-teal-500/20 to-transparent" />
-                  <span className="text-sm font-medium text-teal-500/60 uppercase tracking-wider whitespace-nowrap">
+                  <div className="h-px flex-1 bg-gradient-to-r from-emerald-600/20 to-transparent" />
+                  <span className="text-sm font-medium text-emerald-700/70 uppercase tracking-wider whitespace-nowrap">
                     {chapter.title}
                   </span>
-                  <div className="h-px flex-1 bg-gradient-to-l from-teal-500/20 to-transparent" />
+                  <div className="h-px flex-1 bg-gradient-to-l from-emerald-600/20 to-transparent" />
                 </div>
               )}
 
@@ -297,7 +297,7 @@ export default function TranscriptTimeline({
                 className={cn(
                   "group relative rounded-xl transition-all duration-200 cursor-pointer",
                   isActive
-                    ? "bg-teal-50/60 ring-1 ring-teal-500/20 shadow-sm"
+                    ? "bg-emerald-50/60 ring-1 ring-emerald-600/20 shadow-sm"
                     : "hover:bg-slate-50/60",
                   isBookmarked && !isActive && "bg-amber-50/30"
                 )}
@@ -311,7 +311,7 @@ export default function TranscriptTimeline({
                         e.stopPropagation();
                         onSeek(seg.start);
                       }}
-                      className="inline-flex items-center gap-1 text-teal-600 font-mono text-sm hover:text-teal-500 transition-colors"
+                      className="inline-flex items-center gap-1 text-emerald-700 font-mono text-sm hover:text-emerald-600 transition-colors"
                     >
                       <PlayCircle className="w-3.5 h-3.5" />
                       {formatTime(seg.start)}
@@ -328,8 +328,8 @@ export default function TranscriptTimeline({
                     )}
 
                     {isActive && (
-                      <span className="inline-flex items-center gap-1 text-[10px] text-teal-600 font-medium animate-pulse">
-                        <div className="w-1.5 h-1.5 rounded-full bg-teal-400" />
+                      <span className="inline-flex items-center gap-1 text-[10px] text-emerald-700 font-medium animate-pulse">
+                        <div className="w-1.5 h-1.5 rounded-full bg-emerald-600" />
                         재생 중
                       </span>
                     )}
@@ -396,7 +396,7 @@ export default function TranscriptTimeline({
                   .join("\n\n");
                 navigator.clipboard.writeText(text);
               }}
-              className="text-sm text-slate-400 hover:text-teal-600 transition-colors flex items-center gap-1"
+              className="text-sm text-slate-500 hover:text-emerald-700 transition-colors flex items-center gap-1"
             >
               <Download className="w-3 h-3" />
               복사
@@ -414,7 +414,7 @@ export default function TranscriptTimeline({
                     onClick={() => onSeek(s.start)}
                     className="w-full text-left flex items-center gap-2 px-2 py-1 rounded-md hover:bg-slate-50/60 transition-colors"
                   >
-                    <span className="text-sm font-mono text-teal-600">{formatTime(s.start)}</span>
+                    <span className="text-sm font-mono text-emerald-700">{formatTime(s.start)}</span>
                     <span className="text-sm text-slate-600 truncate flex-1">{s.text}</span>
                   </button>
                 );
@@ -438,7 +438,7 @@ function highlightText(text: string, query: string) {
     <>
       {parts.map((part, i) =>
         regex.test(part) ? (
-          <mark key={i} className="bg-teal-100 text-teal-700 rounded-sm px-0.5">
+          <mark key={i} className="bg-emerald-100 text-emerald-700 rounded-sm px-0.5">
             {part}
           </mark>
         ) : (

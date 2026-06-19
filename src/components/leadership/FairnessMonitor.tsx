@@ -21,13 +21,13 @@ function FourFifthsGauge({
   const pct = Math.min(100, (ratio / maxRatio) * 100);
   const thresholdPct = (0.8 / maxRatio) * 100; // 66.67%
 
-  const barColor = impacted ? "bg-red-500" : ratio >= 0.9 ? "bg-teal-500" : "bg-amber-500";
+  const barColor = impacted ? "bg-red-500" : ratio >= 0.9 ? "bg-emerald-600" : "bg-amber-500";
 
   return (
     <div className="space-y-1.5">
       <div className="flex justify-between text-xs text-white/50">
         <span>4/5 비율 (Adverse Impact)</span>
-        <span className={impacted ? "text-red-400 font-semibold" : "text-teal-400 font-semibold"}>
+        <span className={impacted ? "text-red-400 font-semibold" : "text-emerald-400 font-semibold"}>
           {ratio.toFixed(2)}
         </span>
       </div>
@@ -103,7 +103,7 @@ function VariableCard({ dist }: { dist: GroupDistribution }) {
             편향 감지
           </span>
         ) : (
-          <span className="inline-flex items-center gap-1 rounded-full border border-teal-500/30 bg-teal-500/10 px-2.5 py-0.5 text-xs font-semibold text-teal-400">
+          <span className="inline-flex items-center gap-1 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2.5 py-0.5 text-xs font-semibold text-emerald-400">
             <CheckCircle className="h-3 w-3" />
             공정
           </span>
@@ -173,8 +173,8 @@ export default function FairnessMonitor({ report, loading = false }: FairnessMon
   const fairnessConfig = {
     pass: {
       label: "PASS — 편향 없음",
-      icon: <CheckCircle className="h-8 w-8 text-teal-400" />,
-      className: "border-teal-500/30 bg-teal-500/10 text-teal-400",
+      icon: <CheckCircle className="h-8 w-8 text-emerald-400" />,
+      className: "border-emerald-500/30 bg-emerald-500/10 text-emerald-400",
       textSize: "text-2xl",
     },
     warning: {
@@ -197,7 +197,7 @@ export default function FairnessMonitor({ report, loading = false }: FairnessMon
     <div className="space-y-6">
       {/* 헤더 */}
       <div className="flex items-center gap-2">
-        <Shield className="h-5 w-5 text-teal-400" />
+        <Shield className="h-5 w-5 text-emerald-400" />
         <h3 className="text-base font-semibold text-white">공정성 모니터</h3>
       </div>
 

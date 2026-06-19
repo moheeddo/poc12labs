@@ -36,7 +36,7 @@ const COMPETENCY_COLORS: Record<string, string> = {
 };
 
 const DEFAULT_LINE_COLORS = [
-  "#14b8a6", "#f59e0b", "#8b5cf6", "#ef4444", "#3b82f6", "#10b981", "#f97316", "#06b6d4",
+  "#006341", "#f59e0b", "#8b5cf6", "#ef4444", "#3b82f6", "#10b981", "#f97316", "#06b6d4",
 ];
 
 const COMPETENCY_LABELS: Record<string, string> = {
@@ -139,7 +139,7 @@ export default function GrowthChart({ timeline, loading = false }: GrowthChartPr
     return (
       <div className="flex items-center justify-center py-16">
         <div className="flex flex-col items-center gap-3">
-          <div className="w-8 h-8 border-2 border-teal-500/30 border-t-teal-400 rounded-full animate-spin" />
+          <div className="w-8 h-8 border-2 border-emerald-600/30 border-t-emerald-600 rounded-full animate-spin" />
           <p className="text-sm text-slate-500">성장 데이터 로딩 중...</p>
         </div>
       </div>

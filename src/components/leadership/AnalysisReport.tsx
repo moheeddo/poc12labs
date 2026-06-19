@@ -34,10 +34,10 @@ interface AnalysisReportProps {
 }
 
 function getScoreColor(score: number) {
-  if (score >= 7) return "text-teal-600";
-  if (score >= 5) return "text-amber-600";
-  if (score > 0) return "text-red-400";
-  return "text-slate-400";
+  if (score >= 7) return "text-emerald-700";
+  if (score >= 5) return "text-amber-700";
+  if (score > 0) return "text-red-700";
+  return "text-slate-500";
 }
 
 function getScoreLabel(score: number) {
@@ -50,7 +50,7 @@ function getScoreLabel(score: number) {
 }
 
 function getScoreBg(score: number) {
-  if (score >= 7) return "bg-teal-50 border-teal-500/30";
+  if (score >= 7) return "bg-emerald-50 border-emerald-500/30";
   if (score >= 5) return "bg-amber-500/15 border-amber-500/30";
   if (score > 0) return "bg-red-500/15 border-red-500/30";
   return "bg-slate-100/30 border-slate-200/40";
@@ -88,10 +88,10 @@ export default function AnalysisReport({ data, onSeek }: AnalysisReportProps) {
     <div className="space-y-5 animate-fade-in-up">
       {/* ── 종합 점수 헤더 ── */}
       <div className="bg-white border border-slate-200/40 rounded-2xl overflow-hidden">
-        <div className="bg-gradient-to-r from-teal-50 to-emerald-50 px-5 py-4 border-b border-slate-200/30">
+        <div className="bg-gradient-to-r from-emerald-50 to-emerald-100/50 px-5 py-4 border-b border-slate-200/30">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-teal-100 flex items-center justify-center">
-              <BarChart3 className="w-5 h-5 text-teal-600" />
+            <div className="w-10 h-10 rounded-xl bg-emerald-100 flex items-center justify-center">
+              <BarChart3 className="w-5 h-5 text-emerald-700" />
             </div>
             <div>
               <h3 className="text-base font-bold text-slate-900">BARS 역량 분석 리포트</h3>
@@ -116,9 +116,9 @@ export default function AnalysisReport({ data, onSeek }: AnalysisReportProps) {
               {hasScores && (
                 <span className={cn(
                   "inline-block text-xs font-semibold mt-2 px-2.5 py-1 rounded-full",
-                  data.overallScore >= 7 ? "bg-teal-100 text-teal-700" :
+                  data.overallScore >= 7 ? "bg-emerald-100 text-emerald-700" :
                   data.overallScore >= 5 ? "bg-amber-100 text-amber-700" :
-                  "bg-red-100 text-red-600"
+                  "bg-red-100 text-red-700"
                 )}>
                   {data.overallInterpretation || getScoreLabel(data.overallScore)}
                 </span>
@@ -152,8 +152,8 @@ export default function AnalysisReport({ data, onSeek }: AnalysisReportProps) {
 
       {/* ── 보고서 요약 (rubricurl 문서 4 규칙) ── */}
       {data.reportSummary ? (
-        <div className="bg-teal-50/50 border border-teal-500/15 rounded-xl p-5">
-          <p className="text-base text-teal-600 font-semibold mb-2 flex items-center gap-1.5">
+        <div className="bg-emerald-50/50 border border-emerald-500/15 rounded-xl p-5">
+          <p className="text-base text-emerald-700 font-semibold mb-2 flex items-center gap-1.5">
             <Sparkles className="w-4 h-4" />
             종합 평가 요약
           </p>
@@ -162,7 +162,7 @@ export default function AnalysisReport({ data, onSeek }: AnalysisReportProps) {
       ) : (
         <div className="bg-slate-50/50 border border-slate-200/30 rounded-xl p-4">
           <p className="text-sm text-slate-500 flex items-center gap-1.5">
-            <CheckCircle2 className="w-3.5 h-3.5 text-teal-500" />
+            <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
             BARS 분석 완료 — 역량별 상세 결과를 확인하세요
           </p>
         </div>
@@ -178,7 +178,7 @@ export default function AnalysisReport({ data, onSeek }: AnalysisReportProps) {
           <div className="space-y-2">
             {data.improvementPriorities.map((p) => (
               <div key={p.rank} className="flex items-start gap-2">
-                <span className="text-xs font-mono font-bold text-amber-600 bg-amber-100 rounded px-1.5 py-0.5 shrink-0">
+                <span className="text-xs font-mono font-bold text-amber-700 bg-amber-100 rounded px-1.5 py-0.5 shrink-0">
                   {p.rank}
                 </span>
                 <div>
@@ -194,8 +194,8 @@ export default function AnalysisReport({ data, onSeek }: AnalysisReportProps) {
       {/* ── AI 분석 요약 ── */}
       {data.aiSummary && (
         <div className="bg-white/60 border border-slate-200/40 rounded-xl p-5">
-          <p className="text-sm text-teal-600 font-medium flex items-center gap-1.5 mb-2">
-            <Sparkles className="w-3.5 h-3.5 text-teal-500" />
+          <p className="text-sm text-emerald-700 font-medium flex items-center gap-1.5 mb-2">
+            <Sparkles className="w-3.5 h-3.5 text-emerald-600" />
             AI 분석 요약
           </p>
           <p className="text-base text-slate-600 leading-[1.8]">{data.aiSummary}</p>
@@ -205,15 +205,15 @@ export default function AnalysisReport({ data, onSeek }: AnalysisReportProps) {
       {/* ── 강점/개선 + 레이더 (좌:강점개선, 우:차트 컴팩트) ── */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         {/* 강점 */}
-        <div className="bg-teal-500/5 border border-teal-500/15 rounded-xl p-3">
+        <div className="bg-emerald-500/5 border border-emerald-500/15 rounded-xl p-3">
           <div className="flex items-center gap-1.5 mb-2">
-            <TrendingUp className="w-3.5 h-3.5 text-teal-600" />
-            <p className="text-xs font-medium text-teal-600">강점</p>
+            <TrendingUp className="w-3.5 h-3.5 text-emerald-700" />
+            <p className="text-xs font-medium text-emerald-700">강점</p>
           </div>
           <div className="space-y-1.5">
             {data.topStrengths.length > 0 ? data.topStrengths.map((s, i) => (
               <div key={i} className="flex items-start gap-1.5">
-                <CheckCircle2 className="w-3 h-3 text-teal-500/60 shrink-0 mt-0.5" />
+                <CheckCircle2 className="w-3 h-3 text-emerald-600/60 shrink-0 mt-0.5" />
                 <p className="text-xs text-slate-600 leading-relaxed">{s}</p>
               </div>
             )) : <p className="text-xs text-slate-400">분석 후 표시됩니다</p>}
@@ -223,8 +223,8 @@ export default function AnalysisReport({ data, onSeek }: AnalysisReportProps) {
         {/* 개선 */}
         <div className="bg-amber-500/5 border border-amber-500/15 rounded-xl p-3">
           <div className="flex items-center gap-1.5 mb-2">
-            <AlertTriangle className="w-3.5 h-3.5 text-amber-600" />
-            <p className="text-xs font-medium text-amber-600">개선 포인트</p>
+            <AlertTriangle className="w-3.5 h-3.5 text-amber-700" />
+            <p className="text-xs font-medium text-amber-700">개선 포인트</p>
           </div>
           <div className="space-y-1.5">
             {data.topImprovements.length > 0 ? data.topImprovements.map((s, i) => (
@@ -247,11 +247,11 @@ export default function AnalysisReport({ data, onSeek }: AnalysisReportProps) {
                 <Radar
                   name="점수"
                   dataKey="score"
-                  stroke="#14b8a6"
-                  fill="#14b8a6"
+                  stroke="#006341"
+                  fill="#006341"
                   fillOpacity={0.2}
                   strokeWidth={2}
-                  dot={{ r: 3, fill: "#14b8a6", strokeWidth: 0 }}
+                  dot={{ r: 3, fill: "#006341", strokeWidth: 0 }}
                 />
                 <Tooltip content={<RadarTooltipContent />} />
               </RadarChart>
@@ -292,9 +292,9 @@ export default function AnalysisReport({ data, onSeek }: AnalysisReportProps) {
                 <span className="text-[11px] text-slate-400 font-mono">{c.evidenceCount}건</span>
                 <div className={cn(
                   "px-3 py-1.5 rounded-lg text-sm font-mono font-bold",
-                  c.avgScore >= 7 ? "bg-teal-50 text-teal-600 border border-teal-200" :
-                  c.avgScore >= 5 ? "bg-amber-50 text-amber-600 border border-amber-200" :
-                  c.avgScore > 0 ? "bg-red-50 text-red-500 border border-red-200" :
+                  c.avgScore >= 7 ? "bg-emerald-50 text-emerald-700 border border-emerald-200" :
+                  c.avgScore >= 5 ? "bg-amber-50 text-amber-700 border border-amber-200" :
+                  c.avgScore > 0 ? "bg-red-50 text-red-700 border border-red-200" :
                   "bg-slate-50 text-slate-400 border border-slate-200"
                 )}>
                   {c.avgScore > 0 ? `${c.avgScore.toFixed(1)}/9` : "미평가"}
@@ -310,20 +310,20 @@ export default function AnalysisReport({ data, onSeek }: AnalysisReportProps) {
               {c.topHighlight && (
                 <div className={cn(
                   "flex items-start gap-3 rounded-xl p-3.5",
-                  c.highlightTimestamp !== undefined && onSeek ? "bg-teal-50/50 border border-teal-100 cursor-pointer hover:bg-teal-50 transition-colors" : "bg-slate-50/50 border border-slate-100"
+                  c.highlightTimestamp !== undefined && onSeek ? "bg-emerald-50/50 border border-emerald-100 cursor-pointer hover:bg-emerald-50 transition-colors" : "bg-slate-50/50 border border-slate-100"
                 )}
                   onClick={() => {
                     if (c.highlightTimestamp !== undefined && onSeek) onSeek(c.highlightTimestamp);
                   }}
                 >
                   {c.highlightTimestamp !== undefined && onSeek && (
-                    <div className="shrink-0 w-10 h-10 rounded-lg bg-teal-100 flex items-center justify-center">
-                      <PlayCircle className="w-5 h-5 text-teal-600" />
+                    <div className="shrink-0 w-10 h-10 rounded-lg bg-emerald-100 flex items-center justify-center">
+                      <PlayCircle className="w-5 h-5 text-emerald-700" />
                     </div>
                   )}
                   <div className="flex-1 min-w-0">
                     {c.highlightTimestamp !== undefined && (
-                      <p className="text-[10px] font-mono text-teal-600 mb-0.5">{formatTime(c.highlightTimestamp)} 클릭하여 해당 장면 재생</p>
+                      <p className="text-[10px] font-mono text-emerald-700 mb-0.5">{formatTime(c.highlightTimestamp)} 클릭하여 해당 장면 재생</p>
                     )}
                     <p className="text-sm text-slate-600 leading-relaxed">{c.topHighlight}</p>
                   </div>
@@ -344,7 +344,7 @@ export default function AnalysisReport({ data, onSeek }: AnalysisReportProps) {
                         className={cn(
                           "rounded-xl border p-3.5 transition-all",
                           rs.evidenceTimestamp !== undefined && rs.evidenceTimestamp > 0 && onSeek
-                            ? "cursor-pointer hover:shadow-md hover:border-teal-200"
+                            ? "cursor-pointer hover:shadow-md hover:border-emerald-200"
                             : "",
                           "bg-white border-slate-100"
                         )}
@@ -364,7 +364,7 @@ export default function AnalysisReport({ data, onSeek }: AnalysisReportProps) {
                             <p className="text-xs text-slate-500 leading-relaxed">{rs.levelDescription}</p>
                           </div>
                           {rs.evidenceTimestamp !== undefined && rs.evidenceTimestamp > 0 && onSeek && (
-                            <div className="shrink-0 flex items-center gap-1 text-[11px] font-mono text-teal-600 bg-teal-50 rounded-lg px-2.5 py-1.5 border border-teal-100">
+                            <div className="shrink-0 flex items-center gap-1 text-[11px] font-mono text-emerald-700 bg-emerald-50 rounded-lg px-2.5 py-1.5 border border-emerald-100">
                               <PlayCircle className="w-3 h-3" />
                               {formatTime(rs.evidenceTimestamp)}
                             </div>
@@ -373,8 +373,8 @@ export default function AnalysisReport({ data, onSeek }: AnalysisReportProps) {
                         {/* 행동 근거 */}
                         {rs.evidenceText && (
                           <div className="mt-2 pt-2 border-t border-slate-100">
-                            <p className="text-[11px] text-teal-700/80 leading-relaxed flex items-start gap-1.5">
-                              <span className="shrink-0 text-[10px] bg-teal-100 text-teal-700 px-1.5 py-0.5 rounded font-medium">근거</span>
+                            <p className="text-[11px] text-emerald-700/90 leading-relaxed flex items-start gap-1.5">
+                              <span className="shrink-0 text-[10px] bg-emerald-100 text-emerald-700 px-1.5 py-0.5 rounded font-medium">근거</span>
                               <span className="italic">&ldquo;{rs.evidenceText}&rdquo;</span>
                             </p>
                           </div>
@@ -389,12 +389,12 @@ export default function AnalysisReport({ data, onSeek }: AnalysisReportProps) {
               {(c.strengths.length > 0 || c.improvements.length > 0) && (
                 <div className="flex flex-wrap gap-2 pt-2 border-t border-slate-100">
                   {c.strengths.map((s, i) => (
-                    <span key={i} className="text-xs bg-teal-50 text-teal-600 px-2.5 py-1 rounded-lg border border-teal-100 font-medium">
+                    <span key={i} className="text-xs bg-emerald-50 text-emerald-700 px-2.5 py-1 rounded-lg border border-emerald-100 font-medium">
                       {s}
                     </span>
                   ))}
                   {c.improvements.map((s, i) => (
-                    <span key={i} className="text-xs bg-amber-50 text-amber-600 px-2.5 py-1 rounded-lg border border-amber-100 font-medium">
+                    <span key={i} className="text-xs bg-amber-50 text-amber-700 px-2.5 py-1 rounded-lg border border-amber-100 font-medium">
                       {s}
                     </span>
                   ))}

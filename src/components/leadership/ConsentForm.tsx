@@ -71,7 +71,7 @@ export default function ConsentForm({
                 <span
                   className={`mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded border transition-colors ${
                     isChecked
-                      ? "border-teal-500 bg-teal-500"
+                      ? "border-emerald-600 bg-emerald-600"
                       : "border-white/30 bg-transparent"
                   }`}
                 >
@@ -115,7 +115,7 @@ export default function ConsentForm({
         disabled={!allRequired}
         className={`w-full rounded-md px-4 py-2.5 text-sm font-semibold transition-colors ${
           allRequired
-            ? "bg-teal-600 hover:bg-teal-500 text-white"
+            ? "bg-emerald-600 hover:bg-emerald-700 text-white"
             : "bg-white/[0.06] text-white/30 cursor-not-allowed"
         }`}
       >

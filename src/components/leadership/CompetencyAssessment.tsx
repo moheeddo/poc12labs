@@ -100,10 +100,10 @@ function ScoreSelector({
               "w-7 h-7 rounded-md text-sm font-mono font-semibold transition-all duration-150",
               filled
                 ? tier === "high"
-                  ? "bg-teal-100 text-teal-700 border border-teal-300"
+                  ? "bg-emerald-100 text-emerald-700 border border-emerald-300"
                   : tier === "mid"
                     ? "bg-amber-100 text-amber-700 border border-amber-300"
-                    : "bg-red-100 text-red-600 border border-red-300"
+                    : "bg-red-100 text-red-700 border border-red-300"
                 : "bg-slate-50/50 text-slate-400 border border-slate-200/50 hover:border-slate-200 hover:text-slate-500"
             )}
           >
@@ -112,7 +112,7 @@ function ScoreSelector({
         );
       })}
       {value > 0 && (
-        <span className={cn("text-sm font-medium ml-2 tabular-nums", value >= 6 ? "text-teal-600" : value >= 2 ? "text-amber-600" : "text-red-400")}>
+        <span className={cn("text-sm font-medium ml-2 tabular-nums", value >= 6 ? "text-emerald-700" : value >= 2 ? "text-amber-700" : "text-red-700")}>
           {value}점 · {getLabel(value)}
         </span>
       )}
@@ -172,8 +172,8 @@ function MultimodalIndicatorTable({
   onSubScoreChange: (id: string, level: number) => void;
 }) {
   const ChIcon = CHANNEL_ICONS[item.channel] || Activity;
-  const levelColors = ["text-red-400", "text-amber-600", "text-sky-400", "text-teal-600"];
-  const levelBgColors = ["bg-red-500/10", "bg-amber-50", "bg-sky-500/10", "bg-teal-50"];
+  const levelColors = ["text-red-700", "text-amber-700", "text-sky-600", "text-emerald-700"];
+  const levelBgColors = ["bg-red-500/10", "bg-amber-50", "bg-sky-500/10", "bg-emerald-50"];
 
   return (
     <div className="space-y-3">
@@ -188,10 +188,10 @@ function MultimodalIndicatorTable({
         {/* 헤더 */}
         <div className="grid grid-cols-[1fr_repeat(4,80px)] bg-white/80 px-3 py-2 text-sm font-medium text-slate-500 min-w-[480px]">
           <span>하위지표</span>
-          <span className="text-center text-teal-600/70">상위 (3)</span>
-          <span className="text-center text-sky-400/70">중상 (2)</span>
-          <span className="text-center text-amber-600/70">중하 (1)</span>
-          <span className="text-center text-red-400/70">미흡 (0)</span>
+          <span className="text-center text-emerald-700/80">상위 (3)</span>
+          <span className="text-center text-sky-600/80">중상 (2)</span>
+          <span className="text-center text-amber-700/80">중하 (1)</span>
+          <span className="text-center text-red-700/80">미흡 (0)</span>
         </div>
         {/* 행 */}
         {item.subIndicators.map((sub) => {
@@ -393,7 +393,7 @@ export default function CompetencyAssessment({ data, onBack }: CompetencyAssessm
       {/* ── 헤더 ── */}
       <div className="flex items-center justify-between mb-2">
         <div className="flex items-center gap-3">
-          <button onClick={onBack} className="flex items-center gap-1.5 text-base text-slate-500 hover:text-teal-600 transition-colors">
+          <button onClick={onBack} className="flex items-center gap-1.5 text-base text-slate-500 hover:text-emerald-700 transition-colors">
             <ArrowLeft className="w-4 h-4" />부장(2직급)
           </button>
           <span className="text-slate-400">/</span>
@@ -409,7 +409,7 @@ export default function CompetencyAssessment({ data, onBack }: CompetencyAssessm
           {rubricVersion === "bars" && barsScoredCount > 0 && (
             <div className="flex items-center gap-2 px-3 py-1.5 bg-white/60 border border-slate-200/40 rounded-lg">
               <span className="text-sm text-slate-500">BARS 평균</span>
-              <span className={cn("text-base font-bold font-mono", barsTotalScore >= 6 ? "text-teal-600" : barsTotalScore >= 2 ? "text-amber-600" : "text-red-400")}>
+              <span className={cn("text-base font-bold font-mono", barsTotalScore >= 6 ? "text-emerald-700" : barsTotalScore >= 2 ? "text-amber-700" : "text-red-700")}>
                 {barsTotalScore.toFixed(1)}
               </span>
               <span className="text-sm text-slate-400">/ 9</span>
@@ -418,7 +418,7 @@ export default function CompetencyAssessment({ data, onBack }: CompetencyAssessm
           {rubricVersion === "multimodal" && mmTotalScore !== null && (
             <div className="flex items-center gap-2 px-3 py-1.5 bg-white/60 border border-slate-200/40 rounded-lg">
               <span className="text-sm text-slate-500">멀티모달 총점</span>
-              <span className={cn("text-base font-bold font-mono", mmTotalScore >= 5.5 ? "text-teal-600" : mmTotalScore >= 3 ? "text-amber-600" : "text-red-400")}>
+              <span className={cn("text-base font-bold font-mono", mmTotalScore >= 5.5 ? "text-emerald-700" : mmTotalScore >= 3 ? "text-amber-700" : "text-red-700")}>
                 {mmTotalScore.toFixed(1)}
               </span>
               <span className="text-sm text-slate-400">/ 9</span>
@@ -428,7 +428,7 @@ export default function CompetencyAssessment({ data, onBack }: CompetencyAssessm
             onClick={handleSave}
             className={cn(
               "flex items-center gap-2 px-4 py-2 rounded-xl text-base font-medium transition-all duration-200",
-              saved ? "bg-teal-50 text-teal-600 border border-teal-500/30" : "bg-white text-slate-700 border border-slate-200 hover:border-teal-500/30 hover:text-teal-600"
+              saved ? "bg-emerald-50 text-emerald-700 border border-emerald-600/30" : "bg-white text-slate-700 border border-slate-200 hover:border-emerald-600/30 hover:text-emerald-700"
             )}
           >
             <Save className="w-4 h-4" />{saved ? "저장 완료" : "평가 저장"}
@@ -450,7 +450,7 @@ export default function CompetencyAssessment({ data, onBack }: CompetencyAssessm
             onClick={() => setRubricVersion("bars")}
             className={cn(
               "flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-all",
-              rubricVersion === "bars" ? "bg-slate-100/60 text-teal-600 shadow-sm" : "text-slate-500 hover:text-slate-500"
+              rubricVersion === "bars" ? "bg-slate-100/60 text-emerald-700 shadow-sm" : "text-slate-500 hover:text-slate-500"
             )}
           >
             <BookOpen className="w-3.5 h-3.5" />
@@ -488,7 +488,7 @@ export default function CompetencyAssessment({ data, onBack }: CompetencyAssessm
 
           {/* 재생 컨트롤 */}
           <div className="bg-white/60 border border-slate-200/40 rounded-xl p-3 flex items-center gap-3">
-            <button onClick={togglePlay} className="w-8 h-8 rounded-full bg-teal-50 flex items-center justify-center text-teal-600 hover:bg-teal-500/25 transition-colors shrink-0">
+            <button onClick={togglePlay} className="w-8 h-8 rounded-full bg-emerald-50 flex items-center justify-center text-emerald-700 hover:bg-emerald-600/25 transition-colors shrink-0">
               {isPlaying ? <Pause className="w-3.5 h-3.5" /> : <Play className="w-3.5 h-3.5 ml-0.5" />}
             </button>
             <span className="text-base font-mono text-slate-700 tabular-nums">{formatTime(currentTime)}</span>
@@ -560,7 +560,7 @@ export default function CompetencyAssessment({ data, onBack }: CompetencyAssessm
                       <span className="text-sm px-2 py-0.5 rounded bg-slate-100/50 text-slate-500">{item.subLabel}</span>
                     </div>
                     {itemScore.score > 0 && (
-                      <span className={cn("text-sm font-mono font-bold px-2.5 py-1 rounded-lg", itemScore.score >= 6 ? "bg-teal-50 text-teal-600" : itemScore.score >= 2 ? "bg-amber-500/15 text-amber-600" : "bg-red-500/15 text-red-400")}>
+                      <span className={cn("text-sm font-mono font-bold px-2.5 py-1 rounded-lg", itemScore.score >= 6 ? "bg-emerald-50 text-emerald-700" : itemScore.score >= 2 ? "bg-amber-500/15 text-amber-700" : "bg-red-500/15 text-red-700")}>
                         {itemScore.score}/9
                       </span>
                     )}
@@ -586,15 +586,15 @@ export default function CompetencyAssessment({ data, onBack }: CompetencyAssessm
                             className={cn(
                               "w-full text-left rounded-lg px-3 py-2.5 transition-all duration-200 group",
                               activeClipId === clip.id ? "bg-slate-100/60 border border-slate-200/50" : "bg-white/40 border border-transparent hover:bg-slate-100/40",
-                              isClipPlaying && "ring-1 ring-teal-500/30"
+                              isClipPlaying && "ring-1 ring-emerald-600/30"
                             )}
                           >
                             <div className="flex items-center gap-2 mb-1">
-                              <span className="inline-flex items-center gap-1 text-teal-600 font-mono text-sm shrink-0">
+                              <span className="inline-flex items-center gap-1 text-emerald-700 font-mono text-sm shrink-0">
                                 <PlayCircle className="w-3 h-3" />{formatTime(clip.timestamp)}
                               </span>
                               <span className="text-sm text-slate-500">{clip.speaker}</span>
-                              {isClipPlaying && <div className="w-1.5 h-1.5 rounded-full bg-teal-500 animate-pulse" />}
+                              {isClipPlaying && <div className="w-1.5 h-1.5 rounded-full bg-emerald-600 animate-pulse" />}
                               {clip.suggestedScore > 0 && <span className="ml-auto text-sm font-mono text-slate-400">AI 추천: {clip.suggestedScore}점</span>}
                             </div>
                             <p className="text-sm text-slate-500 leading-relaxed line-clamp-2 group-hover:text-slate-700">{clip.description}</p>
@@ -617,7 +617,7 @@ export default function CompetencyAssessment({ data, onBack }: CompetencyAssessm
                       value={itemScore.note}
                       onChange={(e) => updateBarsNote(item.id, e.target.value)}
                       placeholder="관찰된 행동과 근거를 기록하세요..."
-                      className="w-full bg-slate-50/60 border border-slate-200/40 rounded-lg px-3 py-2 text-base text-slate-900 placeholder:text-slate-400 outline-none focus:border-teal-500/30 focus:ring-1 focus:ring-teal-500/15 transition-all resize-none leading-relaxed"
+                      className="w-full bg-slate-50/60 border border-slate-200/40 rounded-lg px-3 py-2 text-base text-slate-900 placeholder:text-slate-400 outline-none focus:border-emerald-600/30 focus:ring-1 focus:ring-emerald-600/15 transition-all resize-none leading-relaxed"
                       rows={2}
                     />
                   </div>
@@ -645,7 +645,7 @@ export default function CompetencyAssessment({ data, onBack }: CompetencyAssessm
                     {itemResult?.score !== null && itemResult?.score !== undefined && (
                       <span className={cn(
                         "text-sm font-mono font-bold px-2.5 py-1 rounded-lg",
-                        itemResult.score >= 5.5 ? "bg-teal-50 text-teal-600" : itemResult.score >= 3 ? "bg-amber-500/15 text-amber-600" : "bg-red-500/15 text-red-400"
+                        itemResult.score >= 5.5 ? "bg-emerald-50 text-emerald-700" : itemResult.score >= 3 ? "bg-amber-500/15 text-amber-700" : "bg-red-500/15 text-red-700"
                       )}>
                         {itemResult.score.toFixed(1)}/9
                       </span>
@@ -703,7 +703,7 @@ export default function CompetencyAssessment({ data, onBack }: CompetencyAssessm
               <h3 className="text-base font-medium text-slate-700 mb-3">BARS 종합 평가</h3>
               <div className="flex items-center gap-4 mb-3">
                 <div className="flex items-center gap-2">
-                  <span className="text-2xl font-bold font-mono" style={{ color: barsTotalScore >= 6 ? "#14b8a6" : barsTotalScore >= 2 ? "#f59e0b" : "#ef4444" }}>
+                  <span className="text-2xl font-bold font-mono" style={{ color: barsTotalScore >= 6 ? "#006341" : barsTotalScore >= 2 ? "#f59e0b" : "#ef4444" }}>
                     {barsTotalScore.toFixed(1)}
                   </span>
                   <span className="text-base text-slate-400">/ 9</span>
@@ -716,7 +716,7 @@ export default function CompetencyAssessment({ data, onBack }: CompetencyAssessm
                     <div key={item.id} className="flex items-center gap-2">
                       <span className="text-sm text-slate-500 w-32 truncate">{item.criteria}</span>
                       <div className="flex-1 h-2 bg-slate-50/60 rounded-full overflow-hidden">
-                        <div className={cn("h-full rounded-full transition-all duration-500", s >= 6 ? "bg-teal-500" : s >= 2 ? "bg-amber-500" : "bg-red-500")} style={{ width: `${(s / 9) * 100}%` }} />
+                        <div className={cn("h-full rounded-full transition-all duration-500", s >= 6 ? "bg-emerald-600" : s >= 2 ? "bg-amber-500" : "bg-red-500")} style={{ width: `${(s / 9) * 100}%` }} />
                       </div>
                       <span className="text-sm font-mono text-slate-500 w-6 text-right">{s}</span>
                     </div>
@@ -732,7 +732,7 @@ export default function CompetencyAssessment({ data, onBack }: CompetencyAssessm
               <h3 className="text-base font-medium text-violet-600 mb-3">멀티모달 종합 평가</h3>
               <div className="flex items-center gap-4 mb-3">
                 <div className="flex items-center gap-2">
-                  <span className="text-2xl font-bold font-mono" style={{ color: mmTotalScore >= 5.5 ? "#14b8a6" : mmTotalScore >= 3 ? "#f59e0b" : "#ef4444" }}>
+                  <span className="text-2xl font-bold font-mono" style={{ color: mmTotalScore >= 5.5 ? "#006341" : mmTotalScore >= 3 ? "#f59e0b" : "#ef4444" }}>
                     {mmTotalScore.toFixed(1)}
                   </span>
                   <span className="text-base text-slate-400">/ 9</span>

@@ -13,9 +13,9 @@ function formatTime(sec: number): string {
 }
 
 function getConfidenceColor(conf: number): string {
-  if (conf >= 80) return "bg-teal-100 text-teal-700 border-teal-300";
+  if (conf >= 80) return "bg-emerald-100 text-emerald-700 border-emerald-300";
   if (conf >= 60) return "bg-amber-100 text-amber-700 border-amber-300";
-  return "bg-red-100 text-red-600 border-red-300";
+  return "bg-red-100 text-red-700 border-red-300";
 }
 
 function getConfidenceLabel(conf: number): string {
@@ -115,8 +115,8 @@ export default function EvidenceMapView({
     <div className="space-y-4">
       {/* ── 헤더 ── */}
       <div className="flex items-center gap-2">
-        <div className="w-8 h-8 rounded-lg bg-teal-50 flex items-center justify-center">
-          <MapPin className="w-4 h-4 text-teal-600" />
+        <div className="w-8 h-8 rounded-lg bg-emerald-50 flex items-center justify-center">
+          <MapPin className="w-4 h-4 text-emerald-700" />
         </div>
         <div>
           <h3 className="text-sm font-semibold text-slate-800">루브릭 증거맵</h3>
@@ -139,14 +139,14 @@ export default function EvidenceMapView({
               <button
                 onClick={() => setSelectedItemId(null)}
                 className={cn(
-                  "w-full flex items-center gap-2.5 px-3 py-2.5 text-left transition-colors hover:bg-teal-50/30",
-                  selectedItemId === null && "bg-teal-50/60"
+                  "w-full flex items-center gap-2.5 px-3 py-2.5 text-left transition-colors hover:bg-emerald-50/30",
+                  selectedItemId === null && "bg-emerald-50/60"
                 )}
               >
                 <CheckCircle2
                   className={cn(
                     "w-4 h-4 shrink-0",
-                    selectedItemId === null ? "text-teal-500" : "text-slate-300"
+                    selectedItemId === null ? "text-emerald-600" : "text-slate-300"
                   )}
                 />
                 <span className="text-xs font-medium text-slate-600">전체 클립 보기</span>
@@ -164,12 +164,12 @@ export default function EvidenceMapView({
                   <button
                     onClick={() => setSelectedItemId(isSelected ? null : id)}
                     className={cn(
-                      "w-full flex items-start gap-2.5 px-3 py-2.5 text-left transition-colors hover:bg-teal-50/30",
-                      isSelected && "bg-teal-50/60"
+                      "w-full flex items-start gap-2.5 px-3 py-2.5 text-left transition-colors hover:bg-emerald-50/30",
+                      isSelected && "bg-emerald-50/60"
                     )}
                   >
                     {hasEvidence ? (
-                      <CheckCircle2 className="w-4 h-4 shrink-0 mt-0.5 text-teal-500" />
+                      <CheckCircle2 className="w-4 h-4 shrink-0 mt-0.5 text-emerald-600" />
                     ) : (
                       <Circle className="w-4 h-4 shrink-0 mt-0.5 text-slate-300" />
                     )}
@@ -182,7 +182,7 @@ export default function EvidenceMapView({
                       {text}
                     </span>
                     {hasEvidence && (
-                      <span className="ml-1 shrink-0 text-xs font-mono text-teal-600 bg-teal-50 border border-teal-200 rounded px-1.5 py-0.5">
+                      <span className="ml-1 shrink-0 text-xs font-mono text-emerald-700 bg-emerald-50 border border-emerald-200 rounded px-1.5 py-0.5">
                         {count}
                       </span>
                     )}
@@ -217,7 +217,7 @@ export default function EvidenceMapView({
                       onClick={() => onSeekVideo?.(clip.videoTimestamp.start)}
                       className={cn(
                         "inline-flex items-center gap-1 shrink-0 text-xs font-mono",
-                        "text-teal-600 bg-teal-50 hover:bg-teal-100 border border-teal-200",
+                        "text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200",
                         "rounded px-2 py-1.5 min-h-[36px] transition-colors whitespace-nowrap"
                       )}
                       title="해당 구간으로 이동"
@@ -265,16 +265,16 @@ export default function EvidenceMapView({
       <div className="bg-slate-50/60 border border-slate-200/30 rounded-xl px-4 py-3 flex flex-wrap gap-4 items-center">
         {/* 커버리지 */}
         <div className="flex items-center gap-2 min-w-0">
-          <div className="w-7 h-7 rounded-lg bg-teal-50 flex items-center justify-center shrink-0">
-            <Percent className="w-3.5 h-3.5 text-teal-600" />
+          <div className="w-7 h-7 rounded-lg bg-emerald-50 flex items-center justify-center shrink-0">
+            <Percent className="w-3.5 h-3.5 text-emerald-700" />
           </div>
           <div>
             <p className="text-[10px] text-slate-500 uppercase tracking-wider">루브릭 커버리지</p>
-            <p className="text-sm font-bold font-mono text-teal-600">{coveragePct}%</p>
+            <p className="text-sm font-bold font-mono text-emerald-700">{coveragePct}%</p>
           </div>
           <div className="w-24 h-2 bg-slate-200/60 rounded-full overflow-hidden ml-1">
             <div
-              className="h-full bg-teal-500 rounded-full transition-all duration-700"
+              className="h-full bg-emerald-600 rounded-full transition-all duration-700"
               style={{ width: `${coveragePct}%` }}
             />
           </div>
@@ -294,10 +294,10 @@ export default function EvidenceMapView({
               className={cn(
                 "text-sm font-bold font-mono",
                 overallConfidence >= 80
-                  ? "text-teal-600"
+                  ? "text-emerald-700"
                   : overallConfidence >= 60
-                  ? "text-amber-600"
-                  : "text-red-500"
+                  ? "text-amber-700"
+                  : "text-red-700"
               )}
             >
               {Math.round(overallConfidence)}%

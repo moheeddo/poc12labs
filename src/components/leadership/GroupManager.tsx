@@ -196,17 +196,17 @@ export default function GroupManager({
       {/* 헤더 */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div className="flex items-center gap-3">
-          <button onClick={onBack} className="text-slate-500 hover:text-teal-600 transition-colors" aria-label="뒤로 가기">
+          <button onClick={onBack} className="text-slate-500 hover:text-emerald-700 transition-colors" aria-label="뒤로 가기">
             <ArrowLeft className="w-4 h-4" />
           </button>
           <div>
-            <h2 className="text-xl font-bold text-teal-600">{session.name}</h2>
+            <h2 className="text-xl font-bold text-emerald-700">{session.name}</h2>
             <p className="text-sm text-slate-500">{session.members.length}명 · {completedSteps}/4 역량 완료</p>
           </div>
         </div>
         <button
           onClick={onViewDashboard}
-          className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium bg-teal-50 text-teal-600 border border-teal-500/20 hover:bg-teal-100 transition-colors whitespace-nowrap self-start sm:self-auto"
+          className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium bg-emerald-50 text-emerald-700 border border-emerald-500/20 hover:bg-emerald-100 transition-colors whitespace-nowrap self-start sm:self-auto"
         >
           <BarChart3 className="w-4 h-4" />
           비교 대시보드
@@ -252,7 +252,7 @@ export default function GroupManager({
                     <p className="text-[10px] text-slate-400 truncate">
                       {comp.activityType}
                       {stepAnalyzed > 0 && (
-                        <span className="ml-1 text-teal-600 font-medium">
+                        <span className="ml-1 text-emerald-700 font-medium">
                           · {stepAnalyzed}/{session.members.length}명
                         </span>
                       )}
@@ -280,7 +280,7 @@ export default function GroupManager({
                                   className="h-full rounded-full transition-all"
                                   style={{
                                     width: sc?.analyzed ? `${((sc.overallScore || 0) / 9) * 100}%` : "0%",
-                                    backgroundColor: (sc?.overallScore || 0) >= 7 ? "#14b8a6" : (sc?.overallScore || 0) >= 5 ? "#f59e0b" : (sc?.overallScore || 0) > 0 ? "#ef4444" : "#e2e8f0",
+                                    backgroundColor: (sc?.overallScore || 0) >= 7 ? "#006341" : (sc?.overallScore || 0) >= 5 ? "#f59e0b" : (sc?.overallScore || 0) > 0 ? "#ef4444" : "#e2e8f0",
                                   }}
                                 />
                               </div>
@@ -307,7 +307,7 @@ export default function GroupManager({
       {/* 상황사례 입력 (선택) */}
       <div className="bg-white border border-slate-200/40 rounded-xl p-4">
         <div className="flex items-center gap-2 mb-2">
-          <FileText className="w-4 h-4 text-teal-600" />
+          <FileText className="w-4 h-4 text-emerald-700" />
           <span className="text-sm font-medium text-slate-700">상황사례 (선택)</span>
           <span className="text-[10px] text-slate-400">— 입력하면 더 정확한 평가가 가능합니다</span>
         </div>
@@ -315,7 +315,7 @@ export default function GroupManager({
           value={scenarioText}
           onChange={(e) => setScenarioText(e.target.value)}
           placeholder={`${currentComp.label} 평가 상황을 입력하세요...\n예: 신재생에너지 전략 수립 TFT 발표`}
-          className="w-full bg-slate-50/60 border border-slate-200/40 rounded-lg px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400 outline-none focus:border-teal-500/30 transition-all resize-none leading-relaxed"
+          className="w-full bg-slate-50/60 border border-slate-200/40 rounded-lg px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400 outline-none focus:border-emerald-500/30 transition-all resize-none leading-relaxed"
           rows={2}
         />
       </div>
@@ -378,17 +378,17 @@ export default function GroupManager({
 
         {/* 전체 업로드 진행 바 (업로드 중일 때) */}
         {uploadingFor && (
-          <div className="mb-4 bg-teal-50/50 border border-teal-200/30 rounded-xl p-3 animate-fade-in-up">
+          <div className="mb-4 bg-emerald-50/50 border border-emerald-200/30 rounded-xl p-3 animate-fade-in-up">
             <div className="flex items-center gap-3 mb-2">
-              <Loader2 className="w-4 h-4 text-teal-600 animate-spin shrink-0" />
-              <span className="text-sm text-teal-700 font-medium">
+              <Loader2 className="w-4 h-4 text-emerald-700 animate-spin shrink-0" />
+              <span className="text-sm text-emerald-800 font-medium">
                 {uploadStatus === "indexing" ? "AI 인덱싱 중..." : "영상 업로드 중..."}
               </span>
-              <span className="text-sm font-mono text-teal-600 ml-auto">{Math.round(uploadPercent)}%</span>
+              <span className="text-sm font-mono text-emerald-700 ml-auto">{Math.round(uploadPercent)}%</span>
             </div>
-            <div className="h-2 bg-teal-100 rounded-full overflow-hidden">
+            <div className="h-2 bg-emerald-100 rounded-full overflow-hidden">
               <div
-                className="h-full bg-teal-500 rounded-full transition-all duration-300"
+                className="h-full bg-emerald-600 rounded-full transition-all duration-300"
                 style={{ width: `${uploadPercent}%` }}
               />
             </div>
@@ -553,15 +553,15 @@ export default function GroupManager({
         {isGroupType && (
           <div>
             {currentState?.sharedVideoId ? (
-              <div className="flex items-center gap-3 p-3 bg-teal-50/50 border border-teal-200/30 rounded-xl">
-                <CheckCircle2 className="w-5 h-5 text-teal-600 shrink-0" />
+              <div className="flex items-center gap-3 p-3 bg-emerald-50/50 border border-emerald-200/30 rounded-xl">
+                <CheckCircle2 className="w-5 h-5 text-emerald-700 shrink-0" />
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-medium text-slate-700 truncate">{currentState.sharedFileName}</p>
-                  <p className="text-xs text-teal-600">업로드 완료</p>
+                  <p className="text-xs text-emerald-700">업로드 완료</p>
                 </div>
                 <button
                   onClick={() => onAnalyzeMember("shared", "집단 토론", currentState.sharedVideoId!, currentState.sharedBlobUrl, currentComp.key, scenarioText)}
-                  className="text-xs text-teal-600 hover:text-teal-500 px-3 py-1.5 rounded-lg border border-teal-200 hover:bg-teal-50 transition-colors"
+                  className="text-xs text-emerald-700 hover:text-emerald-800 px-3 py-1.5 rounded-lg border border-emerald-200 hover:bg-emerald-50 transition-colors"
                 >
                   <Play className="w-3 h-3 inline mr-1" />분석
                 </button>
@@ -569,10 +569,10 @@ export default function GroupManager({
             ) : (
               <label className={cn(
                 "block cursor-pointer rounded-xl border-2 border-dashed p-8 text-center transition-all",
-                uploadingFor === "shared" ? "border-teal-300 bg-teal-50/30" : "border-slate-200 hover:border-teal-300 hover:bg-teal-50/20"
+                uploadingFor === "shared" ? "border-emerald-300 bg-emerald-50/30" : "border-slate-200 hover:border-emerald-300 hover:bg-emerald-50/20"
               )}>
                 {uploadingFor === "shared" ? (
-                  <Loader2 className="w-8 h-8 mx-auto text-teal-500 animate-spin mb-2" />
+                  <Loader2 className="w-8 h-8 mx-auto text-emerald-600 animate-spin mb-2" />
                 ) : (
                   <Upload className="w-8 h-8 mx-auto text-slate-400 mb-2" />
                 )}
@@ -600,14 +600,14 @@ export default function GroupManager({
                   key={member.id}
                   className={cn(
                     "rounded-xl border p-4 transition-all",
-                    hasVideo ? "bg-white border-teal-200/50" : "bg-slate-50/50 border-slate-200/40"
+                    hasVideo ? "bg-white border-emerald-200/50" : "bg-slate-50/50 border-slate-200/40"
                   )}
                 >
                   {/* 멤버 정보 */}
                   <div className="flex items-center gap-3 mb-3">
                     <div className={cn(
                       "w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold",
-                      hasVideo ? "bg-teal-100 text-teal-700" : "bg-slate-100 text-slate-500"
+                      hasVideo ? "bg-emerald-100 text-emerald-800" : "bg-slate-100 text-slate-500"
                     )}>
                       {member.order}
                     </div>
@@ -629,7 +629,7 @@ export default function GroupManager({
                       {memberNote ? <MessageSquareText className="w-4 h-4" /> : <MessageSquarePlus className="w-4 h-4" />}
                     </button>
                     {score?.analyzed ? (
-                      <span className="text-xs font-mono font-bold text-teal-600 bg-teal-50 px-2 py-0.5 rounded-md border border-teal-200/50">
+                      <span className="text-xs font-mono font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200/50">
                         {score.overallScore.toFixed(1)}/9
                       </span>
                     ) : hasVideo ? (
@@ -686,7 +686,7 @@ export default function GroupManager({
                         className={cn(
                           "w-full flex items-center justify-center gap-1.5 text-sm font-medium py-2.5 rounded-lg border transition-colors",
                           score?.analyzed
-                            ? "bg-teal-50 text-teal-600 hover:bg-teal-100 border-teal-200/50"
+                            ? "bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border-emerald-200/50"
                             : "bg-amber-50 text-amber-600 hover:bg-amber-100 border-amber-200/50"
                         )}
                       >
@@ -697,17 +697,17 @@ export default function GroupManager({
                   ) : (
                     <label className={cn(
                       "block cursor-pointer rounded-lg border-2 border-dashed transition-all",
-                      isUploading ? "border-teal-300 bg-teal-50/30" : "border-slate-200 hover:border-teal-300 hover:bg-teal-50/20"
+                      isUploading ? "border-emerald-300 bg-emerald-50/30" : "border-slate-200 hover:border-emerald-300 hover:bg-emerald-50/20"
                     )}>
                       <div className="flex flex-col items-center gap-2 py-5 text-center">
                         {isUploading ? (
                           <>
-                            <Loader2 className="w-5 h-5 text-teal-500 animate-spin" />
-                            <p className="text-xs text-teal-600 font-medium">
+                            <Loader2 className="w-5 h-5 text-emerald-600 animate-spin" />
+                            <p className="text-xs text-emerald-700 font-medium">
                               {uploadStatus === "indexing" ? "인덱싱 중..." : `업로드 ${Math.round(uploadPercent)}%`}
                             </p>
-                            <div className="w-24 h-1.5 bg-teal-100 rounded-full overflow-hidden">
-                              <div className="h-full bg-teal-500 rounded-full transition-all duration-300" style={{ width: `${uploadPercent}%` }} />
+                            <div className="w-24 h-1.5 bg-emerald-100 rounded-full overflow-hidden">
+                              <div className="h-full bg-emerald-600 rounded-full transition-all duration-300" style={{ width: `${uploadPercent}%` }} />
                             </div>
                           </>
                         ) : (
@@ -741,13 +741,13 @@ export default function GroupManager({
           });
           if (unanalyzedWithVideo.length < 2) return null;
           return (
-            <div className="mt-4 bg-teal-50/60 border border-teal-200/40 rounded-xl p-4 animate-fade-in-up">
+            <div className="mt-4 bg-emerald-50/60 border border-emerald-200/40 rounded-xl p-4 animate-fade-in-up">
               <div className="flex items-center justify-between gap-3">
                 <div className="flex items-center gap-2.5">
-                  <Play className="w-4 h-4 text-teal-600" />
+                  <Play className="w-4 h-4 text-emerald-700" />
                   <div>
-                    <p className="text-sm font-semibold text-teal-700">전체 분석 시작 ({unanalyzedWithVideo.length}명)</p>
-                    <p className="text-xs text-teal-600/70 mt-0.5">각 멤버 카드의 &ldquo;분석 시작&rdquo; 버튼을 순서대로 클릭하세요</p>
+                    <p className="text-sm font-semibold text-emerald-800">전체 분석 시작 ({unanalyzedWithVideo.length}명)</p>
+                    <p className="text-xs text-emerald-700/70 mt-0.5">각 멤버 카드의 &ldquo;분석 시작&rdquo; 버튼을 순서대로 클릭하세요</p>
                   </div>
                 </div>
                 <button
@@ -759,7 +759,7 @@ export default function GroupManager({
                       onAnalyzeMember(first.id, first.name, videoInfo.videoId, videoInfo.blobUrl, currentComp.key, scenarioText);
                     }
                   }}
-                  className="flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-medium bg-teal-600 text-white hover:bg-teal-500 transition-colors shrink-0"
+                  className="flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-medium bg-emerald-600 text-white hover:bg-emerald-700 transition-colors shrink-0"
                 >
                   <Play className="w-3.5 h-3.5" />
                   첫 번째 분석
@@ -767,7 +767,7 @@ export default function GroupManager({
               </div>
               <div className="mt-3 flex flex-wrap gap-1.5">
                 {unanalyzedWithVideo.map((m, i) => (
-                  <span key={m.id} className="text-xs bg-white text-teal-700 px-2 py-0.5 rounded-md border border-teal-200/50">
+                  <span key={m.id} className="text-xs bg-white text-emerald-800 px-2 py-0.5 rounded-md border border-emerald-200/50">
                     {i + 1}. {m.name}
                   </span>
                 ))}
@@ -780,7 +780,7 @@ export default function GroupManager({
         <div className="flex items-center justify-between mt-6 pt-4 border-t border-slate-200/30">
           <button onClick={() => goStep(session.currentStep - 1)} disabled={session.currentStep === 0} className="text-sm text-slate-500 hover:text-slate-700 disabled:opacity-30 transition-colors">&larr; 이전 역량</button>
           <div className="text-sm text-slate-400">{uploadedCount}/{totalExpected}건 업로드</div>
-          <button onClick={() => goStep(session.currentStep + 1)} disabled={session.currentStep >= 3} className="text-sm font-semibold text-white bg-teal-600 hover:bg-teal-500 disabled:bg-slate-200 disabled:text-slate-400 px-4 py-2 rounded-lg shadow-sm transition-all active:scale-[0.97]">다음 역량 &rarr;</button>
+          <button onClick={() => goStep(session.currentStep + 1)} disabled={session.currentStep >= 3} className="text-sm font-semibold text-white bg-emerald-600 hover:bg-emerald-700 disabled:bg-slate-200 disabled:text-slate-400 px-4 py-2 rounded-lg shadow-sm transition-all active:scale-[0.97]">다음 역량 &rarr;</button>
         </div>
       </div>
     </div>
@@ -828,11 +828,11 @@ export function GroupCreateForm({ onSubmit, onCancel }: GroupCreateFormProps) {
 
   return (
     <div className="max-w-[700px] mx-auto px-4 md:px-6 py-8 space-y-6 animate-fade-in-up">
-      <button onClick={onCancel} className="flex items-center gap-1.5 text-sm text-slate-500 hover:text-teal-600 transition-colors">
+      <button onClick={onCancel} className="flex items-center gap-1.5 text-sm text-slate-500 hover:text-emerald-700 transition-colors">
         <ArrowLeft className="w-4 h-4" /> 돌아가기
       </button>
 
-      <h2 className="text-xl font-bold text-teal-600">새 조 만들기</h2>
+      <h2 className="text-xl font-bold text-emerald-700">새 조 만들기</h2>
       <p className="text-sm text-slate-500">수업 순서대로 역량별 영상을 등록하고 비교 분석합니다. (2~6명)</p>
 
       {/* 조 이름 */}
@@ -843,7 +843,7 @@ export function GroupCreateForm({ onSubmit, onCancel }: GroupCreateFormProps) {
           value={groupName}
           onChange={(e) => setGroupName(e.target.value)}
           placeholder="예: 2026년 1기 A조"
-          className="w-full bg-slate-50 border border-slate-200 rounded-lg px-4 py-2.5 text-base text-slate-900 placeholder:text-slate-400 outline-none focus:border-teal-500/30 focus:ring-1 focus:ring-teal-500/15 transition-all"
+          className="w-full bg-slate-50 border border-slate-200 rounded-lg px-4 py-2.5 text-base text-slate-900 placeholder:text-slate-400 outline-none focus:border-emerald-500/30 focus:ring-1 focus:ring-emerald-500/15 transition-all"
         />
       </div>
 
@@ -853,7 +853,7 @@ export function GroupCreateForm({ onSubmit, onCancel }: GroupCreateFormProps) {
           <label className="text-sm font-medium text-slate-700">참가자 ({filledMembers.length}/6명)</label>
           <button
             onClick={() => setShowBatchInput(!showBatchInput)}
-            className="text-xs text-teal-600 hover:text-teal-500 transition-colors"
+            className="text-xs text-emerald-700 hover:text-emerald-800 transition-colors"
           >
             {showBatchInput ? "개별 입력" : "일괄 입력 (붙여넣기)"}
           </button>
@@ -865,7 +865,7 @@ export function GroupCreateForm({ onSubmit, onCancel }: GroupCreateFormProps) {
               value={batchText}
               onChange={(e) => setBatchText(e.target.value)}
               placeholder={"이름을 줄바꿈 또는 쉼표로 구분하여 입력\n예:\n홍길동\n김영희\n박철수"}
-              className="w-full bg-slate-50 border border-slate-200 rounded-lg px-4 py-3 text-sm text-slate-900 placeholder:text-slate-400 outline-none focus:border-teal-500/30 transition-all resize-none"
+              className="w-full bg-slate-50 border border-slate-200 rounded-lg px-4 py-3 text-sm text-slate-900 placeholder:text-slate-400 outline-none focus:border-emerald-500/30 transition-all resize-none"
               rows={5}
             />
             <button
@@ -874,7 +874,7 @@ export function GroupCreateForm({ onSubmit, onCancel }: GroupCreateFormProps) {
               className={cn(
                 "text-sm font-medium px-4 py-2 rounded-lg transition-all",
                 batchText.trim()
-                  ? "bg-teal-50 text-teal-600 hover:bg-teal-100"
+                  ? "bg-emerald-50 text-emerald-700 hover:bg-emerald-100"
                   : "bg-slate-50 text-slate-400 cursor-not-allowed"
               )}
             >
@@ -895,7 +895,7 @@ export function GroupCreateForm({ onSubmit, onCancel }: GroupCreateFormProps) {
                     setMembers(next);
                   }}
                   placeholder={i < 2 ? `참가자 ${i + 1} 이름 (필수)` : `참가자 ${i + 1} (선택)`}
-                  className="flex-1 bg-white border border-slate-200 rounded-lg px-3 py-2.5 text-sm text-slate-900 placeholder:text-slate-400 outline-none focus:border-teal-500/30 transition-all"
+                  className="flex-1 bg-white border border-slate-200 rounded-lg px-3 py-2.5 text-sm text-slate-900 placeholder:text-slate-400 outline-none focus:border-emerald-500/30 transition-all"
                 />
                 <select
                   value={m.position}
@@ -904,7 +904,7 @@ export function GroupCreateForm({ onSubmit, onCancel }: GroupCreateFormProps) {
                     next[i] = { ...next[i], position: e.target.value };
                     setMembers(next);
                   }}
-                  className="bg-white border border-slate-200 rounded-lg px-3 py-2.5 text-sm text-slate-700 outline-none focus:border-teal-500/30 transition-all w-20"
+                  className="bg-white border border-slate-200 rounded-lg px-3 py-2.5 text-sm text-slate-700 outline-none focus:border-emerald-500/30 transition-all w-20"
                 >
                   <option value="부장">부장</option>
                   <option value="차장">차장</option>
@@ -938,7 +938,7 @@ export function GroupCreateForm({ onSubmit, onCancel }: GroupCreateFormProps) {
         className={cn(
           "w-full flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl text-base font-semibold transition-all",
           canSubmit
-            ? "bg-teal-600 hover:bg-teal-500 text-white shadow-lg shadow-teal-500/20"
+            ? "bg-emerald-600 hover:bg-emerald-700 text-white shadow-lg shadow-emerald-500/20"
             : "bg-slate-100 text-slate-400 cursor-not-allowed"
         )}
       >

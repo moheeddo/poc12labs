@@ -9,14 +9,14 @@ interface ValidationConsoleProps {
   loading?: boolean;
 }
 
-// 신뢰도 값에 따른 색상 결정 (>=0.8 teal, >=0.6 amber, <0.6 red)
+// 신뢰도 값에 따른 색상 결정 (>=0.8 emerald, >=0.6 amber, <0.6 red)
 function getReliabilityColor(value: number): {
   text: string;
   stroke: string;
   bg: string;
 } {
   if (value >= 0.8)
-    return { text: "text-teal-400", stroke: "stroke-teal-400", bg: "bg-teal-400" };
+    return { text: "text-emerald-400", stroke: "stroke-emerald-400", bg: "bg-emerald-400" };
   if (value >= 0.6)
     return { text: "text-amber-400", stroke: "stroke-amber-400", bg: "bg-amber-400" };
   return { text: "text-red-400", stroke: "stroke-red-400", bg: "bg-red-400" };
@@ -98,7 +98,7 @@ function AdequacyBadge({ adequacy }: { adequacy: SampleAdequacy }) {
     },
     robust: {
       label: "견고 (Robust)",
-      className: "border-teal-500/40 bg-teal-500/10 text-teal-400",
+      className: "border-emerald-500/40 bg-emerald-500/10 text-emerald-400",
     },
   };
   const { label, className } = config[adequacy];
@@ -116,7 +116,7 @@ function SampleProgressBar({ current, target = 30 }: { current: number; target?:
   const pct = Math.min(100, Math.round((current / target) * 100));
   const barColor =
     pct >= 100
-      ? "bg-teal-500"
+      ? "bg-emerald-600"
       : pct >= 67
       ? "bg-blue-500"
       : pct >= 33
@@ -156,14 +156,14 @@ function ItemAnalysisRow({
 }) {
   const corrColor =
     itemTotalCorrelation >= 0.4
-      ? "text-teal-400"
+      ? "text-emerald-400"
       : itemTotalCorrelation >= 0.3
       ? "text-amber-400"
       : "text-red-400";
   // alpha if deleted가 현재 alpha보다 크면 삭제 권장
   const alphaDelta = alphaIfDeleted - cronbachAlpha;
   const alphaColor =
-    alphaDelta > 0.02 ? "text-red-400" : alphaDelta > 0 ? "text-amber-400" : "text-teal-400";
+    alphaDelta > 0.02 ? "text-red-400" : alphaDelta > 0 ? "text-amber-400" : "text-emerald-400";
 
   return (
     <tr className="border-t border-white/[0.06] hover:bg-white/[0.03] transition-colors">
@@ -220,7 +220,7 @@ export default function ValidationConsole({
     <div className="space-y-6">
       {/* 헤더 */}
       <div className="flex items-center gap-2">
-        <Shield className="h-5 w-5 text-teal-400" />
+        <Shield className="h-5 w-5 text-emerald-400" />
         <h3 className="text-base font-semibold text-white">심리측정 타당화 콘솔</h3>
       </div>
 
@@ -381,7 +381,7 @@ export default function ValidationConsole({
                         <td className="py-2 px-3 text-white/60 font-mono text-center">
                           {p.p25.toFixed(1)}
                         </td>
-                        <td className="py-2 px-3 text-teal-400/80 font-mono text-center font-semibold">
+                        <td className="py-2 px-3 text-emerald-400/80 font-mono text-center font-semibold">
                           {p.p50.toFixed(1)}
                         </td>
                         <td className="py-2 px-3 text-white/60 font-mono text-center">

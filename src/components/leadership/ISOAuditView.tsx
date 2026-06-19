@@ -111,7 +111,7 @@ const ACTION_LABELS: Record<string, string> = {
 function ActorBadge({ actor }: { actor: AuditEntry["actor"] }) {
   const config: Record<string, { label: string; className: string }> = {
     system: { label: "시스템", className: "bg-blue-500/15 text-blue-400" },
-    evaluator: { label: "평가자", className: "bg-teal-500/15 text-teal-400" },
+    evaluator: { label: "평가자", className: "bg-emerald-500/15 text-emerald-400" },
     participant: { label: "참여자", className: "bg-amber-500/15 text-amber-400" },
     admin: { label: "관리자", className: "bg-purple-500/15 text-purple-400" },
   };
@@ -186,13 +186,13 @@ export default function ISOAuditView({
     .slice(0, 100);
 
   const progressBarColor =
-    completionPct >= 80 ? "bg-teal-500" : completionPct >= 50 ? "bg-amber-500" : "bg-red-500";
+    completionPct >= 80 ? "bg-emerald-500" : completionPct >= 50 ? "bg-amber-500" : "bg-red-500";
 
   return (
     <div className="space-y-6">
       {/* 헤더 */}
       <div className="flex items-center gap-2">
-        <Shield className="h-5 w-5 text-teal-400" />
+        <Shield className="h-5 w-5 text-emerald-400" />
         <h3 className="text-base font-semibold text-white">ISO 10667 감사 뷰</h3>
       </div>
 
@@ -206,7 +206,7 @@ export default function ISOAuditView({
             <span
               className={`text-sm font-bold ${
                 completionPct >= 80
-                  ? "text-teal-400"
+                  ? "text-emerald-400"
                   : completionPct >= 50
                   ? "text-amber-400"
                   : "text-red-400"
@@ -237,7 +237,7 @@ export default function ISOAuditView({
                 {/* 체크박스 아이콘 */}
                 <div className="mt-0.5 shrink-0">
                   {done ? (
-                    <CheckCircle className="h-4.5 w-4.5 text-teal-400 h-5 w-5" />
+                    <CheckCircle className="h-4.5 w-4.5 text-emerald-400 h-5 w-5" />
                   ) : (
                     <div className="h-5 w-5 rounded-full border-2 border-white/20 bg-transparent" />
                   )}
@@ -251,7 +251,7 @@ export default function ISOAuditView({
                       {item.id}. {item.label}
                     </span>
                     {done ? (
-                      <span className="text-[10px] font-semibold text-teal-400 bg-teal-500/10 border border-teal-500/20 rounded px-1.5 py-0.5">
+                      <span className="text-[10px] font-semibold text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 rounded px-1.5 py-0.5">
                         완료
                       </span>
                     ) : (
@@ -311,7 +311,7 @@ export default function ISOAuditView({
                           {status === null ? (
                             <span className="text-white/20 text-lg">—</span>
                           ) : status ? (
-                            <CheckCircle className="h-4 w-4 text-teal-400 mx-auto" />
+                            <CheckCircle className="h-4 w-4 text-emerald-400 mx-auto" />
                           ) : (
                             <AlertTriangle className="h-4 w-4 text-red-400 mx-auto" />
                           )}
