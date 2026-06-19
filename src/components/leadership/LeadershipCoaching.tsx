@@ -161,6 +161,9 @@ export default function LeadershipCoaching() {
 
   // 상황사례 입력
   const [scenarioText, setScenarioText] = useState("");
+  // 주요 용어·명단 (STT 보정 — AI 분석 프롬프트에 정확 표기 주입)
+  const [glossaryText, setGlossaryText] = useState("");
+  const glossaryTerms = glossaryText.split(/[,\n]/).map((t) => t.trim()).filter(Boolean);
 
   // 역량 선택 (복수 선택 가능)
   const [selectedCompetencies, setSelectedCompetencies] = useState<Set<LeadershipCompetencyKey>>(
@@ -427,6 +430,7 @@ export default function LeadershipCoaching() {
         videoUrl={view.videoUrl}
         selectedCompetencies={view.selectedCompetencies}
         scenarioText={view.scenarioText}
+        initialGlossary={glossaryTerms}
         onBack={() => setView({ type: "main" })}
         onAnalysisComplete={(payload) => {
           // 분석 완료 시 speakers 상태 업데이트 — 메인 뷰 심층 분석 섹션에 반영
@@ -640,12 +644,12 @@ export default function LeadershipCoaching() {
         </div>
       )}
 
-      {/* ── 개별 분석 영역 (기존) ── */}
+      {/* ── 개별 분석 영역 ── */}
       <div className="relative">
         <div className="flex items-center gap-3 mb-4">
-          <div className="h-px flex-1 bg-slate-200/60" />
-          <span className="text-xs text-slate-400 font-medium uppercase tracking-wider">또는 개별 분석</span>
-          <div className="h-px flex-1 bg-slate-200/60" />
+          <div className="h-px flex-1 bg-[#002855]/8" />
+          <span className="text-[10px] font-mono text-[#94a3b8] tracking-[0.18em] uppercase">또는 개별 분석</span>
+          <div className="h-px flex-1 bg-[#002855]/8" />
         </div>
       </div>
 
@@ -653,10 +657,10 @@ export default function LeadershipCoaching() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* 좌측: 영상 업로드 */}
         <div className="space-y-4">
-          <h3 className="text-base font-semibold text-slate-700 flex items-center gap-2">
-            <Upload className="w-4 h-4 text-teal-600" />
-            1단계: 발표·토론 영상 업로드
-          </h3>
+          <div className="flex items-baseline gap-3">
+            <span className="font-mono text-[12px] text-[#006341] tracking-[0.1em] tabular-nums">STEP 01</span>
+            <h3 className="text-[17px] font-bold text-[#002855] tracking-[-0.01em]">발표·토의·면담 영상 업로드</h3>
+          </div>
 
           {!uploadedVideoId ? (
             <VideoUploader
@@ -702,26 +706,36 @@ export default function LeadershipCoaching() {
           )}
         </div>
 
-        {/* 우측: 상황사례 입력 */}
+        {/* 우측: 상황사례 + 주요 용어(STT 보정) */}
         <div className="space-y-4">
-          <h3 className="text-base font-semibold text-slate-700 flex items-center gap-2">
-            <FileText className="w-4 h-4 text-teal-600" />
-            2단계: 상황사례 입력 (선택)
-          </h3>
-          <div className="bg-white border border-slate-200/40 rounded-xl p-5 space-y-3">
-            <p className="text-sm text-slate-500">
-              평가 대상 영상의 상황사례를 입력하면 더 정확한 분석이 가능합니다.
-            </p>
-            <textarea
-              value={scenarioText}
-              onChange={(e) => setScenarioText(e.target.value)}
-              placeholder={`예시:\n• 신재생에너지 분야 전략 수립 TFT 발표 영상\n• 부서 간 설비 교체 일정 갈등 조율 회의\n• 회의 비효율성 문제에 대한 1:1 코칭 면담\n• 3건의 긴급사안 우선순위 결정 회의`}
-              className="w-full bg-slate-50/60 border border-slate-200/40 rounded-lg px-4 py-3 text-base text-slate-900 placeholder:text-slate-400 outline-none focus:border-teal-500/30 focus:ring-1 focus:ring-teal-500/15 transition-all resize-none leading-relaxed"
-              rows={3}
-            />
-            <p className="text-xs text-slate-400">
-              * 미입력 시 영상만으로 분석
-            </p>
+          <div className="flex items-baseline gap-3">
+            <span className="font-mono text-[12px] text-[#006341] tracking-[0.1em] tabular-nums">STEP 02</span>
+            <h3 className="text-[17px] font-bold text-[#002855] tracking-[-0.01em]">상황사례 · 주요 용어 (선택)</h3>
+          </div>
+          <div className="bg-white border border-[#002855]/10 rounded-xl p-5 space-y-4">
+            <div>
+              <p className="text-[13px] text-[#475569] mb-2">상황사례를 입력하면 보고서 해석이 정확해집니다.</p>
+              <textarea
+                value={scenarioText}
+                onChange={(e) => setScenarioText(e.target.value)}
+                placeholder={`예시:\n• 신재생에너지 분야 전략 수립 TFT 발표 영상\n• 부서 간 설비 교체 일정 갈등 조율 회의\n• 회의 비효율성 문제에 대한 1:1 코칭 면담`}
+                className="w-full bg-[#f7f8f6] border border-[#002855]/10 rounded-lg px-4 py-3 text-[15px] text-[#002855] placeholder:text-[#94a3b8] outline-none focus:border-[#006341]/40 focus:ring-1 focus:ring-[#006341]/15 transition-all resize-none leading-relaxed"
+                rows={3}
+              />
+            </div>
+            <div className="border-t border-[#002855]/8 pt-4">
+              <label className="text-[13px] font-semibold text-[#002855] block mb-1">주요 용어·명단 <span className="font-normal text-[#94a3b8]">(음성인식 보정)</span></label>
+              <textarea
+                value={glossaryText}
+                onChange={(e) => setGlossaryText(e.target.value)}
+                placeholder={`인명·직책·부서를 쉼표로 (예: 엄사방, 주무차장, A부장, 안전부서)`}
+                className="w-full bg-[#f7f8f6] border border-[#002855]/10 rounded-lg px-4 py-2.5 text-[14px] text-[#002855] placeholder:text-[#94a3b8] outline-none focus:border-[#006341]/40 focus:ring-1 focus:ring-[#006341]/15 transition-all resize-none leading-relaxed"
+                rows={2}
+              />
+              <p className="text-[11px] text-[#94a3b8] mt-1.5">
+                ※ TwelveLabs는 원본 음성인식 어휘를 바꿀 수 없습니다. 입력한 용어는 <span className="text-[#475569]">AI 분석·보고서가 정확한 표기를 쓰도록</span> 전달됩니다(근본 보정은 온프렘 한국어 STT).
+              </p>
+            </div>
           </div>
         </div>
       </div>
@@ -729,13 +743,13 @@ export default function LeadershipCoaching() {
       {/* ── 3단계: 평가 역량 선택 ── */}
       <div className="space-y-4">
         <div className="flex items-center justify-between">
-          <h3 className="text-base font-semibold text-slate-700 flex items-center gap-2">
-            <Target className="w-4 h-4 text-teal-600" />
-            3단계: 평가 역량 선택
-          </h3>
+          <div className="flex items-baseline gap-3">
+            <span className="font-mono text-[12px] text-[#006341] tracking-[0.1em] tabular-nums">STEP 03</span>
+            <h3 className="text-[17px] font-bold text-[#002855] tracking-[-0.01em]">평가 역량 선택</h3>
+          </div>
           <button
             onClick={selectAllCompetencies}
-            className="text-sm text-teal-600 hover:text-teal-500 transition-colors"
+            className="text-sm text-[#006341] hover:text-[#004a31] transition-colors font-medium"
           >
             전체 선택
           </button>

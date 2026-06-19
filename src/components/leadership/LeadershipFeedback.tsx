@@ -71,6 +71,8 @@ interface LeadershipFeedbackProps {
   videoUrl?: string;
   selectedCompetencies?: LeadershipCompetencyKey[];
   scenarioText?: string;
+  /** 업로드 단계에서 입력한 주요 용어·명단 (STT 보정 — 분석 프롬프트에 정확 표기 주입) */
+  initialGlossary?: string[];
   onBack: () => void;
   /** 분석 완료 시 조 세션에 점수를 자동 반영하기 위한 콜백 */
   onAnalysisComplete?: (payload: AnalysisCompletePayload) => void;
@@ -186,6 +188,7 @@ export default function LeadershipFeedback({
   videoUrl,
   selectedCompetencies,
   scenarioText,
+  initialGlossary,
   onBack,
   onAnalysisComplete,
 }: LeadershipFeedbackProps) {
@@ -207,8 +210,10 @@ export default function LeadershipFeedback({
   const [mmStarted, setMmStarted] = useState(false);
   // 재분석(코치 보정/반복 진단) 중 여부 — 전체 로딩 화면 대신 인플레이스 로딩 유지
   const [mmReanalyzing, setMmReanalyzing] = useState(false);
-  // 코치 보정 — 평가 대상자/화자 라벨 (피드백 ⑦)
-  const [roleContext, setRoleContext] = useState<RoleContext>({});
+  // 코치 보정 — 평가 대상자/화자 라벨 (피드백 ⑦) · 업로드 단계 용어사전으로 시드
+  const [roleContext, setRoleContext] = useState<RoleContext>(
+    initialGlossary && initialGlossary.length > 0 ? { glossary: initialGlossary } : {},
+  );
   // N차 반복 진단 회차 (객관성 확보 — 보고서 26.6.18)
   const [consistencyRuns, setConsistencyRuns] = useState(3);
   // HITL — 전문가(코치) 평가 확정 상태

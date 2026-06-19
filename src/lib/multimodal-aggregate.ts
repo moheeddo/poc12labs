@@ -12,6 +12,27 @@ import type { MultimodalScoreResult } from "./multimodal-scoring";
 
 export type ConsistencyLevel = "높음" | "보통" | "낮음";
 
+// =============================================
+// 적응형 반복진단 파라미터 — 시뮬레이션(scripts/n-run-simulation, 2026-06-19)으로 도출
+//   · 한계효용 무릎(knee) = 3회: SEM 누적감소 42%, 3→4회 한계감소 7.7%p로 급락
+//   · 5회: 누적 55% · 7회: 62%(한계감소<3%p, 비용 대비 무의미) → 상한 7
+//   · 고정 N으로 정밀도 보장 불가(σ별 필요 N 상이) → 신뢰구간 게이트 순차 반복
+//   · 밴드 경계 사례는 N=7로도 오분류 ~30% → CI가 등급 경계를 가로지르면 HITL 강제
+// =============================================
+export const RECOMMENDED_RUNS = 3;     // 기본 출발 회차 (한계효용 무릎)
+export const MAX_RUNS = 7;              // 비용 상한 (한계감소<3%p)
+export const PRECISION_TARGET = 0.5;   // 목표 95% CI 반폭 (0~9 척도 ≈ 100점 환산 ±5.5)
+const BAND_CUTS = [3.0, 5.5, 7.5];     // 해석 밴드 경계 (미흡|보통미만|보통이상|매우우수)
+
+export type RecommendationStatus = "sufficient" | "more_runs" | "hitl_required";
+export interface DiagnosisRecommendation {
+  status: RecommendationStatus;
+  ciHalfWidth: number | null;   // 95% CI 반폭 (정밀도 지표)
+  straddlesBand: boolean;       // CI가 등급 경계를 가로지르는가 (경계 사례)
+  suggestedTotalRuns: number;   // 권장 누적 회차
+  message: string;
+}
+
 export interface AggregateStat {
   mean: number;
   median: number;   // 대표값 (강건 — 이상치 회차에 둔감)
@@ -50,6 +71,7 @@ export interface AggregatedScore {
   };
   interpretation: string;   // 평균 기준 해석 등급
   representativeIndex: number; // 중앙값에 가장 가까운 회차 인덱스 (상세 지표 표시용)
+  recommendation: DiagnosisRecommendation; // 적응형 반복진단 권고 (신뢰구간 게이트)
 }
 
 // ─── 기초 통계 ───
@@ -201,6 +223,29 @@ export function aggregateRuns(results: MultimodalScoreResult[]): AggregatedScore
     });
   }
 
+  // ── 적응형 반복진단 권고 (신뢰구간 게이트 + 경계 HITL 에스컬레이션) ──
+  const ciHalf = total ? Math.round(((total.ci95[1] - total.ci95[0]) / 2) * 100) / 100 : null;
+  const straddlesBand = total ? BAND_CUTS.some((c) => total.ci95[0] < c && total.ci95[1] > c) : false;
+  const n = results.length;
+  let recommendation: DiagnosisRecommendation;
+  if (!total) {
+    recommendation = { status: "more_runs", ciHalfWidth: null, straddlesBand: false, suggestedTotalRuns: RECOMMENDED_RUNS,
+      message: `채점 가능 항목 부족 — 최소 ${RECOMMENDED_RUNS}회 진단으로 객관성 확보를 권장합니다.` };
+  } else if (straddlesBand) {
+    recommendation = { status: "hitl_required", ciHalfWidth: ciHalf, straddlesBand: true, suggestedTotalRuns: n,
+      message: `신뢰구간(${total.ci95[0].toFixed(1)}~${total.ci95[1].toFixed(1)})이 등급 경계를 가로지릅니다. 반복만으로 해소되지 않는 경계 사례 — 전문가(코치) 확정이 필요합니다.` };
+  } else if (ciHalf !== null && ciHalf <= PRECISION_TARGET) {
+    recommendation = { status: "sufficient", ciHalfWidth: ciHalf, straddlesBand: false, suggestedTotalRuns: n,
+      message: `목표 정밀도 달성(95% CI ±${ciHalf.toFixed(2)} ≤ ±${PRECISION_TARGET}). 추가 진단 없이 신뢰할 수 있습니다.` };
+  } else if (n < MAX_RUNS) {
+    const next = Math.min(MAX_RUNS, n + 2);
+    recommendation = { status: "more_runs", ciHalfWidth: ciHalf, straddlesBand: false, suggestedTotalRuns: next,
+      message: `정밀도 미달(95% CI ±${ciHalf?.toFixed(2)} > ±${PRECISION_TARGET}). ${next}회까지 추가 진단을 권장합니다.` };
+  } else {
+    recommendation = { status: "hitl_required", ciHalfWidth: ciHalf, straddlesBand: false, suggestedTotalRuns: MAX_RUNS,
+      message: `최대 ${MAX_RUNS}회에도 변동이 큽니다(95% CI ±${ciHalf?.toFixed(2)}). 전문가(코치) 검토·확정이 필요합니다.` };
+  }
+
   return {
     competencyKey,
     competencyLabel,
@@ -208,6 +253,7 @@ export function aggregateRuns(results: MultimodalScoreResult[]): AggregatedScore
     totalRuns,
     total,
     items,
+    recommendation,
     consistency: {
       level,
       stdev: sd,

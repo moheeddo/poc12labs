@@ -73,3 +73,22 @@ describe("aggregateRuns — N차수 반복 진단 집계 (보고서: 객관성 �
     expect(agg.representativeIndex === 0 || agg.representativeIndex === 2).toBe(true);
   });
 });
+
+describe("적응형 반복진단 권고 (신뢰구간 게이트 + 경계 HITL)", () => {
+  it("안정적 3회(7.8±소폭) → 정밀도 충분", () => {
+    const agg = aggregateRuns([run(7.8, { m1: 8 }), run(7.8, { m1: 8 }), run(7.9, { m1: 8 })]);
+    expect(agg.recommendation.status).toBe("sufficient");
+    expect(agg.recommendation.ciHalfWidth).toBeLessThanOrEqual(0.5);
+  });
+  it("변동 큰 3회(8/6/4) → 추가 진단 또는 HITL (정밀도 미달)", () => {
+    const agg = aggregateRuns([run(8, { m1: 8 }), run(6, { m1: 6 }), run(4, { m1: 4 })]);
+    expect(["more_runs", "hitl_required"]).toContain(agg.recommendation.status);
+    expect(agg.recommendation.ciHalfWidth).toBeGreaterThan(0.5);
+  });
+  it("CI가 등급 경계(5.5) 가로지르면 HITL 강제", () => {
+    // 5.3/5.7/5.5 → 평균 5.5 근처, CI가 5.5 경계 straddle
+    const agg = aggregateRuns([run(5.2, { m1: 5 }), run(5.8, { m1: 6 }), run(5.5, { m1: 5 })]);
+    expect(agg.recommendation.straddlesBand).toBe(true);
+    expect(agg.recommendation.status).toBe("hitl_required");
+  });
+});
