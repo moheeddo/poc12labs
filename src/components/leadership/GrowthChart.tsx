@@ -175,7 +175,11 @@ export default function GrowthChart({ timeline, loading = false }: GrowthChartPr
       </div>
 
       {/* ─── 라인 차트 ─── */}
-      <div className="rounded-xl border border-slate-200/60 bg-white p-4 shadow-sm">
+      <div
+        className="rounded-xl border border-slate-200/60 bg-white p-4 shadow-sm"
+        role="img"
+        aria-label={`${employeeName} 역량 성장 추이: ${dataPoints[0]?.date?.slice(0, 10)}부터 ${dataPoints[dataPoints.length - 1]?.date?.slice(0, 10)}까지 ${dataPoints.length}회 평가, ${competencyKeys.map((k) => COMPETENCY_LABELS[k] ?? k).join("·")} 역량 라인 차트`}
+      >
         <ResponsiveContainer width="100%" height={280}>
           <LineChart data={chartData} margin={{ top: 8, right: 16, left: -8, bottom: 4 }}>
             <CartesianGrid strokeDasharray="3 3" stroke="#cbd5e1" strokeOpacity={0.6} />

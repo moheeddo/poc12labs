@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useId } from "react";
 import { Lightbulb, ChevronDown, ChevronUp, Target, TrendingUp } from "lucide-react";
 import { getCompetenciesForLevel } from "@/lib/constants";
 import type { SpeakerScore, JobLevel } from "@/lib/types";
@@ -41,6 +41,7 @@ function getGradeLabel(score: number) {
 
 export default function ScoreCard({ speaker, rank }: ScoreCardProps) {
   const [expanded, setExpanded] = useState(false);
+  const detailsId = `scorecard-subdetails-${useId()}`;
   const rankColors = ["text-amber-600", "text-slate-700", "text-amber-700"];
   const rankBgColors = ["bg-amber-50", "bg-slate-100", "bg-amber-50"];
   const badge = getScoreTier(speaker.totalScore);
@@ -91,15 +92,17 @@ export default function ScoreCard({ speaker, rank }: ScoreCardProps) {
       {/* 하위요소 확장 토글 */}
       <button
         onClick={() => setExpanded(!expanded)}
+        aria-expanded={expanded}
+        aria-controls={detailsId}
         className="mt-4 flex items-center gap-1.5 text-xs text-slate-500 hover:text-emerald-700 transition-colors duration-200 w-full pt-3 border-t border-slate-200"
       >
-        {expanded ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
+        {expanded ? <ChevronUp aria-hidden="true" className="w-3.5 h-3.5" /> : <ChevronDown aria-hidden="true" className="w-3.5 h-3.5" />}
         {expanded ? "접기" : "하위요소 · 행동지표 보기"}
       </button>
 
       {/* 확장: 하위요소 & 루브릭 상세 */}
       {expanded && (
-        <div className="mt-3 space-y-3 animate-fade-in-up">
+        <div id={detailsId} className="mt-3 space-y-3 animate-fade-in-up">
           {competencies.map((comp) => {
             const subs = comp.subElements[speaker.jobLevel as JobLevel];
             const rubricScores = speaker.rubricScores?.[comp.key];

@@ -31,21 +31,28 @@ function FourFifthsGauge({
           {ratio.toFixed(2)}
         </span>
       </div>
-      <div className="relative h-3 w-full overflow-hidden rounded-full bg-slate-200">
+      <div
+        className="relative h-3 w-full overflow-hidden rounded-full bg-slate-200"
+        role="img"
+        aria-label={`4/5 비율 ${ratio.toFixed(2)}, 0.80 기준 ${impacted ? "미달(불리효과)" : "충족"}`}
+      >
         {/* 진행 막대 */}
         <div
           className={`h-full rounded-full transition-all duration-500 ${barColor}`}
           style={{ width: `${pct}%` }}
+          aria-hidden="true"
         />
         {/* 0.8 임계선 */}
         <div
           className="absolute top-0 bottom-0 w-px bg-slate-500"
           style={{ left: `${thresholdPct}%` }}
+          aria-hidden="true"
         />
       </div>
       <div
         className="text-[10px] text-slate-500"
         style={{ marginLeft: `${thresholdPct}%`, transform: "translateX(-50%)" }}
+        aria-hidden="true"
       >
         ▲ 0.80 기준선
       </div>

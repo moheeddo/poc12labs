@@ -448,6 +448,7 @@ export default function CompetencyAssessment({ data, onBack }: CompetencyAssessm
         <div className="flex items-center gap-1 p-1 bg-white/40 border border-slate-200/30 rounded-xl">
           <button
             onClick={() => setRubricVersion("bars")}
+            aria-pressed={rubricVersion === "bars"}
             className={cn(
               "flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-all",
               rubricVersion === "bars" ? "bg-slate-100/60 text-emerald-700 shadow-sm" : "text-slate-500 hover:text-slate-500"
@@ -458,6 +459,7 @@ export default function CompetencyAssessment({ data, onBack }: CompetencyAssessm
           </button>
           <button
             onClick={() => setRubricVersion("multimodal")}
+            aria-pressed={rubricVersion === "multimodal"}
             className={cn(
               "flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-all",
               rubricVersion === "multimodal" ? "bg-slate-100/60 text-violet-600 shadow-sm" : "text-slate-500 hover:text-slate-500"
@@ -465,7 +467,7 @@ export default function CompetencyAssessment({ data, onBack }: CompetencyAssessm
           >
             <Activity className="w-3.5 h-3.5" />
             멀티모달 행동기반
-            <span className="text-[9px] font-mono opacity-60">{MULTIMODAL_RUBRIC.version}</span>
+            <span className="text-[9px] font-mono opacity-60" aria-hidden="true">{MULTIMODAL_RUBRIC.version}</span>
           </button>
         </div>
       </div>
@@ -488,23 +490,23 @@ export default function CompetencyAssessment({ data, onBack }: CompetencyAssessm
 
           {/* 재생 컨트롤 */}
           <div className="bg-white/60 border border-slate-200/40 rounded-xl p-3 flex items-center gap-3">
-            <button onClick={togglePlay} className="w-8 h-8 rounded-full bg-emerald-50 flex items-center justify-center text-emerald-700 hover:bg-emerald-600/25 transition-colors shrink-0">
-              {isPlaying ? <Pause className="w-3.5 h-3.5" /> : <Play className="w-3.5 h-3.5 ml-0.5" />}
+            <button onClick={togglePlay} aria-label={isPlaying ? "일시정지" : "재생"} className="w-8 h-8 rounded-full bg-emerald-50 flex items-center justify-center text-emerald-700 hover:bg-emerald-600/25 transition-colors shrink-0">
+              {isPlaying ? <Pause className="w-3.5 h-3.5" aria-hidden="true" /> : <Play className="w-3.5 h-3.5 ml-0.5" aria-hidden="true" />}
             </button>
             <span className="text-base font-mono text-slate-700 tabular-nums">{formatTime(currentTime)}</span>
           </div>
 
           {/* 상황 사례 */}
           <div className="bg-white/50 border border-slate-200/40 rounded-xl overflow-hidden">
-            <button onClick={() => setShowScenario(!showScenario)} className="w-full flex items-center justify-between px-4 py-3 hover:bg-white/70 transition-colors">
+            <button onClick={() => setShowScenario(!showScenario)} aria-expanded={showScenario} aria-controls="scenario-panel" className="w-full flex items-center justify-between px-4 py-3 hover:bg-white/70 transition-colors">
               <div className="flex items-center gap-2">
                 <FileText className="w-4 h-4 text-slate-500" />
                 <span className="text-base font-medium text-slate-700">상황 사례</span>
               </div>
-              {showScenario ? <ChevronUp className="w-4 h-4 text-slate-500" /> : <ChevronDown className="w-4 h-4 text-slate-500" />}
+              {showScenario ? <ChevronUp className="w-4 h-4 text-slate-500" aria-hidden="true" /> : <ChevronDown className="w-4 h-4 text-slate-500" aria-hidden="true" />}
             </button>
             {showScenario && (
-              <div className="px-4 pb-4 space-y-3 animate-fade-in-up">
+              <div id="scenario-panel" className="px-4 pb-4 space-y-3 animate-fade-in-up">
                 <p className="text-sm font-medium text-slate-500">{data.scenario.title}</p>
                 <p className="text-base text-slate-500 leading-relaxed whitespace-pre-line">{data.scenario.description}</p>
                 <div className="flex items-start gap-1.5 pt-1">

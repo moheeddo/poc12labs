@@ -95,10 +95,19 @@ export default function HRConnectorPanel({ onImport }: HRConnectorPanelProps) {
 
       {/* 드래그앤드롭 업로드 영역 */}
       <div
+        role="button"
+        tabIndex={0}
+        aria-label="CSV 파일 선택 또는 드래그하여 업로드"
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
         onDrop={handleDrop}
         onClick={() => fileInputRef.current?.click()}
+        onKeyDown={(e) => {
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            fileInputRef.current?.click();
+          }
+        }}
         className={`flex cursor-pointer flex-col items-center justify-center gap-3 rounded-lg border-2 border-dashed px-6 py-10 transition-colors ${
           isDragging
             ? "border-emerald-600 bg-emerald-50"

@@ -637,7 +637,7 @@ export default function LeadershipCoaching() {
                   onClick={() => setView({ type: "group-manage", sessionId: gs.id })}
                   role="button"
                   tabIndex={0}
-                  onKeyDown={(e) => { if (e.key === "Enter") setView({ type: "group-manage", sessionId: gs.id }); }}
+                  onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setView({ type: "group-manage", sessionId: gs.id }); } }}
                 >
                   <div className="flex items-center justify-between mb-1.5">
                     <p className="text-sm font-bold text-[#006341] pr-7">{gs.name}</p>
@@ -895,7 +895,7 @@ export default function LeadershipCoaching() {
         </h3>
         {/* 서브탭 내비게이션 — 행 1: 핵심 분석 */}
         <div className="space-y-1">
-          <div className="flex flex-wrap gap-1 p-1 rounded-lg bg-slate-50/60 border border-slate-200/40">
+          <div role="tablist" aria-label="심층 분석 보기" className="flex flex-wrap gap-1 p-1 rounded-lg bg-slate-50/60 border border-slate-200/40">
             {[
               { key: "competency", label: "역량평가" },
               { key: "evidence", label: "증거맵" },
@@ -912,6 +912,10 @@ export default function LeadershipCoaching() {
               return (
                 <button
                   key={tab.key}
+                  role="tab"
+                  aria-selected={analysisSubTab === tab.key}
+                  id={`subtab-${tab.key}`}
+                  aria-controls={`subpanel-${tab.key}`}
                   onClick={() => setAnalysisSubTab(tab.key as typeof analysisSubTab)}
                   className={`px-3 py-1.5 text-xs rounded-md transition-colors font-medium ${
                     analysisSubTab === tab.key
@@ -928,48 +932,66 @@ export default function LeadershipCoaching() {
 
         {/* 서브탭 콘텐츠 */}
         {analysisSubTab === "competency" && (
-          <div className="bg-white border border-slate-200/30 rounded-xl p-5 text-center text-slate-500 text-sm">
-            영상을 업로드하고 역량을 선택한 뒤 AI 분석을 시작하면 역량 평가 결과가 표시됩니다.
+          <div role="tabpanel" id="subpanel-competency" aria-labelledby="subtab-competency">
+            <div className="bg-white border border-slate-200/30 rounded-xl p-5 text-center text-slate-500 text-sm">
+              영상을 업로드하고 역량을 선택한 뒤 AI 분석을 시작하면 역량 평가 결과가 표시됩니다.
+            </div>
           </div>
         )}
         {analysisSubTab === "evidence" && (
-          <EvidenceMapView evidenceMap={evidence.evidenceMap} loading={evidence.loading} />
+          <div role="tabpanel" id="subpanel-evidence" aria-labelledby="subtab-evidence">
+            <EvidenceMapView evidenceMap={evidence.evidenceMap} loading={evidence.loading} />
+          </div>
         )}
         {analysisSubTab === "derailer" && (
-          <DerailerDashboard profile={derailer.profile} loading={derailer.loading} />
+          <div role="tabpanel" id="subpanel-derailer" aria-labelledby="subtab-derailer">
+            <DerailerDashboard profile={derailer.profile} loading={derailer.loading} />
+          </div>
         )}
         {analysisSubTab === "bei" && (
-          <BEITimeline analysis={bei.analysis} loading={bei.loading} />
+          <div role="tabpanel" id="subpanel-bei" aria-labelledby="subtab-bei">
+            <BEITimeline analysis={bei.analysis} loading={bei.loading} />
+          </div>
         )}
         {analysisSubTab === "growth" && (
-          <GrowthChart timeline={growth.timeline} loading={growth.loading} />
+          <div role="tabpanel" id="subpanel-growth" aria-labelledby="subtab-growth">
+            <GrowthChart timeline={growth.timeline} loading={growth.loading} />
+          </div>
         )}
         {analysisSubTab === "validation" && (
-          <ValidationConsole
-            report={validation.report}
-            norms={validation.norms}
-            loading={validation.loading}
-          />
+          <div role="tabpanel" id="subpanel-validation" aria-labelledby="subtab-validation">
+            <ValidationConsole
+              report={validation.report}
+              norms={validation.norms}
+              loading={validation.loading}
+            />
+          </div>
         )}
         {analysisSubTab === "fairness" && (
-          <FairnessMonitor report={fairness.report} loading={fairness.loading} />
+          <div role="tabpanel" id="subpanel-fairness" aria-labelledby="subtab-fairness">
+            <FairnessMonitor report={fairness.report} loading={fairness.loading} />
+          </div>
         )}
         {analysisSubTab === "iso" && (
-          <ISOAuditView auditEntries={[]} consents={[]} loading={compliance.loading} />
+          <div role="tabpanel" id="subpanel-iso" aria-labelledby="subtab-iso">
+            <ISOAuditView auditEntries={[]} consents={[]} loading={compliance.loading} />
+          </div>
         )}
         {analysisSubTab === "report" && (
-          <IntegratedReport
-            competencyScores={{}}
-            competencyLabels={{}}
-            evidenceMaps={evidence.evidenceMap ? [evidence.evidenceMap] : []}
-            derailerProfile={derailer.profile}
-            beiAnalysis={bei.analysis}
-            triangulatedScores={compliance.triangulated ?? undefined}
-            normTable={validation.norms}
-          />
+          <div role="tabpanel" id="subpanel-report" aria-labelledby="subtab-report">
+            <IntegratedReport
+              competencyScores={{}}
+              competencyLabels={{}}
+              evidenceMaps={evidence.evidenceMap ? [evidence.evidenceMap] : []}
+              derailerProfile={derailer.profile}
+              beiAnalysis={bei.analysis}
+              triangulatedScores={compliance.triangulated ?? undefined}
+              normTable={validation.norms}
+            />
+          </div>
         )}
         {analysisSubTab === "consent" && (
-          <div className="space-y-4">
+          <div role="tabpanel" id="subpanel-consent" aria-labelledby="subtab-consent" className="space-y-4">
             <ConsentForm
               participantId="solo-user"
               sessionId="main"

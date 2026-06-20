@@ -95,11 +95,13 @@ function SemiGauge({ score, color, size = 72 }: GaugeProps) {
     <div
       className="relative overflow-hidden shrink-0"
       style={{ width: size, height: half + 4 }} // 반원 높이만
+      role="img"
       aria-label={`위험 점수 ${score}/10`}
     >
       {/* 배경 반원 (전체 트랙) */}
       <div
         className="absolute inset-0"
+        aria-hidden="true"
         style={{
           width: size,
           height: size,
@@ -110,6 +112,7 @@ function SemiGauge({ score, color, size = 72 }: GaugeProps) {
       {/* 채워진 반원 (점수) */}
       <div
         className="absolute inset-0 transition-all duration-700"
+        aria-hidden="true"
         style={{
           width: size,
           height: size,
@@ -120,6 +123,7 @@ function SemiGauge({ score, color, size = 72 }: GaugeProps) {
       {/* 중앙 구멍 (도넛 효과) */}
       <div
         className="absolute bg-white rounded-full"
+        aria-hidden="true"
         style={{
           width: size * 0.58,
           height: size * 0.58,
@@ -132,7 +136,7 @@ function SemiGauge({ score, color, size = 72 }: GaugeProps) {
         className="absolute bottom-0 left-0 right-0 flex justify-center"
         style={{ bottom: -2 }}
       >
-        <span className="text-xs font-mono font-bold" style={{ color }}>
+        <span className="text-xs font-mono font-bold" aria-hidden="true" style={{ color }}>
           {score.toFixed(1)}
         </span>
       </div>
@@ -181,18 +185,20 @@ function PatternCard({ pattern, onSeekVideo }: PatternCardProps) {
         <div>
           <button
             onClick={() => setExpanded((v) => !v)}
+            aria-expanded={expanded}
+            aria-controls={`evidence-${pattern.id}`}
             className="w-full flex items-center justify-center gap-1 text-[10px] text-slate-500 hover:text-slate-700 transition-colors py-0.5"
           >
             증거 {pattern.evidence.length}건
             {expanded ? (
-              <ChevronUp className="w-3 h-3" />
+              <ChevronUp className="w-3 h-3" aria-hidden="true" />
             ) : (
-              <ChevronDown className="w-3 h-3" />
+              <ChevronDown className="w-3 h-3" aria-hidden="true" />
             )}
           </button>
 
           {expanded && (
-            <ul className="space-y-1 mt-1">
+            <ul id={`evidence-${pattern.id}`} className="space-y-1 mt-1">
               {pattern.evidence.map((ev, i) => (
                 <li key={i} className="flex items-center gap-1.5">
                   <button

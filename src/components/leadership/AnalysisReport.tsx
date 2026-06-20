@@ -238,7 +238,7 @@ export default function AnalysisReport({ data, onSeek }: AnalysisReportProps) {
 
         {/* 레이더 차트 (컴팩트) */}
         {hasScores && (
-          <div className="bg-white/40 border border-slate-200/30 rounded-xl p-2">
+          <div className="bg-white/40 border border-slate-200/30 rounded-xl p-2" aria-hidden="true">
             <ResponsiveContainer width="100%" height={180}>
               <RadarChart data={radarData} cx="50%" cy="50%" outerRadius="70%">
                 <PolarGrid stroke="#e2e8f0" />
@@ -312,13 +312,22 @@ export default function AnalysisReport({ data, onSeek }: AnalysisReportProps) {
                   "flex items-start gap-3 rounded-xl p-3.5",
                   c.highlightTimestamp !== undefined && onSeek ? "bg-emerald-50/50 border border-emerald-100 cursor-pointer hover:bg-emerald-50 transition-colors" : "bg-slate-50/50 border border-slate-100"
                 )}
+                  role={c.highlightTimestamp !== undefined && onSeek ? "button" : undefined}
+                  tabIndex={c.highlightTimestamp !== undefined && onSeek ? 0 : undefined}
+                  aria-label={c.highlightTimestamp !== undefined && onSeek ? `${formatTime(c.highlightTimestamp)} 장면 재생` : undefined}
                   onClick={() => {
                     if (c.highlightTimestamp !== undefined && onSeek) onSeek(c.highlightTimestamp);
+                  }}
+                  onKeyDown={(e) => {
+                    if (c.highlightTimestamp !== undefined && onSeek && (e.key === "Enter" || e.key === " ")) {
+                      e.preventDefault();
+                      onSeek(c.highlightTimestamp);
+                    }
                   }}
                 >
                   {c.highlightTimestamp !== undefined && onSeek && (
                     <div className="shrink-0 w-10 h-10 rounded-lg bg-emerald-100 flex items-center justify-center">
-                      <PlayCircle className="w-5 h-5 text-emerald-700" />
+                      <PlayCircle className="w-5 h-5 text-emerald-700" aria-hidden="true" />
                     </div>
                   )}
                   <div className="flex-1 min-w-0">
@@ -338,7 +347,9 @@ export default function AnalysisReport({ data, onSeek }: AnalysisReportProps) {
                     <span className="text-[10px] px-2 py-0.5 rounded-full bg-slate-100 text-slate-500">{c.rubricScores[0]?.levelLabel}</span>
                   </div>
                   <div className="space-y-2">
-                    {c.rubricScores.map((rs, i) => (
+                    {c.rubricScores.map((rs, i) => {
+                      const interactive = rs.evidenceTimestamp !== undefined && rs.evidenceTimestamp > 0 && !!onSeek;
+                      return (
                       <div
                         key={i}
                         className={cn(
@@ -348,6 +359,17 @@ export default function AnalysisReport({ data, onSeek }: AnalysisReportProps) {
                             : "",
                           "bg-white border-slate-100"
                         )}
+                        {...(interactive ? {
+                          role: "button",
+                          tabIndex: 0,
+                          "aria-label": `근거 ${i + 1} 장면(${formatTime(rs.evidenceTimestamp!)}) 재생`,
+                          onKeyDown: (e: React.KeyboardEvent) => {
+                            if (e.key === "Enter" || e.key === " ") {
+                              e.preventDefault();
+                              onSeek!(rs.evidenceTimestamp!);
+                            }
+                          },
+                        } : {})}
                         onClick={() => {
                           if (rs.evidenceTimestamp !== undefined && rs.evidenceTimestamp > 0 && onSeek) {
                             onSeek(rs.evidenceTimestamp);
@@ -380,7 +402,8 @@ export default function AnalysisReport({ data, onSeek }: AnalysisReportProps) {
                           </div>
                         )}
                       </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 </div>
               )}

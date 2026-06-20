@@ -184,13 +184,14 @@ export default function VideoUploader({ onUpload, onUrlUpload, progress, accentC
               <button
                 onClick={handleUrlSubmit}
                 disabled={!videoUrl.trim()}
+                aria-label="영상 URL 불러오기"
                 className={cn(
                   "px-4 py-2.5 rounded-lg text-sm font-medium text-white transition-all duration-150",
                   "active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed",
                   accentBtnMap[accentColor],
                 )}
               >
-                <ArrowRight className="w-4 h-4" />
+                <ArrowRight className="w-4 h-4" aria-hidden="true" />
               </button>
             </div>
             {urlError && <p className="text-xs text-red-600 mt-2">{urlError}</p>}

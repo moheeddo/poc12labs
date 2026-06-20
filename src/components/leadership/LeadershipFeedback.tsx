@@ -1390,8 +1390,11 @@ ${inner}
 
           {/* ── 탭 전환 (멀티모달 / 대본) ── */}
           {/* 탭 헤더 — 2탭 */}
-          <div className="flex items-center gap-1 p-1 bg-white/40 border border-slate-200/30 rounded-xl">
+          <div role="tablist" aria-label="우측 패널 보기" className="flex items-center gap-1 p-1 bg-white/40 border border-slate-200/30 rounded-xl">
             <button
+              role="tab"
+              aria-selected={rightTab === "multimodal"}
+              aria-controls="right-panel-multimodal"
               onClick={() => setRightTab("multimodal")}
               className={cn(
                 "flex-1 flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-lg text-sm font-medium transition-all",
@@ -1400,10 +1403,13 @@ ${inner}
                   : "text-slate-500 hover:text-slate-700"
               )}
             >
-              <Eye className="w-3.5 h-3.5" />
+              <Eye className="w-3.5 h-3.5" aria-hidden="true" />
               멀티모달 행동분석
             </button>
             <button
+              role="tab"
+              aria-selected={rightTab === "transcript"}
+              aria-controls="right-panel-transcript"
               onClick={() => setRightTab("transcript")}
               className={cn(
                 "flex-1 flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-lg text-sm font-medium transition-all",
@@ -1412,14 +1418,15 @@ ${inner}
                   : "text-slate-500 hover:text-slate-700"
               )}
             >
-              <FileText className="w-3.5 h-3.5" />
+              <FileText className="w-3.5 h-3.5" aria-hidden="true" />
               대본
             </button>
           </div>
 
           {/* ── 멀티모달 행동분석 탭 ── */}
           {rightTab === "multimodal" && (
-            mmResult ? (
+            <div role="tabpanel" id="right-panel-multimodal">
+            {mmResult ? (
               <div className="space-y-4 animate-fade-in-up">
                 {/* ── 역량 구동 항목별 카드 (M1~M5) — 피드백 ① ── */}
                 {mmResult.scoring.items.map((item, itemIdx) => {
@@ -1429,10 +1436,20 @@ ${inner}
                   return (
                     <div
                       key={item.id}
+                      role="button"
+                      tabIndex={0}
+                      aria-label={`${item.name} 구간으로 이동`}
                       className={cn("rounded-xl p-5 border cursor-pointer hover:shadow-md transition-all", c.border, c.bg)}
                       onClick={() => {
                         const v = videoRef.current;
                         if (v && v.duration) seekTo((v.duration / mmResult.scoring.items.length) * itemIdx);
+                      }}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter" || e.key === " ") {
+                          e.preventDefault();
+                          const v = videoRef.current;
+                          if (v && v.duration) seekTo((v.duration / mmResult.scoring.items.length) * itemIdx);
+                        }
                       }}
                     >
                       {/* 헤더 */}
@@ -1498,13 +1515,16 @@ ${inner}
                             {item.observation.length > 120 && (
                               <button
                                 onClick={(e) => { e.stopPropagation(); setExpandedObs((prev) => { const n = new Set(prev); if (n.has(itemIdx)) n.delete(itemIdx); else n.add(itemIdx); return n; }); }}
+                                aria-expanded={expandedObs.has(itemIdx)}
+                                aria-controls={`obs-${itemIdx}`}
+                                aria-label="AI 관찰 소견 더보기/접기"
                                 className="text-[10px] text-emerald-600 hover:text-emerald-800 transition-colors min-h-[28px] min-w-[44px] flex items-center justify-center"
                               >
                                 {expandedObs.has(itemIdx) ? "접기" : "더보기"}
                               </button>
                             )}
                           </div>
-                          <p className={cn("text-sm text-slate-600 leading-relaxed bg-white/50 rounded-lg px-3 py-2", !expandedObs.has(itemIdx) && item.observation.length > 120 && "line-clamp-3")}>
+                          <p id={`obs-${itemIdx}`} className={cn("text-sm text-slate-600 leading-relaxed bg-white/50 rounded-lg px-3 py-2", !expandedObs.has(itemIdx) && item.observation.length > 120 && "line-clamp-3")}>
                             {item.observation}
                           </p>
                         </div>
@@ -1586,7 +1606,7 @@ ${inner}
                   }
 
                   return (
-                    <div className="bg-white border border-slate-200/30 rounded-2xl overflow-hidden print:shadow-none" id="multimodal-report">
+                    <div role="region" aria-labelledby="mm-report-heading" className="bg-white border border-slate-200/30 rounded-2xl overflow-hidden print:shadow-none" id="multimodal-report">
                       {/* 헤더 */}
                       <div className="bg-gradient-to-r from-emerald-50 to-emerald-50 px-6 py-4 border-b border-slate-200/30">
                         <div className="flex items-center justify-between">
@@ -1595,7 +1615,7 @@ ${inner}
                               <Sparkles className="w-4 h-4 text-emerald-600" />
                             </div>
                             <div>
-                              <h3 className="text-sm font-bold text-slate-800">{mmResult.scoring.competencyLabel} 멀티모달 행동분석 종합보고서</h3>
+                              <h3 id="mm-report-heading" className="text-sm font-bold text-slate-800">{mmResult.scoring.competencyLabel} 멀티모달 행동분석 종합보고서</h3>
                               <p className="text-[11px] text-slate-500">
                                 핵심 4개 항목(M1~M4) 기반 · {mmResult.reportModel === "solar-pro2" ? "Solar Pro 2" : "로컬 템플릿"} 생성
                               </p>
@@ -1676,19 +1696,22 @@ ${inner}
                 <p className="text-base text-emerald-600 mb-1">멀티모달 행동 분석 진행 중</p>
                 <p className="text-sm text-slate-500">5채널 신호 추출 → 채점 → 보고서 생성</p>
               </div>
-            )
+            )}
+            </div>
           )}
 
           {/* ── 디브리핑 대본 탭 ── */}
           {rightTab === "transcript" && (
-            <TranscriptTimeline
-              videoId={videoId}
-              currentTime={currentTime}
-              chapters={chapters}
-              onSeek={seekTo}
-              transcriptSegments={transcriptSegments}
-              loading={transcriptLoading}
-            />
+            <div role="tabpanel" id="right-panel-transcript">
+              <TranscriptTimeline
+                videoId={videoId}
+                currentTime={currentTime}
+                chapters={chapters}
+                onSeek={seekTo}
+                transcriptSegments={transcriptSegments}
+                loading={transcriptLoading}
+              />
+            </div>
           )}
 
           {/* ── 섹션 E: [비활성] 평가 근거 카드 — 멀티모달+BARS로 대체됨 ── */}
@@ -1740,7 +1763,7 @@ ${inner}
                       role="button"
                       tabIndex={0}
                       onClick={() => handleEvidenceClick(ev)}
-                      onKeyDown={(e) => e.key === "Enter" && handleEvidenceClick(ev)}
+                      onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); handleEvidenceClick(ev); } }}
                       className="p-4 cursor-pointer"
                     >
                       <div className="flex items-center justify-between mb-1">

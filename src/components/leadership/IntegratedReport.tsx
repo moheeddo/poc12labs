@@ -282,6 +282,10 @@ function IntegratedRadar({
         )}
       </div>
 
+      <div
+        role="img"
+        aria-label={`통합 역량 레이더. ${radarData.map(d => `${d.subject} 역량 ${d.competency.toFixed(1)}점${hasDerailer ? `, 탈선 안전도 ${d.derailerRisk.toFixed(1)}` : ''}`).join('; ')}`}
+      >
       <ResponsiveContainer width="100%" height={320}>
         <RadarChart data={radarData} margin={{ top: 10, right: 30, bottom: 10, left: 30 }}>
           <PolarGrid stroke="#e2e8f0" />
@@ -333,6 +337,7 @@ function IntegratedRadar({
           />
         </RadarChart>
       </ResponsiveContainer>
+      </div>
 
       {/* 탈선 위험 요약 */}
       {hasDerailer && derailerProfile && (

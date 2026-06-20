@@ -242,9 +242,10 @@ export default function TranscriptTimeline({
 
       {/* ─── 인라인 검색 ─── */}
       <div className="relative mb-4">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-500" />
+        <Search aria-hidden="true" className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-500" />
         <input
           type="text"
+          aria-label="대본 내 검색"
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           placeholder="대본 내 검색..."

@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState, useCallback, useEffect } from "react";
+import { useMemo, useState, useCallback, useEffect, useRef } from "react";
 import {
   RadarChart,
   Radar,
@@ -81,13 +81,46 @@ function MemberReportModal({
     };
   }, []);
 
-  // ESC 키로 모달 닫기
+  const panelRef = useRef<HTMLDivElement>(null);
+
+  // 접근성: 모달 열릴 때 포커스를 모달 내부로 이동, 닫힐 때 트리거로 복귀, Tab 포커스 트랩, ESC 닫기
   useEffect(() => {
+    const triggerEl = document.activeElement as HTMLElement | null;
+    // 열릴 때 모달 패널로 포커스 이동
+    panelRef.current?.focus();
+
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onClose();
+      if (e.key === "Escape") {
+        onClose();
+        return;
+      }
+      if (e.key !== "Tab") return;
+      // 포커스 트랩: 모달 내부 포커스 가능 요소 사이에서만 순환
+      const panel = panelRef.current;
+      if (!panel) return;
+      const focusable = panel.querySelectorAll<HTMLElement>(
+        'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
+      );
+      if (focusable.length === 0) return;
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      const active = document.activeElement;
+      if (e.shiftKey) {
+        if (active === first || active === panel) {
+          e.preventDefault();
+          last.focus();
+        }
+      } else if (active === last) {
+        e.preventDefault();
+        first.focus();
+      }
     };
     document.addEventListener("keydown", handleKeyDown);
-    return () => document.removeEventListener("keydown", handleKeyDown);
+    return () => {
+      document.removeEventListener("keydown", handleKeyDown);
+      // 닫힐 때 모달을 열었던 트리거 요소로 포커스 복귀
+      triggerEl?.focus?.();
+    };
   }, [onClose]);
 
   const handlePrint = useCallback(() => {
@@ -106,8 +139,18 @@ function MemberReportModal({
   const improvements = data.competencyScores.filter((c) => c.score > 0 && c.score < 5);
 
   return (
-    <div className="print-member-report-overlay fixed inset-0 z-50 bg-black/50 flex items-start justify-center overflow-auto">
-      <div className="bg-white w-full max-w-[800px] my-8 mx-4 rounded-xl shadow-2xl print:shadow-none print:my-0 print:mx-0 print:max-w-none print:rounded-none">
+    <div
+      className="print-member-report-overlay fixed inset-0 z-50 bg-black/50 flex items-start justify-center overflow-auto"
+      role="dialog"
+      aria-modal="true"
+      aria-label={`${data.member.name} 개인별 역량진단 보고서`}
+      onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
+    >
+      <div
+        ref={panelRef}
+        tabIndex={-1}
+        className="bg-white w-full max-w-[800px] my-8 mx-4 rounded-xl shadow-2xl outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 print:shadow-none print:my-0 print:mx-0 print:max-w-none print:rounded-none"
+      >
         {/* 화면용 상단 바 */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-slate-200 no-print">
           <div className="flex items-center gap-2">
@@ -124,9 +167,10 @@ function MemberReportModal({
             </button>
             <button
               onClick={onClose}
-              className="p-2 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors"
+              aria-label="보고서 미리보기 닫기"
+              className="p-2 rounded-lg text-slate-500 hover:text-slate-700 hover:bg-slate-100 transition-colors"
             >
-              <X className="w-5 h-5" />
+              <X className="w-5 h-5" aria-hidden="true" />
             </button>
           </div>
         </div>
@@ -805,7 +849,11 @@ export default function GroupDashboard({ session, onBack, onViewMember }: GroupD
           <Users className="w-4 h-4 text-emerald-700" />
           <h3 className="text-base font-semibold text-slate-800">6명 역량 프로파일 비교</h3>
         </div>
-        <div className="flex justify-center">
+        <div
+          className="flex justify-center"
+          role="img"
+          aria-label="6명 참가자의 역량 프로파일을 비교한 레이더 차트입니다. 상세 점수는 아래 역량별 순위 표를 참조하세요."
+        >
           <ResponsiveContainer width="100%" height={480}>
             <RadarChart data={radarData} cx="50%" cy="50%" outerRadius="75%">
               <PolarGrid stroke="#e2e8f0" />

@@ -230,6 +230,7 @@ export default function GroupManager({
               (m) => stepState?.memberScores[m.id]?.analyzed
             ).length;
             const hasAnalysis = stepAnalyzed > 0;
+            const isDisclosure = hasAnalysis && !isCurrent;
             return (
               <div key={comp.key} className="flex items-center flex-1 relative">
                 <button
@@ -242,6 +243,8 @@ export default function GroupManager({
                     }
                     goStep(i);
                   }}
+                  aria-expanded={isDisclosure ? previewStep === i : undefined}
+                  aria-controls={isDisclosure && previewStep === i ? `step-preview-${i}` : undefined}
                   className={cn(
                     "flex items-center gap-2 px-3 py-2 rounded-lg w-full transition-all text-left",
                     isCurrent ? "bg-white shadow-md border-2" : isDone ? "bg-slate-50" : "bg-slate-50/50",
@@ -267,12 +270,12 @@ export default function GroupManager({
                 </button>
                 {/* ── 미니 요약 팝오버: 해당 역량의 6명 점수 ── */}
                 {previewStep === i && hasAnalysis && (
-                  <div className="absolute top-full left-0 right-0 z-20 mt-2 animate-fade-in-up">
+                  <div id={`step-preview-${i}`} className="absolute top-full left-0 right-0 z-20 mt-2 animate-fade-in-up">
                     <div className="bg-white border border-slate-200 rounded-xl shadow-lg p-3 min-w-[200px]">
                       <div className="flex items-center justify-between mb-2">
                         <p className="text-xs font-bold" style={{ color: comp.color }}>{comp.label} 결과</p>
-                        <button onClick={(e) => { e.stopPropagation(); setPreviewStep(null); }} className="text-slate-400 hover:text-slate-600 transition-colors">
-                          <X className="w-3 h-3" />
+                        <button onClick={(e) => { e.stopPropagation(); setPreviewStep(null); }} aria-label="결과 닫기" className="text-slate-400 hover:text-slate-600 transition-colors">
+                          <X className="w-3 h-3" aria-hidden="true" />
                         </button>
                       </div>
                       <div className="space-y-1">
@@ -366,14 +369,16 @@ export default function GroupManager({
           <div className="mb-1">
             <button
               onClick={() => setTipOpen((prev) => !prev)}
+              aria-expanded={tipOpen}
+              aria-controls="obs-tip-panel"
               className="flex items-center gap-2 text-sm text-amber-700 hover:text-amber-800 transition-colors py-1"
             >
-              <Lightbulb className="w-4 h-4" />
+              <Lightbulb className="w-4 h-4" aria-hidden="true" />
               <span className="font-medium">평가자를 위한 관찰 포인트</span>
-              <ChevronDown className={cn("w-3.5 h-3.5 transition-transform duration-200", tipOpen && "rotate-180")} />
+              <ChevronDown className={cn("w-3.5 h-3.5 transition-transform duration-200", tipOpen && "rotate-180")} aria-hidden="true" />
             </button>
             {tipOpen && (
-              <div className="mt-2 bg-amber-50/60 border border-amber-200/40 rounded-lg px-4 py-3 animate-fade-in-up">
+              <div id="obs-tip-panel" className="mt-2 bg-amber-50/60 border border-amber-200/40 rounded-lg px-4 py-3 animate-fade-in-up">
                 <p className="text-sm text-amber-800 leading-relaxed">
                   {OBSERVATION_TIPS[currentComp.key as LeadershipCompetencyKey].join(", ")}
                 </p>
@@ -515,8 +520,12 @@ export default function GroupManager({
                       )}
                       {!isEditingNote && memberNote && (
                         <div
+                          role="button"
+                          tabIndex={0}
+                          aria-label="메모 편집"
                           onClick={() => startEditNote(member.id)}
-                          className="mb-3 bg-slate-50/40 border border-slate-200/30 rounded-lg px-3 py-2 cursor-pointer hover:bg-slate-50/60 transition-colors"
+                          onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); startEditNote(member.id); } }}
+                          className="mb-3 bg-slate-50/40 border border-slate-200/30 rounded-lg px-3 py-2 cursor-pointer hover:bg-slate-50/60 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400"
                         >
                           <p className="text-xs text-slate-700 leading-relaxed whitespace-pre-wrap">{memberNote}</p>
                         </div>
@@ -677,8 +686,12 @@ export default function GroupManager({
                   )}
                   {!isEditingNote && memberNote && (
                     <div
+                      role="button"
+                      tabIndex={0}
+                      aria-label="메모 편집"
                       onClick={() => startEditNote(member.id)}
-                      className="mb-3 bg-slate-50/40 border border-slate-200/30 rounded-lg px-3 py-2 cursor-pointer hover:bg-slate-50/60 transition-colors"
+                      onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); startEditNote(member.id); } }}
+                      className="mb-3 bg-slate-50/40 border border-slate-200/30 rounded-lg px-3 py-2 cursor-pointer hover:bg-slate-50/60 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400"
                     >
                       <p className="text-xs text-slate-700 leading-relaxed whitespace-pre-wrap">{memberNote}</p>
                     </div>
@@ -904,6 +917,7 @@ export function GroupCreateForm({ onSubmit, onCancel }: GroupCreateFormProps) {
                   className="flex-1 bg-white border border-slate-200 rounded-lg px-3 py-2.5 text-sm text-slate-900 placeholder:text-slate-400 outline-none focus:border-emerald-500/30 transition-all"
                 />
                 <select
+                  aria-label={`참가자 ${i + 1} 직책`}
                   value={m.position}
                   onChange={(e) => {
                     const next = [...members];
