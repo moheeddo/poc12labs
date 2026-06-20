@@ -32,6 +32,10 @@ export interface CompetencyVideoState {
     bars: Record<string, number>;
     multimodal?: number;
     analyzed: boolean;
+    // 전문가(코치) 확정 여부 — false/undefined면 AI 초안. dohan 1·3원칙(AI=화자, 인간 확정):
+    // 확정 전 점수는 대시보드·순위·CSV에서 'AI 초안 · 전문가 확정 필요'로 라벨해야 한다.
+    confirmed?: boolean;
+    coachName?: string;
   }>;
 }
 

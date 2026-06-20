@@ -65,6 +65,9 @@ export interface AnalysisCompletePayload {
   overallScore: number;
   bars: Record<string, number>;
   multimodal?: number;
+  // 전문가(코치) 확정 여부 — AI 자동 점수가 인간 확정값으로 오인되지 않도록 그룹 세션까지 전파
+  confirmed: boolean;
+  coachName?: string;
 }
 
 interface LeadershipFeedbackProps {
@@ -244,6 +247,7 @@ export default function LeadershipFeedback({
   const copyTimerRef = useRef<ReturnType<typeof setTimeout>>(null);
   // 마지막으로 대시보드에 보고한 멀티모달 점수 (N차 집계 갱신 시 재보고용)
   const lastMmReportedRef = useRef<number | null>(null);
+  const lastConfirmedReportedRef = useRef<boolean | null>(null);
 
   // 컴포넌트 언마운트 시 타이머 정리
   useEffect(() => {
@@ -529,10 +533,14 @@ export default function LeadershipFeedback({
       // 조 세션에 점수 자동 반영 — N차 집계 대표값(중앙값) 우선, 집계 갱신 시 재보고
       // 멀티모달 점수: 반복 진단 시 집계 중앙값(강건) → 단일 진단 totalScore 순
       const multimodalScore = mmResult?.aggregate?.total?.median ?? mmResult?.scoring?.totalScore ?? undefined;
-      const shouldReport = onAnalysisComplete && (!analysisReported || lastMmReportedRef.current !== (multimodalScore ?? null));
+      // 코치 확정 상태가 바뀌면 재보고해 대시보드 라벨(AI 초안↔전문가 확정)이 갱신되게 한다
+      const shouldReport = onAnalysisComplete && (!analysisReported
+        || lastMmReportedRef.current !== (multimodalScore ?? null)
+        || lastConfirmedReportedRef.current !== coachConfirmed);
       if (shouldReport && onAnalysisComplete) {
         setAnalysisReported(true);
         lastMmReportedRef.current = multimodalScore ?? null;
+        lastConfirmedReportedRef.current = coachConfirmed;
         // evidence에서 역량별 점수 집계
         const competencyScores: Record<string, number[]> = {};
         evidence.forEach((ev) => {
@@ -553,11 +561,11 @@ export default function LeadershipFeedback({
           totalCount++;
         });
         const overallScore = totalCount > 0 ? Math.round((totalSum / totalCount) * 10) / 10 : 0;
-        onAnalysisComplete({ videoId, overallScore, bars, multimodal: multimodalScore });
+        onAnalysisComplete({ videoId, overallScore, bars, multimodal: multimodalScore, confirmed: coachConfirmed, coachName: coachConfirmed ? coachName || undefined : undefined });
       }
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [analysisLoading, analysisPhase, mmProgress.phase, evidence.length, mmResult?.aggregate?.total?.median, mmResult?.scoring?.totalScore]);
+  }, [analysisLoading, analysisPhase, mmProgress.phase, evidence.length, mmResult?.aggregate?.total?.median, mmResult?.scoring?.totalScore, coachConfirmed]);
 
   // ── 비디오 시간 추적 (로딩 완료 후 재등록) ──
   useEffect(() => {

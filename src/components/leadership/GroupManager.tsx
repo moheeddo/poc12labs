@@ -293,10 +293,13 @@ export default function GroupManager({
                                   }}
                                 />
                               </div>
-                              <span className={cn(
-                                "text-[10px] font-mono font-bold w-7 text-right",
-                                sc?.analyzed ? "text-slate-700" : "text-slate-300"
-                              )}>
+                              <span
+                                className={cn(
+                                  "text-[10px] font-mono font-bold w-7 text-right",
+                                  sc?.analyzed ? "text-slate-700" : "text-slate-300"
+                                )}
+                                title={sc?.analyzed && !sc.confirmed ? "AI 자동 산출 — 전문가 확정 전 잠정 점수" : undefined}
+                              >
                                 {sc?.analyzed ? (sc.overallScore || 0).toFixed(1) : "-"}
                               </span>
                             </div>
@@ -483,7 +486,11 @@ export default function GroupManager({
                           {memberNote ? <MessageSquareText className="w-4 h-4" /> : <MessageSquarePlus className="w-4 h-4" />}
                         </button>
                         {score?.analyzed ? (
-                          <span className="text-xs font-mono font-bold text-amber-800 bg-amber-50 px-2 py-0.5 rounded-md border border-amber-200/50">{score.overallScore.toFixed(1)}/9</span>
+                          <span className="inline-flex items-center gap-1">
+                            <span className="text-xs font-mono font-bold text-amber-800 bg-amber-50 px-2 py-0.5 rounded-md border border-amber-200/50">{score.overallScore.toFixed(1)}/9</span>
+                            {/* HITL: 확정 전 AI 자동 점수임을 명시 */}
+                            {!score.confirmed && <span className="text-[9px] font-medium text-amber-700" title="AI 자동 산출 — 전문가 확정 전">AI 초안</span>}
+                          </span>
                         ) : hasVideo ? (
                           <span className="text-[10px] font-medium text-orange-700 bg-orange-50 px-2 py-0.5 rounded-md border border-orange-200/50">미분석</span>
                         ) : null}

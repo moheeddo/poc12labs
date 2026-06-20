@@ -411,6 +411,8 @@ export default function LeadershipCoaching() {
               bars: payload.bars,
               multimodal: payload.multimodal,
               analyzed: true,
+              confirmed: payload.confirmed,
+              coachName: payload.coachName,
             },
           };
           updated.competencies[compIdx] = comp;

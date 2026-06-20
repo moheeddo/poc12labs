@@ -61,6 +61,7 @@ interface MemberReportData {
   // fail-closed: 미분석(점수 센티넬 0) 멤버는 순위를 단정하지 않음(null). totalMembers는 분석된 멤버 수.
   rank: number | null;
   totalMembers: number;
+  confirmed: boolean; // 전문가 확정 여부 — false면 'AI 초안' 보고서
   note?: string; // 평가자 피드백 메모
 }
 
@@ -180,6 +181,14 @@ function MemberReportModal({
           {/* 보고서 헤더 */}
           <div className="member-report-header text-center pb-5 mb-5 border-b-2 border-[#006341]">
             <h1 className="text-xl font-extrabold text-[#006341] mb-1">KHNP 리더십 역량진단 개인 보고서</h1>
+            {/* HITL 라벨 — AI 자동 산출 보고서가 전문가 확정 보고서로 오인되지 않게(dohan 1·3원칙) */}
+            <div className="mb-2">
+              {data.confirmed ? (
+                <span className="inline-flex items-center text-[11px] font-semibold text-emerald-700 bg-emerald-50 border border-emerald-300 rounded-full px-2.5 py-0.5">전문가 확정 보고서</span>
+              ) : (
+                <span className="inline-flex items-center text-[11px] font-semibold text-amber-700 bg-amber-50 border border-amber-300 rounded-full px-2.5 py-0.5">AI 초안 · 전문가 확정 전 (참고용)</span>
+              )}
+            </div>
             <h2 className="text-lg font-bold text-slate-900 mb-2">{data.member.name} ({data.member.position})</h2>
             <div className="flex justify-center gap-6 text-sm text-slate-500">
               <span>{sessionName}</span>
@@ -406,11 +415,14 @@ export default function GroupDashboard({ session, onBack, onViewMember }: GroupD
   const overallRanking = useMemo(() => {
     return session.members
       .map((m) => {
-        const scores = session.competencies
-          .map((c) => c.memberScores[m.id]?.overallScore || 0)
-          .filter((s) => s > 0);
+        const memberScoreObjs = session.competencies
+          .map((c) => c.memberScores[m.id])
+          .filter((s): s is NonNullable<typeof s> => !!s && s.analyzed);
+        const scores = memberScoreObjs.map((s) => s.overallScore).filter((s) => s > 0);
         const avg = scores.length > 0 ? scores.reduce((a, b) => a + b, 0) / scores.length : 0;
-        return { ...m, avgScore: Math.round(avg * 10) / 10, analyzedCount: scores.length };
+        // 전문가 확정: 분석된 모든 역량 점수가 confirmed일 때만. 하나라도 미확정이면 AI 초안.
+        const confirmed = memberScoreObjs.length > 0 && memberScoreObjs.every((s) => s.confirmed === true);
+        return { ...m, avgScore: Math.round(avg * 10) / 10, analyzedCount: scores.length, confirmed };
       })
       .sort((a, b) => b.avgScore - a.avgScore);
   }, [session]);
@@ -527,6 +539,7 @@ export default function GroupDashboard({ session, onBack, onViewMember }: GroupD
       competencyScores,
       rank: ranked >= 0 ? ranked + 1 : null,
       totalMembers: analyzedRanking.length,
+      confirmed: memberRanked?.confirmed ?? false,
       note: session.memberNotes?.[reportMemberId] || undefined,
     };
   }, [reportMemberId, session, overallRanking]);
@@ -668,6 +681,15 @@ export default function GroupDashboard({ session, onBack, onViewMember }: GroupD
               <span className="text-xs text-slate-500">/9</span>
             </div>
             <p className="text-[10px] text-slate-500 mt-0.5">{m.analyzedCount}/{COMPETENCY_ORDER.length} 역량</p>
+
+            {/* HITL 라벨 — 확정 전 AI 자동 점수가 인간 확정값처럼 보이지 않게(dohan 1·3원칙) */}
+            {m.avgScore > 0 && (
+              m.confirmed ? (
+                <span className="mt-1 inline-flex items-center text-[9px] font-medium text-emerald-700 bg-emerald-50 border border-emerald-200 rounded px-1.5 py-0.5">전문가 확정</span>
+              ) : (
+                <span className="mt-1 inline-flex items-center text-[9px] font-medium text-amber-700 bg-amber-50 border border-amber-200 rounded px-1.5 py-0.5" title="AI 자동 산출 — 전문가 확정 전 잠정 점수">AI 초안 · 확정 전</span>
+              )
+            )}
 
             {/* 메모 표시 */}
             {session.memberNotes?.[m.id] && (
@@ -958,6 +980,9 @@ export default function GroupDashboard({ session, onBack, onViewMember }: GroupD
             </div>
             <p className="text-base font-bold text-emerald-800">{overallRanking[0].name}</p>
             <p className="text-sm text-emerald-700">종합 {overallRanking[0].avgScore.toFixed(1)}/9</p>
+            {!overallRanking[0].confirmed && (
+              <p className="text-[10px] text-amber-700 mt-1">AI 잠정 — 전문가 확정 전 (인물 지목은 확정 후 권장)</p>
+            )}
           </div>
         )}
         {/* 개선 필요 */}
@@ -969,6 +994,9 @@ export default function GroupDashboard({ session, onBack, onViewMember }: GroupD
             </div>
             <p className="text-base font-bold text-amber-800">{overallRanking[overallRanking.length - 1].name}</p>
             <p className="text-sm text-amber-700">종합 {overallRanking[overallRanking.length - 1].avgScore.toFixed(1)}/9</p>
+            {!overallRanking[overallRanking.length - 1].confirmed && (
+              <p className="text-[10px] text-amber-700 mt-1">AI 잠정 — 전문가 확정 전 (인물 지목은 확정 후 권장)</p>
+            )}
           </div>
         )}
       </div>
