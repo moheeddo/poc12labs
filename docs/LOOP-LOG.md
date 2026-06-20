@@ -67,3 +67,8 @@
 ### [사이클 10] harden 라운드2(복원력)
 - 8건 확정 → 수정: 내용평가 보류/오류 시 '확정' 버튼 차단(거짓확정 방지) / VideoUploader·GroupManager 중복업로드 가드 / 멤버 이름 truncate·coachName maxLength.
 - tsc0 · 218 · build✓ · 콘솔0 → 커밋·푸시.
+
+### [사이클 11] 데이터 레이어 정확성
+- 19건 확정(중복多) → 5 고유 수정: growth 0패딩 거짓신호·cohenD NaN(공정성)·norm 키손실·transcript argmax/dedup/true-median. +회귀7.
+- 보류: slide-matcher coverage(비활성 lecture). 전체 225 테스트.
+- tsc0 · 225 · build✓ → 커밋·푸시.
