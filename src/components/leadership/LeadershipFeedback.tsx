@@ -1342,7 +1342,7 @@ ${inner}
               <div className="flex items-center gap-2 min-w-0">
                 <FileText className="w-4 h-4 text-slate-500 shrink-0" />
                 <div className="min-w-0">
-                  <p className="text-sm font-bold text-slate-800">내용 평가 <span className="text-[11px] font-normal text-amber-600">(AI 초안 · 교수 확정 필요)</span></p>
+                  <p className="text-sm font-bold text-slate-800 flex items-center flex-wrap gap-1.5">내용 평가 <span className="inline-flex items-center text-[9px] font-medium text-amber-700 bg-amber-50 border border-amber-200 rounded px-1.5 py-0.5">AI 초안 · 교수 확정 필요</span></p>
                   <p className="text-[11px] text-slate-600 truncate">전사 인용 근거 기반 · 행동 점수와 합산하지 않는 별도 레이어</p>
                 </div>
               </div>

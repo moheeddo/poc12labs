@@ -274,7 +274,7 @@ export default function GroupManager({
                     <div className="bg-white border border-slate-200 rounded-xl shadow-lg p-3 min-w-[200px]">
                       <div className="flex items-center justify-between mb-2">
                         <p className="text-xs font-bold" style={{ color: comp.color }}>{comp.label} 결과</p>
-                        <button onClick={(e) => { e.stopPropagation(); setPreviewStep(null); }} aria-label="결과 닫기" className="text-slate-400 hover:text-slate-600 transition-colors">
+                        <button onClick={(e) => { e.stopPropagation(); setPreviewStep(null); }} aria-label="결과 닫기" className="-m-1.5 p-1.5 inline-flex items-center justify-center min-h-[36px] min-w-[36px] rounded text-slate-400 hover:text-slate-600 transition-colors">
                           <X className="w-3 h-3" aria-hidden="true" />
                         </button>
                       </div>
@@ -489,7 +489,7 @@ export default function GroupManager({
                           <span className="inline-flex items-center gap-1">
                             <span className="text-xs font-mono font-bold text-amber-800 bg-amber-50 px-2 py-0.5 rounded-md border border-amber-200/50">{score.overallScore.toFixed(1)}/9</span>
                             {/* HITL: 확정 전 AI 자동 점수임을 명시 */}
-                            {!score.confirmed && <span className="text-[9px] font-medium text-amber-700" title="AI 자동 산출 — 전문가 확정 전">AI 초안</span>}
+                            {!score.confirmed && <span className="inline-flex items-center text-[9px] font-medium text-amber-700 bg-amber-50 border border-amber-200 rounded px-1.5 py-0.5" title="AI 자동 산출 — 전문가 확정 전">AI 초안</span>}
                           </span>
                         ) : hasVideo ? (
                           <span className="text-[10px] font-medium text-orange-700 bg-orange-50 px-2 py-0.5 rounded-md border border-orange-200/50">미분석</span>
@@ -511,14 +511,14 @@ export default function GroupManager({
                             <p className="text-[10px] text-slate-400">Ctrl+Enter 저장 / Esc 취소</p>
                             <div className="flex items-center gap-1">
                               {memberNote && (
-                                <button onClick={() => deleteNote(member.id)} className="text-[10px] text-red-600 hover:text-red-700 px-2 py-1 rounded transition-colors">
+                                <button onClick={() => deleteNote(member.id)} className="text-[10px] text-red-600 hover:text-red-700 px-2 py-1.5 min-h-[36px] inline-flex items-center rounded transition-colors">
                                   삭제
                                 </button>
                               )}
-                              <button onClick={() => { setEditingNoteFor(null); setNoteText(""); }} className="text-[10px] text-slate-600 hover:text-slate-800 px-2 py-1 rounded transition-colors">
+                              <button onClick={() => { setEditingNoteFor(null); setNoteText(""); }} className="text-[10px] text-slate-600 hover:text-slate-800 px-2 py-1.5 min-h-[36px] inline-flex items-center rounded transition-colors">
                                 취소
                               </button>
-                              <button onClick={() => saveNote(member.id)} className="text-[10px] font-medium text-slate-600 hover:text-slate-500 bg-slate-50 px-2.5 py-1 rounded-md border border-slate-200/50 transition-colors">
+                              <button onClick={() => saveNote(member.id)} className="text-[10px] font-medium text-slate-600 hover:text-slate-500 bg-slate-50 px-2.5 py-1.5 min-h-[36px] inline-flex items-center rounded-md border border-slate-200/50 transition-colors">
                                 저장
                               </button>
                             </div>
@@ -677,14 +677,14 @@ export default function GroupManager({
                         <p className="text-[10px] text-slate-400">Ctrl+Enter 저장 / Esc 취소</p>
                         <div className="flex items-center gap-1">
                           {memberNote && (
-                            <button onClick={() => deleteNote(member.id)} className="text-[10px] text-red-600 hover:text-red-700 px-2 py-1 rounded transition-colors">
+                            <button onClick={() => deleteNote(member.id)} className="text-[10px] text-red-600 hover:text-red-700 px-2 py-1.5 min-h-[36px] inline-flex items-center rounded transition-colors">
                               삭제
                             </button>
                           )}
-                          <button onClick={() => { setEditingNoteFor(null); setNoteText(""); }} className="text-[10px] text-slate-600 hover:text-slate-800 px-2 py-1 rounded transition-colors">
+                          <button onClick={() => { setEditingNoteFor(null); setNoteText(""); }} className="text-[10px] text-slate-600 hover:text-slate-800 px-2 py-1.5 min-h-[36px] inline-flex items-center rounded transition-colors">
                             취소
                           </button>
-                          <button onClick={() => saveNote(member.id)} className="text-[10px] font-medium text-slate-600 hover:text-slate-500 bg-slate-50 px-2.5 py-1 rounded-md border border-slate-200/50 transition-colors">
+                          <button onClick={() => saveNote(member.id)} className="text-[10px] font-medium text-slate-600 hover:text-slate-500 bg-slate-50 px-2.5 py-1.5 min-h-[36px] inline-flex items-center rounded-md border border-slate-200/50 transition-colors">
                             저장
                           </button>
                         </div>

@@ -981,7 +981,7 @@ export default function GroupDashboard({ session, onBack, onViewMember }: GroupD
             <p className="text-base font-bold text-emerald-800">{overallRanking[0].name}</p>
             <p className="text-sm text-emerald-700">종합 {overallRanking[0].avgScore.toFixed(1)}/9</p>
             {!overallRanking[0].confirmed && (
-              <p className="text-[10px] text-amber-700 mt-1">AI 잠정 — 전문가 확정 전 (인물 지목은 확정 후 권장)</p>
+              <p className="text-[10px] text-amber-700 mt-1">AI 초안 — 전문가 확정 전 (인물 지목은 확정 후 권장)</p>
             )}
           </div>
         )}
@@ -995,7 +995,7 @@ export default function GroupDashboard({ session, onBack, onViewMember }: GroupD
             <p className="text-base font-bold text-amber-800">{overallRanking[overallRanking.length - 1].name}</p>
             <p className="text-sm text-amber-700">종합 {overallRanking[overallRanking.length - 1].avgScore.toFixed(1)}/9</p>
             {!overallRanking[overallRanking.length - 1].confirmed && (
-              <p className="text-[10px] text-amber-700 mt-1">AI 잠정 — 전문가 확정 전 (인물 지목은 확정 후 권장)</p>
+              <p className="text-[10px] text-amber-700 mt-1">AI 초안 — 전문가 확정 전 (인물 지목은 확정 후 권장)</p>
             )}
           </div>
         )}

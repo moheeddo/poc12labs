@@ -490,7 +490,7 @@ export default function CompetencyAssessment({ data, onBack }: CompetencyAssessm
 
           {/* 재생 컨트롤 */}
           <div className="bg-white/60 border border-slate-200/40 rounded-xl p-3 flex items-center gap-3">
-            <button onClick={togglePlay} aria-label={isPlaying ? "일시정지" : "재생"} className="w-8 h-8 rounded-full bg-emerald-50 flex items-center justify-center text-emerald-700 hover:bg-emerald-600/25 transition-colors shrink-0">
+            <button onClick={togglePlay} aria-label={isPlaying ? "일시정지" : "재생"} className="w-10 h-10 min-h-[40px] min-w-[40px] rounded-full bg-emerald-50 flex items-center justify-center text-emerald-700 hover:bg-emerald-600/25 transition-colors shrink-0">
               {isPlaying ? <Pause className="w-3.5 h-3.5" aria-hidden="true" /> : <Play className="w-3.5 h-3.5 ml-0.5" aria-hidden="true" />}
             </button>
             <span className="text-base font-mono text-slate-700 tabular-nums">{formatTime(currentTime)}</span>

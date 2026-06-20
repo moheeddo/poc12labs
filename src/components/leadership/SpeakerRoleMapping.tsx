@@ -139,7 +139,7 @@ export default function SpeakerRoleMapping({ competencyKey, value, onApply, disa
                 {others.map((o) => (
                   <span key={o} className="inline-flex items-center gap-1 text-xs bg-slate-100 text-slate-600 rounded-md px-2 py-1">
                     {o}
-                    <button onClick={() => removeOther(o)} aria-label={`${o} 제거`} className="hover:text-red-500"><X className="w-3 h-3" aria-hidden="true" /></button>
+                    <button onClick={() => removeOther(o)} aria-label={`${o} 제거`} className="-mr-1 inline-flex items-center justify-center p-1.5 min-h-[32px] min-w-[32px] rounded text-slate-500 hover:text-red-500 transition-colors"><X className="w-3 h-3" aria-hidden="true" /></button>
                   </span>
                 ))}
               </div>
@@ -168,7 +168,7 @@ export default function SpeakerRoleMapping({ competencyKey, value, onApply, disa
               {glossary.map((t) => (
                 <span key={t} className="inline-flex items-center gap-1 text-xs bg-emerald-50 text-emerald-700 rounded-md px-2 py-1">
                   {t}
-                  <button onClick={() => removeTerm(t)} aria-label={`용어 ${t} 제거`} className="hover:text-red-500"><X className="w-3 h-3" aria-hidden="true" /></button>
+                  <button onClick={() => removeTerm(t)} aria-label={`용어 ${t} 제거`} className="-mr-1 inline-flex items-center justify-center p-1.5 min-h-[32px] min-w-[32px] rounded text-emerald-700 hover:text-red-500 transition-colors"><X className="w-3 h-3" aria-hidden="true" /></button>
                 </span>
               ))}
             </div>

@@ -129,10 +129,10 @@ function VariableCard({ dist }: { dist: GroupDistribution }) {
           return (
             <div
               key={g}
-              className="flex items-center justify-between gap-4 rounded-lg border border-slate-200/60 bg-slate-50 px-3 py-2"
+              className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between sm:gap-4 rounded-lg border border-slate-200/60 bg-slate-50 px-3 py-2"
             >
               <span className="text-sm text-slate-700 min-w-[80px]">{g}</span>
-              <div className="flex items-center gap-4 text-xs font-mono">
+              <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs font-mono">
                 <span className="text-slate-500">
                   N = <span className="text-slate-900">{stats.n}</span>
                 </span>
