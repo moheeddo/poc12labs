@@ -115,7 +115,7 @@ function scoreByRange(value: number, band: OperatingBand): 3 | 2 | 1 | 0 {
     if (t.ivs.some(([lo, hi]) => value >= lo - EPS && value <= hi + EPS)) return t.score;
   }
   // gap (정수 밴드의 반올림 틈): 최근접 구간으로 스냅, 동률이면 보수적으로 낮은 점수
-  // (평가 시스템 — 경계 중점에서 점수를 부풀리지 않음. 예: talk_ratio 55.5 → 중상)
+  // (경계 중점에서 점수를 부풀리지 않음 — 동률 시 낮은 쪽 채택. 예: 두 밴드에서 등거리면 낮은 점수)
   let best: { score: 3 | 2 | 1 | 0; dist: number } = { score: 0, dist: Infinity };
   for (const t of tiers) {
     for (const [lo, hi] of t.ivs) {

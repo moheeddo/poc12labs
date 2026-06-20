@@ -95,7 +95,8 @@ export const DERAILER_PATTERNS: DerailerPatternDef[] = [
   {
     id: "arrogant",
     name: "독선형",
-    hoganScale: "Argumentative",
+    // Hogan HDS 정식 11척도 중 'Skeptical'(냉소·불신·타인 동기 의심)에 해당. 'Argumentative'는 HDS 척도 아님.
+    hoganScale: "Skeptical",
     description:
       "자신이 항상 옳다고 믿으며 타인을 의심하고 조직의 동기를 불신하는 경향. 갈등을 자주 유발함.",
     searchQueries: [

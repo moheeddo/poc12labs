@@ -16,11 +16,13 @@ function mmssToSeconds(mmss: string): number {
 }
 
 // STAR 레이블 패턴 — 한국어/영어 모두 지원
+// 라인 시작(^…m)에 앵커 — 단일문자 S/T/A/R이 전사 중간의 'A: 답변'·'R: 12옴'·Q&A 표기 등에
+// 오매칭해 STAR 섹션이 엉뚱한 구간으로 추출되던 것 방지(섹션 헤더만 매칭).
 const STAR_LABELS: Record<keyof Pick<STARStructure, "situation" | "task" | "action" | "result">, RegExp> = {
-  situation: /\*{0,2}(상황|Situation|S)\s*[:：]\*{0,2}/i,
-  task:      /\*{0,2}(과제|Task|T)\s*[:：]\*{0,2}/i,
-  action:    /\*{0,2}(행동|Action|A)\s*[:：]\*{0,2}/i,
-  result:    /\*{0,2}(결과|Result|R)\s*[:：]\*{0,2}/i,
+  situation: /^\s*\*{0,2}(상황|Situation|S)\s*[:：]\*{0,2}/im,
+  task:      /^\s*\*{0,2}(과제|Task|T)\s*[:：]\*{0,2}/im,
+  action:    /^\s*\*{0,2}(행동|Action|A)\s*[:：]\*{0,2}/im,
+  result:    /^\s*\*{0,2}(결과|Result|R)\s*[:：]\*{0,2}/im,
 };
 
 // 텍스트에서 특정 섹션의 내용을 추출하고 타임스탬프(MM:SS)를 파싱한다.
@@ -134,15 +136,9 @@ export function parseSTARFromResponse(aiResponse: string, baseTimestamp: number 
     (action.text ? 0.25 : 0) +
     (result.text ? 0.25 : 0);
 
-  // 내용 풍부도 보정 — 평균 단어 수 기준 (15단어 이상이면 만점)
-  const avgWords =
-    ([situation.text, task.text, action.text, result.text]
-      .map((t) => t.split(/\s+/).filter(Boolean).length)
-      .reduce((a, b) => a + b, 0)) /
-    4;
-  const richnessScore = Math.min(avgWords / 15, 1) * 0.0; // 현재는 presenceScore에 통합
-
-  const completeness = Math.min(presenceScore + richnessScore, 1);
+  // STAR 완성도는 4요소 존재(presence) 기준. (이전의 richnessScore는 *0.0으로 항상 0인 데드코드 +
+  // 거짓 주석이었음 — 제거하고 presence-only임을 명시.)
+  const completeness = Math.min(presenceScore, 1);
 
   return { situation, task, action, result, completeness };
 }

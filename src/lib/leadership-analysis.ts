@@ -225,10 +225,11 @@ function getRubricLevelText(rubricItem: ImprovedRubricItem, score: number): stri
 }
 
 function getRubricLevelLabel(score: number): string {
-  if (score >= 7.5) return "매우 우수 (7.5~9점)";
-  if (score >= 5.5) return "보통 이상 (5.5~7.5점)";
-  if (score >= 3.0) return "보통 미만 (3~5.5점)";
-  return "미흡 (0~3점)";
+  // 표시 구간은 경계 중복 없이(상한은 다음 밴드 직전까지). 컷은 7.5/5.5/3.0.
+  if (score >= 7.5) return "매우 우수 (7.5~9.0점)";
+  if (score >= 5.5) return "보통 이상 (5.5~7.4점)";
+  if (score >= 3.0) return "보통 미만 (3.0~5.4점)";
+  return "미흡 (0~2.9점)";
 }
 
 /**
@@ -253,7 +254,9 @@ export function generateAutoFeedback(
   // ── 헤더: 역량명 + 종합 판정 ──
   const parts: string[] = [];
 
-  if (score >= 8) {
+  // 컷은 SSOT interpretScore/getRubricLevelLabel(7.5/5.5/3.0)와 일치 — 같은 출력 안에서 헤더와
+  // 루브릭 라벨이 다른 밴드로 갈리던 모순(이전 8/6/4) 제거.
+  if (score >= 7.5) {
     parts.push(`[${label}] 탁월한 수준 (${score}/9점)`);
     if (hlTexts.length > 0) {
       parts.push(`"${hlTexts[0]}" 등 핵심 장면에서 ${label} 역량이 명확히 관찰됩니다.`);
@@ -261,12 +264,12 @@ export function generateAutoFeedback(
     if (matchedKeywords.length > 0) {
       parts.push(`특히 ${matchedKeywords.slice(0, 3).join(", ")} 측면이 두드러집니다.`);
     }
-  } else if (score >= 6) {
+  } else if (score >= 5.5) {
     parts.push(`[${label}] 양호한 수준이나 일부 보완 필요 (${score}/9점)`);
     if (hlTexts.length > 0) {
       parts.push(`"${hlTexts[0]}" 장면에서 기본적인 ${label} 역량이 확인됩니다.`);
     }
-  } else if (score >= 4) {
+  } else if (score >= 3.0) {
     parts.push(`[${label}] 보통 수준 — 역량 발휘가 제한적 (${score}/9점)`);
   } else {
     parts.push(`[${label}] 개선 필요 — 역량 관련 행동이 충분히 관찰되지 않음 (${score}/9점)`);

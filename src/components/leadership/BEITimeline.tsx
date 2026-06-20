@@ -46,6 +46,11 @@ const COMPETENCY_LABELS: Record<string, string> = {
   selfDevelopment:     "자기개발",
   rationalDecision:    "합리적의사결정",
   problemSolving:      "문제해결",
+  // BEI 코더 전용 역량키(competency-coder.ts) — 한글 라벨 부여로 원시 영문 키 노출 방지
+  achievementDrive:    "성취지향",
+  collaboration:       "협업",
+  crisisResponse:      "위기대응",
+  innovationCreativity: "혁신·창의",
 };
 
 // ─── 별점 컴포넌트 ───
