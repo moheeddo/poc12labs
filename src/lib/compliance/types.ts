@@ -16,6 +16,9 @@ export interface TriangulatedScore {
   finalScore: number;
   agreement: "agree" | "minor_diff" | "major_diff";
   method: string; // 사용된 해결 방법 설명
+  // 인간 평가가 실제로 입력됐는지. false면 humanScore는 AI값 대체이므로 '동의'로 표기하지 말 것
+  // (AI 점수를 인간 동의로 위장 방지 — dohan 3원칙 human-in-the-loop).
+  hasHuman: boolean;
 }
 
 export interface ConsentRecord {

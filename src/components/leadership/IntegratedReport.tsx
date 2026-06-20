@@ -397,7 +397,7 @@ function TriangulationTable({
                     {row.aiScore.toFixed(1)}
                   </td>
                   <td className="py-2.5 px-2 text-center font-mono tabular-nums text-slate-600">
-                    {row.humanScore.toFixed(1)}
+                    {row.hasHuman ? row.humanScore.toFixed(1) : <span className="text-slate-400" title="인간 평가자 점수 미입력">미입력</span>}
                   </td>
                   <td className="py-2.5 px-2 text-center">
                     <span className={cn("font-bold font-mono tabular-nums", getScoreColor(row.finalScore))}>
@@ -408,11 +408,12 @@ function TriangulationTable({
                     <span
                       className={cn(
                         "inline-flex items-center gap-1 text-[10px] font-medium border rounded-full px-2 py-0.5",
-                        style.badge
+                        row.hasHuman ? style.badge : "bg-slate-100 text-slate-600 border-slate-300"
                       )}
+                      title={row.hasHuman ? undefined : "인간 평가 미입력 — AI 단독(동의 아님)"}
                     >
-                      <span className={cn("w-1.5 h-1.5 rounded-full", style.dot)} />
-                      {style.label}
+                      <span className={cn("w-1.5 h-1.5 rounded-full", row.hasHuman ? style.dot : "bg-slate-400")} />
+                      {row.hasHuman ? style.label : "AI 단독"}
                     </span>
                   </td>
                 </tr>

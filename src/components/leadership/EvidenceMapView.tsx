@@ -235,8 +235,9 @@ export default function EvidenceMapView({
                           "inline-block text-[10px] font-medium border rounded px-1.5 py-0.5",
                           getConfidenceColor(clip.confidence)
                         )}
+                        title="TwelveLabs Search는 high/medium/low 범주만 반환합니다. %는 범주 환산값이며 실측 확률이 아닙니다."
                       >
-                        신뢰도 {Math.round(clip.confidence)}% · {getConfidenceLabel(clip.confidence)}
+                        매칭 {getConfidenceLabel(clip.confidence)} (범주 환산 ≈{Math.round(clip.confidence)}%)
                       </span>
 
                       {/* 매칭 텍스트 미리보기 */}
@@ -289,7 +290,7 @@ export default function EvidenceMapView({
             <Activity className="w-3.5 h-3.5 text-amber-600" />
           </div>
           <div>
-            <p className="text-[10px] text-slate-500 uppercase tracking-wider">종합 신뢰도</p>
+            <p className="text-[10px] text-slate-500 uppercase tracking-wider">종합 신뢰도 <span className="normal-case">(범주 환산 평균)</span></p>
             <p
               className={cn(
                 "text-sm font-bold font-mono",
@@ -299,8 +300,9 @@ export default function EvidenceMapView({
                   ? "text-amber-700"
                   : "text-red-700"
               )}
+              title="TwelveLabs Search의 high/medium/low 범주를 환산·평균한 값(실측 확률 아님)"
             >
-              {Math.round(overallConfidence)}%
+              ≈{Math.round(overallConfidence)}%
             </p>
           </div>
         </div>

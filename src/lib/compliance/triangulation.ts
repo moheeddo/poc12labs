@@ -25,7 +25,9 @@ export function triangulate(
 
   return competencyKeys.map((key) => {
     const aiScore = aiScores[key] ?? 0;
-    const humanScore = humanScores[key] ?? aiScore; // 인간 점수 없으면 AI 점수 그대로 사용
+    const rawHuman = humanScores[key];
+    const hasHuman = typeof rawHuman === "number" && Number.isFinite(rawHuman);
+    const humanScore = hasHuman ? rawHuman : aiScore; // 인간 점수 없으면 표시용으로 AI 대체(단 hasHuman=false)
     const diff = Math.abs(aiScore - humanScore);
 
     // 동의 수준 분류
@@ -42,7 +44,11 @@ export function triangulate(
     let finalScore: number;
     let method: string;
 
-    if (
+    if (!hasHuman) {
+      // 인간 평가 미입력 — AI 단독 점수(가중 융합·동의 단정 금지)
+      finalScore = aiScore;
+      method = "인간 평가 미입력 — AI 단독 점수";
+    } else if (
       agreement === "major_diff" &&
       config.conflictResolution === "human_override"
     ) {
@@ -74,6 +80,7 @@ export function triangulate(
       finalScore,
       agreement,
       method,
+      hasHuman,
     };
   });
 }

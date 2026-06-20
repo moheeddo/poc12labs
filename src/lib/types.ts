@@ -141,6 +141,7 @@ export interface SpeakerScore {
   feedback: string;
   strengths?: string[];  // 강점 피드백
   improvements?: string[]; // 개선점 피드백
+  confirmed?: boolean; // 전문가(코치) 확정 여부 — false/undefined면 AI 초안(권위적 단정 금지)
 }
 
 export interface LeadershipSession {

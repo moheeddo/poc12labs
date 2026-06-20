@@ -61,10 +61,16 @@ export default function ScoreCard({ speaker, rank }: ScoreCardProps) {
           <p className="text-[11px] text-slate-500 font-mono mt-0.5">{getGradeLabel(speaker.totalScore)}</p>
         </div>
         {/* 종합 점수 뱃지 */}
-        <div className={`px-3 py-1.5 rounded-lg ${badge.bg}`}>
-          <span className={`text-base font-bold font-mono tabular-nums ${badge.text}`}>
-            {speaker.totalScore.toFixed(1)}
-          </span>
+        <div className="flex flex-col items-end gap-1">
+          <div className={`px-3 py-1.5 rounded-lg ${badge.bg}`}>
+            <span className={`text-base font-bold font-mono tabular-nums ${badge.text}`}>
+              {speaker.totalScore.toFixed(1)}
+            </span>
+          </div>
+          {/* HITL: 확정 전 AI 자동 점수는 권위적 확정값으로 보이지 않게 라벨 */}
+          {!speaker.confirmed && (
+            <span className="text-[9px] font-medium text-amber-700 bg-amber-50 border border-amber-200 rounded px-1.5 py-0.5" title="AI 자동 산출 — 전문가 확정 전 추정 점수">AI 초안</span>
+          )}
         </div>
       </div>
 

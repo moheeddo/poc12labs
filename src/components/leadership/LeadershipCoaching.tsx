@@ -449,6 +449,7 @@ export default function LeadershipCoaching() {
               scores: payload.bars as Partial<Record<LeadershipCompetencyKey, number>>,
               totalScore: payload.overallScore,
               feedback: "",
+              confirmed: payload.confirmed,
             };
             if (existing >= 0) {
               const updated = [...prev];
@@ -490,8 +491,11 @@ export default function LeadershipCoaching() {
           <h3 className="text-base font-medium text-slate-700 mb-3 flex items-center gap-2">
             <Users className="w-4 h-4" /> 평가 이력 ({speakers.length}건)
           </h3>
-          <p className="text-sm text-slate-500 font-mono mb-3">
+          <p className="text-sm text-slate-500 font-mono mb-1">
             평균 점수: {avgScore}점 (9점 만점) | 최고 점수: {topScorer}
+          </p>
+          <p className="text-[11px] text-amber-700 mb-3">
+            ※ AI 초안 점수 기준 통계 — 전문가 확정 전 잠정값이며, 각 점수는 타임스탬프·전사로 역추적 필요
           </p>
           {speakers.length === 0 ? (
             <div className="bg-white border border-slate-200/30 rounded-xl p-8 text-center">
