@@ -179,8 +179,8 @@ function MemberReportModal({
         {/* 보고서 본문 (인쇄 대상) */}
         <div className="print-member-report p-8 print:p-0">
           {/* 보고서 헤더 */}
-          <div className="member-report-header text-center pb-5 mb-5 border-b-2 border-[#006341]">
-            <h1 className="text-xl font-extrabold text-[#006341] mb-1">KHNP 리더십 역량진단 개인 보고서</h1>
+          <div className="member-report-header text-center pb-5 mb-5 border-b-2 border-emerald-600">
+            <h1 className="text-xl font-extrabold text-emerald-600 mb-1">KHNP 리더십 역량진단 개인 보고서</h1>
             {/* HITL 라벨 — AI 자동 산출 보고서가 전문가 확정 보고서로 오인되지 않게(dohan 1·3원칙) */}
             <div className="mb-2">
               {data.confirmed ? (
@@ -199,7 +199,7 @@ function MemberReportModal({
 
           {/* 종합 점수 섹션 */}
           <div className="member-report-section mb-5">
-            <h3 className="text-base font-bold text-[#006341] mb-3 pb-1 border-b border-slate-200">1. 종합 점수</h3>
+            <h3 className="text-base font-bold text-emerald-600 mb-3 pb-1 border-b border-slate-200">1. 종합 점수</h3>
             <div className="flex items-center gap-6 mb-3">
               <div className={cn(
                 "px-6 py-4 rounded-xl border-2 text-center",
@@ -241,14 +241,14 @@ function MemberReportModal({
 
           {/* 역량별 상세 점수 */}
           <div className="member-report-section mb-5">
-            <h3 className="text-base font-bold text-[#006341] mb-3 pb-1 border-b border-slate-200">2. 역량별 상세 점수</h3>
+            <h3 className="text-base font-bold text-emerald-600 mb-3 pb-1 border-b border-slate-200">2. 역량별 상세 점수</h3>
             <table className="w-full border-collapse text-sm mb-3">
               <thead>
                 <tr>
-                  <th className="bg-slate-50 border border-slate-200 px-3 py-2 text-left font-semibold text-[#006341]">역량</th>
-                  <th className="bg-slate-50 border border-slate-200 px-3 py-2 text-left font-semibold text-[#006341]">활동유형</th>
-                  <th className="bg-slate-50 border border-slate-200 px-3 py-2 text-right font-semibold text-[#006341] w-20">점수</th>
-                  <th className="bg-slate-50 border border-slate-200 px-3 py-2 text-center font-semibold text-[#006341] w-16">판정</th>
+                  <th className="bg-slate-50 border border-slate-200 px-3 py-2 text-left font-semibold text-emerald-600">역량</th>
+                  <th className="bg-slate-50 border border-slate-200 px-3 py-2 text-left font-semibold text-emerald-600">활동유형</th>
+                  <th className="bg-slate-50 border border-slate-200 px-3 py-2 text-right font-semibold text-emerald-600 w-20">점수</th>
+                  <th className="bg-slate-50 border border-slate-200 px-3 py-2 text-center font-semibold text-emerald-600 w-16">판정</th>
                 </tr>
               </thead>
               <tbody>
@@ -280,7 +280,7 @@ function MemberReportModal({
           {/* 강점 영역 */}
           {strengths.length > 0 && (
             <div className="member-report-section mb-5">
-              <h3 className="text-base font-bold text-[#006341] mb-3 pb-1 border-b border-slate-200">3. 강점 영역</h3>
+              <h3 className="text-base font-bold text-emerald-600 mb-3 pb-1 border-b border-slate-200">3. 강점 영역</h3>
               <div className="space-y-2">
                 {strengths.map((c) => (
                   <div key={c.label} className="bg-emerald-50 border border-emerald-200 rounded-lg px-4 py-3">
@@ -297,7 +297,7 @@ function MemberReportModal({
           {/* 개선 필요 영역 */}
           {improvements.length > 0 && (
             <div className="member-report-section mb-5">
-              <h3 className="text-base font-bold text-[#006341] mb-3 pb-1 border-b border-slate-200">
+              <h3 className="text-base font-bold text-emerald-600 mb-3 pb-1 border-b border-slate-200">
                 {strengths.length > 0 ? "4" : "3"}. 개선 필요 영역
               </h3>
               <div className="space-y-2">
@@ -315,7 +315,7 @@ function MemberReportModal({
 
           {/* 개선 권고사항 */}
           <div className="member-report-section mb-5">
-            <h3 className="text-base font-bold text-[#006341] mb-3 pb-1 border-b border-slate-200">
+            <h3 className="text-base font-bold text-emerald-600 mb-3 pb-1 border-b border-slate-200">
               {strengths.length > 0 && improvements.length > 0 ? "5" : strengths.length > 0 || improvements.length > 0 ? "4" : "3"}. 역량별 개선 권고
             </h3>
             <div className="space-y-3">
@@ -342,7 +342,7 @@ function MemberReportModal({
           {/* 평가자 피드백 메모 */}
           {data.note && (
             <div className="member-report-section mb-5">
-              <h3 className="text-base font-bold text-[#006341] mb-3 pb-1 border-b border-slate-200">
+              <h3 className="text-base font-bold text-emerald-600 mb-3 pb-1 border-b border-slate-200">
                 {(() => {
                   let num = 3;
                   if (strengths.length > 0) num++;

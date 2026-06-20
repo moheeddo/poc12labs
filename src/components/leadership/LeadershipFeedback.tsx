@@ -1162,7 +1162,7 @@ ${inner}
                         ))}
                       </div>
                       <button onClick={() => handleConsistencyRun()}
-                        className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium bg-emerald-600/[0.08] text-[#006341] border border-[#006341]/30 hover:bg-emerald-600/15 transition-colors">
+                        className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium bg-emerald-600/[0.08] text-emerald-600 border border-emerald-600/30 hover:bg-emerald-600/15 transition-colors">
                         <Sparkles className="w-3.5 h-3.5" />
                         {consistencyRuns}차 반복 진단 (객관성 확보)
                       </button>
@@ -1206,13 +1206,13 @@ ${inner}
             const headlineColor = headline === null ? "text-slate-400" : headline >= 5.5 ? "text-emerald-600" : headline >= 3.0 ? "text-amber-600" : "text-red-500";
             const consColor: Record<string, string> = { 높음: "bg-emerald-100 text-emerald-700", 보통: "bg-amber-100 text-amber-700", 낮음: "bg-red-100 text-red-600" };
             return (
-              <div className="relative bg-gradient-to-br from-white to-[#006341]/[0.05] border border-[#006341]/20 border-l-4 border-l-[#006341] rounded-2xl p-6 shadow-md shadow-[#002855]/5 animate-fade-in-up">
+              <div className="relative bg-gradient-to-br from-white to-emerald-600/[0.05] border border-emerald-600/20 border-l-4 border-l-emerald-600 rounded-2xl p-6 shadow-md shadow-khnp-navy/5 animate-fade-in-up">
                 <div className="flex items-center justify-between mb-4">
                   <div className="flex items-center gap-2">
-                    <span className="text-[11px] font-mono tracking-[0.14em] text-[#006341] uppercase">Result</span>
-                    <span className="text-[15px] font-bold text-[#002855]">{s.competencyLabel} 멀티모달 종합 평가</span>
+                    <span className="text-[11px] font-mono tracking-[0.14em] text-emerald-600 uppercase">Result</span>
+                    <span className="text-[15px] font-bold text-khnp-navy">{s.competencyLabel} 멀티모달 종합 평가</span>
                   </div>
-                  <span className="text-[11px] text-[#64748b]">핵심 4개(M1~M4) 평균 · M5 보조 제외</span>
+                  <span className="text-[11px] text-slate-500">핵심 4개(M1~M4) 평균 · M5 보조 제외</span>
                 </div>
                 <div className="flex items-end gap-4">
                   <div className="text-center shrink-0">

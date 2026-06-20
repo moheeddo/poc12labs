@@ -74,7 +74,7 @@ export default function SpeakerRoleMapping({ competencyKey, value, onApply, disa
     : "평가 대상자·화자 미지정 — 코치 보정 권장";
 
   return (
-    <div className="bg-white/60 border border-[#006341]/20 rounded-xl overflow-hidden">
+    <div className="bg-white/60 border border-emerald-600/20 rounded-xl overflow-hidden">
       {/* 헤더 (접기/펼치기) */}
       <button
         onClick={() => setOpen((o) => !o)}
@@ -84,21 +84,21 @@ export default function SpeakerRoleMapping({ competencyKey, value, onApply, disa
       >
         <div className="flex items-center gap-2 min-w-0">
           <div className="w-7 h-7 rounded-lg bg-emerald-600/12 flex items-center justify-center shrink-0">
-            <Users className="w-4 h-4 text-[#006341]" />
+            <Users className="w-4 h-4 text-emerald-600" />
           </div>
           <div className="text-left min-w-0">
             <p className="text-sm font-semibold text-slate-800">화자·역할 보정 (코치)</p>
             <p className={cn("text-xs truncate", value.targetName ? "text-slate-500" : "text-amber-700")}>{summary}</p>
           </div>
         </div>
-        <span className="text-xs text-[#006341] shrink-0 ml-2">{open ? "접기" : "보정"}</span>
+        <span className="text-xs text-emerald-600 shrink-0 ml-2">{open ? "접기" : "보정"}</span>
       </button>
 
       {open && (
-        <div id="speaker-role-mapping-panel" className="px-4 pb-4 pt-1 space-y-3 border-t border-[#006341]/12">
+        <div id="speaker-role-mapping-panel" className="px-4 pb-4 pt-1 space-y-3 border-t border-emerald-600/12">
           {/* 안내 */}
           <div className="flex items-start gap-1.5 text-[11px] text-slate-500 bg-slate-50/60 rounded-lg px-2.5 py-2">
-            <Info className="w-3.5 h-3.5 text-[#006341]/60 shrink-0 mt-0.5" />
+            <Info className="w-3.5 h-3.5 text-emerald-600/60 shrink-0 mt-0.5" />
             <p>화자분리·STT 인식 오류가 있을 수 있습니다. 평가 대상자와 화자 라벨을 지정하면 해당 1인 기준으로 다시 분석합니다. (스펙: 화자분리·역할매핑은 평가의 전제)</p>
           </div>
 

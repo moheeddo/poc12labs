@@ -481,13 +481,13 @@ export default function LeadershipCoaching() {
         <div className="flex items-center gap-3">
           <button
             onClick={() => setView({ type: "main" })}
-            className="flex items-center gap-1.5 text-base text-slate-500 hover:text-[#006341] transition-colors"
+            className="flex items-center gap-1.5 text-base text-slate-500 hover:text-emerald-600 transition-colors"
           >
             <ArrowLeft className="w-4 h-4" />
             돌아가기
           </button>
           <ChevronRight className="w-3.5 h-3.5 text-slate-400" />
-          <h2 className="text-xl font-bold text-[#006341]">평가 이력 & 성장 추이</h2>
+          <h2 className="text-xl font-bold text-emerald-600">평가 이력 & 성장 추이</h2>
         </div>
 
         {/* 평가 이력 스코어카드 */}
@@ -594,9 +594,9 @@ export default function LeadershipCoaching() {
       {/* 헤더 — 컴팩트 + 조 관리 강화 */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>
-          <p className="text-[11px] font-mono tracking-[0.18em] text-[#006341] uppercase mb-1">Leadership Assessment 2.0</p>
-          <h2 className="text-2xl font-bold text-[#002855] tracking-[-0.02em]">리더십코칭 역량진단</h2>
-          <p className="text-sm text-[#64748b] mt-1">발표·토의·면담 영상에서 멀티모달 행동지표로 역량을 정량 평가합니다</p>
+          <p className="text-[11px] font-mono tracking-[0.18em] text-emerald-600 uppercase mb-1">Leadership Assessment 2.0</p>
+          <h2 className="text-2xl font-bold text-khnp-navy tracking-[-0.02em]">리더십코칭 역량진단</h2>
+          <p className="text-sm text-slate-500 mt-1">발표·토의·면담 영상에서 멀티모달 행동지표로 역량을 정량 평가합니다</p>
         </div>
         <div className="flex items-center gap-2 shrink-0">
           <button
@@ -609,7 +609,7 @@ export default function LeadershipCoaching() {
           {speakers.length > 0 && (
             <button
               onClick={() => setView({ type: "history" })}
-              className="flex items-center gap-1.5 text-sm text-slate-500 hover:text-[#006341] transition-colors px-3 py-1.5 rounded-lg border border-slate-200/40 hover:border-emerald-500/30 whitespace-nowrap"
+              className="flex items-center gap-1.5 text-sm text-slate-500 hover:text-emerald-600 transition-colors px-3 py-1.5 rounded-lg border border-slate-200/40 hover:border-emerald-500/30 whitespace-nowrap"
             >
               <TrendingUp className="w-3.5 h-3.5" />
               이력
@@ -622,10 +622,10 @@ export default function LeadershipCoaching() {
       {groupSessions.length > 0 && (
         <div className="bg-gradient-to-br from-emerald-50/60 to-emerald-50/30 border border-emerald-200/30 rounded-xl p-4">
           <div className="flex items-center justify-between mb-3">
-            <p className="text-xs uppercase tracking-wider text-[#006341] font-medium">진행 중인 조</p>
+            <p className="text-xs uppercase tracking-wider text-emerald-600 font-medium">진행 중인 조</p>
             <button
               onClick={() => setView({ type: "group-create" })}
-              className="text-xs text-[#006341] hover:text-[#004a31] transition-colors"
+              className="text-xs text-emerald-600 hover:text-emerald-800 transition-colors"
             >
               + 새 조 만들기
             </button>
@@ -650,8 +650,8 @@ export default function LeadershipCoaching() {
                   onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setView({ type: "group-manage", sessionId: gs.id }); } }}
                 >
                   <div className="flex items-center justify-between mb-1.5">
-                    <p className="text-sm font-bold text-[#006341] pr-7">{gs.name}</p>
-                    <span className="text-[10px] font-mono text-[#006341] bg-emerald-600/[0.06] px-1.5 py-0.5 rounded">
+                    <p className="text-sm font-bold text-emerald-600 pr-7">{gs.name}</p>
+                    <span className="text-[10px] font-mono text-emerald-600 bg-emerald-600/[0.06] px-1.5 py-0.5 rounded">
                       {Math.min(gs.currentStep + 1, gs.competencies.length)}/{gs.competencies.length}
                     </span>
                   </div>
@@ -662,7 +662,7 @@ export default function LeadershipCoaching() {
                     <div className="flex-1 h-1.5 bg-emerald-100 rounded-full overflow-hidden">
                       <div className="h-full bg-emerald-500 rounded-full transition-all duration-500" style={{ width: `${pct}%` }} />
                     </div>
-                    <span className="text-[10px] font-mono text-[#006341] w-10 text-right">
+                    <span className="text-[10px] font-mono text-emerald-600 w-10 text-right">
                       {totalAnalyzed > 0 ? `${totalAnalyzed}건` : "대기"}
                     </span>
                   </div>
@@ -690,9 +690,9 @@ export default function LeadershipCoaching() {
       {/* ── 개별 분석 영역 ── */}
       <div className="relative">
         <div className="flex items-center gap-3 mb-4">
-          <div className="h-px flex-1 bg-[#002855]/8" />
-          <span className="text-[10px] font-mono text-[#64748b] tracking-[0.18em] uppercase">또는 개별 분석</span>
-          <div className="h-px flex-1 bg-[#002855]/8" />
+          <div className="h-px flex-1 bg-khnp-navy/8" />
+          <span className="text-[10px] font-mono text-slate-500 tracking-[0.18em] uppercase">또는 개별 분석</span>
+          <div className="h-px flex-1 bg-khnp-navy/8" />
         </div>
       </div>
 
@@ -701,8 +701,8 @@ export default function LeadershipCoaching() {
         {/* 좌측: 영상 업로드 */}
         <div className="space-y-4">
           <div className="flex items-baseline gap-3">
-            <span className="font-mono text-[12px] text-[#006341] tracking-[0.1em] tabular-nums">STEP 01</span>
-            <h3 className="text-[17px] font-bold text-[#002855] tracking-[-0.01em]">발표·토의·면담 영상 업로드</h3>
+            <span className="font-mono text-[12px] text-emerald-600 tracking-[0.1em] tabular-nums">STEP 01</span>
+            <h3 className="text-[17px] font-bold text-khnp-navy tracking-[-0.01em]">발표·토의·면담 영상 업로드</h3>
           </div>
 
           {!uploadedVideoId ? (
@@ -726,13 +726,13 @@ export default function LeadershipCoaching() {
               )}
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-lg bg-emerald-600/[0.06] flex items-center justify-center shrink-0">
-                  <CheckCircle2 className="w-5 h-5 text-[#006341]" />
+                  <CheckCircle2 className="w-5 h-5 text-emerald-600" />
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="text-base text-slate-900 font-medium truncate">
                     {uploadedFileName}
                   </p>
-                  <p className="text-sm text-[#006341]">업로드 완료 — AI 인덱싱 진행 중</p>
+                  <p className="text-sm text-emerald-600">업로드 완료 — AI 인덱싱 진행 중</p>
                 </div>
                 <button
                   onClick={() => {
@@ -752,31 +752,31 @@ export default function LeadershipCoaching() {
         {/* 우측: 상황사례 + 주요 용어(STT 보정) */}
         <div className="space-y-4">
           <div className="flex items-baseline gap-3">
-            <span className="font-mono text-[12px] text-[#006341] tracking-[0.1em] tabular-nums">STEP 02</span>
-            <h3 className="text-[17px] font-bold text-[#002855] tracking-[-0.01em]">상황사례 · 주요 용어 (선택)</h3>
+            <span className="font-mono text-[12px] text-emerald-600 tracking-[0.1em] tabular-nums">STEP 02</span>
+            <h3 className="text-[17px] font-bold text-khnp-navy tracking-[-0.01em]">상황사례 · 주요 용어 (선택)</h3>
           </div>
-          <div className="bg-white border border-[#002855]/10 rounded-xl p-5 space-y-4">
+          <div className="bg-white border border-khnp-navy/10 rounded-xl p-5 space-y-4">
             <div>
-              <p className="text-[13px] text-[#475569] mb-2">상황사례를 입력하면 보고서 해석이 정확해집니다.</p>
+              <p className="text-[13px] text-slate-600 mb-2">상황사례를 입력하면 보고서 해석이 정확해집니다.</p>
               <textarea
                 value={scenarioText}
                 onChange={(e) => setScenarioText(e.target.value)}
                 placeholder={`예시:\n• 신재생에너지 분야 전략 수립 TFT 발표 영상\n• 부서 간 설비 교체 일정 갈등 조율 회의\n• 회의 비효율성 문제에 대한 1:1 코칭 면담`}
-                className="w-full bg-[#f7f8f6] border border-[#002855]/10 rounded-lg px-4 py-3 text-[15px] text-[#002855] placeholder:text-[#64748b] outline-none focus:border-[#006341]/40 focus:ring-1 focus:ring-[#006341]/15 transition-all resize-none leading-relaxed"
+                className="w-full bg-[#f7f8f6] border border-khnp-navy/10 rounded-lg px-4 py-3 text-[15px] text-khnp-navy placeholder:text-slate-500 outline-none focus:border-emerald-600/40 focus:ring-1 focus:ring-emerald-600/15 transition-all resize-none leading-relaxed"
                 rows={3}
               />
             </div>
-            <div className="border-t border-[#002855]/8 pt-4">
-              <label className="text-[13px] font-semibold text-[#002855] block mb-1">주요 용어·명단 <span className="font-normal text-[#64748b]">(음성인식 보정)</span></label>
+            <div className="border-t border-khnp-navy/8 pt-4">
+              <label className="text-[13px] font-semibold text-khnp-navy block mb-1">주요 용어·명단 <span className="font-normal text-slate-500">(음성인식 보정)</span></label>
               <textarea
                 value={glossaryText}
                 onChange={(e) => setGlossaryText(e.target.value)}
                 placeholder={`인명·직책·부서를 쉼표로 (예: 엄사방, 주무차장, A부장, 안전부서)`}
-                className="w-full bg-[#f7f8f6] border border-[#002855]/10 rounded-lg px-4 py-2.5 text-[14px] text-[#002855] placeholder:text-[#64748b] outline-none focus:border-[#006341]/40 focus:ring-1 focus:ring-[#006341]/15 transition-all resize-none leading-relaxed"
+                className="w-full bg-[#f7f8f6] border border-khnp-navy/10 rounded-lg px-4 py-2.5 text-[14px] text-khnp-navy placeholder:text-slate-500 outline-none focus:border-emerald-600/40 focus:ring-1 focus:ring-emerald-600/15 transition-all resize-none leading-relaxed"
                 rows={2}
               />
-              <p className="text-[11px] text-[#64748b] mt-1.5">
-                ※ TwelveLabs는 원본 음성인식 어휘를 바꿀 수 없습니다. 입력한 용어는 <span className="text-[#475569]">AI 분석·보고서가 정확한 표기를 쓰도록</span> 전달됩니다(근본 보정은 온프렘 한국어 STT).
+              <p className="text-[11px] text-slate-500 mt-1.5">
+                ※ TwelveLabs는 원본 음성인식 어휘를 바꿀 수 없습니다. 입력한 용어는 <span className="text-slate-600">AI 분석·보고서가 정확한 표기를 쓰도록</span> 전달됩니다(근본 보정은 온프렘 한국어 STT).
               </p>
             </div>
           </div>
@@ -787,12 +787,12 @@ export default function LeadershipCoaching() {
       <div className="space-y-4">
         <div className="flex items-center justify-between">
           <div className="flex items-baseline gap-3">
-            <span className="font-mono text-[12px] text-[#006341] tracking-[0.1em] tabular-nums">STEP 03</span>
-            <h3 className="text-[17px] font-bold text-[#002855] tracking-[-0.01em]">평가 역량 선택</h3>
+            <span className="font-mono text-[12px] text-emerald-600 tracking-[0.1em] tabular-nums">STEP 03</span>
+            <h3 className="text-[17px] font-bold text-khnp-navy tracking-[-0.01em]">평가 역량 선택</h3>
           </div>
           <button
             onClick={selectAllCompetencies}
-            className="text-sm text-[#006341] hover:text-[#004a31] transition-colors font-medium"
+            className="text-sm text-emerald-600 hover:text-emerald-800 transition-colors font-medium"
           >
             전체 선택
           </button>
@@ -823,14 +823,14 @@ export default function LeadershipCoaching() {
                 <div className="p-5 pl-6">
                   <div className="flex items-center gap-3 mb-2">
                     {/* 식별색(comp.color)은 좌측 룰·체크박스 등 비-텍스트에만 — 텍스트는 navy 고정(WCAG·red 의미충돌 방지) */}
-                    <span className="font-mono text-[13px] font-medium tabular-nums text-[#006341]">
+                    <span className="font-mono text-[13px] font-medium tabular-nums text-emerald-600">
                       {String(idx + 1).padStart(2, "0")}
                     </span>
-                    <h4 className="text-[16px] font-bold tracking-[-0.01em] text-[#002855]">
+                    <h4 className="text-[16px] font-bold tracking-[-0.01em] text-khnp-navy">
                       {comp.label}
                     </h4>
                     {comp.rubric && (
-                      <span className="text-[10px] font-mono tracking-[0.08em] text-[#64748b]">M1–M5</span>
+                      <span className="text-[10px] font-mono tracking-[0.08em] text-slate-500">M1–M5</span>
                     )}
                     {/* 정밀 선택 체크박스 */}
                     <span
@@ -843,7 +843,7 @@ export default function LeadershipCoaching() {
                       {isSelected && <CheckCircle2 className="w-3.5 h-3.5 text-white" strokeWidth={3} />}
                     </span>
                   </div>
-                  <p className="text-[13px] text-[#64748b] leading-relaxed line-clamp-2">
+                  <p className="text-[13px] text-slate-500 leading-relaxed line-clamp-2">
                     {comp.definition}
                   </p>
                 </div>
@@ -862,12 +862,12 @@ export default function LeadershipCoaching() {
         {!canStartAnalysis && (
           <div className="mb-4">
             <div className="flex items-center justify-center gap-3 sm:gap-6 text-sm flex-wrap">
-              <span className={`flex items-center gap-1.5 ${uploadedVideoId ? "text-[#006341]" : "text-slate-600"}`}>
+              <span className={`flex items-center gap-1.5 ${uploadedVideoId ? "text-emerald-600" : "text-slate-600"}`}>
                 {uploadedVideoId ? <CheckCircle2 className="w-4 h-4" /> : <Circle className="w-4 h-4" />}
                 영상 업로드
               </span>
               <span className="text-slate-300 hidden sm:inline">→</span>
-              <span className={`flex items-center gap-1.5 ${selectedCompetencies.size > 0 ? "text-[#006341]" : "text-slate-600"}`}>
+              <span className={`flex items-center gap-1.5 ${selectedCompetencies.size > 0 ? "text-emerald-600" : "text-slate-600"}`}>
                 {selectedCompetencies.size > 0 ? <CheckCircle2 className="w-4 h-4" /> : <Circle className="w-4 h-4" />}
                 역량 선택
               </span>
@@ -900,7 +900,7 @@ export default function LeadershipCoaching() {
       {speakers.length > 0 && (
         <div className="space-y-4">
         <h3 className="text-sm font-semibold text-slate-700 flex items-center gap-2">
-          <Layers className="w-3.5 h-3.5 text-[#006341]" />
+          <Layers className="w-3.5 h-3.5 text-emerald-600" />
           심층 분석
         </h3>
         {/* 서브탭 내비게이션 — 행 1: 핵심 분석 */}
@@ -929,7 +929,7 @@ export default function LeadershipCoaching() {
                   onClick={() => setAnalysisSubTab(tab.key as typeof analysisSubTab)}
                   className={`px-3 py-1.5 text-xs rounded-md transition-colors font-medium ${
                     analysisSubTab === tab.key
-                      ? "bg-khnp-emerald/12 text-[#006341]"
+                      ? "bg-khnp-emerald/12 text-emerald-600"
                       : "text-slate-500 hover:text-slate-700"
                   }`}
                 >
@@ -1025,8 +1025,8 @@ export default function LeadershipCoaching() {
         <div className="bg-white border border-slate-200/30 rounded-xl p-4 mt-2">
           <div className="grid grid-cols-5 gap-2 text-center">
             {[
-              { range: "8-9", label: "탁월", color: "text-[#006341]", bg: "bg-emerald-50" },
-              { range: "7", label: "우수", color: "text-[#006341]", bg: "bg-emerald-500/5" },
+              { range: "8-9", label: "탁월", color: "text-emerald-600", bg: "bg-emerald-50" },
+              { range: "7", label: "우수", color: "text-emerald-600", bg: "bg-emerald-500/5" },
               { range: "5-6", label: "보통", color: "text-amber-600", bg: "bg-amber-500/10" },
               { range: "3-4", label: "미흡", color: "text-red-700", bg: "bg-red-500/5" },
               { range: "1-2", label: "부족", color: "text-red-600", bg: "bg-red-500/10" },

@@ -40,15 +40,15 @@ export default function Landing({ onNavigate }: LandingProps) {
   });
 
   return (
-    <div className="relative min-h-screen bg-[#f7f8f6] text-[#002855] overflow-x-clip">
+    <div className="relative min-h-screen bg-[#f7f8f6] text-khnp-navy overflow-x-clip">
       {/* 좌측 정밀 레일 — 브랜드 에메랄드 헤어라인 (제어실 계측감) */}
-      <div className="fixed left-0 top-0 bottom-0 w-px bg-gradient-to-b from-transparent via-[#006341]/25 to-transparent hidden md:block" aria-hidden />
+      <div className="fixed left-0 top-0 bottom-0 w-px bg-gradient-to-b from-transparent via-emerald-600/25 to-transparent hidden md:block" aria-hidden />
 
       <div className="relative z-10 mx-auto max-w-[1240px] px-6 md:px-10 min-h-screen flex flex-col">
         {/* ── 마스트헤드 ── */}
         <header className="flex items-center justify-between py-6" style={reveal(0)}>
           <BrandLockup />
-          <span className="inline-flex items-center text-[10px] font-mono tracking-[0.14em] text-[#64748b] px-3 py-1.5 rounded-full border border-[#006341]/15 bg-white/40">
+          <span className="inline-flex items-center text-[10px] font-mono tracking-[0.14em] text-slate-500 px-3 py-1.5 rounded-full border border-emerald-600/15 bg-white/40">
             역량진단 2.0
           </span>
         </header>
@@ -57,19 +57,19 @@ export default function Landing({ onNavigate }: LandingProps) {
         <main className="flex-1 grid grid-cols-1 lg:grid-cols-12 gap-y-12 lg:gap-x-16 items-center py-10 lg:py-0">
           {/* 좌: 헤드라인 + 진입 */}
           <div className="lg:col-span-7">
-            <p className="text-[12px] font-mono tracking-[0.1em] text-[#006341] mb-6" style={reveal(80)}>
+            <p className="text-[12px] font-mono tracking-[0.1em] text-emerald-600 mb-6" style={reveal(80)}>
               한수원 리더십 역량, 영상으로 측정한다
             </p>
             <h1
-              className="font-bold tracking-[-0.045em] leading-[0.98] text-[#002855] text-[clamp(2.6rem,6.5vw,5rem)]"
+              className="font-bold tracking-[-0.045em] leading-[0.98] text-khnp-navy text-[clamp(2.6rem,6.5vw,5rem)]"
               style={{ ...reveal(140), overflowWrap: "anywhere" }}
             >
               영상 AI<br />
-              <span className="text-[#006341]">역량 진단</span>
+              <span className="text-emerald-600">역량 진단</span>
             </h1>
-            <p className="mt-7 max-w-[440px] text-[16px] leading-[1.7] text-[#475569]" style={reveal(220)}>
+            <p className="mt-7 max-w-[440px] text-[16px] leading-[1.7] text-slate-600" style={reveal(220)}>
               발표·토의·면담 영상에서 멀티모달 행동지표를 추출해
-              리더십 역량을 정량 평가합니다. 점수가 아니라 <span className="text-[#002855] font-semibold">행동 근거</span>로 말합니다.
+              리더십 역량을 정량 평가합니다. 점수가 아니라 <span className="text-khnp-navy font-semibold">행동 근거</span>로 말합니다.
             </p>
 
             {/* 진입 — 카드가 아닌 에디토리얼 행 */}
@@ -78,16 +78,16 @@ export default function Landing({ onNavigate }: LandingProps) {
               onClick={() => onNavigate("leadership")}
               onMouseEnter={() => setHovered(true)}
               onMouseLeave={() => setHovered(false)}
-              className="group mt-10 inline-flex flex-col text-left outline-none focus-visible:ring-2 focus-visible:ring-[#006341] focus-visible:ring-offset-4 focus-visible:ring-offset-[#f7f8f6] rounded-sm"
+              className="group mt-10 inline-flex flex-col text-left outline-none focus-visible:ring-2 focus-visible:ring-emerald-600 focus-visible:ring-offset-4 focus-visible:ring-offset-[#f7f8f6] rounded-sm"
               style={reveal(300)}
               aria-label="리더십 역량진단 2.0 시작"
             >
               <span className="flex items-baseline gap-4">
-                <span className="text-[clamp(1.6rem,3.5vw,2.3rem)] font-bold tracking-[-0.03em] text-[#002855] group-hover:text-[#006341] transition-colors duration-300">
+                <span className="text-[clamp(1.6rem,3.5vw,2.3rem)] font-bold tracking-[-0.03em] text-khnp-navy group-hover:text-emerald-600 transition-colors duration-300">
                   리더십 역량진단 2.0
                 </span>
                 <span
-                  className="text-[#006341] text-2xl transition-transform duration-300"
+                  className="text-emerald-600 text-2xl transition-transform duration-300"
                   style={{ transform: hovered ? "translateX(6px)" : "none" }}
                   aria-hidden
                 >
@@ -96,15 +96,15 @@ export default function Landing({ onNavigate }: LandingProps) {
               </span>
               {/* 언더라인 grow */}
               <span className="mt-2 h-[2px] bg-emerald-600 transition-all duration-400 ease-out" style={{ width: hovered ? "100%" : "44px" }} />
-              <span className="mt-3 text-[13px] text-[#64748b] font-mono tracking-[0.02em]">
+              <span className="mt-3 text-[13px] text-slate-500 font-mono tracking-[0.02em]">
                 3대 핵심 역량 · M1–M5 멀티모달 채점 · 근거 기반 피드백
               </span>
             </button>
           </div>
 
           {/* 우: 계측 인덱스 패널 */}
-          <div className="lg:col-span-5 lg:border-l lg:border-[#002855]/10 lg:pl-12" style={reveal(380)}>
-            <p className="text-[10px] font-mono tracking-[0.2em] text-[#64748b] uppercase mb-5">평가 역량 / Index</p>
+          <div className="lg:col-span-5 lg:border-l lg:border-khnp-navy/10 lg:pl-12" style={reveal(380)}>
+            <p className="text-[10px] font-mono tracking-[0.2em] text-slate-500 uppercase mb-5">평가 역량 / Index</p>
             <ul>
               {COMPETENCY_INDEX.map((c, i) => (
                 <li
@@ -112,19 +112,19 @@ export default function Landing({ onNavigate }: LandingProps) {
                   className="flex items-baseline gap-4 py-3.5"
                   style={{ borderTop: i === 0 ? "none" : "1px solid rgba(0,40,85,0.08)" }}
                 >
-                  <span className="text-[12px] font-mono text-[#006341] w-6 shrink-0">{c.no}</span>
-                  <span className="text-[17px] font-semibold text-[#002855] tracking-[-0.01em]">{c.label}</span>
-                  <span className="ml-auto text-[12px] text-[#64748b] font-mono">{c.task}</span>
+                  <span className="text-[12px] font-mono text-emerald-600 w-6 shrink-0">{c.no}</span>
+                  <span className="text-[17px] font-semibold text-khnp-navy tracking-[-0.01em]">{c.label}</span>
+                  <span className="ml-auto text-[12px] text-slate-500 font-mono">{c.task}</span>
                 </li>
               ))}
             </ul>
 
             {/* 메타 그리드 */}
-            <dl className="mt-7 grid grid-cols-2 gap-x-5 gap-y-4 border-t border-[#002855]/10 pt-6">
+            <dl className="mt-7 grid grid-cols-2 gap-x-5 gap-y-4 border-t border-khnp-navy/10 pt-6">
               {META.map(([k, v]) => (
                 <div key={k}>
-                  <dt className="text-[10px] font-mono tracking-[0.12em] text-[#64748b] uppercase">{k}</dt>
-                  <dd className="text-[14px] font-semibold text-[#002855] mt-0.5">{v}</dd>
+                  <dt className="text-[10px] font-mono tracking-[0.12em] text-slate-500 uppercase">{k}</dt>
+                  <dd className="text-[14px] font-semibold text-khnp-navy mt-0.5">{v}</dd>
                 </div>
               ))}
             </dl>
@@ -132,9 +132,9 @@ export default function Landing({ onNavigate }: LandingProps) {
         </main>
 
         {/* ── 푸터 ── */}
-        <footer className="flex items-center justify-between py-6 border-t border-[#002855]/8" style={reveal(480)}>
-          <span className="text-[11px] text-[#64748b] font-mono">© 2026 한국수력원자력 인재개발원</span>
-          <span className="text-[11px] text-[#64748b] font-mono hidden sm:block">Powered by TwelveLabs · Upstage Solar</span>
+        <footer className="flex items-center justify-between py-6 border-t border-khnp-navy/8" style={reveal(480)}>
+          <span className="text-[11px] text-slate-500 font-mono">© 2026 한국수력원자력 인재개발원</span>
+          <span className="text-[11px] text-slate-500 font-mono hidden sm:block">Powered by TwelveLabs · Upstage Solar</span>
         </footer>
       </div>
     </div>
