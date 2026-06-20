@@ -3,9 +3,10 @@ import {
   getBestGoldStandard, suggestGoldStandardCandidate,
 } from '@/lib/pov-gold-standard';
 import { writeFileSync } from 'fs';
-import path from 'path';
+import { getDataPath } from '@/lib/data-path';
 
-const DATA_PATH = path.join(process.cwd(), 'data', 'gold-standards.json');
+// 워커별 격리된 임시 데이터 경로(setup.ts의 KHNP_DATA_DIR) — 실 data/ 비오염, 파일 공유 경쟁 차단
+const DATA_PATH = getDataPath('gold-standards.json');
 
 beforeEach(() => {
   writeFileSync(DATA_PATH, '[]', 'utf-8');
