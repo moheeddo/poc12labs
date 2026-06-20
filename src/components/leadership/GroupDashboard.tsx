@@ -58,7 +58,8 @@ interface MemberReportData {
   avgScore: number;
   analyzedCount: number;
   competencyScores: { label: string; score: number; color: string; activityType: string }[];
-  rank: number;
+  // fail-closed: 미분석(점수 센티넬 0) 멤버는 순위를 단정하지 않음(null). totalMembers는 분석된 멤버 수.
+  rank: number | null;
   totalMembers: number;
   note?: string; // 평가자 피드백 메모
 }
@@ -139,7 +140,7 @@ function MemberReportModal({
             <div className="flex justify-center gap-6 text-sm text-slate-500">
               <span>{sessionName}</span>
               <span>{today}</span>
-              <span>순위: {data.rank}/{data.totalMembers}위</span>
+              <span>{data.rank != null ? `순위: ${data.rank}/${data.totalMembers}위` : "순위: 미산출(미분석)"}</span>
             </div>
           </div>
 
@@ -455,8 +456,14 @@ export default function GroupDashboard({ session, onBack, onViewMember }: GroupD
     const member = session.members.find((m) => m.id === reportMemberId);
     if (!member) return null;
 
-    const ranked = overallRanking.findIndex((m) => m.id === reportMemberId);
+    // fail-closed: 순위는 분석된(점수>0) 멤버끼리만 매긴다. 미분석 멤버(센티넬 0)에
+    // 거짓 순위를 부여하지 않고, 분석된 멤버 순위 모수도 분석된 인원으로 한정.
     const memberRanked = overallRanking.find((m) => m.id === reportMemberId);
+    const analyzedRanking = overallRanking.filter((m) => m.avgScore > 0);
+    const isAnalyzed = (memberRanked?.avgScore ?? 0) > 0;
+    const ranked = isAnalyzed
+      ? analyzedRanking.findIndex((m) => m.id === reportMemberId)
+      : -1;
 
     const competencyScores = COMPETENCY_ORDER.map((comp) => {
       const compState = session.competencies.find((c) => c.competencyKey === comp.key);
@@ -474,8 +481,8 @@ export default function GroupDashboard({ session, onBack, onViewMember }: GroupD
       avgScore: memberRanked?.avgScore || 0,
       analyzedCount: memberRanked?.analyzedCount || 0,
       competencyScores,
-      rank: ranked + 1,
-      totalMembers: session.members.length,
+      rank: ranked >= 0 ? ranked + 1 : null,
+      totalMembers: analyzedRanking.length,
       note: session.memberNotes?.[reportMemberId] || undefined,
     };
   }, [reportMemberId, session, overallRanking]);
@@ -836,11 +843,12 @@ export default function GroupDashboard({ session, onBack, onViewMember }: GroupD
             <div className="space-y-1.5">
               {members.map((m, rank) => (
                 <div key={m.id} className="flex items-center gap-2">
+                  {/* fail-closed: 미분석(점수 센티넬 0) 멤버에는 순위를 단정하지 않고 '—' */}
                   <span className={cn(
                     "text-xs font-mono font-bold w-5 text-center",
-                    rank === 0 ? "text-amber-500" : "text-slate-400"
+                    rank === 0 && m.score > 0 ? "text-amber-700" : "text-slate-500"
                   )}>
-                    {rank + 1}
+                    {m.score > 0 ? rank + 1 : "—"}
                   </span>
                   <div
                     className="w-3 h-3 rounded-full shrink-0"

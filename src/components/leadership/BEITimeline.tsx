@@ -281,13 +281,19 @@ export default function BEITimeline({ analysis, onSeekVideo, loading = false }: 
 
           <div className="h-8 w-px bg-slate-200" />
 
-          {/* 평균 완성도 */}
-          <div className="flex items-center gap-2">
-            <span className="text-2xl font-bold font-mono text-amber-600">
-              {Math.round(averageCompleteness * 100)}%
-            </span>
-            <span className="text-sm text-slate-600">평균 STAR 완성도</span>
-          </div>
+          {/* 평균 완성도 — fail-closed: 행동사건 0건이면 센티넬 0%를 실측처럼 단정하지 않고 '미산출' */}
+          {totalEvents > 0 ? (
+            <div className="flex items-center gap-2">
+              <span className="text-2xl font-bold font-mono text-amber-600">
+                {Math.round(averageCompleteness * 100)}%
+              </span>
+              <span className="text-sm text-slate-600">평균 STAR 완성도</span>
+            </div>
+          ) : (
+            <div className="flex items-center gap-2">
+              <span className="text-sm text-slate-500">평균 STAR 완성도 미산출 — 추출된 행동사건 없음</span>
+            </div>
+          )}
 
           {/* 차별화 역량 배지 */}
           {differentiatingCompetencies.length > 0 && (
