@@ -4,7 +4,7 @@ import { useCallback, useMemo, useRef, useState } from "react";
 import type { ServiceTab } from "@/lib/types";
 import { SERVICE_TABS } from "@/lib/constants";
 import { cn } from "@/lib/utils";
-import KhnpLogo from "@/components/shared/KhnpLogo";
+import BrandLockup from "@/components/shared/BrandLockup";
 
 interface HeaderProps {
   activeTab: ServiceTab | null;
@@ -61,34 +61,17 @@ export default function Header({ activeTab, onTabChange }: HeaderProps) {
         <div className="flex items-center justify-between h-[72px]">
           <button
             onClick={() => onTabChange(null)}
-            className="flex items-center gap-3.5 group"
+            aria-label="KHNP 인재개발원 HRDI 홈"
+            className="group rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-khnp-emerald-light"
           >
-            <div className="relative">
-              <KhnpLogo size={38} />
-              {/* 로고 주변 미세 글로우 */}
-              <div className="absolute inset-0 rounded-full bg-khnp-emerald/10 blur-xl scale-150 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-            </div>
-            <div className="flex flex-col">
-              <span className="text-base font-bold tracking-[-0.02em] text-slate-900 leading-tight group-hover:text-khnp-emerald transition-colors duration-300">
-                KHNP HRDI
-              </span>
-              <span className="text-[11px] text-khnp-emerald font-mono font-medium tracking-[0.15em] uppercase leading-tight hidden sm:block">
-                Video AI Platform
-              </span>
-            </div>
+            <BrandLockup interactive />
           </button>
 
-          {/* 시스템 상태 인디케이터 */}
+          {/* 제품 버전 인디케이터 (정적 — 'SYSTEM ONLINE' 슬롭·펄스 제거) */}
           <div className="flex items-center gap-3">
-            <div className="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-full glass-subtle">
-              <div className="relative flex items-center justify-center">
-                <div className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
-                <div className="absolute w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping opacity-40" />
-              </div>
-              <span className="text-xs text-slate-500 font-mono tracking-wider">
-                SYSTEM ONLINE
-              </span>
-            </div>
+            <span className="hidden md:inline-flex items-center text-[10px] font-mono tracking-[0.14em] text-slate-500 px-3 py-1.5 rounded-full border border-slate-200/70">
+              역량진단 2.0
+            </span>
           </div>
         </div>
 

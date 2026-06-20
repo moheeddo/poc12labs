@@ -4,7 +4,7 @@
  * nav: N6 masthead · tone: 신뢰·전문성·안전 (control-room) · pre-emit critique: P5 H5 E4 S5 R4 V5 */
 import { useState, useEffect } from "react";
 import type { ServiceTab } from "@/lib/types";
-import KhnpLogo from "@/components/shared/KhnpLogo";
+import BrandLockup from "@/components/shared/BrandLockup";
 
 interface LandingProps {
   onNavigate: (tab: ServiceTab) => void;
@@ -47,17 +47,10 @@ export default function Landing({ onNavigate }: LandingProps) {
       <div className="relative z-10 mx-auto max-w-[1240px] px-6 md:px-10 min-h-screen flex flex-col">
         {/* ── 마스트헤드 ── */}
         <header className="flex items-center justify-between py-6" style={reveal(0)}>
-          <div className="flex items-center gap-3">
-            <KhnpLogo size={26} />
-            <div className="leading-tight">
-              <p className="text-[13px] font-bold tracking-[-0.01em] text-[#002855]">KHNP 인재개발원</p>
-              <p className="text-[10px] font-mono tracking-[0.18em] text-[#006341] uppercase">HRDI · Video AI</p>
-            </div>
-          </div>
-          <div className="flex items-center gap-2 px-3 py-1.5 rounded-full border border-[#006341]/20 bg-white/50">
-            <span className="inline-flex rounded-full w-1.5 h-1.5 bg-[#006341]" />
-            <span className="text-[10px] font-mono tracking-[0.16em] text-[#006341]">SYSTEM ONLINE</span>
-          </div>
+          <BrandLockup />
+          <span className="inline-flex items-center text-[10px] font-mono tracking-[0.14em] text-[#64748b] px-3 py-1.5 rounded-full border border-[#006341]/15 bg-white/40">
+            역량진단 2.0
+          </span>
         </header>
 
         {/* ── 본문: 비대칭 분할 ── */}
