@@ -903,7 +903,7 @@ export default function GroupDashboard({ session, onBack, onViewMember }: GroupD
                     className="w-3 h-3 rounded-full shrink-0"
                     style={{ backgroundColor: MEMBER_COLORS[m.order - 1] }}
                   />
-                  <span className="text-sm text-slate-700 flex-1">{m.name}</span>
+                  <span className="text-sm text-slate-700 flex-1 min-w-0 truncate">{m.name}</span>
                   <div className="w-20 h-1.5 bg-slate-100 rounded-full overflow-hidden">
                     <div
                       className="h-full rounded-full transition-all duration-500"

@@ -155,15 +155,25 @@ async function enrichVisionGazeWithMarengo(
       searchVideos(LEADERSHIP_INDEX_ID, "presenter looking down at notes, looking at monitor screen, reading slides"),
     ]);
 
+    // 외부(TwelveLabs) clip의 start/end가 누락/비숫자면 차감이 NaN이 되어 가드를 우회하고
+    // observation에 'NaN%'가 노출된다 — 유한한 양의 길이 clip만 누적(fail-closed).
     let audienceSeconds = 0, screenSeconds = 0;
     if (audienceResults.status === "fulfilled" && audienceResults.value.data) {
-      for (const clip of audienceResults.value.data) if (clip.video_id === videoId) audienceSeconds += clip.end - clip.start;
+      for (const clip of audienceResults.value.data) {
+        if (clip.video_id !== videoId) continue;
+        const dur = Number(clip.end) - Number(clip.start);
+        if (Number.isFinite(dur) && dur > 0) audienceSeconds += dur;
+      }
     }
     if (screenResults.status === "fulfilled" && screenResults.value.data) {
-      for (const clip of screenResults.value.data) if (clip.video_id === videoId) screenSeconds += clip.end - clip.start;
+      for (const clip of screenResults.value.data) {
+        if (clip.video_id !== videoId) continue;
+        const dur = Number(clip.end) - Number(clip.start);
+        if (Number.isFinite(dur) && dur > 0) screenSeconds += dur;
+      }
     }
     const totalDetected = audienceSeconds + screenSeconds;
-    if (totalDetected < 5) return data;
+    if (!Number.isFinite(totalDetected) || totalDetected < 5) return data;
 
     const marengoAudienceRatio = audienceSeconds / totalDetected;
     const marengoScreenRatio = screenSeconds / totalDetected;

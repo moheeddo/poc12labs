@@ -56,8 +56,8 @@ export default function ScoreCard({ speaker, rank }: ScoreCardProps) {
             {rank}
           </span>
         </div>
-        <div className="flex-1">
-          <p className="text-base font-medium text-slate-900">{speaker.speakerName}</p>
+        <div className="flex-1 min-w-0">
+          <p className="text-base font-medium text-slate-900 truncate">{speaker.speakerName}</p>
           <p className="text-[11px] text-slate-500 font-mono mt-0.5">{getGradeLabel(speaker.totalScore)}</p>
         </div>
         {/* 종합 점수 뱃지 */}

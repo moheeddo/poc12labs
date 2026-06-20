@@ -113,8 +113,20 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ report: generateFallbackReport(scoringResult, label), model: "local-template", solarError: error });
     }
 
-    const data = await response.json();
-    const reportText = data.choices?.[0]?.message?.content || "";
+    // 200 OK여도 본문이 malformed JSON(게이트웨이 HTML·잘림·점검 페이지)이거나
+    // choices 없는 에러 바디일 수 있다 — 검증 후 비정상이면 로컬 폴백(가짜 'solar-pro2' 빈 보고서 방지).
+    let data: { choices?: Array<{ message?: { content?: string } }> };
+    try {
+      data = await response.json();
+    } catch {
+      log.error("Solar 200이나 본문 파싱 실패 — 로컬 폴백");
+      return NextResponse.json({ report: generateFallbackReport(scoringResult, label), model: "local-template", solarError: "malformed-json" });
+    }
+    const reportText = data.choices?.[0]?.message?.content;
+    if (!reportText || !reportText.trim()) {
+      log.warn("Solar 200이나 빈/비정상 응답(choices 없음) — 로컬 폴백");
+      return NextResponse.json({ report: generateFallbackReport(scoringResult, label), model: "local-template", solarError: "empty-content" });
+    }
     log.info("Solar 보고서 생성 완료", { model: "solar-pro2", competencyKey: key, length: reportText.length });
     return NextResponse.json({ report: reportText, model: "solar-pro2" });
   } catch (error) {

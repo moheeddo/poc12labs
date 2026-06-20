@@ -82,6 +82,12 @@ async function handleUrlUpload(request: NextRequest) {
   }
 
   const data = await res.json();
+  // 2xx여도 _id 없는 본문(응답 스키마 변경·프록시 변형)이면 undefined taskId가 전파돼
+  // 클라이언트가 status?taskId=undefined를 폴링한다 — 502로 명시 차단(fail-closed).
+  if (typeof data?._id !== "string") {
+    log.error("TwelveLabs URL 업로드 응답에 작업 ID(_id) 없음 — 응답 형식 오류");
+    return NextResponse.json({ error: "TwelveLabs 업로드 응답에 작업 ID가 없습니다 (응답 형식 오류)" }, { status: 502 });
+  }
   log.info("URL 업로드 성공 — 인덱싱 시작", { taskId: data._id });
 
   return NextResponse.json({
@@ -199,6 +205,11 @@ async function handleFileUpload(request: NextRequest) {
   }
 
   const data = await res.json();
+  // 2xx여도 _id 없는 본문이면 undefined taskId 전파 차단(fail-closed)
+  if (typeof data?._id !== "string") {
+    log.error("TwelveLabs 파일 업로드 응답에 작업 ID(_id) 없음 — 응답 형식 오류");
+    return NextResponse.json({ error: "TwelveLabs 업로드 응답에 작업 ID가 없습니다 (응답 형식 오류)" }, { status: 502 });
+  }
   log.info("파일 업로드 성공 — 인덱싱 시작", { taskId: data._id });
 
   return NextResponse.json({

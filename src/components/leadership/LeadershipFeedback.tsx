@@ -51,6 +51,8 @@ function tierColorByScore(score: number | null): { text: string; chipBg: string;
 // 지표 값 표시 포맷 (% 변환은 unit 기준 — 균형지수 등 비율 외 0~1 값 오표기 방지)
 function formatIndicatorValue(ind: IndicatorJudgment): string {
   if (ind.value === null || ind.value === undefined) return "—";
+  // 비유한 수치(NaN/Infinity — 외부 LLM 이상값·0나눗셈)는 'NaN%'·'Infinity'로 노출하지 않고 '—'
+  if (typeof ind.value === "number" && !Number.isFinite(ind.value)) return "—";
   if (typeof ind.value === "boolean") return ind.value ? "예" : "아니오";
   const v = ind.value;
   if (ind.unit === "%") return v <= 1 ? `${(v * 100).toFixed(0)}%` : `${v.toFixed(0)}%`;
@@ -349,7 +351,12 @@ export default function LeadershipFeedback({
           ? selectedCompetencies
           : ["visionPresentation", "trustBuilding", "memberDevelopment"];
         const generatedEvidence: EvidenceItem[] = [];
-        // 챕터가 없으면 영상 전체를 하나의 구간으로 대체
+        // fail-closed: 챕터·하이라이트·요약이 모두 비면(추출 실패/무의미 영상) 가짜 300초 구간으로
+        // 점수를 지어내지 않는다. 근거 없는 '완료 리포트'는 dohan 1원칙(인용 없으면 출력 차단) 위배.
+        if (parsed.length === 0 && parsedHl.length === 0 && !summaryText) {
+          throw new Error("영상에서 평가 가능한 구간을 추출하지 못했습니다 — 영상 품질을 확인하거나 다시 시도하세요");
+        }
+        // 챕터가 없지만 요약은 있으면 영상 전체를 하나의 구간으로 대체(요약=실제 근거)
         const chaptersToUse: Chapter[] = parsed.length > 0
           ? parsed
           : [{ title: summaryText ? "영상 전체 분석" : videoTitle, start: 0, end: 300 }];

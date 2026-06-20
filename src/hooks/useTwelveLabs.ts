@@ -338,7 +338,9 @@ export function useVideoAnalysis() {
       const msg = e instanceof Error ? e.message : "분석 실패";
       console.error(tag("Analyze"), "분석 실패", msg);
       setError(msg);
-      return null;
+      // fail-closed: 통신/서버 실패를 '빈 결과(null)'와 구분되게 전파한다.
+      // null로 삼키면 호출부가 백엔드 장애를 '데이터 없음'으로 오인해 가짜 리포트를 만든다.
+      throw e instanceof Error ? e : new Error(msg);
     } finally {
       setLoading(false);
     }
