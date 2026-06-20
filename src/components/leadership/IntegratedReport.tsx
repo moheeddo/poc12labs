@@ -171,7 +171,7 @@ function ReportHeader({
             <User className="w-6 h-6 text-emerald-700" />
           </div>
           <div className="min-w-0">
-            <h1 className="text-xl font-bold text-slate-900">리더십 역량 통합 심층 리포트</h1>
+            <h1 className="text-xl font-bold text-slate-900">리더십 역량 통합 심층 보고서</h1>
             <div className="flex flex-wrap items-center gap-3 mt-1">
               {coachingFeedback?.participantId && (
                 <span className="flex items-center gap-1 text-sm text-slate-500">

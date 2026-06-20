@@ -117,7 +117,7 @@ const ANALYSIS_STEPS = [
   { phase: 5, label: "역량 매칭", desc: "내용 기준 역량을 평가합니다", icon: ClipboardList },
   { phase: 6, label: "시선 · 음성 · 유창성 분석", desc: "멀티모달 행동 신호를 추출합니다", icon: Eye },
   { phase: 7, label: "자세 · 표정 분석", desc: "신체 행동 신호를 분석합니다", icon: Hand },
-  { phase: 8, label: "Solar Pro 2 보고서", desc: "AI가 종합 보고서를 생성합니다", icon: Sparkles },
+  { phase: 8, label: "AI 종합 보고서 생성", desc: "Solar Pro 2 기반 AI가 종합 보고서를 생성합니다", icon: Sparkles },
 ];
 
 // 단계별 완료 시각 기록용 타입
@@ -963,7 +963,7 @@ ${ceInner}
                 className="flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-medium bg-amber-100 text-amber-700 border border-amber-200 hover:bg-amber-200 transition-colors"
               >
                 <RotateCcw className="w-3.5 h-3.5" />
-                다시 분석
+                처음부터 다시
               </button>
             </div>
           </div>
@@ -1126,7 +1126,7 @@ ${ceInner}
                   className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-amber-100 text-amber-700 border border-amber-200 hover:bg-amber-200 transition-colors"
                 >
                   <RotateCcw className="w-3 h-3" />
-                  다시 분석
+                  처음부터 다시
                 </button>
               </div>
             </div>
@@ -1366,7 +1366,7 @@ ${ceInner}
               <div className="flex items-center gap-2 min-w-0">
                 <FileText className="w-4 h-4 text-slate-500 shrink-0" />
                 <div className="min-w-0">
-                  <p className="text-sm font-bold text-slate-800 flex items-center flex-wrap gap-1.5">내용 평가 <span className="inline-flex items-center text-[9px] font-medium text-amber-700 bg-amber-50 border border-amber-200 rounded px-1.5 py-0.5">AI 초안 · 교수 확정 필요</span></p>
+                  <p className="text-sm font-bold text-slate-800 flex items-center flex-wrap gap-1.5">내용 평가 <span className="inline-flex items-center text-[9px] font-medium text-amber-700 bg-amber-50 border border-amber-200 rounded px-1.5 py-0.5">AI 초안 · 전문가 확정 필요</span></p>
                   <p className="text-[11px] text-slate-600 truncate">전사 인용 근거 기반 · 행동 점수와 합산하지 않는 별도 레이어</p>
                 </div>
               </div>
@@ -1390,7 +1390,7 @@ ${ceInner}
               {!contentEval ? (
                 <p className="text-[12px] text-slate-500 leading-relaxed">
                   내용 평가는 “전략이 타당한가·논리가 적절한가” 같은 <strong>내용의 질</strong>을 전사(대본) 인용 근거로만 채점하는 별도 레이어입니다.
-                  할루시네이션 위험이 큰 영역이라 <strong>인용 근거가 없으면 점수를 보류(fail-closed)</strong>하고, 결과는 항상 <strong>전문가(교수) 확정</strong>을 거칩니다.
+                  할루시네이션 위험이 큰 영역이라 <strong>인용 근거가 없으면 점수를 보류(fail-closed)</strong>하고, 결과는 항상 <strong>전문가 확정</strong>을 거칩니다.
                   {transcriptSegments.length === 0 && <span className="text-amber-600"> (전사 데이터가 아직 없어 실행할 수 없습니다.)</span>}
                 </p>
               ) : (() => {
@@ -1761,7 +1761,7 @@ ${ceInner}
                     className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-amber-100 text-amber-700 border border-amber-200 hover:bg-amber-200 transition-colors"
                   >
                     <RotateCcw className="w-3 h-3" />
-                    다시 분석
+                    처음부터 다시
                   </button>
                 </div>
               </div>

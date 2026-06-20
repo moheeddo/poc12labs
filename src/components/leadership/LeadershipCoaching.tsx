@@ -936,7 +936,7 @@ export default function LeadershipCoaching() {
               { key: "competency", label: "역량평가" },
               { key: "evidence", label: "증거맵" },
               { key: "derailer", label: "탈선탐지" },
-              { key: "bei", label: "BEI" },
+              { key: "bei", label: "행동사건(BEI)" },
               { key: "growth", label: "성장추이" },
               { key: "validation", label: "타당화" },
               { key: "fairness", label: "공정성" },

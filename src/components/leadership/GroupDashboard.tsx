@@ -976,7 +976,7 @@ export default function GroupDashboard({ session, onBack, onViewMember }: GroupD
           <div className="bg-emerald-50/50 border border-emerald-200/50 rounded-xl p-4">
             <div className="flex items-center gap-2 mb-2">
               <Trophy className="w-4 h-4 text-emerald-700" />
-              <p className="text-sm font-semibold text-emerald-700">최고 평가자</p>
+              <p className="text-sm font-semibold text-emerald-700">최우수 참가자</p>
             </div>
             <p className="text-base font-bold text-emerald-800">{overallRanking[0].name}</p>
             <p className="text-sm text-emerald-700">종합 {overallRanking[0].avgScore.toFixed(1)}/9</p>
