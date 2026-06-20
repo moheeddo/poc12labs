@@ -245,10 +245,10 @@ function MemberReportModal({
             <table className="w-full border-collapse text-sm mb-3">
               <thead>
                 <tr>
-                  <th className="bg-[#ecfdf5] border border-[#a7f3d0] px-3 py-2 text-left font-semibold text-[#065f46]">역량</th>
-                  <th className="bg-[#ecfdf5] border border-[#a7f3d0] px-3 py-2 text-left font-semibold text-[#065f46]">활동유형</th>
-                  <th className="bg-[#ecfdf5] border border-[#a7f3d0] px-3 py-2 text-right font-semibold text-[#065f46] w-20">점수</th>
-                  <th className="bg-[#ecfdf5] border border-[#a7f3d0] px-3 py-2 text-center font-semibold text-[#065f46] w-16">판정</th>
+                  <th className="bg-slate-50 border border-slate-200 px-3 py-2 text-left font-semibold text-[#006341]">역량</th>
+                  <th className="bg-slate-50 border border-slate-200 px-3 py-2 text-left font-semibold text-[#006341]">활동유형</th>
+                  <th className="bg-slate-50 border border-slate-200 px-3 py-2 text-right font-semibold text-[#006341] w-20">점수</th>
+                  <th className="bg-slate-50 border border-slate-200 px-3 py-2 text-center font-semibold text-[#006341] w-16">판정</th>
                 </tr>
               </thead>
               <tbody>

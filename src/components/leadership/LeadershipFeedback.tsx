@@ -16,6 +16,7 @@ import {
   Eye,
   Hand,
   Zap,
+  RotateCcw,
 } from "lucide-react";
 import { useVideoSearch, useVideoAnalysis, useVideoTranscription } from "@/hooks/useTwelveLabs";
 import { TWELVELABS_INDEXES, LEADERSHIP_COMPETENCY_DEFS } from "@/lib/constants";
@@ -817,7 +818,7 @@ ${inner}
         {/* 영상 정보 */}
         <div className="text-center mb-10">
           <div className="w-16 h-16 rounded-2xl bg-emerald-50 flex items-center justify-center mx-auto mb-4">
-            <Sparkles className="w-8 h-8 text-emerald-600 animate-pulse" />
+            <Sparkles className="w-8 h-8 text-emerald-600" />
           </div>
           <h2 className="text-2xl font-bold text-slate-800 mb-2">AI 역량 분석 진행 중</h2>
           <p className="text-base text-slate-500">{videoTitle}</p>
@@ -940,7 +941,7 @@ ${inner}
                 onClick={() => window.location.reload()}
                 className="flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-medium bg-amber-100 text-amber-700 border border-amber-200 hover:bg-amber-200 transition-colors"
               >
-                <Sparkles className="w-3.5 h-3.5" />
+                <RotateCcw className="w-3.5 h-3.5" />
                 다시 분석
               </button>
             </div>
@@ -1101,7 +1102,7 @@ ${inner}
                   onClick={() => window.location.reload()}
                   className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-amber-100 text-amber-700 border border-amber-200 hover:bg-amber-200 transition-colors"
                 >
-                  <Sparkles className="w-3 h-3" />
+                  <RotateCcw className="w-3 h-3" />
                   다시 분석
                 </button>
               </div>
@@ -1636,7 +1637,7 @@ ${inner}
                   return (
                     <div role="region" aria-labelledby="mm-report-heading" className="bg-white border border-slate-200/30 rounded-2xl overflow-hidden print:shadow-none" id="multimodal-report">
                       {/* 헤더 */}
-                      <div className="bg-gradient-to-r from-emerald-50 to-emerald-50 px-6 py-4 border-b border-slate-200/30">
+                      <div className="bg-emerald-50 px-6 py-4 border-b border-slate-200/30">
                         <div className="flex items-center justify-between">
                           <div className="flex items-center gap-2">
                             <div className="w-8 h-8 rounded-lg bg-emerald-100 flex items-center justify-center">
@@ -1713,7 +1714,7 @@ ${inner}
                     onClick={() => window.location.reload()}
                     className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-amber-100 text-amber-700 border border-amber-200 hover:bg-amber-200 transition-colors"
                   >
-                    <Sparkles className="w-3 h-3" />
+                    <RotateCcw className="w-3 h-3" />
                     다시 분석
                   </button>
                 </div>

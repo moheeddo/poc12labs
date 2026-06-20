@@ -12,7 +12,8 @@ import {
   Target,
   GraduationCap,
   MessageCircle,
-  Sparkles,
+  Play,
+  Layers,
   CheckCircle2,
   Circle,
   Trash2,
@@ -880,11 +881,11 @@ export default function LeadershipCoaching() {
           disabled={!canStartAnalysis}
           className={`inline-flex items-center gap-3 px-6 sm:px-10 py-3.5 sm:py-4 rounded-2xl text-base sm:text-lg font-semibold transition-all duration-300 ${
             canStartAnalysis
-              ? "bg-[#006341] hover:bg-[#00543a] text-white shadow-xl shadow-[#006341]/20 hover:shadow-2xl hover:shadow-[#006341]/30 hover:scale-[1.02] active:scale-[0.98]"
+              ? "bg-[#006341] hover:bg-[#00543a] text-white shadow-md shadow-[#006341]/15 hover:shadow-lg hover:scale-[1.02] active:scale-[0.98]"
               : "bg-slate-200/80 text-slate-400 cursor-not-allowed"
           }`}
         >
-          <Sparkles className="w-5 h-5" />
+          <Play className="w-5 h-5" />
           AI 역량 분석 시작
           {selectedCompetencies.size > 0 && (
             <span className="text-sm opacity-80">({selectedCompetencies.size}개 역량)</span>
@@ -896,7 +897,7 @@ export default function LeadershipCoaching() {
       {speakers.length > 0 && (
         <div className="space-y-4">
         <h3 className="text-sm font-semibold text-slate-700 flex items-center gap-2">
-          <Sparkles className="w-3.5 h-3.5 text-[#006341]" />
+          <Layers className="w-3.5 h-3.5 text-[#006341]" />
           심층 분석
         </h3>
         {/* 서브탭 내비게이션 — 행 1: 핵심 분석 */}

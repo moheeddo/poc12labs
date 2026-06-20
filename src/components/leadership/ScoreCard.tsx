@@ -181,7 +181,7 @@ export default function ScoreCard({ speaker, rank }: ScoreCardProps) {
       {/* 기존 피드백 (호환) */}
       {speaker.feedback && !speaker.strengths && (
         <div className="mt-3 flex items-start gap-2 border-t border-slate-200 pt-3 group/feedback rounded-b-lg -mx-1 px-1 hover:bg-emerald-50 transition-colors duration-200">
-          <Lightbulb className="w-3.5 h-3.5 text-emerald-500 shrink-0 mt-0.5 group-hover/feedback:drop-shadow-[0_0_4px_rgba(16,185,129,0.5)] transition-all duration-300" />
+          <Lightbulb className="w-3.5 h-3.5 text-emerald-500 shrink-0 mt-0.5 group-hover/feedback:text-emerald-600 transition-colors duration-300" />
           <p className="text-sm text-slate-500 leading-relaxed group-hover/feedback:text-slate-700 transition-colors duration-200">
             {speaker.feedback}
           </p>

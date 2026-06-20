@@ -11,7 +11,7 @@ import {
   Tooltip,
 } from "recharts";
 import {
-  Sparkles,
+  FileText,
   TrendingUp,
   AlertTriangle,
   BarChart3,
@@ -154,7 +154,7 @@ export default function AnalysisReport({ data, onSeek }: AnalysisReportProps) {
       {data.reportSummary ? (
         <div className="bg-emerald-50/50 border border-emerald-500/15 rounded-xl p-5">
           <p className="text-base text-emerald-700 font-semibold mb-2 flex items-center gap-1.5">
-            <Sparkles className="w-4 h-4" />
+            <FileText className="w-4 h-4" />
             종합 평가 요약
           </p>
           <p className="text-base text-slate-700 leading-[1.85]">{data.reportSummary}</p>
@@ -195,7 +195,7 @@ export default function AnalysisReport({ data, onSeek }: AnalysisReportProps) {
       {data.aiSummary && (
         <div className="bg-white/60 border border-slate-200/40 rounded-xl p-5">
           <p className="text-sm text-emerald-700 font-medium flex items-center gap-1.5 mb-2">
-            <Sparkles className="w-3.5 h-3.5 text-emerald-600" />
+            <FileText className="w-3.5 h-3.5 text-emerald-600" />
             AI 분석 요약
           </p>
           <p className="text-base text-slate-600 leading-[1.8]">{data.aiSummary}</p>
