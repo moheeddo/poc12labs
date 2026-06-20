@@ -32,3 +32,7 @@
 - 14건 확정 → 핵심 수정: 리포트 빈객체 호출(빈 레이더·'—'·camelCase) 실데이터 배선+빈상태 가드 / 내용평가 '교수확정'을 행동확정과 분리(거짓진술 차단, dohan1원칙) / PDF 헤더 소스 통일+내용평가 export 포함.
 - 보류(기록): ISOAuditView 실 감사·동의 데이터 배선(IndexedDB 스토어 의존, 빈배열 안전·크래시 없음). 내용평가 인용→전사 seek 링크(P2). IntegratedReport derailerRisk 매핑(P2).
 - tsc0 · 211 · build✓ · 콘솔0 → 커밋·푸시.
+
+### [사이클 4 · 23:38] 훅·스토어 비동기/생명주기/무결성
+- 6건 확정 → 4 고유 수정: GroupManager stale세션 lost-update(loadSession 재읽기+clone) / autoSaveToast 가드가 부모 재보고 차단(분리) / ObjectURL 누수(revoke+언마운트정리) / useMultimodalPipeline 언마운트 미보호(mountedRef 가드).
+- tsc0 · 211 · build✓ → 커밋·푸시.
