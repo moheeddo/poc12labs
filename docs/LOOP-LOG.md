@@ -36,3 +36,11 @@
 ### [사이클 4 · 23:38] 훅·스토어 비동기/생명주기/무결성
 - 6건 확정 → 4 고유 수정: GroupManager stale세션 lost-update(loadSession 재읽기+clone) / autoSaveToast 가드가 부모 재보고 차단(분리) / ObjectURL 누수(revoke+언마운트정리) / useMultimodalPipeline 언마운트 미보호(mountedRef 가드).
 - tsc0 · 211 · build✓ → 커밋·푸시.
+
+### [사이클 5 · SECURITY] 보안·입력검증 감사 (배포됨)
+- 14건 확정 → 핵심 수정·배포: **P0 — /api/tl-token이 마스터 API키를 브라우저에 반환 + origin 검사 fail-open/부분문자열 우회** → Origin/Referer 정확매칭 fail-closed. **라이브 검증: curl→403·키노출0·부분문자열우회→403.**
+- XSS 4건: renderReport 블랙리스트→allowlist 선이스케이프, buildReportHtml videoTitle/label escHtml.
+- rate limit: derailer/analyze·multimodal-extract(10/분)·content-eval(30/분)+전사 상한.
+- **⚠️ 구조적 권고(사용자 결정 필요):** tl-token 강화는 즉시 완화일 뿐, 마스터키가 여전히 브라우저로 감. 근본해결 = 파일업로드를 서버 프록시(/api/twelvelabs/upload)로 일원화하거나 TwelveLabs 스코프 단기 토큰 발급. 단 직접업로드는 Vercel 본문 용량제한 회피용이라 대용량 영상 업로드가 깨질 수 있음 → 트레이드오프 판단 필요. (온프렘 전환 시 자연 해소)
+- 미적용(비활성 UI·코드만): pov-instructor-notes 입력검증, lecture/parse-ppt 파일크기, session/create URL검증(SSRF). 활성화 시 처리 권장.
+- tsc0 · 211 · build✓ → 커밋·푸시·**배포**.
