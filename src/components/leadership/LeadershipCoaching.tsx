@@ -852,17 +852,17 @@ export default function LeadershipCoaching() {
         {!canStartAnalysis && (
           <div className="mb-4">
             <div className="flex items-center justify-center gap-3 sm:gap-6 text-sm flex-wrap">
-              <span className={`flex items-center gap-1.5 ${uploadedVideoId ? "text-[#006341]" : "text-slate-400"}`}>
+              <span className={`flex items-center gap-1.5 ${uploadedVideoId ? "text-[#006341]" : "text-slate-600"}`}>
                 {uploadedVideoId ? <CheckCircle2 className="w-4 h-4" /> : <Circle className="w-4 h-4" />}
                 영상 업로드
               </span>
               <span className="text-slate-300 hidden sm:inline">→</span>
-              <span className={`flex items-center gap-1.5 ${selectedCompetencies.size > 0 ? "text-[#006341]" : "text-slate-400"}`}>
+              <span className={`flex items-center gap-1.5 ${selectedCompetencies.size > 0 ? "text-[#006341]" : "text-slate-600"}`}>
                 {selectedCompetencies.size > 0 ? <CheckCircle2 className="w-4 h-4" /> : <Circle className="w-4 h-4" />}
                 역량 선택
               </span>
               <span className="text-slate-300 hidden sm:inline">→</span>
-              <span className="flex items-center gap-1.5 text-slate-500">
+              <span className="flex items-center gap-1.5 text-slate-600">
                 <Circle className="w-4 h-4" />
                 AI 분석
               </span>

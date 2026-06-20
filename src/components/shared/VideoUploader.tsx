@@ -292,8 +292,8 @@ export default function VideoUploader({ onUpload, onUrlUpload, progress, accentC
               <div
                 className={cn(
                   "h-1.5 rounded-full transition-all duration-300",
-                  progress.status === "indexing" ? "animate-pulse bg-violet-500"
-                    : progress.status === "processing" ? "animate-pulse bg-blue-500"
+                  progress.status === "indexing" ? "animate-pulse bg-khnp-emerald"
+                    : progress.status === "processing" ? "animate-pulse bg-khnp-emerald"
                     : progressColorMap[accentColor],
                 )}
                 style={{ width: `${progress.progress}%` }}

@@ -658,9 +658,9 @@ export default function LeadershipFeedback({
     return `<!DOCTYPE html><html lang="ko"><head><meta charset="utf-8"><title>${label} 멀티모달 행동분석 보고서 — ${videoTitle}</title>
 <style>
   *{box-sizing:border-box} body{font-family:'Pretendard',system-ui,sans-serif;color:#1e293b;margin:32px;line-height:1.8}
-  h1{font-size:18px;margin:0 0 4px} .sub{color:#64748b;font-size:12px;margin:0 0 2px} .meta{color:#7c3aed;font-size:12px;margin:0 0 16px;font-weight:600}
-  h2{font-size:15px;border-bottom:1px solid #ddd6fe;padding-bottom:6px;margin:22px 0 10px}
-  h3{font-size:14px;margin:16px 0 6px} h4{font-size:13px;color:#6d28d9;margin:12px 0 4px}
+  h1{font-size:18px;margin:0 0 4px} .sub{color:#64748b;font-size:12px;margin:0 0 2px} .meta{color:#006341;font-size:12px;margin:0 0 16px;font-weight:600}
+  h2{font-size:15px;border-bottom:1px solid #c6e4d6;padding-bottom:6px;margin:22px 0 10px}
+  h3{font-size:14px;margin:16px 0 6px} h4{font-size:13px;color:#002855;margin:12px 0 4px}
   table{width:100%;border-collapse:collapse;margin:10px 0;font-size:12px} th,td{border:1px solid #e2e8f0;padding:6px 8px;text-align:left} th{background:#f8fafc}
   ul,ol{padding-left:20px} li{margin:3px 0} p{margin:6px 0}
   @media print{body{margin:12mm}}
@@ -890,7 +890,7 @@ ${inner}
           {scenarioText && (
             <div className="mt-6 pt-6 border-t border-slate-200/30">
               <p className="text-sm text-slate-500 mb-1 font-medium">상황사례</p>
-              <p className="text-sm text-slate-400 leading-relaxed line-clamp-3">{scenarioText}</p>
+              <p className="text-sm text-slate-600 leading-relaxed line-clamp-3">{scenarioText}</p>
             </div>
           )}
         </div>
@@ -1326,7 +1326,7 @@ ${inner}
                     "flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium transition-colors shrink-0",
                     contentEvalLoading || transcriptSegments.length === 0
                       ? "bg-slate-100 text-slate-400 cursor-not-allowed"
-                      : "bg-slate-800 text-white hover:bg-slate-700",
+                      : "bg-khnp-emerald text-white hover:bg-khnp-emerald-dark",
                   )}
                 >
                   {contentEvalLoading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Sparkles className="w-3.5 h-3.5" />}
@@ -1397,7 +1397,7 @@ ${inner}
                 "flex-1 flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-lg text-sm font-medium transition-all",
                 rightTab === "multimodal"
                   ? "bg-emerald-50 text-emerald-700 shadow-sm"
-                  : "text-slate-500 hover:text-slate-500"
+                  : "text-slate-500 hover:text-slate-700"
               )}
             >
               <Eye className="w-3.5 h-3.5" />
@@ -1409,7 +1409,7 @@ ${inner}
                 "flex-1 flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-lg text-sm font-medium transition-all",
                 rightTab === "transcript"
                   ? "bg-slate-100/60 text-emerald-600 shadow-sm"
-                  : "text-slate-500 hover:text-slate-500"
+                  : "text-slate-500 hover:text-slate-700"
               )}
             >
               <FileText className="w-3.5 h-3.5" />
