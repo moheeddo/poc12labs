@@ -44,3 +44,8 @@
 - **⚠️ 구조적 권고(사용자 결정 필요):** tl-token 강화는 즉시 완화일 뿐, 마스터키가 여전히 브라우저로 감. 근본해결 = 파일업로드를 서버 프록시(/api/twelvelabs/upload)로 일원화하거나 TwelveLabs 스코프 단기 토큰 발급. 단 직접업로드는 Vercel 본문 용량제한 회피용이라 대용량 영상 업로드가 깨질 수 있음 → 트레이드오프 판단 필요. (온프렘 전환 시 자연 해소)
 - 미적용(비활성 UI·코드만): pov-instructor-notes 입력검증, lecture/parse-ppt 파일크기, session/create URL검증(SSRF). 활성화 시 처리 권장.
 - tsc0 · 211 · build✓ → 커밋·푸시·**배포**.
+
+### [사이클 6] 핵심 분석 파이프라인 정확성
+- 13건 확정 → 7 수정: 헤더 컷 SSOT 정렬 / STAR 단일문자 오매칭 라인앵커 / BEI 영문키 한글라벨 / 등급라벨 경계중복 / Hogan 척도명(Argumentative→Skeptical) / richnessScore 데드코드 / gap-snap 주석.
+- 보류(동작변경 위험·P2): generateAIScore 근거게이트, Marengo confidence 미사용 융합, differentiating 게이트, derailer 증거 정규식 확장. (의도·트레이드오프 판단 필요)
+- tsc0 · 211 · build✓ → 커밋·푸시.
