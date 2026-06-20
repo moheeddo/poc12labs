@@ -22,7 +22,7 @@ export default function BrandLockup({ className = "", interactive = false }: Bra
       >
         KHNP
       </span>
-      <span className="w-px h-6 bg-[#006341]/45 shrink-0" aria-hidden="true" />
+      <span className="w-px h-6 bg-emerald-600/45 shrink-0" aria-hidden="true" />
       <span className="leading-tight">
         <span className="block text-[13px] font-bold tracking-[-0.01em] text-[#006341]">인재개발원 HRDI</span>
         <span className="block text-[10px] font-mono tracking-[0.1em] text-slate-500 mt-px">

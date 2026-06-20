@@ -80,10 +80,10 @@ export default function SpeakerRoleMapping({ competencyKey, value, onApply, disa
         onClick={() => setOpen((o) => !o)}
         aria-expanded={open}
         aria-controls="speaker-role-mapping-panel"
-        className="w-full flex items-center justify-between px-4 py-3 hover:bg-[#006341]/[0.05] transition-colors"
+        className="w-full flex items-center justify-between px-4 py-3 hover:bg-emerald-600/[0.05] transition-colors"
       >
         <div className="flex items-center gap-2 min-w-0">
-          <div className="w-7 h-7 rounded-lg bg-[#006341]/12 flex items-center justify-center shrink-0">
+          <div className="w-7 h-7 rounded-lg bg-emerald-600/12 flex items-center justify-center shrink-0">
             <Users className="w-4 h-4 text-[#006341]" />
           </div>
           <div className="text-left min-w-0">
@@ -196,7 +196,7 @@ export default function SpeakerRoleMapping({ competencyKey, value, onApply, disa
               "w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium transition-all",
               disabled || !dirty || (!targetName.trim() && glossary.length === 0)
                 ? "bg-slate-100 text-slate-400 cursor-not-allowed"
-                : "bg-[#006341] text-white hover:bg-[#00543a]",
+                : "bg-emerald-600 text-white hover:bg-emerald-700",
             )}
           >
             <RefreshCw className={cn("w-4 h-4", disabled && "animate-spin")} />

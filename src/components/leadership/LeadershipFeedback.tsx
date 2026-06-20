@@ -1156,13 +1156,13 @@ ${inner}
                         {[3, 5, 7].map((r) => (
                           <button key={r} onClick={() => setConsistencyRuns(r)}
                             className={cn("w-8 h-8 rounded-lg text-sm font-mono font-semibold transition-colors",
-                              consistencyRuns === r ? "bg-[#006341] text-white" : "bg-slate-100 text-slate-500 hover:bg-slate-200")}>
+                              consistencyRuns === r ? "bg-emerald-600 text-white" : "bg-slate-100 text-slate-500 hover:bg-slate-200")}>
                             {r}
                           </button>
                         ))}
                       </div>
                       <button onClick={() => handleConsistencyRun()}
-                        className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium bg-[#006341]/[0.08] text-[#006341] border border-[#006341]/30 hover:bg-[#006341]/15 transition-colors">
+                        className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium bg-emerald-600/[0.08] text-[#006341] border border-[#006341]/30 hover:bg-emerald-600/15 transition-colors">
                         <Sparkles className="w-3.5 h-3.5" />
                         {consistencyRuns}차 반복 진단 (객관성 확보)
                       </button>
@@ -1285,7 +1285,7 @@ ${inner}
                               <button
                                 type="button"
                                 onClick={() => handleConsistencyRun(rec.suggestedTotalRuns)}
-                                className="text-[10px] font-semibold px-2.5 py-0.5 rounded-full bg-[#006341] text-white hover:bg-[#00543a] transition-colors"
+                                className="text-[10px] font-semibold px-2.5 py-0.5 rounded-full bg-emerald-600 text-white hover:bg-emerald-700 transition-colors"
                               >
                                 {rec.suggestedTotalRuns}회로 재진단
                               </button>

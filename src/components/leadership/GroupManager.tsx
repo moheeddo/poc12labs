@@ -965,7 +965,7 @@ export function GroupCreateForm({ onSubmit, onCancel }: GroupCreateFormProps) {
         className={cn(
           "w-full flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl text-base font-semibold transition-all",
           canSubmit
-            ? "bg-[#006341] hover:bg-[#00543a] text-white shadow-md shadow-[#006341]/15"
+            ? "bg-emerald-600 hover:bg-emerald-700 text-white shadow-md shadow-emerald-600/15"
             : "bg-slate-100 text-slate-400 cursor-not-allowed"
         )}
       >

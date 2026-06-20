@@ -95,7 +95,7 @@ export default function Landing({ onNavigate }: LandingProps) {
                 </span>
               </span>
               {/* 언더라인 grow */}
-              <span className="mt-2 h-[2px] bg-[#006341] transition-all duration-400 ease-out" style={{ width: hovered ? "100%" : "44px" }} />
+              <span className="mt-2 h-[2px] bg-emerald-600 transition-all duration-400 ease-out" style={{ width: hovered ? "100%" : "44px" }} />
               <span className="mt-3 text-[13px] text-[#64748b] font-mono tracking-[0.02em]">
                 3대 핵심 역량 · M1–M5 멀티모달 채점 · 근거 기반 피드백
               </span>

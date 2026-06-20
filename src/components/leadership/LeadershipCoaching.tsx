@@ -601,7 +601,7 @@ export default function LeadershipCoaching() {
         <div className="flex items-center gap-2 shrink-0">
           <button
             onClick={() => setView({ type: "group-create" })}
-            className="flex items-center gap-2 text-sm font-semibold text-white bg-[#006341] hover:bg-[#00543a] px-5 py-2.5 rounded-xl shadow-md shadow-[#006341]/15 hover:shadow-lg transition-all active:scale-[0.97] whitespace-nowrap"
+            className="flex items-center gap-2 text-sm font-semibold text-white bg-emerald-600 hover:bg-emerald-700 px-5 py-2.5 rounded-xl shadow-md shadow-emerald-600/15 hover:shadow-lg transition-all active:scale-[0.97] whitespace-nowrap"
           >
             <Users className="w-4 h-4" />
             수업 시작 (6인 조)
@@ -651,7 +651,7 @@ export default function LeadershipCoaching() {
                 >
                   <div className="flex items-center justify-between mb-1.5">
                     <p className="text-sm font-bold text-[#006341] pr-7">{gs.name}</p>
-                    <span className="text-[10px] font-mono text-[#006341] bg-[#006341]/[0.06] px-1.5 py-0.5 rounded">
+                    <span className="text-[10px] font-mono text-[#006341] bg-emerald-600/[0.06] px-1.5 py-0.5 rounded">
                       {Math.min(gs.currentStep + 1, gs.competencies.length)}/{gs.competencies.length}
                     </span>
                   </div>
@@ -725,7 +725,7 @@ export default function LeadershipCoaching() {
                 </div>
               )}
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-lg bg-[#006341]/[0.06] flex items-center justify-center shrink-0">
+                <div className="w-10 h-10 rounded-lg bg-emerald-600/[0.06] flex items-center justify-center shrink-0">
                   <CheckCircle2 className="w-5 h-5 text-[#006341]" />
                 </div>
                 <div className="flex-1 min-w-0">
@@ -884,7 +884,7 @@ export default function LeadershipCoaching() {
           disabled={!canStartAnalysis}
           className={`inline-flex items-center gap-3 px-6 sm:px-10 py-3.5 sm:py-4 rounded-2xl text-base sm:text-lg font-semibold transition-all duration-300 ${
             canStartAnalysis
-              ? "bg-[#006341] hover:bg-[#00543a] text-white shadow-md shadow-[#006341]/15 hover:shadow-lg hover:scale-[1.02] active:scale-[0.98]"
+              ? "bg-emerald-600 hover:bg-emerald-700 text-white shadow-md shadow-emerald-600/15 hover:shadow-lg hover:scale-[1.02] active:scale-[0.98]"
               : "bg-slate-200/80 text-slate-400 cursor-not-allowed"
           }`}
         >
