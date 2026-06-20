@@ -27,7 +27,7 @@ import {
   createEmptySession,
 } from "@/lib/group-types";
 import type { GroupSession } from "@/lib/group-types";
-import { saveSession } from "@/lib/group-store";
+import { saveSession, loadSession } from "@/lib/group-store";
 import { cn } from "@/lib/utils";
 import type { LeadershipCompetencyKey } from "@/lib/types";
 
@@ -166,20 +166,27 @@ export default function GroupManager({
   const handleUpload = useCallback(async (file: File, memberId: string) => {
     setUploadingFor(memberId);
     try {
+      // 의도된 역량 인덱스는 클릭 시점(safeStep)으로 캡처 — 업로드 중 단계 이동에도 올바른 슬롯에 기록
+      const targetIdx = safeStep;
       const videoId = await upload(TWELVELABS_INDEXES.leadership, file);
       const blobUrl = URL.createObjectURL(file);
-      const updated = { ...session };
-      // 읽기와 동일한 보정 인덱스 사용 — stale 세션(과거 4역량 시절 currentStep=3 등)에서
-      // 원시 인덱스로 쓰면 undefined 역참조 크래시 또는 보이지 않는 슬롯에 silent mis-write 발생
-      const comp = updated.competencies[safeStep];
+      // 긴 비동기(분 단위) 후 최신 세션을 다시 읽어 그 사이 저장된 동시 변경(분석결과·메모·타 멤버 업로드)
+      // 유실을 방지(stale 얕은복사 read-modify-write → lost update). clone-before-write로 prop 변형도 차단.
+      const sess = loadSession(session.id) ?? session;
+      const comp = sess.competencies[targetIdx];
       if (!comp) return;
+      const newComp = { ...comp, memberVideos: { ...comp.memberVideos } };
       if (memberId === "shared") {
-        comp.sharedVideoId = videoId;
-        comp.sharedFileName = file.name;
-        comp.sharedBlobUrl = blobUrl;
+        if (newComp.sharedBlobUrl) URL.revokeObjectURL(newComp.sharedBlobUrl); // 교체 전 이전 blob 해제(누수 방지)
+        newComp.sharedVideoId = videoId;
+        newComp.sharedFileName = file.name;
+        newComp.sharedBlobUrl = blobUrl;
       } else {
-        comp.memberVideos[memberId] = { videoId, fileName: file.name, blobUrl };
+        const oldUrl = newComp.memberVideos[memberId]?.blobUrl;
+        if (oldUrl) URL.revokeObjectURL(oldUrl);
+        newComp.memberVideos[memberId] = { videoId, fileName: file.name, blobUrl };
       }
+      const updated = { ...sess, competencies: sess.competencies.map((c, i) => (i === targetIdx ? newComp : c)) };
       saveSession(updated);
       onUpdate(updated);
     } catch { /* */ } finally {

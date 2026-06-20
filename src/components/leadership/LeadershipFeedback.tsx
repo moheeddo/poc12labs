@@ -523,19 +523,22 @@ export default function LeadershipFeedback({
     // mmStarted 필수: 멀티모달이 실제로 시작된 후 완료/실패해야 저장 (조기 저장 방지)
     const isFullyDone = !analysisLoading && analysisPhase >= 6
       && mmStarted && (mmProgress.phase === "done" || mmProgress.phase === "error");
-    if (isFullyDone && evidence.length > 0 && !autoSaveToast) {
-      // 선택된 역량 키도 함께 저장 (대시보드 표시용)
-      const primaryCompetency = selectedCompetencies?.[0] || (evidence[0]?.competencyKey ?? "");
-      localStorage.setItem(
-        `evidence-${videoId}`,
-        JSON.stringify({ videoId, videoTitle, competencyKey: primaryCompetency, evidence, savedAt: new Date().toISOString(), autoSaved: true })
-      );
-      setAutoSaveToast(true);
-      // 이전 타이머 정리 후 새 타이머 설정
-      if (autoSaveTimerRef.current) clearTimeout(autoSaveTimerRef.current);
-      autoSaveTimerRef.current = setTimeout(() => setAutoSaveToast(false), 4000);
+    if (isFullyDone && evidence.length > 0) {
+      // 자동 저장 + 토스트 — 토스트 중복 방지 가드는 여기에만 한정(부모 재보고는 가드 밖).
+      if (!autoSaveToast) {
+        const primaryCompetency = selectedCompetencies?.[0] || (evidence[0]?.competencyKey ?? "");
+        localStorage.setItem(
+          `evidence-${videoId}`,
+          JSON.stringify({ videoId, videoTitle, competencyKey: primaryCompetency, evidence, savedAt: new Date().toISOString(), autoSaved: true })
+        );
+        setAutoSaveToast(true);
+        if (autoSaveTimerRef.current) clearTimeout(autoSaveTimerRef.current);
+        autoSaveTimerRef.current = setTimeout(() => setAutoSaveToast(false), 4000);
+      }
 
-      // 조 세션에 점수 자동 반영 — N차 집계 대표값(중앙값) 우선, 집계 갱신 시 재보고
+      // 조 세션에 점수 자동 반영 — autoSaveToast 가드 밖이라 완료 4초 내 '평가 확정'을 눌러도
+      // 대시보드에 확정 라벨이 즉시 반영된다(이전엔 토스트 중 재보고가 막혀 미반영되던 버그).
+      // N차 집계 대표값(중앙값) 우선, 집계 갱신 시 재보고
       // 멀티모달 점수: 반복 진단 시 집계 중앙값(강건) → 단일 진단 totalScore 순
       const multimodalScore = mmResult?.aggregate?.total?.median ?? mmResult?.scoring?.totalScore ?? undefined;
       // 코치 확정 상태가 바뀌면 재보고해 대시보드 라벨(AI 초안↔전문가 확정)이 갱신되게 한다

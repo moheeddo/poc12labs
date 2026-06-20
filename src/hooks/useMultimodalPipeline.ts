@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useRef, useEffect } from "react";
 import { scoreMultimodalSignals } from "@/lib/multimodal-scoring";
 import type { ExtractedSignals, ChannelSignals, MultimodalScoreResult } from "@/lib/multimodal-scoring";
 import { aggregateRuns } from "@/lib/multimodal-aggregate";
@@ -39,11 +39,18 @@ export interface PipelineResult {
 }
 
 export function useMultimodalPipeline() {
-  const [progress, setProgress] = useState<PipelineProgress>({
+  const [progress, setProgressRaw] = useState<PipelineProgress>({
     phase: "idle", currentChannel: "", completedChannels: [], totalChannels: 5, percent: 0,
   });
-  const [result, setResult] = useState<PipelineResult | null>(null);
-  const [error, setError] = useState<string | null>(null);
+  const [result, setResultRaw] = useState<PipelineResult | null>(null);
+  const [error, setErrorRaw] = useState<string | null>(null);
+
+  // 언마운트(뒤로가기·멤버 전환 시 remount) 후 stale commit 차단 — 파이프라인은 수 분간 await한다.
+  const mountedRef = useRef(true);
+  useEffect(() => () => { mountedRef.current = false; }, []);
+  const setProgress: typeof setProgressRaw = (v) => { if (mountedRef.current) setProgressRaw(v); };
+  const setResult: typeof setResultRaw = (v) => { if (mountedRef.current) setResultRaw(v); };
+  const setError: typeof setErrorRaw = (v) => { if (mountedRef.current) setErrorRaw(v); };
 
   // ── 단일 회차: 추출 → 채점 (보고서 제외) ──
   const runOnce = useCallback(async (

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useMemo, useEffect, lazy, Suspense } from "react";
+import { useState, useCallback, useMemo, useEffect, useRef, lazy, Suspense } from "react";
 import {
   Users,
   TrendingUp,
@@ -161,6 +161,10 @@ export default function LeadershipCoaching() {
   const [uploadedVideoId, setUploadedVideoId] = useState<string | null>(null);
   const [uploadedFileName, setUploadedFileName] = useState("");
   const [uploadedBlobUrl, setUploadedBlobUrl] = useState<string | null>(null);
+  // 최신 blob URL 추적(언마운트 정리용). createObjectURL은 revoke 없으면 영상 전체가 메모리에 고정됨.
+  const uploadedBlobUrlRef = useRef<string | null>(null);
+  useEffect(() => { uploadedBlobUrlRef.current = uploadedBlobUrl; }, [uploadedBlobUrl]);
+  useEffect(() => () => { if (uploadedBlobUrlRef.current) URL.revokeObjectURL(uploadedBlobUrlRef.current); }, []);
 
   // 상황사례 입력
   const [scenarioText, setScenarioText] = useState("");
@@ -274,6 +278,7 @@ export default function LeadershipCoaching() {
   const handleUpload = useCallback(
     async (file: File) => {
       setUploadedFileName(file.name);
+      if (uploadedBlobUrlRef.current) URL.revokeObjectURL(uploadedBlobUrlRef.current); // 교체 전 이전 blob 해제(누수 방지)
       const blobUrl = URL.createObjectURL(file);
       setUploadedBlobUrl(blobUrl);
       try {
@@ -756,6 +761,7 @@ export default function LeadershipCoaching() {
                 </div>
                 <button
                   onClick={() => {
+                    if (uploadedBlobUrl) URL.revokeObjectURL(uploadedBlobUrl); // 누수 방지
                     setUploadedVideoId(null);
                     setUploadedFileName("");
                     setUploadedBlobUrl(null);
