@@ -1192,7 +1192,7 @@ ${ceInner}
                     </div>
                     {mmResult && !coachConfirmed && (
                       <div className="flex items-center gap-2">
-                        <input type="text" value={coachName} onChange={(e) => setCoachName(e.target.value)} placeholder="평가자(코치)명" aria-label="평가자(코치)명"
+                        <input type="text" value={coachName} onChange={(e) => setCoachName(e.target.value)} placeholder="평가자(코치)명" aria-label="평가자(코치)명" maxLength={20}
                           className="w-28 bg-white border border-slate-200 rounded-lg px-2.5 py-2 text-sm outline-none focus:border-emerald-500/40" />
                         <button onClick={() => coachName.trim() && setCoachConfirmed(true)} disabled={!coachName.trim()}
                           className={cn("flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium transition-colors",
@@ -1393,9 +1393,20 @@ ${ceInner}
                   할루시네이션 위험이 큰 영역이라 <strong>인용 근거가 없으면 점수를 보류(fail-closed)</strong>하고, 결과는 항상 <strong>전문가(교수) 확정</strong>을 거칩니다.
                   {transcriptSegments.length === 0 && <span className="text-amber-600"> (전사 데이터가 아직 없어 실행할 수 없습니다.)</span>}
                 </p>
-              ) : (
+              ) : (() => {
+                // 채점 가능 여부(인용 근거 있는 실제 점수)·실패 여부 파생 — 보류/오류면 '확정' 차단(거짓 확정 방지).
+                const contentScorable = contentEval.criteria.some((c) => c.score !== null && (c.evidence?.trim()?.length ?? 0) > 0);
+                const contentFailed = contentEval.model !== "solar-pro2" || !contentScorable;
+                return (
                 <div className={cn("space-y-3", !contentConfirmed && "opacity-95")}>
-                  {contentConfirmed ? (
+                  {contentFailed ? (
+                    <div className="flex items-start gap-2 bg-amber-50/70 border border-amber-300/60 rounded-lg px-3 py-2">
+                      <span className="text-amber-600 text-sm shrink-0">⚠</span>
+                      <p className="text-[12px] text-amber-800 leading-relaxed">
+                        <strong>내용 평가 산출 보류.</strong> 전사 인용 근거가 확인된 채점 항목이 없거나 모델 응답에 문제가 있습니다(전사 데이터·연결 상태 확인 후 아래 ‘다시 실행’). 확정할 수 없습니다.
+                      </p>
+                    </div>
+                  ) : contentConfirmed ? (
                     <div className="flex items-start gap-2 bg-emerald-50/70 border border-emerald-200/60 rounded-lg px-3 py-2">
                       <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
                       <p className="text-[12px] text-emerald-700 leading-relaxed">
@@ -1445,7 +1456,7 @@ ${ceInner}
                     <Loader2 className={cn("w-3 h-3", contentEvalLoading && "animate-spin")} /> 다시 실행
                   </button>
                 </div>
-              )}
+              );})()}
             </div>
           </div>
 

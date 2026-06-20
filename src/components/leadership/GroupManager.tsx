@@ -164,6 +164,7 @@ export default function GroupManager({
   const totalExpected = isGroupType ? 1 : isHybridType ? session.members.length + 1 : session.members.length;
 
   const handleUpload = useCallback(async (file: File, memberId: string) => {
+    if (uploadingFor) return; // 재진입 가드 — 진행 중 다른/같은 슬롯 업로드 중복 차단(드래그·input 모든 경로)
     setUploadingFor(memberId);
     try {
       // 의도된 역량 인덱스는 클릭 시점(safeStep)으로 캡처 — 업로드 중 단계 이동에도 올바른 슬롯에 기록
@@ -192,7 +193,7 @@ export default function GroupManager({
     } catch { /* */ } finally {
       setUploadingFor(null);
     }
-  }, [session, upload, onUpdate]);
+  }, [session, upload, onUpdate, uploadingFor, safeStep]);
 
   const goStep = useCallback((step: number) => {
     const updated = { ...session, currentStep: Math.max(0, Math.min(COMPETENCY_ORDER.length - 1, step)) };
@@ -451,7 +452,7 @@ export default function GroupManager({
                   )}
                   <p className="text-sm text-slate-600">전체 와이드샷 영상 업로드</p>
                   <p className="text-xs text-slate-500 mt-0.5">6명이 모두 보이는 전체 촬영 영상</p>
-                  <input type="file" accept="video/*" className="hidden" onChange={(e) => { const f = e.target.files?.[0]; if (f) handleUpload(f, "shared"); }} />
+                  <input type="file" accept="video/*" className="hidden" disabled={!!uploadingFor} onChange={(e) => { const f = e.target.files?.[0]; if (f) handleUpload(f, "shared"); }} />
                 </label>
               )}
             </div>
@@ -476,7 +477,7 @@ export default function GroupManager({
                       <div className="flex items-center gap-3 mb-3">
                         <div className={cn("w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold", hasVideo ? "bg-amber-100 text-amber-700" : "bg-slate-100 text-slate-500")}>{member.order}</div>
                         <div className="flex-1 min-w-0">
-                          <p className="text-sm font-bold text-slate-800">{member.name}</p>
+                          <p className="text-sm font-bold text-slate-800 truncate" title={member.name}>{member.name}</p>
                           <p className="text-xs text-slate-500">{member.position}</p>
                         </div>
                         {/* 메모 아이콘 */}
@@ -641,7 +642,7 @@ export default function GroupManager({
                       {member.order}
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-bold text-slate-800">{member.name}</p>
+                      <p className="text-sm font-bold text-slate-800 truncate" title={member.name}>{member.name}</p>
                       <p className="text-xs text-slate-500">{member.position}</p>
                     </div>
                     {/* 메모 아이콘 */}

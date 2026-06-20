@@ -666,7 +666,7 @@ export default function GroupDashboard({ session, onBack, onViewMember }: GroupD
               </div>
               {i === 0 && <Trophy className="w-3.5 h-3.5 text-amber-500" />}
             </div>
-            <p className="text-sm font-bold text-slate-800">{m.name}</p>
+            <p className="text-sm font-bold text-slate-800 truncate" title={m.name}>{m.name}</p>
             <p className="text-[10px] text-slate-600">{m.position}</p>
             <div className="mt-2 flex items-baseline gap-1">
               <span className={cn(

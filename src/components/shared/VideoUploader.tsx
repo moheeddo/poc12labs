@@ -74,15 +74,19 @@ export default function VideoUploader({ onUpload, onUrlUpload, progress, accentC
     }
   }, []);
 
+  // 비동기 제출 중복 클릭 가드 — 부모 progress 세팅 전 sub-frame 갭에서 중복 업로드(중복 인덱싱) 방지
+  const [isBusy, setIsBusy] = useState(false);
+
   // 파일 업로드 시작
   const handleUpload = useCallback(async () => {
-    if (!selectedFile) return;
-    await onUpload(selectedFile);
-  }, [selectedFile, onUpload]);
+    if (!selectedFile || isBusy) return;
+    setIsBusy(true);
+    try { await onUpload(selectedFile); } finally { setIsBusy(false); }
+  }, [selectedFile, onUpload, isBusy]);
 
   // URL 업로드
   const handleUrlSubmit = useCallback(async () => {
-    if (!onUrlUpload) return;
+    if (!onUrlUpload || isBusy) return;
     const trimmed = videoUrl.trim();
     if (!trimmed) {
       setUrlError("URL을 입력해 주세요");
@@ -93,8 +97,9 @@ export default function VideoUploader({ onUpload, onUrlUpload, progress, accentC
       return;
     }
     setUrlError("");
-    await onUrlUpload(trimmed);
-  }, [videoUrl, onUrlUpload]);
+    setIsBusy(true);
+    try { await onUrlUpload(trimmed); } finally { setIsBusy(false); }
+  }, [videoUrl, onUrlUpload, isBusy]);
 
   // 고유 input ID (여러 인스턴스 충돌 방지)
   const inputId = useRef(`file-upload-${Math.random().toString(36).slice(2, 8)}`).current;
@@ -173,7 +178,7 @@ export default function VideoUploader({ onUpload, onUrlUpload, progress, accentC
                 type="url"
                 value={videoUrl}
                 onChange={(e) => { setVideoUrl(e.target.value); setUrlError(""); }}
-                onKeyDown={(e) => { if (e.key === "Enter") handleUrlSubmit(); }}
+                onKeyDown={(e) => { if (e.key === "Enter" && !isBusy) handleUrlSubmit(); }}
                 placeholder="https://example.com/video.mp4"
                 className={cn(
                   "flex-1 bg-white border rounded-lg px-3 py-2.5 text-base text-slate-900 placeholder-slate-400",
@@ -183,7 +188,7 @@ export default function VideoUploader({ onUpload, onUrlUpload, progress, accentC
               />
               <button
                 onClick={handleUrlSubmit}
-                disabled={!videoUrl.trim()}
+                disabled={!videoUrl.trim() || isBusy}
                 aria-label="영상 URL 불러오기"
                 className={cn(
                   "px-4 py-2.5 rounded-lg text-sm font-medium text-white transition-all duration-150",
@@ -220,13 +225,15 @@ export default function VideoUploader({ onUpload, onUrlUpload, progress, accentC
             </button>
             <button
               onClick={handleUpload}
+              disabled={isBusy}
               className={cn(
-                "px-4 py-2 rounded-lg text-sm font-medium text-white transition-all duration-150",
-                "active:scale-95",
+                "px-4 py-2 rounded-lg text-sm font-medium text-white transition-all duration-150 inline-flex items-center gap-1.5",
+                "active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed",
                 accentBtnMap[accentColor],
               )}
             >
-              업로드
+              {isBusy && <Upload className="w-3.5 h-3.5 animate-pulse" aria-hidden="true" />}
+              {isBusy ? "업로드 중…" : "업로드"}
             </button>
           </div>
         </div>
