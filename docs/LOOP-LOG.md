@@ -27,3 +27,8 @@
 - 핵심 발견: TwelveLabs가 Marengo·Pegasus 완전 폐쇄망 배포 공식 제공(교차검증·gov 계약). Solar 온프렘도 제공.
 - GPU BOM(Pegasus 80B→H100 4~8장, Solar 31B→1장, Marengo→L40S/L4), 촬영HW, 보안·망분리, "확인 필요" 6개.
 - docs/2026-06-20-프로덕션-아키텍처-클라우드vs온프렘.md → 커밋·푸시.
+
+### [사이클 3 · 23:24] 리포트·내용평가 파이프라인
+- 14건 확정 → 핵심 수정: 리포트 빈객체 호출(빈 레이더·'—'·camelCase) 실데이터 배선+빈상태 가드 / 내용평가 '교수확정'을 행동확정과 분리(거짓진술 차단, dohan1원칙) / PDF 헤더 소스 통일+내용평가 export 포함.
+- 보류(기록): ISOAuditView 실 감사·동의 데이터 배선(IndexedDB 스토어 의존, 빈배열 안전·크래시 없음). 내용평가 인용→전사 seek 링크(P2). IntegratedReport derailerRisk 매핑(P2).
+- tsc0 · 211 · build✓ · 콘솔0 → 커밋·푸시.
