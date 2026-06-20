@@ -9,6 +9,20 @@ export function generateSearchQueries(rubricText: string): string[] {
   return queries;
 }
 
+// TwelveLabs Search API의 confidence는 범주형 문자열("high"/"medium"/"low"/"none")이다.
+// parseFloat("high")=NaN→0이 되면 buildEvidenceMap의 threshold(기본 60)에서 전 클립이
+// 탈락해 증거맵이 항상 비어 반환된다(wrong-result). pov-analysis-engine.parseConfidence와 동일 스케일로 변환.
+function toConfidenceNumber(c: string | number): number {
+  if (typeof c === "number") return c;
+  const lower = c?.toLowerCase?.() ?? "";
+  if (lower === "high") return 85;
+  if (lower === "medium") return 60;
+  if (lower === "low") return 30;
+  if (lower === "none") return 0;
+  const parsed = parseFloat(c);
+  return Number.isFinite(parsed) ? parsed : 0;
+}
+
 export function mapSearchResultToClip(
   rubricItemId: string, rubricItemText: string, searchQuery: string,
   result: { start: number; end: number; confidence: string; text?: string }
@@ -16,7 +30,7 @@ export function mapSearchResultToClip(
   return {
     rubricItemId, rubricItemText,
     videoTimestamp: { start: result.start, end: result.end },
-    confidence: parseFloat(result.confidence) || 0,
+    confidence: toConfidenceNumber(result.confidence),
     matchedText: result.text || "", searchQuery,
   };
 }

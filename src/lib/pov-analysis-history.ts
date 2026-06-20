@@ -23,8 +23,14 @@ export interface HistoryEntry {
 
 function readHistory(): HistoryEntry[] {
   if (!existsSync(DATA_PATH)) return [];
-  const raw = readFileSync(DATA_PATH, 'utf-8');
-  return JSON.parse(raw);
+  // 손상/빈 파일(중단된 writeFileSync, 0바이트) 방어 — JSON.parse 실패 시 [] 반환(미처리 500 차단)
+  try {
+    const raw = readFileSync(DATA_PATH, 'utf-8');
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
 }
 
 function writeHistory(data: HistoryEntry[]): void {

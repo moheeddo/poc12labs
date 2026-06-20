@@ -603,7 +603,8 @@ export default function GroupDashboard({ session, onBack, onViewMember }: GroupD
                 <td className="print-score-cell" style={{ fontWeight: 700 }}>
                   {m.avgScore > 0 ? m.avgScore.toFixed(1) : "-"}
                 </td>
-                <td className="print-score-cell">{i + 1}</td>
+                {/* fail-closed: 미분석(avgScore 0) 멤버에는 순위 단정 금지 — 화면/모달과 동일 규칙 */}
+                <td className="print-score-cell">{m.avgScore > 0 ? i + 1 : "-"}</td>
               </tr>
             ))}
           </tbody>

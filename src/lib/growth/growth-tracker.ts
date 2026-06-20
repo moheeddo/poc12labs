@@ -103,10 +103,12 @@ export function buildGrowthTimeline(
   employeeName: string,
   dataPoints: GrowthDataPoint[]
 ): GrowthTimeline {
-  // 날짜 오름차순 정렬
-  const sorted = [...dataPoints].sort(
-    (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()
-  );
+  // 날짜 오름차순 정렬 — 파싱 불가 날짜(NaN)는 0으로 취급해 정렬 결과가 뒤섞이지 않게 방어
+  const sorted = [...dataPoints].sort((a, b) => {
+    const ta = new Date(a.date).getTime();
+    const tb = new Date(b.date).getTime();
+    return (Number.isNaN(ta) ? 0 : ta) - (Number.isNaN(tb) ? 0 : tb);
+  });
 
   // 모든 역량 키 수집 (유니온)
   const allCompetencyKeys = Array.from(

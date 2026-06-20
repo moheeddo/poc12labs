@@ -45,6 +45,7 @@ export async function POST(req: NextRequest) {
         dp === null ||
         typeof dp.sessionId !== "string" ||
         typeof dp.date !== "string" ||
+        Number.isNaN(new Date(dp.date).getTime()) ||
         typeof dp.competencyScores !== "object" ||
         typeof dp.overallScore !== "number"
       ) {

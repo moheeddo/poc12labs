@@ -303,12 +303,16 @@ export default function LeadershipFeedback({
         setAnalysisStep("영상 구간 분석 중...");
         const ch = await analyze(videoId, "chapter");
         if (cancelled) return;
+        // fail-closed: 미검증 LLM JSON의 start/end가 비유한이면 width 계산 NaN·seek 크래시 유발 →
+        // 유한 숫자이고 양의 길이인 챕터만 통과시킨다.
         const parsed: Chapter[] = Array.isArray(ch)
-          ? ch.map((c: Record<string, unknown>) => ({
-              title: (c.chapter_title as string) || (c.title as string) || "구간",
-              start: c.start as number,
-              end: c.end as number,
-            }))
+          ? ch
+              .map((c: Record<string, unknown>) => ({
+                title: (c.chapter_title as string) || (c.title as string) || "구간",
+                start: Number(c.start),
+                end: Number(c.end),
+              }))
+              .filter((c) => Number.isFinite(c.start) && Number.isFinite(c.end) && c.end > c.start)
           : [];
         if (parsed.length > 0) setChapters(parsed);
 
@@ -318,11 +322,13 @@ export default function LeadershipFeedback({
         const hl = await analyze(videoId, "highlight");
         if (cancelled) return;
         const parsedHl: Highlight[] = Array.isArray(hl)
-          ? hl.map((h: Record<string, unknown>) => ({
-              text: (h.highlight as string) || (h.text as string) || "",
-              start: h.start as number,
-              end: h.end as number,
-            }))
+          ? hl
+              .map((h: Record<string, unknown>) => ({
+                text: (h.highlight as string) || (h.text as string) || "",
+                start: Number(h.start),
+                end: Number(h.end),
+              }))
+              .filter((h) => Number.isFinite(h.start) && Number.isFinite(h.end))
           : [];
         if (parsedHl.length > 0) setHighlights(parsedHl);
 
@@ -570,7 +576,14 @@ export default function LeadershipFeedback({
   // ── 핸들러 ──
   const seekTo = useCallback((time: number) => {
     const v = videoRef.current;
-    if (v) { v.currentTime = time; setCurrentTime(time); v.play(); }
+    // Number.isFinite: undefined·NaN·문자열 타임스탬프("00:30") 모두 차단.
+    // 미검증 LLM JSON(start 누락/문자열)이 currentTime 세터에 도달하면 비유한 값으로 TypeError 크래시.
+    if (v && Number.isFinite(time)) {
+      v.currentTime = time;
+      setCurrentTime(time);
+      // play()는 seek/load로 인터럽트되면 AbortError로 reject → unhandled rejection 방지
+      void v.play()?.catch(() => {});
+    }
   }, []);
 
   // togglePlay는 향후 UI 버튼 연동을 위해 남겨둠 (현재 미사용)

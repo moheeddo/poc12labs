@@ -5,7 +5,9 @@ export function fourFifthsRule(passRates: Record<string, number>): { ratio: numb
   entries.sort((a, b) => b[1] - a[1]);
   const [refGroup, refRate] = entries[0];
   const [focalGroup, focalRate] = entries[entries.length - 1];
-  const ratio = refRate === 0 ? 0 : focalRate / refRate;
+  // refRate===0 ⇒ 모든 그룹 합격률 0(그룹 간 차등 없음) → 불리한 영향 아님(ratio=1).
+  // 0으로 두면 impacted=true가 되어 '차별 없음'을 '차별 있음'으로 오판(wrong-result).
+  const ratio = refRate === 0 ? 1 : focalRate / refRate;
   return { ratio, impacted: ratio < 0.8, referenceGroup: refGroup, focalGroup };
 }
 export function mantelHaenszel(responses: number[], groupVar: number[], scoreVar: number[]): { chi2: number; pValue: number; deltaMH: number; classification: "A" | "B" | "C" } {

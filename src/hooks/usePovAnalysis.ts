@@ -38,10 +38,22 @@ export function usePovAnalysis() {
       pollingRef.current = setInterval(async () => {
         try {
           const statusRes = await fetch(`/api/twelvelabs/pov-analyze/status?jobId=${data.jobId}`);
+          // 에러 응답({error,code})은 status/progress 필드가 없다. 그대로 setState하면
+          // status=undefined로 폴링이 영구 지속(타이머 누수)되고 progress가 유실된다.
+          if (!statusRes.ok) {
+            if (statusRes.status === 404) {
+              stopPolling();
+              setState(prev => ({ ...prev, status: 'error', error: '분석 작업을 찾을 수 없습니다' }));
+            }
+            return; // 그 외(429/500 등)는 transient — 진행 상태 보존하고 다음 폴에서 재시도
+          }
           const statusData = await statusRes.json();
           setState(prev => ({
-            ...prev, status: statusData.status, progress: statusData.progress,
-            stages: statusData.stages, report: statusData.result || prev.report,
+            ...prev,
+            status: statusData.status ?? prev.status,
+            progress: statusData.progress ?? prev.progress,
+            stages: statusData.stages ?? prev.stages,
+            report: statusData.result || prev.report,
             error: statusData.error || null,
           }));
           if (statusData.status === 'complete' || statusData.status === 'error') stopPolling();

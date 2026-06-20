@@ -40,9 +40,12 @@ describe("fourFifthsRule", () => {
     expect(result.focalGroup).toBe("junior");
   });
 
-  it("reference group의 합격률이 0이면 ratio는 0이다", () => {
+  it("모든 그룹 합격률이 0이면(차등 없음) ratio=1·impacted=false (fail-closed: 차별 없음을 차별로 오판 금지)", () => {
+    // 최고 합격률(reference)이 0 ⇒ 모든 그룹이 0 ⇒ 그룹 간 불리한 차등이 존재하지 않는다.
+    // 이전 구현은 ratio=0(→impacted=true)으로 '차별 없음'을 '차별 있음'으로 오판했다(iter29 수정).
     const result = fourFifthsRule({ groupA: 0, groupB: 0 });
-    expect(result.ratio).toBe(0);
+    expect(result.ratio).toBe(1);
+    expect(result.impacted).toBe(false);
   });
 
   it("두 그룹이 동일한 합격률이면 ratio = 1이다", () => {
