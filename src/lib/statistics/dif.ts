@@ -1,4 +1,27 @@
 import { mean } from "./descriptive";
+
+// 보수오차함수 erfc(x) 근사 (Abramowitz & Stegun 7.1.26, |오차|<1.5e-7).
+// χ²(1) 상측 p-value = erfc(√(chi2/2)) 계산에 사용.
+function erfc(x: number): number {
+  const z = Math.abs(x);
+  const t = 1 / (1 + 0.5 * z);
+  const tau =
+    t *
+    Math.exp(
+      -z * z -
+        1.26551223 +
+        t * (1.00002368 +
+          t * (0.37409196 +
+            t * (0.09678418 +
+              t * (-0.18628806 +
+                t * (0.27886807 +
+                  t * (-1.13520398 +
+                    t * (1.48851587 +
+                      t * (-0.82215223 + t * 0.17087277))))))))
+    );
+  return x >= 0 ? tau : 2 - tau;
+}
+
 export function fourFifthsRule(passRates: Record<string, number>): { ratio: number; impacted: boolean; referenceGroup: string; focalGroup: string } {
   const entries = Object.entries(passRates);
   if (entries.length < 2) return { ratio: 1, impacted: false, referenceGroup: "", focalGroup: "" };
@@ -35,8 +58,11 @@ export function mantelHaenszel(responses: number[], groupVar: number[], scoreVar
     alphaSum += (a * d) / (T || 1);
     alphaDenom += (b * c) / (T || 1);
   }
-  const chi2 = denominator === 0 ? 0 : (Math.abs(numerator) - 0.5) ** 2 / denominator;
-  const pValue = chi2 === 0 ? 1 : Math.exp(-chi2 / 2);
+  // 연속성 보정: |numerator|<0.5면 보정항이 음수가 되므로 0으로 클램프(통계량 인위적 증가 방지)
+  const corrected = Math.max(0, Math.abs(numerator) - 0.5);
+  const chi2 = denominator === 0 ? 0 : (corrected ** 2) / denominator;
+  // χ²(df=1) 상측 p-value = erfc(√(chi2/2)). 기존 exp(-chi2/2)는 χ²(2)의 생존함수로 오용이었다.
+  const pValue = chi2 === 0 ? 1 : erfc(Math.sqrt(chi2 / 2));
   const alphaMH = alphaDenom === 0 ? 1 : alphaSum / alphaDenom;
   const deltaMH = alphaMH <= 0 ? 0 : Math.abs(-2.35 * Math.log(alphaMH));
   const classification: "A" | "B" | "C" = deltaMH < 1.0 ? "A" : deltaMH < 1.5 ? "B" : "C";

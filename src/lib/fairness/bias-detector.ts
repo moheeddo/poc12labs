@@ -32,13 +32,18 @@ export function analyzeFairness(
 
     // 그룹별 기술통계량 계산
     const distributions: GroupDistribution["scoreDistributions"] = {};
-    const allScores = scores.map((s) => s.overallScore);
     for (const [group, vals] of Object.entries(grouped)) {
+      // 효과크기는 'focal 그룹 vs 보완집단(나머지 그룹 전체)'으로 계산한다.
+      // 자기 자신이 포함된 전체 풀과 비교하면 평균차가 (1-focal비중)배로 희석돼 효과크기가
+      // 0쪽으로 과소추정되고 불리한 영향(차별) 신호를 놓친다(민감 경로 false negative).
+      const rest = Object.entries(grouped)
+        .filter(([g]) => g !== group)
+        .flatMap(([, v]) => v);
       distributions[group] = {
         n: vals.length,
         mean: mean(vals),
         sd: sampleStandardDeviation(vals),
-        effectSize: cohenD(vals, allScores),
+        effectSize: cohenD(vals, rest),
       };
     }
 

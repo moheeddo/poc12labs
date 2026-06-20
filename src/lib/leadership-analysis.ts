@@ -214,18 +214,21 @@ export function generateAIScore(
 /**
  * 루브릭 기반 점수 구간 판정 텍스트 추출
  */
+// 등급 컷은 SSOT interpretScore(7.5/5.5/3.0, rubricurl 문서4)와 일치시킨다.
+// 이전 9/6/2 컷은 같은 점수(예 8.0)가 헤드라인 '매우 우수'와 루브릭 라인 '보통 이상'으로
+// 모순 표기되고 4.5~5.9 구간이 한 등급 낮게 과소평가되던 버그(레벨 라벨과도 불일치).
 function getRubricLevelText(rubricItem: ImprovedRubricItem, score: number): string {
-  if (score >= 9) return rubricItem.levels[0]?.description || "";
-  if (score >= 6) return rubricItem.levels[1]?.description || "";
-  if (score >= 2) return rubricItem.levels[2]?.description || "";
+  if (score >= 7.5) return rubricItem.levels[0]?.description || "";
+  if (score >= 5.5) return rubricItem.levels[1]?.description || "";
+  if (score >= 3.0) return rubricItem.levels[2]?.description || "";
   return rubricItem.levels[3]?.description || "";
 }
 
 function getRubricLevelLabel(score: number): string {
-  if (score >= 9) return "매우 우수 (9점)";
-  if (score >= 6) return "보통 이상 (6~8점)";
-  if (score >= 2) return "보통 미만 (2~5점)";
-  return "미흡 (1점)";
+  if (score >= 7.5) return "매우 우수 (7.5~9점)";
+  if (score >= 5.5) return "보통 이상 (5.5~7.5점)";
+  if (score >= 3.0) return "보통 미만 (3~5.5점)";
+  return "미흡 (0~3점)";
 }
 
 /**

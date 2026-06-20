@@ -35,7 +35,9 @@ export function mapSearchResultToClip(
   };
 }
 
-export function deduplicateClips(clips: EvidenceClip[]): EvidenceClip[] {
+// 같은 루브릭 항목 안에서만 시간 중복 병합. 서로 다른 rubricItemId는 같은 시각이라도
+// 별개 근거이므로 병합하면 한쪽 항목의 증거가 손실된다(이전: id 무관 병합 버그).
+function dedupWithinItem(clips: EvidenceClip[]): EvidenceClip[] {
   if (clips.length <= 1) return clips;
   const sorted = [...clips].sort((a, b) => a.videoTimestamp.start - b.videoTimestamp.start);
   const result: EvidenceClip[] = [sorted[0]];
@@ -47,6 +49,20 @@ export function deduplicateClips(clips: EvidenceClip[]): EvidenceClip[] {
     else if (curr.confidence > prev.confidence) { result[result.length - 1] = curr; }
   }
   return result;
+}
+
+export function deduplicateClips(clips: EvidenceClip[]): EvidenceClip[] {
+  if (clips.length <= 1) return clips;
+  // rubricItemId 단위로 그룹핑(삽입 순서 보존) 후 그룹 내에서만 시간 dedup
+  const byItem = new Map<string, EvidenceClip[]>();
+  for (const c of clips) {
+    const arr = byItem.get(c.rubricItemId);
+    if (arr) arr.push(c);
+    else byItem.set(c.rubricItemId, [c]);
+  }
+  const out: EvidenceClip[] = [];
+  for (const group of byItem.values()) out.push(...dedupWithinItem(group));
+  return out;
 }
 
 export function buildEvidenceMap(
