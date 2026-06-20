@@ -1,9 +1,4 @@
-/* Pretendard 한국어 폰트 (display=swap으로 FOIT 방지) */
-@import url("https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css");
-
-/* JetBrains Mono 데이터/코드 폰트 */
-@import url("https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&display=swap");
-
+/* 폰트는 layout.tsx의 <head>에서 preconnect + <link>로 로드(렌더 블로킹 CSS @import 제거 — LCP 개선) */
 @import "tailwindcss";
 
 @theme {

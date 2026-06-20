@@ -42,7 +42,22 @@ export default function RootLayout({
 }) {
   return (
     <html lang="ko">
-      <body className="min-h-screen antialiased scanline-overlay">{children}</body>
+      <head>
+        {/* 폰트 preconnect + 비차단 link 로드 (CSS @import 대비 LCP 개선). display=swap으로 FOIT 방지 */}
+        <link rel="preconnect" href="https://cdn.jsdelivr.net" crossOrigin="" />
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
+        <link
+          rel="stylesheet"
+          href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css"
+        />
+        <link
+          rel="stylesheet"
+          href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&display=swap"
+        />
+      </head>
+      {/* scanline-overlay 제거 — 전역 스캔라인은 '제어실 모니터' 테크 클리셰 슬롭 + 무한 애니메이션 */}
+      <body className="min-h-screen antialiased">{children}</body>
     </html>
   );
 }

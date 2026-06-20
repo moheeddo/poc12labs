@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useMemo, useEffect } from "react";
+import { useState, useCallback, useMemo, useEffect, lazy, Suspense } from "react";
 import {
   Users,
   TrendingUp,
@@ -34,7 +34,8 @@ import ChartTooltip from "@/components/shared/ChartTooltip";
 import ScoreCard from "./ScoreCard";
 import LeadershipFeedback from "./LeadershipFeedback";
 import GroupManager, { GroupCreateForm } from "./GroupManager";
-import GroupDashboard from "./GroupDashboard";
+// 코드 스플리팅 — 무거운 심층분석 서브뷰(Recharts 다수)는 해당 탭/뷰 진입 시에만 로드(앱 진입 속도 개선)
+const GroupDashboard = lazy(() => import("./GroupDashboard"));
 import { useVideoUpload } from "@/hooks/useTwelveLabs";
 import {
   TWELVELABS_INDEXES,
@@ -46,14 +47,14 @@ import type { SpeakerScore, LeadershipCompetencyKey } from "@/lib/types";
 import ApiKeyWarning from "@/components/shared/ApiKeyWarning";
 import ConsentForm from "./ConsentForm";
 import HRConnectorPanel from "./HRConnectorPanel";
-import EvidenceMapView from "./EvidenceMapView";
-import DerailerDashboard from "./DerailerDashboard";
-import BEITimeline from "./BEITimeline";
-import GrowthChart from "./GrowthChart";
-import ValidationConsole from "./ValidationConsole";
-import FairnessMonitor from "./FairnessMonitor";
-import ISOAuditView from "./ISOAuditView";
-import IntegratedReport from "./IntegratedReport";
+const EvidenceMapView = lazy(() => import("./EvidenceMapView"));
+const DerailerDashboard = lazy(() => import("./DerailerDashboard"));
+const BEITimeline = lazy(() => import("./BEITimeline"));
+const GrowthChart = lazy(() => import("./GrowthChart"));
+const ValidationConsole = lazy(() => import("./ValidationConsole"));
+const FairnessMonitor = lazy(() => import("./FairnessMonitor"));
+const ISOAuditView = lazy(() => import("./ISOAuditView"));
+const IntegratedReport = lazy(() => import("./IntegratedReport"));
 import { useEvidence } from "@/hooks/useEvidence";
 import { useDerailer } from "@/hooks/useDerailer";
 import { useBEI } from "@/hooks/useBEI";
@@ -355,6 +356,7 @@ export default function LeadershipCoaching() {
   // ═══════════════════════════════════════
   if (view.type === "group-dashboard" && activeGroupSession) {
     return (
+      <Suspense fallback={<div className="max-w-[1440px] mx-auto px-4 md:px-6 py-16 text-center text-sm text-slate-400">대시보드 로딩 중…</div>}>
       <GroupDashboard
         session={activeGroupSession}
         onBack={() => setView({ type: "group-manage", sessionId: activeGroupSession.id })}
@@ -379,6 +381,7 @@ export default function LeadershipCoaching() {
           setView({ type: "group-manage", sessionId: activeGroupSession.id });
         }}
       />
+      </Suspense>
     );
   }
 
@@ -937,7 +940,8 @@ export default function LeadershipCoaching() {
           </div>
         </div>
 
-        {/* 서브탭 콘텐츠 */}
+        {/* 서브탭 콘텐츠 — 무거운 서브뷰는 lazy 로드(상호배타라 단일 Suspense 경계) */}
+        <Suspense fallback={<div className="bg-white border border-slate-200/30 rounded-xl p-8 text-center text-sm text-slate-400">분석 뷰 로딩 중…</div>}>
         {analysisSubTab === "competency" && (
           <div role="tabpanel" id="subpanel-competency" aria-labelledby="subtab-competency">
             <div className="bg-white border border-slate-200/30 rounded-xl p-5 text-center text-slate-500 text-sm">
@@ -1007,6 +1011,7 @@ export default function LeadershipCoaching() {
             <HRConnectorPanel onImport={() => {}} />
           </div>
         )}
+        </Suspense>
         </div>
       )}
 
