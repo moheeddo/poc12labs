@@ -1095,6 +1095,8 @@ ${ceInner}
                       )}
                       style={{ width: `${((ch.end - ch.start) / total) * 100}%` }}
                       title={ch.title}
+                      aria-label={`${ch.title} 구간으로 이동 (${formatTime(ch.start)})`}
+                      aria-current={i === currentChapterIndex ? "true" : undefined}
                     />
                   );
                 })}
@@ -1190,7 +1192,7 @@ ${ceInner}
                     </div>
                     {mmResult && !coachConfirmed && (
                       <div className="flex items-center gap-2">
-                        <input type="text" value={coachName} onChange={(e) => setCoachName(e.target.value)} placeholder="평가자(코치)명"
+                        <input type="text" value={coachName} onChange={(e) => setCoachName(e.target.value)} placeholder="평가자(코치)명" aria-label="평가자(코치)명"
                           className="w-28 bg-white border border-slate-200 rounded-lg px-2.5 py-2 text-sm outline-none focus:border-emerald-500/40" />
                         <button onClick={() => coachName.trim() && setCoachConfirmed(true)} disabled={!coachName.trim()}
                           className={cn("flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium transition-colors",

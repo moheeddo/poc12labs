@@ -150,6 +150,7 @@ export default function SpeakerRoleMapping({ competencyKey, value, onApply, disa
                   onChange={(e) => setNewOther(e.target.value)}
                   onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), addOther())}
                   placeholder="참여자 라벨 추가 (예: A부장)"
+                  aria-label="참여자 라벨 추가"
                   className="flex-1 bg-white border border-slate-200 rounded-lg px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400 outline-none focus:border-emerald-600/40 focus:ring-1 focus:ring-emerald-600/15"
                 />
                 <button onClick={addOther} aria-label="참여자 라벨 추가" className="px-2.5 py-2 rounded-lg bg-slate-100 text-slate-600 hover:bg-slate-200 transition-colors">
@@ -179,6 +180,7 @@ export default function SpeakerRoleMapping({ competencyKey, value, onApply, disa
                 onChange={(e) => setNewTerm(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), addTerm())}
                 placeholder="정확한 용어 추가 (예: 엄사방, 주무차장)"
+                aria-label="도메인 용어 추가"
                 className="flex-1 bg-white border border-slate-200 rounded-lg px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400 outline-none focus:border-emerald-600/40 focus:ring-1 focus:ring-emerald-600/15"
               />
               <button onClick={addTerm} aria-label="도메인 용어 추가" className="px-2.5 py-2 rounded-lg bg-slate-100 text-slate-600 hover:bg-slate-200 transition-colors">

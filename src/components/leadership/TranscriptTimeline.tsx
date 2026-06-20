@@ -292,17 +292,17 @@ export default function TranscriptTimeline({
                 </div>
               )}
 
-              {/* 문단 카드 */}
+              {/* 문단 카드 — seek는 내부 타임스탬프 버튼(아래)이 키보드·마우스 모두 담당.
+                  카드 자체의 onClick+cursor-pointer는 마우스 전용 + 내부 버튼과 중첩 인터랙티브(WCAG 4.1.2)라 제거. */}
               <div
                 ref={isActive ? activeRef : undefined}
                 className={cn(
-                  "group relative rounded-xl transition-all duration-200 cursor-pointer",
+                  "group relative rounded-xl transition-all duration-200",
                   isActive
                     ? "bg-emerald-50/60 ring-1 ring-emerald-600/20 shadow-sm"
                     : "hover:bg-slate-50/60",
                   isBookmarked && !isActive && "bg-amber-50/30"
                 )}
-                onClick={() => onSeek(seg.start)}
               >
                 <div className="px-4 py-3">
                   {/* 타임스탬프 헤더 */}
