@@ -19,17 +19,17 @@ export function buildNormTable(dataset: NormDatasetItem[], groupBy: string): Nor
     groupMap.get(groupKey)!.push(item);
   }
 
-  // 역량 키 목록 추출 (첫 번째 참가자 기준)
-  const competencyKeys = dataset.length > 0 ? Object.keys(dataset[0].competencyScores) : [];
+  // 역량 키 목록 — 전체 dataset의 합집합. 첫 참가자만 보면 뒤 참가자에만 있는 역량이 통째로 누락된다.
+  const competencyKeys = Array.from(new Set(dataset.flatMap((d) => Object.keys(d.competencyScores))));
 
   // 각 그룹별 통계 계산
   const groups: NormGroupStats[] = Array.from(groupMap.entries()).map(([groupName, members]) => {
     const percentilesPerCompetency: NormGroupStats["percentiles"] = {};
 
     for (const key of competencyKeys) {
-      // 해당 역량의 모든 점수 수집
-      const scores = members.map((m) => m.competencyScores[key] ?? 0);
-      percentilesPerCompetency[key] = percentiles(scores);
+      // 해당 역량을 실제 채점한 멤버만 — 누락을 0으로 강제하면 백분위가 왜곡된다.
+      const scores = members.filter((m) => key in m.competencyScores).map((m) => m.competencyScores[key]);
+      if (scores.length > 0) percentilesPerCompetency[key] = percentiles(scores);
     }
 
     return {

@@ -24,10 +24,14 @@ export function percentile(values: number[], p: number): number {
   return sorted[lower] + (sorted[upper] - sorted[lower]) * (index - lower);
 }
 export function cohenD(group1: number[], group2: number[]): number {
+  // 자유도 분모 n1+n2-2 ≤ 0(각 그룹 표본 1개 등)이면 pooledSD가 NaN이 되어 효과크기가 NaN으로
+  // 전파(공정성 판정 오염)되므로 0으로 안전 반환.
+  const df = group1.length + group2.length - 2;
+  if (df <= 0) return 0;
   const m1 = mean(group1), m2 = mean(group2);
   const sd1 = sampleStandardDeviation(group1), sd2 = sampleStandardDeviation(group2);
-  const pooledSD = Math.sqrt(((group1.length - 1) * sd1 ** 2 + (group2.length - 1) * sd2 ** 2) / (group1.length + group2.length - 2));
-  if (pooledSD === 0) return 0;
+  const pooledSD = Math.sqrt(((group1.length - 1) * sd1 ** 2 + (group2.length - 1) * sd2 ** 2) / df);
+  if (!Number.isFinite(pooledSD) || pooledSD === 0) return 0;
   return Math.abs(m1 - m2) / pooledSD;
 }
 export function pearsonR(x: number[], y: number[]): number {

@@ -117,20 +117,26 @@ export function buildGrowthTimeline(
 
   // 역량별 추이 계산
   const trends: CompetencyTrend[] = allCompetencyKeys.map((key) => {
-    const scores = sorted.map((dp) => dp.competencyScores[key] ?? 0);
+    // 해당 역량을 실제 채점한 세션만으로 시리즈 구성 — 누락 세션을 0으로 패딩하면
+    // [0, 8.5]→거짓 '돌파', [0,0,8]→거짓 '향상' 같은 phantom 신호가 생긴다.
+    const scores = sorted.filter((dp) => key in dp.competencyScores).map((dp) => dp.competencyScores[key]);
     const { direction, changeRate, projectedScore } = calculateTrend(scores);
     return { competencyKey: key, direction, changeRate, projectedScore };
   });
 
   // 정체 역량 탐지
   const plateauCompetencies = allCompetencyKeys.filter((key) => {
-    const scores = sorted.map((dp) => dp.competencyScores[key] ?? 0);
+    // 해당 역량을 실제 채점한 세션만으로 시리즈 구성 — 누락 세션을 0으로 패딩하면
+    // [0, 8.5]→거짓 '돌파', [0,0,8]→거짓 '향상' 같은 phantom 신호가 생긴다.
+    const scores = sorted.filter((dp) => key in dp.competencyScores).map((dp) => dp.competencyScores[key]);
     return detectPlateau(scores);
   });
 
   // 돌파 역량 탐지
   const breakthroughCompetencies = allCompetencyKeys.filter((key) => {
-    const scores = sorted.map((dp) => dp.competencyScores[key] ?? 0);
+    // 해당 역량을 실제 채점한 세션만으로 시리즈 구성 — 누락 세션을 0으로 패딩하면
+    // [0, 8.5]→거짓 '돌파', [0,0,8]→거짓 '향상' 같은 phantom 신호가 생긴다.
+    const scores = sorted.filter((dp) => key in dp.competencyScores).map((dp) => dp.competencyScores[key]);
     return detectBreakthrough(scores);
   });
 

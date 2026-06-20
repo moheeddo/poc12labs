@@ -37,27 +37,38 @@ export function syncTranscripts(
 ): SyncResult {
   const matches: { phrase: string; timeA: number; timeB: number; offset: number }[] = [];
 
+  // 각 A 세그먼트는 임계 통과한 '최고 유사도' B에 매칭(첫 매칭 break가 아님) + B 중복 귀속 방지.
+  // 반복되는 정형 문구(예: '제어봉 삽입 확인')에서 엉뚱한(보통 가장 이른) B로 귀속되던 오류 차단.
+  const usedB = new Set<number>();
   for (const segA of transcriptA) {
     const normA = normalize(segA.text);
     if (normA.length < 4) continue;
 
-    for (const segB of transcriptB) {
-      const normB = normalize(segB.text);
+    let bestSim = -1;
+    let bestIdx = -1;
+    for (let j = 0; j < transcriptB.length; j++) {
+      if (usedB.has(j)) continue;
+      const normB = normalize(transcriptB[j].text);
       if (normB.length < 4) continue;
 
       const maxLen = Math.max(normA.length, normB.length);
       const dist = levenshtein(normA, normB);
       const similarity = 1 - dist / maxLen;
 
-      if (similarity >= 0.8) {
-        matches.push({
-          phrase: segA.text,
-          timeA: segA.start,
-          timeB: segB.start,
-          offset: segB.start - segA.start,
-        });
-        break;
+      if (similarity >= 0.8 && similarity > bestSim) {
+        bestSim = similarity;
+        bestIdx = j;
       }
+    }
+    if (bestIdx >= 0) {
+      usedB.add(bestIdx);
+      const segB = transcriptB[bestIdx];
+      matches.push({
+        phrase: segA.text,
+        timeA: segA.start,
+        timeB: segB.start,
+        offset: segB.start - segA.start,
+      });
     }
   }
 
@@ -65,8 +76,10 @@ export function syncTranscripts(
     return { offsetAtoB: 0, confidence: 0, matchedPhrases: [] };
   }
 
+  // 진짜 중앙값(짝수 길이면 두 중앙값 평균) — 이전 upper-middle은 짝수서 편향.
   const offsets = matches.map(m => m.offset).sort((a, b) => a - b);
-  const medianOffset = offsets[Math.floor(offsets.length / 2)];
+  const mid = Math.floor(offsets.length / 2);
+  const medianOffset = offsets.length % 2 === 0 ? (offsets[mid - 1] + offsets[mid]) / 2 : offsets[mid];
 
   const validMatches = matches.filter(m => Math.abs(m.offset - medianOffset) <= 5);
 
