@@ -2,6 +2,7 @@
 // 참여자 영상에 대한 Hogan HDS 탈선 패턴 분석 API 라우트
 
 import { NextRequest, NextResponse } from "next/server";
+import { checkRateLimit, errorResponse } from "@/lib/api-middleware";
 import { generateWithPrompt } from "@/lib/twelvelabs";
 import {
   DERAILER_PATTERNS,
@@ -24,6 +25,13 @@ interface AnalyzeRequest {
 }
 
 export async function POST(req: NextRequest) {
+  // 비용 큰 팬아웃(11개 패턴 × LLM 호출)이므로 보수적 rate limit(분당 10회)
+  try {
+    checkRateLimit(req.headers.get("x-forwarded-for") || "unknown", 10, 60_000);
+  } catch (e) {
+    return errorResponse(e);
+  }
+
   let body: AnalyzeRequest;
 
   // 요청 바디 파싱

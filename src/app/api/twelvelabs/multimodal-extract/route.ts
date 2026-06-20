@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { checkRateLimit, errorResponse } from "@/lib/api-middleware";
 import { generateWithPrompt, searchVideos } from "@/lib/twelvelabs";
 import { createLogger } from "@/lib/logger";
 import { ASSESSMENT_BY_KEY } from "@/lib/leadership-rubric-data";
@@ -226,6 +227,12 @@ async function extractItem(
 }
 
 export async function POST(req: NextRequest) {
+  // 비용 큰 팬아웃(역량별 다항목 LLM 호출 + Marengo 검색)이므로 보수적 rate limit
+  try {
+    checkRateLimit(req.headers.get("x-forwarded-for") || "unknown", 10, 60_000);
+  } catch (e) {
+    return errorResponse(e);
+  }
   try {
     const body = await req.json();
     const videoId = typeof body.videoId === "string" ? body.videoId.trim() : "";

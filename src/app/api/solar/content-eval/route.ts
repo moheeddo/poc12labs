@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { checkRateLimit, errorResponse } from "@/lib/api-middleware";
 import { createLogger } from "@/lib/logger";
 import { LEADERSHIP_COMPETENCY_DEFS } from "@/lib/constants";
 
@@ -36,9 +37,15 @@ type CriterionResult = { criteria: string; score: number | null; grade: string; 
 
 export async function POST(req: NextRequest) {
   try {
+    checkRateLimit(req.headers.get("x-forwarded-for") || "unknown", 30, 60_000);
+  } catch (e) {
+    return errorResponse(e);
+  }
+  try {
     const body = await req.json();
     const competencyKey = typeof body.competencyKey === "string" ? body.competencyKey : "";
-    const transcript = typeof body.transcript === "string" ? body.transcript.trim() : "";
+    // 전사 길이 상한(과대 입력 DoS 방지) — 프롬프트에 8000자만 쓰므로 충분
+    const transcript = (typeof body.transcript === "string" ? body.transcript.trim() : "").slice(0, 100_000);
     const scenarioText = typeof body.scenarioText === "string" ? body.scenarioText : "";
 
     const def = LEADERSHIP_COMPETENCY_DEFS.find((d) => d.key === competencyKey);

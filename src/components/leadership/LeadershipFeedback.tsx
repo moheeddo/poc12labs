@@ -684,21 +684,27 @@ export default function LeadershipFeedback({
 
   // ── 보고서 PDF 내보내기 (보고서 영역만 별도 창에서 인쇄 → 저장) — 피드백 ⑥ ──
   const buildReportHtml = useCallback((): string => {
+    // 사용자 제어 문자열(videoTitle·label 등)을 HTML 문서에 보간하기 전 이스케이프(stored XSS 방지)
+    const escHtml = (s: string) => String(s ?? "").replace(/[&<>"']/g, (ch) =>
+      ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[ch] as string));
     const el = document.getElementById("multimodal-report");
     const inner = el ? el.innerHTML : "<p>보고서를 찾을 수 없습니다.</p>";
     const label = mmResult?.scoring.competencyLabel || "리더십";
+    const labelEsc = escHtml(label);
+    const titleEsc = escHtml(videoTitle);
+    const interpEsc = escHtml(mmResult?.scoring.interpretation ?? "");
     // 화면 헤드라인과 동일 소스: N차 집계가 있으면 중앙값(강건), 없으면 단일 총점.
     const agg = mmResult?.aggregate?.total;
     const total = agg ? agg.median : mmResult?.scoring.totalScore;
     const aggNote = agg ? ` · ${mmResult?.aggregate?.runCount ?? ""}회 중앙값` : "";
     const totalLine = total !== null && total !== undefined
-      ? `<p class="meta">총점 ${total.toFixed(1)}/9 (${mmResult?.scoring.interpretation})${aggNote} · 핵심 4개 항목(M1~M4) 평균 · M5 제외</p>`
+      ? `<p class="meta">총점 ${total.toFixed(1)}/9 (${interpEsc})${aggNote} · 핵심 4개 항목(M1~M4) 평균 · M5 제외</p>`
       : `<p class="meta">총점 산출 보류 (채점 가능 항목 3개 미만)</p>`;
     // 내용 평가는 별도 레이어 — export에도 포함하되 'AI 초안/확정' 상태와 '행동점수 비합산'을 명시.
     const ceEl = document.getElementById("content-eval-export");
     const ceInner = ceEl ? `<h2>내용 평가 (행동 점수와 합산하지 않는 별도 레이어)</h2>
 <p class="sub">${contentConfirmed ? "전문가 확정 완료" : "AI 초안 · 전문가 확정 전 (참고용)"} · 전사 인용 근거 기반</p>${ceEl.innerHTML}` : "";
-    return `<!DOCTYPE html><html lang="ko"><head><meta charset="utf-8"><title>${label} 멀티모달 행동분석 보고서 — ${videoTitle}</title>
+    return `<!DOCTYPE html><html lang="ko"><head><meta charset="utf-8"><title>${labelEsc} 멀티모달 행동분석 보고서 — ${titleEsc}</title>
 <style>
   *{box-sizing:border-box} body{font-family:'Pretendard',system-ui,sans-serif;color:#1e293b;margin:32px;line-height:1.8}
   h1{font-size:18px;margin:0 0 4px} .sub{color:#64748b;font-size:12px;margin:0 0 2px} .meta{color:#006341;font-size:12px;margin:0 0 16px;font-weight:600}
@@ -708,8 +714,8 @@ export default function LeadershipFeedback({
   ul,ol{padding-left:20px} li{margin:3px 0} p{margin:6px 0}
   @media print{body{margin:12mm}}
 </style></head><body>
-<h1>${label} 멀티모달 행동분석 종합보고서</h1>
-<p class="sub">${videoTitle} · KHNP 인재개발원 리더십 역량진단 v1.0</p>
+<h1>${labelEsc} 멀티모달 행동분석 종합보고서</h1>
+<p class="sub">${titleEsc} · KHNP 인재개발원 리더십 역량진단 v1.0</p>
 ${totalLine}
 ${inner}
 ${ceInner}
@@ -1597,11 +1603,14 @@ ${ceInner}
                 {mmResult.report && (() => {
                   // 마크다운 → 구조화된 HTML 변환 (테이블, 섹션, 리스트 지원)
                   function renderReport(md: string): string {
+                    // XSS 방지(allowlist) — 미신뢰 LLM 원문의 모든 HTML을 먼저 비활성화한다.
+                    // 이전 블랙리스트(script/iframe/on* 정규식)는 <svg/onload=>·javascript: 등으로 우회됐다.
+                    // <>& 를 이스케이프하면 LLM은 어떤 태그·속성도 주입할 수 없고, 아래 마크다운 변환만
+                    // 안전한 태그(<strong>/<h2>/<table>/<li> 등)를 생성한다.
                     let html = md
-                      // XSS 방지
-                      .replace(/<script[^>]*>[\s\S]*?<\/script>/gi, '')
-                      .replace(/<iframe[^>]*>[\s\S]*?<\/iframe>/gi, '')
-                      .replace(/\son\w+\s*=/gi, ' data-removed=');
+                      .replace(/&/g, '&amp;')
+                      .replace(/</g, '&lt;')
+                      .replace(/>/g, '&gt;');
 
                     // ── 마크다운 테이블 → HTML 테이블 ──
                     html = html.replace(
