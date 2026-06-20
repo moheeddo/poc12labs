@@ -562,7 +562,7 @@ export default function CompetencyAssessment({ data, onBack }: CompetencyAssessm
                       <span className="text-sm px-2 py-0.5 rounded bg-slate-100/50 text-slate-500">{item.subLabel}</span>
                     </div>
                     {itemScore.score > 0 && (
-                      <span className={cn("text-sm font-mono font-bold px-2.5 py-1 rounded-lg", itemScore.score >= 6 ? "bg-emerald-50 text-emerald-700" : itemScore.score >= 2 ? "bg-amber-500/15 text-amber-700" : "bg-red-500/15 text-red-700")}>
+                      <span className={cn("text-sm font-mono font-bold px-2.5 py-1 rounded-lg", itemScore.score >= 6 ? "bg-emerald-50 text-emerald-700" : itemScore.score >= 2 ? "bg-amber-50 text-amber-700" : "bg-red-50 text-red-700")}>
                         {itemScore.score}/9
                       </span>
                     )}
@@ -647,7 +647,7 @@ export default function CompetencyAssessment({ data, onBack }: CompetencyAssessm
                     {itemResult?.score !== null && itemResult?.score !== undefined && (
                       <span className={cn(
                         "text-sm font-mono font-bold px-2.5 py-1 rounded-lg",
-                        itemResult.score >= 5.5 ? "bg-emerald-50 text-emerald-700" : itemResult.score >= 3 ? "bg-amber-500/15 text-amber-700" : "bg-red-500/15 text-red-700"
+                        itemResult.score >= 5.5 ? "bg-emerald-50 text-emerald-700" : itemResult.score >= 3 ? "bg-amber-50 text-amber-700" : "bg-red-50 text-red-700"
                       )}>
                         {itemResult.score.toFixed(1)}/9
                       </span>

@@ -50,10 +50,11 @@ function getScoreLabel(score: number) {
 }
 
 function getScoreBg(score: number) {
-  if (score >= 7) return "bg-emerald-50 border-emerald-500/30";
-  if (score >= 5) return "bg-amber-500/15 border-amber-500/30";
-  if (score > 0) return "bg-red-500/15 border-red-500/30";
-  return "bg-slate-100/30 border-slate-200/40";
+  // 점수칩 배경은 앱 표준(ScoreCard scoreBadgeMap)의 불투명 -50/-200 톤으로 통일(알파 /15 혼용 제거)
+  if (score >= 7) return "bg-emerald-50 border-emerald-200";
+  if (score >= 5) return "bg-amber-50 border-amber-200";
+  if (score > 0) return "bg-red-50 border-red-200";
+  return "bg-slate-50 border-slate-200/60";
 }
 
 // 레이더 차트 커스텀 툴팁

@@ -203,7 +203,7 @@ function ReportHeader({
             <p className={cn("text-3xl font-bold font-mono tabular-nums", scoreColor)}>
               {overallScore > 0 ? overallScore.toFixed(1) : "—"}
             </p>
-            <p className="text-xs font-medium text-slate-500">/ 10</p>
+            <p className="text-xs font-medium text-slate-500">/ 9</p>
             {overallScore > 0 && (
               <p className={cn("text-xs font-semibold mt-1", scoreColor)}>{scoreLabel}</p>
             )}

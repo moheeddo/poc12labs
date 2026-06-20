@@ -42,7 +42,7 @@ function getGradeLabel(score: number) {
 export default function ScoreCard({ speaker, rank }: ScoreCardProps) {
   const [expanded, setExpanded] = useState(false);
   const detailsId = `scorecard-subdetails-${useId()}`;
-  const rankColors = ["text-amber-600", "text-slate-700", "text-amber-700"];
+  const rankColors = ["text-amber-700", "text-slate-700", "text-amber-700"];
   const rankBgColors = ["bg-amber-50", "bg-slate-100", "bg-amber-50"];
   const badge = getScoreTier(speaker.totalScore);
   const competencies = getCompetenciesForLevel(speaker.jobLevel);

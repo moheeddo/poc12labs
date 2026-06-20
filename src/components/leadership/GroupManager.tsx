@@ -500,7 +500,7 @@ export default function GroupManager({
                             {!score.confirmed && <span className="inline-flex items-center text-[9px] font-medium text-amber-700 bg-amber-50 border border-amber-200 rounded px-1.5 py-0.5" title="AI 자동 산출 — 전문가 확정 전">AI 초안</span>}
                           </span>
                         ) : hasVideo ? (
-                          <span className="text-[10px] font-medium text-orange-700 bg-orange-50 px-2 py-0.5 rounded-md border border-orange-200/50">미분석</span>
+                          <span className="text-[10px] font-medium text-amber-800 bg-amber-50 px-2 py-0.5 rounded-md border border-amber-200/50">미분석</span>
                         ) : null}
                       </div>
                       {/* 메모 편집 / 표시 영역 */}

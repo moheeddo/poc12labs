@@ -945,7 +945,7 @@ export default function GroupDashboard({ session, onBack, onViewMember }: GroupD
               ))}
               {/* 조 평균 행 */}
               <div className="flex items-center gap-2 pt-2 mt-2 border-t border-slate-100">
-                <span className="text-xs font-medium w-5 text-center text-slate-400">\u2014</span>
+                <span className="text-xs font-medium w-5 text-center text-slate-400">{"\u2014"}</span>
                 <div className="w-3 h-3 rounded-full shrink-0 bg-slate-300" />
                 <span className="text-xs font-semibold text-slate-500 flex-1">조 평균</span>
                 <div className="w-20 h-1.5 bg-slate-100 rounded-full overflow-hidden">
