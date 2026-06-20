@@ -938,6 +938,8 @@ export default function IntegratedReport({
   const hasBEI = beiAnalysis && beiAnalysis.events.length > 0;
   const hasNorm = normTable && participantGroup;
   const hasCoaching = !!coachingFeedback;
+  // 역량 점수가 하나라도 있어야 헤더·레이더를 의미있게 표시. 없으면 '—'·빈 레이더로 오도하지 않는다.
+  const hasCompetency = Object.values(competencyScores).some((s) => s > 0);
 
   return (
     <>
@@ -963,19 +965,26 @@ export default function IntegratedReport({
           </button>
         </div>
 
-        {/* 1. 헤더 */}
-        <ReportHeader
-          coachingFeedback={coachingFeedback}
-          overallScore={overallScore}
-          competencyScores={competencyScores}
-        />
-
-        {/* 2. 통합 레이더 차트 */}
-        <IntegratedRadar
-          competencyScores={competencyScores}
-          competencyLabels={competencyLabels}
-          derailerProfile={derailerProfile}
-        />
+        {/* 1. 헤더 + 2. 통합 레이더 — 역량 점수가 있을 때만(빈 '—'·빈 레이더 오도 방지) */}
+        {hasCompetency ? (
+          <>
+            <ReportHeader
+              coachingFeedback={coachingFeedback}
+              overallScore={overallScore}
+              competencyScores={competencyScores}
+            />
+            <IntegratedRadar
+              competencyScores={competencyScores}
+              competencyLabels={competencyLabels}
+              derailerProfile={derailerProfile}
+            />
+          </>
+        ) : (
+          <div className="bg-white/60 border border-slate-200/40 rounded-2xl p-6 text-center">
+            <p className="text-sm font-medium text-slate-600">역량 점수 미산출</p>
+            <p className="text-xs text-slate-500 mt-1">개인별 AI 분석을 실행하면 종합 점수·레이더가 표시됩니다.</p>
+          </div>
+        )}
 
         {/* 3. 삼각측정 비교 테이블 */}
         {hasTriangulation && (
@@ -1021,8 +1030,8 @@ export default function IntegratedReport({
           />
         )}
 
-        {/* 데이터 없음 안내 */}
-        {!hasTriangulation && !hasEvidence && !hasBEI && !hasNorm && !hasCoaching && (
+        {/* 심층 섹션 데이터 없음 안내 (역량 점수는 있으나 삼각측정·증거 등 심층 데이터가 없을 때) */}
+        {hasCompetency && !hasTriangulation && !hasEvidence && !hasBEI && !hasNorm && !hasCoaching && (
           <div className="bg-white/60 border border-slate-200/40 rounded-2xl p-8 text-center">
             <BarChart3 className="w-12 h-12 text-slate-200 mx-auto mb-3" />
             <p className="text-sm font-medium text-slate-500">분석 데이터 대기 중</p>

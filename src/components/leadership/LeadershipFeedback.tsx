@@ -229,6 +229,9 @@ export default function LeadershipFeedback({
   type ContentCriterion = { criteria: string; score: number | null; grade: string; evidence: string; rationale: string };
   const [contentEval, setContentEval] = useState<{ criteria: ContentCriterion[]; overallNote: string; model: string } | null>(null);
   const [contentEvalLoading, setContentEvalLoading] = useState(false);
+  // 내용 평가는 행동 평가(coachConfirmed)와 별도 레이어이므로 확정도 별도여야 한다.
+  // 행동 확정만으로 '교수 확정 완료'를 표시하면 검토 안 된 내용평가에 거짓 진술이 된다(dohan 1원칙).
+  const [contentConfirmed, setContentConfirmed] = useState(false);
 
   // 단계별 완료 시각 기록 (로딩 스켈레톤 UX)
   const [phaseTimestamps, setPhaseTimestamps] = useState<PhaseTimestamps>({});
@@ -484,6 +487,7 @@ export default function LeadershipFeedback({
   // ── 내용(content) 평가 — AI 초안 (행동 평가와 분리, fail-closed 인용 기반) ──
   const handleContentEval = useCallback(async () => {
     setContentEvalLoading(true);
+    setContentConfirmed(false); // 재실행 시 이전 확정 무효화(새 초안은 미확정)
     try {
       const transcript = transcriptSegments.map((s) => s.text || s.value || "").join(" ").trim();
       const res = await fetch("/api/solar/content-eval", {
@@ -680,10 +684,17 @@ export default function LeadershipFeedback({
     const el = document.getElementById("multimodal-report");
     const inner = el ? el.innerHTML : "<p>보고서를 찾을 수 없습니다.</p>";
     const label = mmResult?.scoring.competencyLabel || "리더십";
-    const total = mmResult?.scoring.totalScore;
+    // 화면 헤드라인과 동일 소스: N차 집계가 있으면 중앙값(강건), 없으면 단일 총점.
+    const agg = mmResult?.aggregate?.total;
+    const total = agg ? agg.median : mmResult?.scoring.totalScore;
+    const aggNote = agg ? ` · ${mmResult?.aggregate?.runCount ?? ""}회 중앙값` : "";
     const totalLine = total !== null && total !== undefined
-      ? `<p class="meta">총점 ${total.toFixed(1)}/9 (${mmResult?.scoring.interpretation}) · 핵심 4개 항목(M1~M4) 평균 · M5 제외</p>`
+      ? `<p class="meta">총점 ${total.toFixed(1)}/9 (${mmResult?.scoring.interpretation})${aggNote} · 핵심 4개 항목(M1~M4) 평균 · M5 제외</p>`
       : `<p class="meta">총점 산출 보류 (채점 가능 항목 3개 미만)</p>`;
+    // 내용 평가는 별도 레이어 — export에도 포함하되 'AI 초안/확정' 상태와 '행동점수 비합산'을 명시.
+    const ceEl = document.getElementById("content-eval-export");
+    const ceInner = ceEl ? `<h2>내용 평가 (행동 점수와 합산하지 않는 별도 레이어)</h2>
+<p class="sub">${contentConfirmed ? "전문가 확정 완료" : "AI 초안 · 전문가 확정 전 (참고용)"} · 전사 인용 근거 기반</p>${ceEl.innerHTML}` : "";
     return `<!DOCTYPE html><html lang="ko"><head><meta charset="utf-8"><title>${label} 멀티모달 행동분석 보고서 — ${videoTitle}</title>
 <style>
   *{box-sizing:border-box} body{font-family:'Pretendard',system-ui,sans-serif;color:#1e293b;margin:32px;line-height:1.8}
@@ -698,8 +709,9 @@ export default function LeadershipFeedback({
 <p class="sub">${videoTitle} · KHNP 인재개발원 리더십 역량진단 v1.0</p>
 ${totalLine}
 ${inner}
+${ceInner}
 </body></html>`;
-  }, [mmResult, videoTitle]);
+  }, [mmResult, videoTitle, contentConfirmed]);
 
   const handleExportReportPdf = useCallback(() => {
     // document.write 대신 Blob URL 사용 (XSS·성능 회피). 콘텐츠는 renderReport에서 script/iframe/on* 제거 후 생성됨
@@ -1371,22 +1383,30 @@ ${inner}
                   {transcriptSegments.length === 0 && <span className="text-amber-600"> (전사 데이터가 아직 없어 실행할 수 없습니다.)</span>}
                 </p>
               ) : (
-                <div className={cn("space-y-3", !coachConfirmed && "opacity-95")}>
-                  {coachConfirmed ? (
+                <div className={cn("space-y-3", !contentConfirmed && "opacity-95")}>
+                  {contentConfirmed ? (
                     <div className="flex items-start gap-2 bg-emerald-50/70 border border-emerald-200/60 rounded-lg px-3 py-2">
                       <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
                       <p className="text-[12px] text-emerald-700 leading-relaxed">
-                        <strong>{coachName} 전문가 확정 완료.</strong> 내용 평가 초안을 전문가가 검토·확정했습니다. 행동 점수와 합산하지 않습니다.
+                        <strong>{coachName ? `${coachName} ` : ""}내용 평가 확정 완료.</strong> 전문가가 내용 평가 초안을 직접 검토·확정했습니다. 행동 점수와 합산하지 않습니다.
                       </p>
                     </div>
                   ) : (
-                    <div className="flex items-start gap-2 bg-amber-50/70 border border-amber-200/60 rounded-lg px-3 py-2">
-                      <span className="text-amber-600 text-sm shrink-0">⚠</span>
-                      <p className="text-[12px] text-amber-700 leading-relaxed">
-                        <strong>전문가 미확정 AI 초안 · 참고용.</strong> 내용 평가는 전문가들 사이에서도 일치도가 낮은 영역이므로, 상단에서 평가자(코치)가 검토·확정하기 전까지는 참고용입니다. 행동 점수와 합산하지 않습니다.
+                    <div className="flex items-start justify-between gap-2 bg-amber-50/70 border border-amber-200/60 rounded-lg px-3 py-2 flex-wrap">
+                      <p className="text-[12px] text-amber-700 leading-relaxed flex-1 min-w-0">
+                        <span className="text-amber-600">⚠ </span>
+                        <strong>전문가 미확정 AI 초안 · 참고용.</strong> 내용 평가는 전문가들 사이에서도 일치도가 낮은 영역이라, 아래에서 전문가가 직접 확정하기 전까지는 참고용입니다(행동 평가 확정과 별개). 행동 점수와 합산하지 않습니다.
                       </p>
+                      {/* 행동 확정(coachConfirmed)과 분리된, 내용 평가 전용 확정 버튼 */}
+                      <button
+                        onClick={() => setContentConfirmed(true)}
+                        className="shrink-0 text-[11px] font-medium px-2.5 py-1.5 min-h-[32px] inline-flex items-center rounded-lg bg-emerald-700 text-white hover:bg-emerald-800 transition-colors"
+                      >
+                        내용 평가 확정
+                      </button>
                     </div>
                   )}
+                  <div id="content-eval-export" className="space-y-3">
                   {contentEval.criteria.map((c, i) => {
                     const held = c.score === null || !c.evidence?.trim(); // 인용 없는 점수는 UI에서도 보류 (이중 방어)
                     const gc = held ? "bg-slate-100 text-slate-500" : c.score! >= 7 ? "bg-emerald-100 text-emerald-700" : c.score! >= 4 ? "bg-amber-100 text-amber-700" : "bg-red-100 text-red-600";
@@ -1408,6 +1428,7 @@ ${inner}
                   {contentEval.overallNote && (
                     <p className="text-[12px] text-slate-600 leading-relaxed pt-1">{contentEval.overallNote}</p>
                   )}
+                  </div>
                   <button onClick={handleContentEval} disabled={contentEvalLoading}
                     className="text-[11px] text-slate-500 hover:text-slate-700 flex items-center gap-1">
                     <Loader2 className={cn("w-3 h-3", contentEvalLoading && "animate-spin")} /> 다시 실행

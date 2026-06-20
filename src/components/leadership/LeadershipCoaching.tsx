@@ -250,6 +250,26 @@ export default function LeadershipCoaching() {
     []
   );
 
+  // 통합 리포트용 — 역량 라벨맵은 항상 채워(camelCase 키 노출 방지), 점수는 speakers 집계.
+  // 이전엔 빈 객체 {}로 호출돼 리포트가 빈 레이더·'—'·raw key로 오도되던 것 배선.
+  const reportCompetencyLabels = useMemo(
+    () => Object.fromEntries(LEADERSHIP_COMPETENCY_DEFS.map((d) => [d.key, d.label])) as Record<string, string>,
+    []
+  );
+  const reportCompetencyScores = useMemo(() => {
+    const acc: Record<string, number[]> = {};
+    for (const sp of speakers) {
+      for (const [k, v] of Object.entries(sp.scores || {})) {
+        if (typeof v === "number" && v > 0) (acc[k] ??= []).push(v);
+      }
+    }
+    const out: Record<string, number> = {};
+    for (const [k, arr] of Object.entries(acc)) {
+      if (arr.length) out[k] = Math.round((arr.reduce((a, b) => a + b, 0) / arr.length) * 10) / 10;
+    }
+    return out;
+  }, [speakers]);
+
   // 핸들러
   const handleUpload = useCallback(
     async (file: File) => {
@@ -991,8 +1011,8 @@ export default function LeadershipCoaching() {
         {analysisSubTab === "report" && (
           <div role="tabpanel" id="subpanel-report" aria-labelledby="subtab-report">
             <IntegratedReport
-              competencyScores={{}}
-              competencyLabels={{}}
+              competencyScores={reportCompetencyScores}
+              competencyLabels={reportCompetencyLabels}
               evidenceMaps={evidence.evidenceMap ? [evidence.evidenceMap] : []}
               derailerProfile={derailer.profile}
               beiAnalysis={bei.analysis}
