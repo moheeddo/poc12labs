@@ -49,3 +49,7 @@
 - 13건 확정 → 7 수정: 헤더 컷 SSOT 정렬 / STAR 단일문자 오매칭 라인앵커 / BEI 영문키 한글라벨 / 등급라벨 경계중복 / Hogan 척도명(Argumentative→Skeptical) / richnessScore 데드코드 / gap-snap 주석.
 - 보류(동작변경 위험·P2): generateAIScore 근거게이트, Marengo confidence 미사용 융합, differentiating 게이트, derailer 증거 정규식 확장. (의도·트레이드오프 판단 필요)
 - tsc0 · 211 · build✓ → 커밋·푸시.
+
+### [사이클 7] 접근성 라운드2
+- 4건 확정(수확 체감 — iter28이 a11y 대량 처리) → 5 수정: coachName 입력 aria-label, 챕터 막대 버튼 aria-label+current, TranscriptTimeline 카드 중첩인터랙티브 제거, SpeakerRoleMapping 입력 라벨.
+- tsc0 · 211 · build✓ → 커밋·푸시.
