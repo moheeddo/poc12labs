@@ -72,3 +72,7 @@
 - 19건 확정(중복多) → 5 고유 수정: growth 0패딩 거짓신호·cohenD NaN(공정성)·norm 키손실·transcript argmax/dedup/true-median. +회귀7.
 - 보류: slide-matcher coverage(비활성 lecture). 전체 225 테스트.
 - tsc0 · 225 · build✓ → 커밋·푸시.
+
+### [사이클 12] 배포 + 성능 재측정 (검증)
+- C9~C11 최신 배포. 측정: 라이브 콜드 2856ms(콜드스타트 아티팩트)·웜 ~1500ms(good)·로컬 1384ms · CLS 0 · 번들 116kB(회귀0) · 보안 403 · 콘솔 0.
+- 결론: 50여 건 수정에도 성능 회귀 없음. 추가 perf는 폰트CDN 의존(iter36 preconnect 완료)이라 churn 없이 마무리.
