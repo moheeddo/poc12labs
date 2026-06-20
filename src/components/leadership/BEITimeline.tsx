@@ -186,7 +186,7 @@ function BEIEventCard({
                   >
                     {isDiff && <Star className="w-2.5 h-2.5 fill-amber-400 text-amber-400" />}
                     {COMPETENCY_LABELS[c.competencyKey] ?? c.competencyKey}
-                    <span className="opacity-60 font-mono">
+                    <span className="font-mono text-emerald-600">
                       {Math.round(c.confidence * 100)}%
                     </span>
                   </span>

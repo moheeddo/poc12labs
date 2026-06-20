@@ -48,8 +48,8 @@ export interface DerailerProfile {
   scenarioType: "normal" | "emergency";
   /** 11개 탈선 패턴 분석 결과 (점수 내림차순 정렬) */
   patterns: DerailerPattern[];
-  /** 상위 3개 고위험 탈선 패턴 */
+  /** 상위 3개 고위험 탈선 패턴 (증거 보유 패턴만) */
   topRisks: DerailerPattern[];
-  /** 전체 탈선 위험 수준 */
-  overallRiskLevel: "low" | "moderate" | "high";
+  /** 전체 탈선 위험 수준. "unverified" = 증거(타임스탬프 인용) 보유 패턴이 0건이라 종합 위험을 단정할 수 없음(fail-closed) */
+  overallRiskLevel: "low" | "moderate" | "high" | "unverified";
 }

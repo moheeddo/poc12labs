@@ -14,7 +14,8 @@ export function generateRecommendations(
   alpha: number,
   iccValue: number,
   sampleSize: number,
-  adequacy: SampleAdequacy
+  adequacy: SampleAdequacy,
+  iccComputed: boolean = true
 ): string[] {
   const recs: string[] = [];
 
@@ -31,8 +32,13 @@ export function generateRecommendations(
     recs.push("Cronbach α가 0.9 이상으로 매우 높습니다. 문항 중복 가능성을 점검하시기 바랍니다.");
   }
 
-  // ICC 기반 권고
-  if (iccValue < 0.4) {
+  // ICC 기반 권고 — fail-closed: 짝지어진 인간 평가 < 3쌍이면 ICC를 산출하지 않았으므로
+  // 센티넬 0을 '일치도 낮음'으로 단정하지 않고 '미산출'로 안내한다(근거 없는 판정 차단).
+  if (!iccComputed) {
+    recs.push(
+      "ICC(2,1)은 짝지어진 인간 평가가 3건 이상일 때 산출됩니다. 현재 데이터가 부족하여 평가자 간 신뢰도를 산출하지 못했습니다. 인간 평가 데이터를 추가 수집하십시오."
+    );
+  } else if (iccValue < 0.4) {
     recs.push("ICC(2,1)이 0.4 미만입니다. AI 평가자와 인간 평가자 간 일치도가 낮으므로 평가 기준 재조정이 필요합니다.");
   } else if (iccValue < 0.6) {
     recs.push("ICC(2,1)이 0.4~0.6 수준입니다. 평가자 간 보통 수준의 일치도로, 추가 보정이 권장됩니다.");
@@ -100,13 +106,14 @@ export function analyzeReliability(dataset: ReliabilityDatasetItem[]): Reliabili
       human: competencyKeys.reduce((sum, key) => sum + (item.humanScores![key] ?? 0), 0),
     }));
 
-  const iccResult =
-    iccPairs.length >= 3
-      ? icc21(
-          iccPairs.map((p) => p.ai),
-          iccPairs.map((p) => p.human)
-        )
-      : { value: 0, ci95: [0, 0] as [number, number] };
+  // 짝지어진 인간 평가가 3쌍 미만이면 ICC를 산출하지 않는다(센티넬 반환 + computed=false).
+  const iccComputed = iccPairs.length >= 3;
+  const iccResult = iccComputed
+    ? icc21(
+        iccPairs.map((p) => p.ai),
+        iccPairs.map((p) => p.human)
+      )
+    : { value: 0, ci95: [0, 0] as [number, number] };
 
   // 문항별(역량별) 분석: 문항-전체 상관, 해당 문항 삭제 시 α
   const itemAnalysis: ItemAnalysisResult[] = competencyKeys.map((key, index) => ({
@@ -115,7 +122,7 @@ export function analyzeReliability(dataset: ReliabilityDatasetItem[]): Reliabili
     alphaIfDeleted: k >= 3 && n >= 2 ? alphaIfDeleted(itemMatrix, index) : 0,
   }));
 
-  const recommendations = generateRecommendations(alpha, iccResult.value, n, adequacy);
+  const recommendations = generateRecommendations(alpha, iccResult.value, n, adequacy, iccComputed);
 
   // aiTotals는 사용하지 않으면 lint 경고 발생하므로 조건부 참조
   void aiTotals;
@@ -123,7 +130,7 @@ export function analyzeReliability(dataset: ReliabilityDatasetItem[]): Reliabili
 
   return {
     cronbachAlpha: alpha,
-    icc: { type: "ICC(2,1)", value: iccResult.value, ci95: iccResult.ci95 },
+    icc: { type: "ICC(2,1)", value: iccResult.value, ci95: iccResult.ci95, computed: iccComputed },
     itemAnalysis,
     sampleSize: n,
     adequacy,

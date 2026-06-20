@@ -86,7 +86,7 @@ export default function SpeakerRoleMapping({ competencyKey, value, onApply, disa
           </div>
           <div className="text-left min-w-0">
             <p className="text-sm font-semibold text-slate-800">화자·역할 보정 (코치)</p>
-            <p className={cn("text-xs truncate", value.targetName ? "text-slate-500" : "text-amber-600")}>{summary}</p>
+            <p className={cn("text-xs truncate", value.targetName ? "text-slate-500" : "text-amber-700")}>{summary}</p>
           </div>
         </div>
         <span className="text-xs text-[#006341] shrink-0 ml-2">{open ? "접기" : "보정"}</span>
@@ -160,7 +160,7 @@ export default function SpeakerRoleMapping({ competencyKey, value, onApply, disa
           {/* 도메인 용어 사전 (STT 오인식 보정 — "엄사방", "주무차장" 등) */}
           <div>
             <label className="text-xs font-medium text-slate-600 mb-1 block">
-              도메인 용어 사전 <span className="text-slate-400 font-normal">(음성인식 오인식 보정 — 인명·직책·부서)</span>
+              도메인 용어 사전 <span className="text-slate-600 font-normal">(음성인식 오인식 보정 — 인명·직책·부서)</span>
             </label>
             <div className="flex flex-wrap gap-1.5 mb-1.5">
               {glossary.map((t) => (
@@ -183,7 +183,7 @@ export default function SpeakerRoleMapping({ competencyKey, value, onApply, disa
                 <Plus className="w-4 h-4" />
               </button>
             </div>
-            <p className="text-[10px] text-slate-400 mt-1">※ 근본 해결은 온프렘 한국어 STT — 현재는 인식 보정 단계입니다.</p>
+            <p className="text-[10px] text-slate-600 mt-1">※ 근본 해결은 온프렘 한국어 STT — 현재는 인식 보정 단계입니다.</p>
           </div>
 
           {/* 재분석 버튼 — 화자분리(targetName) 또는 용어사전(glossary) 변경이면 활성 */}

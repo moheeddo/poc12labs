@@ -111,7 +111,7 @@ export default function AnalysisReport({ data, onSeek }: AnalysisReportProps) {
                 <span className={cn("text-4xl font-bold font-mono tabular-nums", getScoreColor(data.overallScore))}>
                   {hasScores ? data.overallScore.toFixed(1) : "-"}
                 </span>
-                <span className="text-sm text-slate-400">/9</span>
+                <span className="text-sm text-slate-600">/9</span>
               </div>
               {hasScores && (
                 <span className={cn(
@@ -295,7 +295,7 @@ export default function AnalysisReport({ data, onSeek }: AnalysisReportProps) {
                   c.avgScore >= 7 ? "bg-emerald-50 text-emerald-700 border border-emerald-200" :
                   c.avgScore >= 5 ? "bg-amber-50 text-amber-700 border border-amber-200" :
                   c.avgScore > 0 ? "bg-red-50 text-red-700 border border-red-200" :
-                  "bg-slate-50 text-slate-400 border border-slate-200"
+                  "bg-slate-50 text-slate-600 border border-slate-200"
                 )}>
                   {c.avgScore > 0 ? `${c.avgScore.toFixed(1)}/9` : "미평가"}
                   <span className="text-[10px] ml-1 font-medium">

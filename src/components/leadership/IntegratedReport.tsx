@@ -208,7 +208,7 @@ function ReportHeader({
               <p className={cn("text-xs font-semibold mt-1", scoreColor)}>{scoreLabel}</p>
             )}
           </div>
-          <p className="text-[10px] text-slate-400 mt-1">
+          <p className="text-[10px] text-slate-500 mt-1">
             {scoredCount}개 역량 평가 완료
           </p>
         </div>
@@ -488,7 +488,7 @@ function EvidenceSection({
                   <p className="text-lg font-bold font-mono tabular-nums text-emerald-700">
                     {em.score.toFixed(1)}
                   </p>
-                  <p className="text-[10px] text-slate-400">클립 {em.clips.length}건</p>
+                  <p className="text-[10px] text-slate-600">클립 {em.clips.length}건</p>
                 </div>
               </div>
 
@@ -558,7 +558,7 @@ function BEISection({
             >
               {/* STAR 카드 헤더 */}
               <div className="flex items-center gap-2 px-4 py-2.5 bg-amber-50/60 border-b border-amber-100/60">
-                <span className="text-[10px] font-mono font-bold text-white bg-amber-500 rounded px-1.5 py-0.5">
+                <span className="text-[10px] font-mono font-bold text-white bg-amber-700 rounded px-1.5 py-0.5">
                   #{rank + 1}
                 </span>
                 <span className="text-sm font-semibold text-slate-700 flex-1 min-w-0">
@@ -708,7 +708,7 @@ function NormComparison({
                 <span className={cn("text-xs font-mono font-bold tabular-nums", getScoreColor(score))}>
                   {score > 0 ? score.toFixed(1) : "—"}
                 </span>
-                <span className="text-[10px] text-slate-400 shrink-0 w-14 text-right">
+                <span className="text-[10px] text-slate-600 shrink-0 w-14 text-right">
                   P{pctRounded}
                 </span>
               </div>
@@ -737,7 +737,7 @@ function NormComparison({
               </div>
 
               {/* P10 / P50 / P90 레이블 */}
-              <div className="flex justify-between text-[9px] text-slate-400 mt-0.5 px-0.5">
+              <div className="flex justify-between text-[9px] text-slate-600 mt-0.5 px-0.5">
                 <span>P10 ({stats.p10})</span>
                 <span>P50 ({stats.p50})</span>
                 <span>P90 ({stats.p90})</span>
@@ -812,7 +812,7 @@ function CoachingSection({
           </p>
           <div className="space-y-2">
             {strengths.length === 0 ? (
-              <p className="text-xs text-slate-400 py-4 text-center">강점 데이터 없음</p>
+              <p className="text-xs text-slate-600 py-4 text-center">강점 데이터 없음</p>
             ) : (
               strengths.map((s, i) => (
                 <div
@@ -843,7 +843,7 @@ function CoachingSection({
           </p>
           <div className="space-y-2">
             {developmentAreas.length === 0 ? (
-              <p className="text-xs text-slate-400 py-4 text-center">개발 영역 데이터 없음</p>
+              <p className="text-xs text-slate-600 py-4 text-center">개발 영역 데이터 없음</p>
             ) : (
               developmentAreas.map((d, i) => (
                 <div
@@ -1020,7 +1020,7 @@ export default function IntegratedReport({
           <div className="bg-white/60 border border-slate-200/40 rounded-2xl p-8 text-center">
             <BarChart3 className="w-12 h-12 text-slate-200 mx-auto mb-3" />
             <p className="text-sm font-medium text-slate-500">분석 데이터 대기 중</p>
-            <p className="text-xs text-slate-400 mt-1">
+            <p className="text-xs text-slate-500 mt-1">
               AI 분석을 실행하면 통합 심층 리포트가 자동 생성됩니다.
             </p>
           </div>

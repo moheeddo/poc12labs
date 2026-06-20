@@ -161,7 +161,7 @@ export default function FairnessMonitor({ report, loading = false }: FairnessMon
   if (!report) {
     return (
       <div className="rounded-xl border border-slate-200/60 bg-white p-10 flex flex-col items-center gap-3 text-center shadow-sm">
-        <Shield className="h-10 w-10 text-slate-400" />
+        <Shield className="h-10 w-10 text-slate-500" />
         <p className="text-sm text-slate-500">
           편향 분석을 위해 최소 10명 이상의 데이터가 필요합니다.
         </p>
@@ -207,7 +207,7 @@ export default function FairnessMonitor({ report, loading = false }: FairnessMon
       >
         {fc.icon}
         <span className={`font-bold tracking-wide ${fc.textSize}`}>{fc.label}</span>
-        <span className="text-sm opacity-70">
+        <span className="text-sm">
           {report.analyzedGroups.length}개 변수 분석 완료
         </span>
       </div>

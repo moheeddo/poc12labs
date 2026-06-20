@@ -104,7 +104,7 @@ function ScoreSelector({
                   : tier === "mid"
                     ? "bg-amber-100 text-amber-700 border border-amber-300"
                     : "bg-red-100 text-red-700 border border-red-300"
-                : "bg-slate-50/50 text-slate-400 border border-slate-200/50 hover:border-slate-200 hover:text-slate-500"
+                : "bg-slate-50/50 text-slate-500 border border-slate-200/50 hover:border-slate-200 hover:text-slate-700"
             )}
           >
             {n}
@@ -203,9 +203,9 @@ function MultimodalIndicatorTable({
               {/* 지표명 */}
               <div className="px-3 py-2 flex items-center gap-2">
                 <span className="text-sm text-slate-700">{sub.label}</span>
-                <span className="text-[9px] font-mono text-slate-400">{sub.name}</span>
+                <span className="text-[9px] font-mono text-slate-600">{sub.name}</span>
                 {sub.condition && (
-                  <span className="text-[9px] text-amber-500/70 flex items-center gap-0.5">
+                  <span className="text-[10px] text-amber-700 flex items-center gap-0.5">
                     <AlertTriangle className="w-2.5 h-2.5" />
                     조건부
                   </span>
@@ -213,7 +213,7 @@ function MultimodalIndicatorTable({
               </div>
               {/* 임계값 + 선택 */}
               <div className="grid grid-cols-[1fr_repeat(4,80px)] px-3 pb-2">
-                <span className="text-sm text-slate-400 font-mono">{sub.unit}</span>
+                <span className="text-sm text-slate-600 font-mono">{sub.unit}</span>
                 {thresholds.map((th, ti) => {
                   const score = 3 - ti; // 상위=3, 중상=2, 중하=1, 미흡=0
                   const isSelected = selected === score;
@@ -575,7 +575,7 @@ export default function CompetencyAssessment({ data, onBack }: CompetencyAssessm
                 {/* 디브리핑 클립 */}
                 {itemClips.length > 0 && (
                   <div className="px-5 pb-3">
-                    <p className="text-sm uppercase tracking-wider text-slate-400 mb-2">디브리핑 장면 ({itemClips.length}건)</p>
+                    <p className="text-sm uppercase tracking-wider text-slate-600 mb-2">디브리핑 장면 ({itemClips.length}건)</p>
                     <div className="space-y-1.5">
                       {itemClips.map((clip) => {
                         const isClipPlaying = currentTime >= clip.timestamp && currentTime <= clip.endTime;
@@ -595,7 +595,7 @@ export default function CompetencyAssessment({ data, onBack }: CompetencyAssessm
                               </span>
                               <span className="text-sm text-slate-500">{clip.speaker}</span>
                               {isClipPlaying && <div className="w-1.5 h-1.5 rounded-full bg-emerald-600 animate-pulse" />}
-                              {clip.suggestedScore > 0 && <span className="ml-auto text-sm font-mono text-slate-400">AI 추천: {clip.suggestedScore}점</span>}
+                              {clip.suggestedScore > 0 && <span className="ml-auto text-sm font-mono text-slate-600">AI 추천: {clip.suggestedScore}점</span>}
                             </div>
                             <p className="text-sm text-slate-500 leading-relaxed line-clamp-2 group-hover:text-slate-700">{clip.description}</p>
                           </button>
@@ -608,11 +608,11 @@ export default function CompetencyAssessment({ data, onBack }: CompetencyAssessm
                 {/* 채점 + 메모 */}
                 <div className="px-5 pb-5 space-y-3 border-t border-slate-200/20 pt-3">
                   <div>
-                    <p className="text-sm uppercase tracking-wider text-slate-400 mb-2">평가 점수</p>
+                    <p className="text-sm uppercase tracking-wider text-slate-600 mb-2">평가 점수</p>
                     <ScoreSelector value={itemScore.score} onChange={(s) => updateBarsScore(item.id, s)} />
                   </div>
                   <div>
-                    <p className="text-sm uppercase tracking-wider text-slate-400 mb-1.5">평가 메모</p>
+                    <p className="text-sm uppercase tracking-wider text-slate-600 mb-1.5">평가 메모</p>
                     <textarea
                       value={itemScore.note}
                       onChange={(e) => updateBarsNote(item.id, e.target.value)}
@@ -666,7 +666,7 @@ export default function CompetencyAssessment({ data, onBack }: CompetencyAssessm
                 {/* 비전제시 클립 (멀티모달에서도 보여줌) */}
                 {clips.length > 0 && idx < clips.length && (
                   <div className="px-5 pb-3">
-                    <p className="text-sm uppercase tracking-wider text-slate-400 mb-2">관련 장면</p>
+                    <p className="text-sm uppercase tracking-wider text-slate-600 mb-2">관련 장면</p>
                     <button
                       onClick={() => seekTo(clips[idx]?.timestamp || 0)}
                       className="w-full text-left rounded-lg px-3 py-2 bg-white/40 hover:bg-slate-100/40 transition-colors group"
@@ -684,7 +684,7 @@ export default function CompetencyAssessment({ data, onBack }: CompetencyAssessm
 
                 {/* 메모 */}
                 <div className="px-5 pb-5 border-t border-slate-200/20 pt-3">
-                  <p className="text-sm uppercase tracking-wider text-slate-400 mb-1.5">평가 메모</p>
+                  <p className="text-sm uppercase tracking-wider text-slate-600 mb-1.5">평가 메모</p>
                   <textarea
                     value={mmNotes[item.id] || ""}
                     onChange={(e) => updateMmNote(item.id, e.target.value)}

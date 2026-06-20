@@ -28,7 +28,7 @@ function getRiskColors(level: DerailerPattern["riskLevel"]) {
         gauge: "#f59e0b",    // amber-500
         badge: "bg-amber-100 text-amber-700 border-amber-300",
         card: "border-amber-200/40 bg-amber-50/20",
-        text: "text-amber-600",
+        text: "text-amber-700",
         label: "보통",
       };
     case "high":
@@ -36,7 +36,7 @@ function getRiskColors(level: DerailerPattern["riskLevel"]) {
         gauge: "#f97316",    // orange-500
         badge: "bg-orange-100 text-orange-700 border-orange-300",
         card: "border-orange-200/40 bg-orange-50/20",
-        text: "text-orange-600",
+        text: "text-orange-700",
         label: "높음",
       };
     case "critical":
@@ -44,7 +44,7 @@ function getRiskColors(level: DerailerPattern["riskLevel"]) {
         gauge: "#ef4444",    // red-500
         badge: "bg-red-100 text-red-700 border-red-300",
         card: "border-red-200/40 bg-red-50/20",
-        text: "text-red-500",
+        text: "text-red-700",
         label: "위험",
       };
   }
@@ -59,8 +59,20 @@ function getOverallRiskStyle(level: DerailerProfile["overallRiskLevel"]) {
       return { cls: "bg-amber-50 text-amber-700 border-amber-300", label: "보통", Icon: Shield };
     case "high":
       return { cls: "bg-red-50 text-red-700 border-red-300", label: "높음", Icon: ShieldAlert };
+    case "unverified":
+      // fail-closed: 증거 보유 패턴이 0건이면 종합 위험을 단정하지 않고 '미확보'로 표시
+      return { cls: "bg-slate-100 text-slate-600 border-slate-300", label: "미확보", Icon: Shield };
   }
 }
+
+// 증거(타임스탬프 인용) 미보유 패턴에 적용할 중립 스타일 — 근거 없는 위험 단정 차단
+const UNVERIFIED_COLORS = {
+  gauge: "#94a3b8", // slate-400 (게이지 그래픽)
+  badge: "bg-slate-100 text-slate-600 border-slate-300",
+  card: "border-slate-200/40 bg-slate-50/30",
+  text: "text-slate-500",
+  label: "근거 미확보",
+};
 
 // ─── 반원형 게이지 (CSS only, conic-gradient) ───────────────────────
 interface GaugeProps {
@@ -136,7 +148,9 @@ interface PatternCardProps {
 
 function PatternCard({ pattern, onSeekVideo }: PatternCardProps) {
   const [expanded, setExpanded] = useState(false);
-  const colors = getRiskColors(pattern.riskLevel);
+  // fail-closed: 증거(타임스탬프 인용) 없는 패턴은 위험색·등급을 단정하지 않고 중립 처리
+  const verified = pattern.evidence.length > 0;
+  const colors = verified ? getRiskColors(pattern.riskLevel) : UNVERIFIED_COLORS;
 
   return (
     <div
@@ -151,7 +165,7 @@ function PatternCard({ pattern, onSeekVideo }: PatternCardProps) {
         <p className="text-xs font-semibold text-slate-700 text-center leading-tight mt-0.5">
           {pattern.name}
         </p>
-        <p className="text-[10px] text-slate-400 text-center">{pattern.hoganScale}</p>
+        <p className="text-[10px] text-slate-600 text-center">{pattern.hoganScale}</p>
         <span
           className={cn(
             "text-[10px] font-medium border rounded px-1.5 py-0.5",
@@ -167,7 +181,7 @@ function PatternCard({ pattern, onSeekVideo }: PatternCardProps) {
         <div>
           <button
             onClick={() => setExpanded((v) => !v)}
-            className="w-full flex items-center justify-center gap-1 text-[10px] text-slate-400 hover:text-slate-600 transition-colors py-0.5"
+            className="w-full flex items-center justify-center gap-1 text-[10px] text-slate-500 hover:text-slate-700 transition-colors py-0.5"
           >
             증거 {pattern.evidence.length}건
             {expanded ? (
@@ -248,7 +262,7 @@ export default function DerailerDashboard({
           <ShieldAlert className="w-7 h-7 text-slate-400" />
         </div>
         <p className="text-base font-medium text-slate-500">탈선 패턴 분석 대기 중</p>
-        <p className="text-sm text-slate-400 mt-1.5">
+        <p className="text-sm text-slate-500 mt-1.5">
           AI 분석 실행 후 Hogan HDS 11가지 탈선 패턴이 표시됩니다
         </p>
       </div>
@@ -257,6 +271,8 @@ export default function DerailerDashboard({
 
   const overallStyle = getOverallRiskStyle(profile.overallRiskLevel);
   const OverallIcon = overallStyle.Icon;
+  // 증거(타임스탬프 인용) 미보유 패턴 수 — 종합 위험 단정에서 제외된 항목을 투명하게 고지
+  const unverifiedCount = profile.patterns.filter((p) => p.evidence.length === 0).length;
 
   return (
     <div className="space-y-5">
@@ -270,6 +286,11 @@ export default function DerailerDashboard({
           <p className="text-sm font-semibold text-slate-800">
             {profile.scenarioType === "emergency" ? "비상 상황" : "정상 운전"} 시나리오
           </p>
+          {unverifiedCount > 0 && (
+            <p className="text-[11px] text-slate-500 mt-0.5">
+              근거 미확보 {unverifiedCount}개 패턴은 종합 위험 산정에서 제외됨
+            </p>
+          )}
         </div>
         <span
           className={cn(
@@ -307,13 +328,13 @@ export default function DerailerDashboard({
                     </span>
                     <div className="min-w-0">
                       <p className="text-sm font-semibold text-slate-800 leading-tight">{p.name}</p>
-                      <p className="text-[10px] text-slate-400">{p.hoganScale}</p>
+                      <p className="text-[10px] text-slate-600">{p.hoganScale}</p>
                     </div>
                     <div className="ml-auto shrink-0 text-right">
                       <p className={cn("text-lg font-bold font-mono tabular-nums", colors.text)}>
                         {p.score.toFixed(1)}
                       </p>
-                      <p className="text-[10px] text-slate-400">/ 10</p>
+                      <p className="text-[10px] text-slate-500">/ 10</p>
                     </div>
                   </div>
 

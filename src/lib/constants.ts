@@ -268,8 +268,8 @@ export const LEADERSHIP_COMPETENCY_CONFIG: {
 
 // SOP 이탈 심각도 라벨
 export const SEVERITY_LABELS: Record<string, { label: string; color: string }> = {
-  low: { label: "경미", color: "text-blue-400" },
-  medium: { label: "보통", color: "text-amber-400" },
-  high: { label: "심각", color: "text-orange-400" },
-  critical: { label: "위험", color: "text-red-400" },
+  low: { label: "경미", color: "text-blue-600" },
+  medium: { label: "보통", color: "text-amber-700" },
+  high: { label: "심각", color: "text-orange-700" },
+  critical: { label: "위험", color: "text-red-600" },
 };

@@ -150,7 +150,7 @@ export default function VideoUploader({ onUpload, onUrlUpload, progress, accentC
           {onUrlUpload && !selectedFile && !progress && (
             <button
               onClick={(e) => { e.stopPropagation(); setShowUrlInput(true); }}
-              className="flex items-center gap-1.5 text-xs text-slate-600 hover:text-slate-400 transition-colors mx-auto"
+              className="flex items-center gap-1.5 text-xs text-slate-600 hover:text-slate-800 transition-colors mx-auto"
             >
               <Link2 className="w-3 h-3" />
               URL로 업로드
@@ -197,7 +197,7 @@ export default function VideoUploader({ onUpload, onUrlUpload, progress, accentC
           </div>
           <button
             onClick={() => setShowUrlInput(false)}
-            className="flex items-center gap-1.5 text-xs text-slate-600 hover:text-slate-400 transition-colors mx-auto"
+            className="flex items-center gap-1.5 text-xs text-slate-600 hover:text-slate-800 transition-colors mx-auto"
           >
             <FolderOpen className="w-3 h-3" />
             파일로 업로드

@@ -89,7 +89,7 @@ function CustomTooltip({ active, payload, label }: {
                 {COMPETENCY_LABELS[entry.name] ?? entry.name}
               </span>
             </div>
-            <span className="text-xs font-bold font-mono" style={{ color: entry.color }}>
+            <span className="text-xs font-bold font-mono text-slate-900">
               {entry.value.toFixed(1)}
             </span>
           </div>
@@ -277,11 +277,14 @@ export default function GrowthChart({ timeline, loading = false }: GrowthChartPr
                   <div className="text-[11px] text-slate-600 mb-1 truncate">
                     {COMPETENCY_LABELS[key] ?? key}
                   </div>
-                  <div
-                    className="text-xl font-bold font-mono"
-                    style={{ color }}
-                  >
-                    {score.toFixed(1)}
+                  <div className="flex items-center justify-center gap-1.5">
+                    <span
+                      className="w-2 h-2 rounded-full shrink-0"
+                      style={{ backgroundColor: color }}
+                    />
+                    <div className="text-xl font-bold font-mono text-slate-900">
+                      {score.toFixed(1)}
+                    </div>
                   </div>
                   <div className="flex justify-center mt-1">
                     <TrendIcon direction={direction} />

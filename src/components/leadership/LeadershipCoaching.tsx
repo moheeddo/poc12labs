@@ -730,7 +730,7 @@ export default function LeadershipCoaching() {
                     setUploadedFileName("");
                     setUploadedBlobUrl(null);
                   }}
-                  className="text-sm text-slate-400 hover:text-slate-600 transition-colors"
+                  className="text-sm text-slate-600 hover:text-slate-800 transition-colors"
                 >
                   다시 업로드
                 </button>
@@ -983,7 +983,7 @@ export default function LeadershipCoaching() {
 
       {/* ── 9점 척도 안내 (접기/펼치기) ── */}
       <details className="group">
-        <summary className="flex items-center gap-2 cursor-pointer text-xs text-slate-400 hover:text-slate-600 transition-colors select-none list-none py-1">
+        <summary className="flex items-center gap-2 cursor-pointer text-xs text-slate-600 hover:text-slate-800 transition-colors select-none list-none py-1">
           <div className="h-px flex-1 bg-slate-200/40" />
           <span>9점 척도 기준 ▾</span>
           <div className="h-px flex-1 bg-slate-200/40" />
@@ -992,9 +992,9 @@ export default function LeadershipCoaching() {
           <div className="grid grid-cols-5 gap-2 text-center">
             {[
               { range: "8-9", label: "탁월", color: "text-[#006341]", bg: "bg-emerald-50" },
-              { range: "7", label: "우수", color: "text-[#006341]/70", bg: "bg-emerald-500/5" },
+              { range: "7", label: "우수", color: "text-[#006341]", bg: "bg-emerald-500/5" },
               { range: "5-6", label: "보통", color: "text-amber-600", bg: "bg-amber-500/10" },
-              { range: "3-4", label: "미흡", color: "text-red-600/70", bg: "bg-red-500/5" },
+              { range: "3-4", label: "미흡", color: "text-red-700", bg: "bg-red-500/5" },
               { range: "1-2", label: "부족", color: "text-red-600", bg: "bg-red-500/10" },
             ].map((g) => (
               <div key={g.range} className={`${g.bg} rounded-lg py-1.5 px-1`}>
@@ -1003,7 +1003,7 @@ export default function LeadershipCoaching() {
               </div>
             ))}
           </div>
-          <p className="text-[10px] text-slate-400 mt-2 text-center">※ KHNP 역량 정의 · 멀티모달 행동지표 루브릭 v1.0</p>
+          <p className="text-[10px] text-slate-600 mt-2 text-center">※ KHNP 역량 정의 · 멀티모달 행동지표 루브릭 v1.0</p>
         </div>
       </details>
     </div>

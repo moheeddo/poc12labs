@@ -193,7 +193,7 @@ export default function ISOAuditView({
       {/* 헤더 */}
       <div className="flex items-center gap-2">
         <Shield className="h-5 w-5 text-emerald-700" />
-        <h3 className="text-base font-semibold text-white">ISO 10667 감사 뷰</h3>
+        <h3 className="text-base font-semibold text-slate-900">ISO 10667 감사 뷰</h3>
       </div>
 
       {/* ① ISO 10667 체크리스트 */}
@@ -309,7 +309,7 @@ export default function ISOAuditView({
                       return (
                         <td key={type} className="py-2.5 px-3 text-center">
                           {status === null ? (
-                            <span className="text-slate-400 text-lg">—</span>
+                            <span className="text-slate-600 text-lg">—</span>
                           ) : status ? (
                             <CheckCircle className="h-4 w-4 text-emerald-700 mx-auto" />
                           ) : (

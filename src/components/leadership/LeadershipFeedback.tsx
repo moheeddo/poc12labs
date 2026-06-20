@@ -37,7 +37,7 @@ function tierColorByJudgment(j: IndicatorJudgment["judgment"]): { bar: string; t
   if (j === "상위") return { bar: "bg-emerald-500", text: "text-emerald-600", chipBg: "bg-emerald-100 text-emerald-700" };
   if (j === "중상" || j === "중하") return { bar: "bg-amber-400", text: "text-amber-600", chipBg: "bg-amber-100 text-amber-700" };
   if (j === "미흡") return { bar: "bg-red-400", text: "text-red-500", chipBg: "bg-red-100 text-red-600" };
-  return { bar: "bg-slate-300", text: "text-slate-400", chipBg: "bg-slate-100 text-slate-500" }; // 참고/N/A
+  return { bar: "bg-slate-300", text: "text-slate-600", chipBg: "bg-slate-100 text-slate-600" }; // 참고/N/A
 }
 
 // 항목 점수(0~9) → 3색 등급
@@ -838,7 +838,7 @@ ${inner}
                     )}>
                       {step.label}
                       {isDone && (
-                        <span className="text-sm text-emerald-500 ml-2">
+                        <span className="text-sm text-emerald-600 ml-2">
                           {(() => {
                             const elapsed = getPhaseElapsed(step.phase);
                             return elapsed ? `${elapsed}` : "완료";
@@ -1106,7 +1106,7 @@ ${inner}
                       {i < steps.length - 1 && <div className="w-4 h-px bg-slate-200" />}
                     </div>
                   ))}
-                  <span className="w-full md:w-auto md:ml-auto mt-1 md:mt-0 text-[10px] text-slate-400">Human-in-the-Loop · EU AI Act 준수</span>
+                  <span className="w-full md:w-auto md:ml-auto mt-1 md:mt-0 text-[10px] text-slate-600">Human-in-the-Loop · EU AI Act 준수</span>
                 </div>
 
                 {/* 반복 진단 진행 중 */}
@@ -1193,8 +1193,8 @@ ${inner}
                     </div>
                     <p className={cn("text-sm font-medium mt-0.5", headlineColor)}>{agg ? agg.interpretation : s.interpretation}</p>
                     {agg && tot
-                      ? <p className="text-[11px] text-slate-400">{agg.runCount}회 중앙값 · 평균 {tot.mean.toFixed(1)}</p>
-                      : (s.totalScore100 !== null && <p className="text-[11px] text-slate-400">100점 환산 {s.totalScore100}점</p>)}
+                      ? <p className="text-[11px] text-slate-600">{agg.runCount}회 중앙값 · 평균 {tot.mean.toFixed(1)}</p>
+                      : (s.totalScore100 !== null && <p className="text-[11px] text-slate-600">100점 환산 {s.totalScore100}점</p>)}
                   </div>
                   {/* 항목별 미니 점수 (3색) */}
                   <div className="flex-1 space-y-1.5 min-w-0">
@@ -1275,7 +1275,7 @@ ${inner}
                   </div>
                 )}
 
-                <p className="text-[11px] text-slate-400 mt-3 pt-2 border-t border-slate-100">
+                <p className="text-[11px] text-slate-600 mt-3 pt-2 border-t border-slate-100">
                   채점 가능 핵심 항목 {s.scorableItemCount}/{s.coreItemCount}개 · {mmResult.reportModel === "solar-pro2" ? "Solar Pro 2" : "로컬 템플릿"} 보고서
                   {!agg && <span className="ml-1">· 단일 진단 (반복 진단으로 객관성 확보 권장)</span>}
                   {s.totalScore === null && !agg && <span className="text-amber-600 ml-1">· 채점 가능 항목 3개 미만으로 총점 산출 보류</span>}
@@ -1315,7 +1315,7 @@ ${inner}
                 <FileText className="w-4 h-4 text-slate-500 shrink-0" />
                 <div className="min-w-0">
                   <p className="text-sm font-bold text-slate-800">내용 평가 <span className="text-[11px] font-normal text-amber-600">(AI 초안 · 교수 확정 필요)</span></p>
-                  <p className="text-[11px] text-slate-400 truncate">전사 인용 근거 기반 · 행동 점수와 합산하지 않는 별도 레이어</p>
+                  <p className="text-[11px] text-slate-600 truncate">전사 인용 근거 기반 · 행동 점수와 합산하지 않는 별도 레이어</p>
                 </div>
               </div>
               {!contentEval && (
@@ -1438,7 +1438,7 @@ ${inner}
                       {/* 헤더 */}
                       <div className="flex items-center justify-between mb-3 gap-2">
                         <div className="flex items-center gap-2 min-w-0">
-                          <span className="text-[11px] font-mono font-bold text-slate-400 shrink-0">{item.channel}</span>
+                          <span className="text-[11px] font-mono font-bold text-slate-600 shrink-0">{item.channel}</span>
                           <span className="text-sm font-semibold text-slate-800 truncate">{item.name}</span>
                           {!item.totalReflected && (
                             <span className="text-[10px] bg-slate-100 text-slate-500 px-1.5 py-0.5 rounded shrink-0">보조 · 총점 미반영</span>
@@ -1469,7 +1469,7 @@ ${inner}
                                   </div>
                                   <span className={cn("text-[10px] font-medium w-8 text-right", tc.text)}>{ind.judgment}</span>
                                 </div>
-                                {ind.band && <p className="text-[9px] text-slate-400 mt-0.5">상위 기준: {ind.band.upper}</p>}
+                                {ind.band && <p className="text-[10px] text-slate-600 mt-0.5">상위 기준: {ind.band.upper}</p>}
                               </div>
                             );
                           })}
@@ -1479,7 +1479,7 @@ ${inner}
                       {/* 참고지표 (미채점 — 피드백 ③) */}
                       {refs.length > 0 && (
                         <div className="mt-3 pt-2 border-t border-slate-200/40">
-                          <p className="text-[10px] uppercase tracking-wider text-slate-400 mb-1">참고지표 (미채점)</p>
+                          <p className="text-[10px] uppercase tracking-wider text-slate-600 mb-1">참고지표 (미채점)</p>
                           <div className="flex flex-wrap gap-x-3 gap-y-1">
                             {refs.map((ind) => (
                               <span key={ind.name} className="text-[11px] text-slate-500">

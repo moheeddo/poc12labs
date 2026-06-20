@@ -189,25 +189,30 @@ export function buildDerailerProfile(
   scenarioType: "normal" | "emergency",
   patterns: DerailerPattern[]
 ): DerailerProfile {
-  // 점수 내림차순 정렬
+  // 점수 내림차순 정렬 (11개 그리드 전체 표시용 — 증거 미보유 패턴 포함)
   const sortedPatterns = [...patterns].sort((a, b) => b.score - a.score);
 
-  // 상위 3개 고위험 패턴 선정
-  const topRisks = sortedPatterns.slice(0, 3);
+  // fail-closed: 증거(타임스탬프 인용)를 보유한 패턴만 위험 단정에 사용한다.
+  // 점수만 있고 근거가 없는 패턴은 종합 위험·Top-3 단정에서 제외해 근거 없는 판정을 차단.
+  const verifiedPatterns = sortedPatterns.filter((p) => p.evidence.length > 0);
 
-  // 전체 위험 수준 산출: 상위 3개 평균 점수 기반
-  const top3Avg =
-    topRisks.length > 0
-      ? topRisks.reduce((sum, p) => sum + p.score, 0) / topRisks.length
-      : 0;
+  // 상위 3개 고위험 패턴 선정 (증거 보유 패턴만)
+  const topRisks = verifiedPatterns.slice(0, 3);
 
+  // 전체 위험 수준 산출: 증거 보유 상위 3개 평균 점수 기반.
+  // 증거 보유 패턴이 0건이면 종합 위험을 단정할 수 없으므로 "unverified".
   let overallRiskLevel: DerailerProfile["overallRiskLevel"];
-  if (top3Avg <= 3) {
-    overallRiskLevel = "low";
-  } else if (top3Avg <= 6) {
-    overallRiskLevel = "moderate";
+  if (topRisks.length === 0) {
+    overallRiskLevel = "unverified";
   } else {
-    overallRiskLevel = "high";
+    const top3Avg = topRisks.reduce((sum, p) => sum + p.score, 0) / topRisks.length;
+    if (top3Avg <= 3) {
+      overallRiskLevel = "low";
+    } else if (top3Avg <= 6) {
+      overallRiskLevel = "moderate";
+    } else {
+      overallRiskLevel = "high";
+    }
   }
 
   return {

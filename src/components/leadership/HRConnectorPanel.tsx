@@ -107,7 +107,7 @@ export default function HRConnectorPanel({ onImport }: HRConnectorPanelProps) {
       >
         <Upload
           className={`h-8 w-8 transition-colors ${
-            isDragging ? "text-emerald-700" : "text-slate-400"
+            isDragging ? "text-emerald-700" : "text-slate-500"
           }`}
         />
         <div className="text-center">
@@ -162,7 +162,7 @@ export default function HRConnectorPanel({ onImport }: HRConnectorPanelProps) {
                 </li>
               ))}
               {result.errors.length > 5 && (
-                <li className="text-xs text-amber-600">
+                <li className="text-xs text-amber-700">
                   ... 외 {result.errors.length - 5}건
                 </li>
               )}
@@ -181,10 +181,10 @@ export default function HRConnectorPanel({ onImport }: HRConnectorPanelProps) {
               <table className="w-full text-xs">
                 <thead>
                   <tr className="border-b border-slate-200 bg-slate-100">
-                    <th className="px-3 py-2 text-left font-medium text-slate-500">이름</th>
-                    <th className="px-3 py-2 text-left font-medium text-slate-500">부서</th>
-                    <th className="px-3 py-2 text-left font-medium text-slate-500">직급</th>
-                    <th className="px-3 py-2 text-left font-medium text-slate-500">근속</th>
+                    <th className="px-3 py-2 text-left font-medium text-slate-600">이름</th>
+                    <th className="px-3 py-2 text-left font-medium text-slate-600">부서</th>
+                    <th className="px-3 py-2 text-left font-medium text-slate-600">직급</th>
+                    <th className="px-3 py-2 text-left font-medium text-slate-600">근속</th>
                   </tr>
                 </thead>
                 <tbody>

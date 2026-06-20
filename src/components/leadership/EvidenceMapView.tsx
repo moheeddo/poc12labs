@@ -89,7 +89,7 @@ export default function EvidenceMapView({
           <MapPin className="w-7 h-7 text-slate-400" />
         </div>
         <p className="text-base font-medium text-slate-500">분석 후 증거맵이 생성됩니다</p>
-        <p className="text-sm text-slate-400 mt-1.5">
+        <p className="text-sm text-slate-600 mt-1.5">
           AI 분석을 실행하면 루브릭 항목별 영상 근거가 자동 매핑됩니다
         </p>
       </div>
@@ -150,7 +150,7 @@ export default function EvidenceMapView({
                   )}
                 />
                 <span className="text-xs font-medium text-slate-600">전체 클립 보기</span>
-                <span className="ml-auto text-xs font-mono text-slate-400 bg-slate-100 rounded px-1.5 py-0.5">
+                <span className="ml-auto text-xs font-mono text-slate-600 bg-slate-100 rounded px-1.5 py-0.5">
                   {clips.length}
                 </span>
               </button>
@@ -176,7 +176,7 @@ export default function EvidenceMapView({
                     <span
                       className={cn(
                         "text-xs leading-relaxed flex-1 min-w-0",
-                        hasEvidence ? "text-slate-700" : "text-slate-400"
+                        hasEvidence ? "text-slate-700" : "text-slate-600"
                       )}
                     >
                       {text}
@@ -199,13 +199,13 @@ export default function EvidenceMapView({
             <p className="text-xs font-medium text-slate-600 uppercase tracking-wider">
               영상 증거 클립
             </p>
-            <span className="text-xs text-slate-400">{selectedClips.length}건</span>
+            <span className="text-xs text-slate-600">{selectedClips.length}건</span>
           </div>
 
           {selectedClips.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-10 text-center px-4">
               <Circle className="w-8 h-8 text-slate-200 mb-2" />
-              <p className="text-xs text-slate-400">이 항목에 매핑된 증거가 없습니다</p>
+              <p className="text-xs text-slate-600">이 항목에 매핑된 증거가 없습니다</p>
             </div>
           ) : (
             <ul className="divide-y divide-slate-100/50 max-h-72 overflow-y-auto">
@@ -248,7 +248,7 @@ export default function EvidenceMapView({
 
                       {/* 루브릭 항목 텍스트 (전체 보기 시에만) */}
                       {selectedItemId === null && (
-                        <p className="text-[10px] text-slate-400 truncate">
+                        <p className="text-[10px] text-slate-600 truncate">
                           {clip.rubricItemText}
                         </p>
                       )}
@@ -306,7 +306,7 @@ export default function EvidenceMapView({
         </div>
 
         {/* 총 클립 수 */}
-        <div className="ml-auto text-xs text-slate-400 shrink-0">
+        <div className="ml-auto text-xs text-slate-600 shrink-0">
           총 <span className="font-mono font-medium text-slate-600">{clips.length}</span>개 클립
         </div>
       </div>

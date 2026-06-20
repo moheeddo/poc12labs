@@ -366,7 +366,7 @@ export default function GroupManager({
           <div className="mb-1">
             <button
               onClick={() => setTipOpen((prev) => !prev)}
-              className="flex items-center gap-2 text-sm text-amber-600 hover:text-amber-500 transition-colors py-1"
+              className="flex items-center gap-2 text-sm text-amber-700 hover:text-amber-800 transition-colors py-1"
             >
               <Lightbulb className="w-4 h-4" />
               <span className="font-medium">평가자를 위한 관찰 포인트</span>
@@ -415,11 +415,11 @@ export default function GroupManager({
                   <CheckCircle2 className="w-5 h-5 text-amber-600 shrink-0" />
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-medium text-slate-700 truncate">{currentState.sharedFileName}</p>
-                    <p className="text-xs text-amber-600">전체 영상 업로드 완료</p>
+                    <p className="text-xs text-amber-800">전체 영상 업로드 완료</p>
                   </div>
                   <button
                     onClick={() => onAnalyzeMember("shared", "전체 토론", currentState.sharedVideoId!, currentState.sharedBlobUrl, currentComp.key, scenarioText)}
-                    className="text-xs text-amber-600 hover:text-amber-500 px-3 py-1.5 rounded-lg border border-amber-200 hover:bg-amber-50 transition-colors"
+                    className="text-xs text-amber-700 hover:text-amber-800 px-3 py-1.5 rounded-lg border border-amber-200 hover:bg-amber-50 transition-colors"
                   >
                     <Play className="w-3 h-3 inline mr-1" />경청 분석
                   </button>
@@ -478,9 +478,9 @@ export default function GroupManager({
                           {memberNote ? <MessageSquareText className="w-4 h-4" /> : <MessageSquarePlus className="w-4 h-4" />}
                         </button>
                         {score?.analyzed ? (
-                          <span className="text-xs font-mono font-bold text-amber-600 bg-amber-50 px-2 py-0.5 rounded-md border border-amber-200/50">{score.overallScore.toFixed(1)}/9</span>
+                          <span className="text-xs font-mono font-bold text-amber-800 bg-amber-50 px-2 py-0.5 rounded-md border border-amber-200/50">{score.overallScore.toFixed(1)}/9</span>
                         ) : hasVideo ? (
-                          <span className="text-[10px] font-medium text-orange-600 bg-orange-50 px-2 py-0.5 rounded-md border border-orange-200/50">미분석</span>
+                          <span className="text-[10px] font-medium text-orange-700 bg-orange-50 px-2 py-0.5 rounded-md border border-orange-200/50">미분석</span>
                         ) : null}
                       </div>
                       {/* 메모 편집 / 표시 영역 */}
@@ -499,11 +499,11 @@ export default function GroupManager({
                             <p className="text-[10px] text-slate-400">Ctrl+Enter 저장 / Esc 취소</p>
                             <div className="flex items-center gap-1">
                               {memberNote && (
-                                <button onClick={() => deleteNote(member.id)} className="text-[10px] text-red-400 hover:text-red-500 px-2 py-1 rounded transition-colors">
+                                <button onClick={() => deleteNote(member.id)} className="text-[10px] text-red-600 hover:text-red-700 px-2 py-1 rounded transition-colors">
                                   삭제
                                 </button>
                               )}
-                              <button onClick={() => { setEditingNoteFor(null); setNoteText(""); }} className="text-[10px] text-slate-400 hover:text-slate-600 px-2 py-1 rounded transition-colors">
+                              <button onClick={() => { setEditingNoteFor(null); setNoteText(""); }} className="text-[10px] text-slate-600 hover:text-slate-800 px-2 py-1 rounded transition-colors">
                                 취소
                               </button>
                               <button onClick={() => saveNote(member.id)} className="text-[10px] font-medium text-slate-600 hover:text-slate-500 bg-slate-50 px-2.5 py-1 rounded-md border border-slate-200/50 transition-colors">
@@ -524,7 +524,7 @@ export default function GroupManager({
                       {hasVideo ? (
                         <div className="space-y-2">
                           <p className="text-xs text-slate-500 truncate">{videoInfo.fileName}</p>
-                          <button onClick={() => onAnalyzeMember(member.id, member.name, videoInfo.videoId, videoInfo.blobUrl, currentComp.key, scenarioText)} className={cn("w-full flex items-center justify-center gap-1.5 text-sm font-medium py-2.5 rounded-lg border transition-colors", score?.analyzed ? "bg-amber-50 text-amber-600 hover:bg-amber-100 border-amber-200/50" : "bg-orange-50 text-orange-600 hover:bg-orange-100 border-orange-200/50")}>
+                          <button onClick={() => onAnalyzeMember(member.id, member.name, videoInfo.videoId, videoInfo.blobUrl, currentComp.key, scenarioText)} className={cn("w-full flex items-center justify-center gap-1.5 text-sm font-medium py-2.5 rounded-lg border transition-colors", score?.analyzed ? "bg-amber-50 text-amber-800 hover:bg-amber-100 border-amber-200/50" : "bg-orange-50 text-orange-700 hover:bg-orange-100 border-orange-200/50")}>
                             <Play className="w-3.5 h-3.5" />{score?.analyzed ? "결과 보기" : "발언 분석"}
                           </button>
                         </div>
@@ -534,7 +534,7 @@ export default function GroupManager({
                             {isUploading ? (
                               <>
                                 <Loader2 className="w-5 h-5 text-amber-500 animate-spin" />
-                                <p className="text-xs text-amber-600 font-medium">{uploadStatus === "indexing" ? "인덱싱 중..." : `업로드 ${Math.round(uploadPercent)}%`}</p>
+                                <p className="text-xs text-amber-700 font-medium">{uploadStatus === "indexing" ? "인덱싱 중..." : `업로드 ${Math.round(uploadPercent)}%`}</p>
                                 <div className="w-24 h-1.5 bg-amber-100 rounded-full overflow-hidden"><div className="h-full bg-amber-500 rounded-full transition-all duration-300" style={{ width: `${uploadPercent}%` }} /></div>
                               </>
                             ) : (
@@ -639,7 +639,7 @@ export default function GroupManager({
                         {score.overallScore.toFixed(1)}/9
                       </span>
                     ) : hasVideo ? (
-                      <span className="text-[10px] font-medium text-amber-600 bg-amber-50 px-2 py-0.5 rounded-md border border-amber-200/50">
+                      <span className="text-[10px] font-medium text-amber-800 bg-amber-50 px-2 py-0.5 rounded-md border border-amber-200/50">
                         미분석
                       </span>
                     ) : null}
@@ -661,11 +661,11 @@ export default function GroupManager({
                         <p className="text-[10px] text-slate-400">Ctrl+Enter 저장 / Esc 취소</p>
                         <div className="flex items-center gap-1">
                           {memberNote && (
-                            <button onClick={() => deleteNote(member.id)} className="text-[10px] text-red-400 hover:text-red-500 px-2 py-1 rounded transition-colors">
+                            <button onClick={() => deleteNote(member.id)} className="text-[10px] text-red-600 hover:text-red-700 px-2 py-1 rounded transition-colors">
                               삭제
                             </button>
                           )}
-                          <button onClick={() => { setEditingNoteFor(null); setNoteText(""); }} className="text-[10px] text-slate-400 hover:text-slate-600 px-2 py-1 rounded transition-colors">
+                          <button onClick={() => { setEditingNoteFor(null); setNoteText(""); }} className="text-[10px] text-slate-600 hover:text-slate-800 px-2 py-1 rounded transition-colors">
                             취소
                           </button>
                           <button onClick={() => saveNote(member.id)} className="text-[10px] font-medium text-slate-600 hover:text-slate-500 bg-slate-50 px-2.5 py-1 rounded-md border border-slate-200/50 transition-colors">
@@ -693,7 +693,7 @@ export default function GroupManager({
                           "w-full flex items-center justify-center gap-1.5 text-sm font-medium py-2.5 rounded-lg border transition-colors",
                           score?.analyzed
                             ? "bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border-emerald-200/50"
-                            : "bg-amber-50 text-amber-600 hover:bg-amber-100 border-amber-200/50"
+                            : "bg-amber-50 text-amber-800 hover:bg-amber-100 border-amber-200/50"
                         )}
                       >
                         <Play className="w-3.5 h-3.5" />
@@ -785,7 +785,7 @@ export default function GroupManager({
         {/* 진행 버튼 */}
         <div className="flex items-center justify-between mt-6 pt-4 border-t border-slate-200/30">
           <button onClick={() => goStep(session.currentStep - 1)} disabled={session.currentStep === 0} className="text-sm text-slate-500 hover:text-slate-700 disabled:opacity-30 transition-colors">&larr; 이전 역량</button>
-          <div className="text-sm text-slate-400">{uploadedCount}/{totalExpected}건 업로드</div>
+          <div className="text-sm text-slate-600">{uploadedCount}/{totalExpected}건 업로드</div>
           <button onClick={() => goStep(session.currentStep + 1)} disabled={session.currentStep >= COMPETENCY_ORDER.length - 1} className="text-sm font-semibold text-white bg-khnp-emerald hover:bg-khnp-emerald-dark disabled:bg-slate-200 disabled:text-slate-400 px-4 py-2 rounded-lg shadow-sm transition-all active:scale-[0.97]">다음 역량 &rarr;</button>
         </div>
       </div>

@@ -64,6 +64,9 @@ export default function ConsentForm({
             <li key={item.type}>
               <button
                 type="button"
+                role="checkbox"
+                aria-checked={isChecked}
+                aria-label={item.label}
                 onClick={() => handleToggle(item.type)}
                 className="w-full text-left flex items-start gap-3 rounded-md border border-slate-200/60 bg-slate-50 px-4 py-3 hover:bg-slate-100 transition-colors"
               >
@@ -75,7 +78,7 @@ export default function ConsentForm({
                       : "border-slate-300 bg-transparent"
                   }`}
                 >
-                  {isChecked && <Check className="h-3.5 w-3.5 text-white" strokeWidth={3} />}
+                  {isChecked && <Check className="h-3.5 w-3.5 text-white" strokeWidth={3} aria-hidden="true" />}
                 </span>
 
                 {/* 텍스트 영역 */}
@@ -116,7 +119,7 @@ export default function ConsentForm({
         className={`w-full rounded-md px-4 py-2.5 text-sm font-semibold transition-colors ${
           allRequired
             ? "bg-emerald-600 hover:bg-emerald-700 text-white"
-            : "bg-slate-100 text-slate-400 cursor-not-allowed"
+            : "bg-slate-100 text-slate-600 cursor-not-allowed"
         }`}
       >
         동의 완료 · 다음 단계로

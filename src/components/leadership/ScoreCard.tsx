@@ -51,7 +51,7 @@ export default function ScoreCard({ speaker, rank }: ScoreCardProps) {
       <div className="flex items-center gap-3 mb-4">
         {/* 순위 배지 */}
         <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${rankBgColors[rank - 1] || "bg-slate-100"}`}>
-          <span className={`text-base font-bold font-mono ${rankColors[rank - 1] || "text-slate-400"}`}>
+          <span className={`text-base font-bold font-mono ${rankColors[rank - 1] || "text-slate-600"}`}>
             {rank}
           </span>
         </div>
@@ -127,7 +127,7 @@ export default function ScoreCard({ speaker, rank }: ScoreCardProps) {
                       return (
                         <div key={ri} className="flex items-center gap-2 py-0.5">
                           <span className="text-sm text-slate-600 flex-1 truncate">{r.criteria}</span>
-                          <span className={`text-sm font-mono ${rs ? getScoreTier(rs.score).text : "text-slate-400"}`}>
+                          <span className={`text-sm font-mono ${rs ? getScoreTier(rs.score).text : "text-slate-500"}`}>
                             {rs ? `${rs.score}/9` : "-"}
                           </span>
                         </div>

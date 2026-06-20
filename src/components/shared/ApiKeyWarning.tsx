@@ -19,13 +19,13 @@ export default function ApiKeyWarning() {
       <AlertTriangle className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
       <div className="flex-1">
         <p className="text-sm font-semibold text-amber-800">TwelveLabs API 연결 안됨</p>
-        <p className="text-sm text-amber-600 mt-1">
+        <p className="text-sm text-amber-700 mt-1">
           API 키가 설정되지 않았거나 서버에 연결할 수 없습니다.
           데모 모드로 동작하며, 실제 영상 분석은 제한됩니다.
         </p>
       </div>
-      <button onClick={() => setShow(false)} className="text-amber-400 hover:text-amber-600">
-        <X className="w-4 h-4" />
+      <button onClick={() => setShow(false)} aria-label="경고 닫기" className="text-amber-600 hover:text-amber-800">
+        <X className="w-4 h-4" aria-hidden="true" />
       </button>
     </div>
   );

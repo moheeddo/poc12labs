@@ -207,7 +207,7 @@ export default function TranscriptTimeline({
           </div>
           <div>
             <h4 className="text-base font-semibold text-slate-700">디브리핑 대본</h4>
-            <p className="text-sm text-slate-400 font-mono">
+            <p className="text-sm text-slate-600 font-mono">
               {segments.length}개 문단 · {rawSegments.length}개 원본 구간
               {totalDuration > 0 && ` · ${formatTime(totalDuration)}`}
             </p>
@@ -227,7 +227,7 @@ export default function TranscriptTimeline({
           </button>
           <button
             onClick={() => setIsCompact(!isCompact)}
-            className="min-h-[44px] min-w-[44px] flex items-center justify-center rounded-md text-slate-400 hover:text-slate-500 transition-colors"
+            className="min-h-[44px] min-w-[44px] flex items-center justify-center rounded-md text-slate-500 hover:text-slate-700 transition-colors"
             title={isCompact ? "상세 보기" : "간결 보기"}
             aria-label={isCompact ? "상세 보기로 전환" : "간결 보기로 전환"}
           >
@@ -242,7 +242,7 @@ export default function TranscriptTimeline({
 
       {/* ─── 인라인 검색 ─── */}
       <div className="relative mb-4">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400" />
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-500" />
         <input
           type="text"
           value={searchQuery}
@@ -262,7 +262,7 @@ export default function TranscriptTimeline({
         {filtered.length === 0 && !loading && (
           <div className="py-8 text-center">
             <FileText className="w-8 h-8 mx-auto mb-2 text-slate-300" />
-            <p className="text-sm text-slate-400">
+            <p className="text-sm text-slate-600">
               {searchQuery ? "검색 결과가 없습니다" : "전사 데이터가 없습니다"}
             </p>
           </div>
@@ -320,7 +320,7 @@ export default function TranscriptTimeline({
                     <span className="text-sm font-mono text-slate-600">{formatTime(seg.end)}</span>
 
                     {!isCompact && (
-                      <span className="text-[10px] font-mono text-slate-400 bg-slate-100/60 px-1.5 py-0.5 rounded">
+                      <span className="text-[10px] font-mono text-slate-600 bg-slate-100/60 px-1.5 py-0.5 rounded">
                         {duration >= 60
                           ? `${Math.floor(duration / 60)}분 ${Math.round(duration % 60)}초`
                           : `${Math.round(duration)}초`}
@@ -380,7 +380,7 @@ export default function TranscriptTimeline({
       {bookmarks.size > 0 && (
         <div className="mt-4 pt-3 border-t border-slate-200/30">
           <div className="flex items-center justify-between mb-2">
-            <p className="text-sm uppercase tracking-wider text-amber-500/60 flex items-center gap-1">
+            <p className="text-sm uppercase tracking-wider text-amber-700 flex items-center gap-1">
               <Star className="w-3 h-3 fill-amber-400 text-amber-600" />
               핵심 구간 {bookmarks.size}건
             </p>

@@ -204,7 +204,7 @@ export default function ValidationConsole({
   if (!report) {
     return (
       <div className="rounded-xl border border-slate-200/60 bg-white shadow-sm p-8 flex flex-col items-center gap-3 text-center">
-        <FileText className="h-10 w-10 text-slate-400" />
+        <FileText className="h-10 w-10 text-slate-500" />
         <p className="text-sm text-slate-500">
           심리측정 검증 데이터가 없습니다.
           <br />
@@ -237,21 +237,33 @@ export default function ValidationConsole({
             sublabel="내적 일관성"
           />
 
-          {/* ICC */}
+          {/* ICC — fail-closed: 짝지어진 인간 평가 3쌍 미만이면 미산출(센티넬 0)을 실측 0/저신뢰로 단정하지 않음 */}
           <div className="flex flex-col items-center gap-2">
-            <CircularGauge
-              value={report.icc.value}
-              label={report.icc.type}
-              sublabel="평가자 간 신뢰도"
-            />
-            {/* CI 범위 표시 */}
-            <div
-              className={`text-xs font-mono px-2 py-0.5 rounded border border-slate-200 bg-slate-50 ${iccColors.text}`}
-            >
-              <span className={iccColors.text}>
-                95% CI [{report.icc.ci95[0].toFixed(2)}, {report.icc.ci95[1].toFixed(2)}]
-              </span>
-            </div>
+            {report.icc.computed ? (
+              <>
+                <CircularGauge
+                  value={report.icc.value}
+                  label={report.icc.type}
+                  sublabel="평가자 간 신뢰도"
+                />
+                {/* CI 범위 표시 */}
+                <div
+                  className={`text-xs font-mono px-2 py-0.5 rounded border border-slate-200 bg-slate-50 ${iccColors.text}`}
+                >
+                  <span className={iccColors.text}>
+                    95% CI [{report.icc.ci95[0].toFixed(2)}, {report.icc.ci95[1].toFixed(2)}]
+                  </span>
+                </div>
+              </>
+            ) : (
+              <div className="flex h-[120px] w-[120px] flex-col items-center justify-center gap-1 rounded-full border border-dashed border-slate-300 bg-slate-50 text-center px-3">
+                <span className="text-[11px] font-semibold text-slate-600">{report.icc.type}</span>
+                <span className="text-sm font-bold text-slate-500">미산출</span>
+                <span className="text-[10px] leading-tight text-slate-500">
+                  짝지어진 인간 평가 3건 이상 필요
+                </span>
+              </div>
+            )}
           </div>
         </div>
       </div>

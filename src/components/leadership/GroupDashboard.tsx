@@ -162,7 +162,7 @@ function MemberReportModal({
                   data.avgScore > 0 ? "text-red-700" :
                   "text-slate-300"
                 )}>
-                  {data.avgScore > 0 ? data.avgScore.toFixed(1) : "-"}<span className="text-base text-slate-400">/9</span>
+                  {data.avgScore > 0 ? data.avgScore.toFixed(1) : "-"}<span className="text-base text-slate-600">/9</span>
                 </p>
                 <p className={cn(
                   "text-sm font-medium mt-1",
@@ -270,7 +270,7 @@ function MemberReportModal({
                 .sort((a, b) => a.score - b.score)
                 .map((c, i) => (
                   <div key={c.label} className="flex items-start gap-2 text-sm">
-                    <span className="text-xs font-mono font-bold text-slate-400 bg-slate-100 rounded px-1.5 py-0.5 shrink-0 mt-0.5">
+                    <span className="text-xs font-mono font-bold text-slate-600 bg-slate-100 rounded px-1.5 py-0.5 shrink-0 mt-0.5">
                       {i + 1}
                     </span>
                     <div>
@@ -613,7 +613,7 @@ export default function GroupDashboard({ session, onBack, onViewMember }: GroupD
               )}>
                 {m.avgScore > 0 ? m.avgScore.toFixed(1) : "\u2014"}
               </span>
-              <span className="text-xs text-slate-400">/9</span>
+              <span className="text-xs text-slate-500">/9</span>
             </div>
             <p className="text-[10px] text-slate-500 mt-0.5">{m.analyzedCount}/{COMPETENCY_ORDER.length} 역량</p>
 
@@ -803,7 +803,7 @@ export default function GroupDashboard({ session, onBack, onViewMember }: GroupD
             <RadarChart data={radarData} cx="50%" cy="50%" outerRadius="75%">
               <PolarGrid stroke="#e2e8f0" />
               <PolarAngleAxis dataKey="subject" tick={{ fill: "#475569", fontSize: 13, fontWeight: 600 }} />
-              <PolarRadiusAxis domain={[0, 9]} tick={{ fill: "#94a3b8", fontSize: 10 }} />
+              <PolarRadiusAxis domain={[0, 9]} tick={{ fill: "#64748b", fontSize: 10 }} />
               <Tooltip />
               {session.members.map((m) => (
                 <Radar
