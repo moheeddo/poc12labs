@@ -55,6 +55,7 @@ const ValidationConsole = lazy(() => import("./ValidationConsole"));
 const FairnessMonitor = lazy(() => import("./FairnessMonitor"));
 const ISOAuditView = lazy(() => import("./ISOAuditView"));
 const IntegratedReport = lazy(() => import("./IntegratedReport"));
+const RubricGuide = lazy(() => import("./RubricGuide"));
 import { useEvidence } from "@/hooks/useEvidence";
 import { useDerailer } from "@/hooks/useDerailer";
 import { useBEI } from "@/hooks/useBEI";
@@ -116,7 +117,7 @@ export default function LeadershipCoaching() {
 
   // 분석 서브탭 상태
   const [analysisSubTab, setAnalysisSubTab] = useState<
-    "competency" | "evidence" | "derailer" | "bei" | "growth" | "validation" | "fairness" | "iso" | "report" | "consent"
+    "competency" | "evidence" | "derailer" | "bei" | "growth" | "validation" | "fairness" | "iso" | "report" | "consent" | "guide"
   >("competency");
 
   // 새 모듈 훅
@@ -943,6 +944,7 @@ export default function LeadershipCoaching() {
               { key: "iso", label: "ISO감사" },
               { key: "report", label: "통합리포트" },
               { key: "consent", label: "동의/HR" },
+              { key: "guide", label: "평가 기준" },
             ].map((tab) => {
               // 서브탭 액센트는 KHNP 브랜드 단일색(emerald) — 무지개 금지(.impeccable 일관성)
               return (
@@ -1035,6 +1037,11 @@ export default function LeadershipCoaching() {
               onComplete={() => {}}
             />
             <HRConnectorPanel onImport={() => {}} />
+          </div>
+        )}
+        {analysisSubTab === "guide" && (
+          <div role="tabpanel" id="subpanel-guide" aria-labelledby="subtab-guide" className="space-y-4">
+            <RubricGuide />
           </div>
         )}
         </Suspense>
