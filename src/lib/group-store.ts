@@ -15,10 +15,21 @@ function normalizeSession(s: GroupSession): GroupSession {
   const max = COMPETENCY_ORDER.length - 1;
   const currentStep = Math.min(Math.max(0, s.currentStep ?? 0), max);
   // 역량 수가 현재(3)보다 많으면 orphan 슬롯 절단
-  const competencies = s.competencies.length > COMPETENCY_ORDER.length
+  const sliced = s.competencies.length > COMPETENCY_ORDER.length
     ? s.competencies.slice(0, COMPETENCY_ORDER.length)
     : s.competencies;
-  return currentStep === s.currentStep && competencies === s.competencies
+  // 과거 저장본에 memberScores 필드가 누락된 competency 방어 — 없으면 {} 로 backfill.
+  // (GroupDashboard 집계가 c.memberScores[id] 접근 시 undefined['id'] 로 크래시나던
+  //  "Application error: client-side exception"의 근본 데이터 원인 차단)
+  let mutated = false;
+  const competencies = sliced.map((c) => {
+    if (c && (c.memberScores == null || typeof c.memberScores !== "object")) {
+      mutated = true;
+      return { ...c, memberScores: {} };
+    }
+    return c;
+  });
+  return currentStep === s.currentStep && sliced === s.competencies && !mutated
     ? s
     : { ...s, currentStep, competencies };
 }

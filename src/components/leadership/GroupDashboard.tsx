@@ -416,7 +416,7 @@ export default function GroupDashboard({ session, onBack, onViewMember }: GroupD
     return session.members
       .map((m) => {
         const memberScoreObjs = session.competencies
-          .map((c) => c.memberScores[m.id])
+          .map((c) => c.memberScores?.[m.id])
           .filter((s): s is NonNullable<typeof s> => !!s && s.analyzed);
         const scores = memberScoreObjs.map((s) => s.overallScore).filter((s) => s > 0);
         const avg = scores.length > 0 ? scores.reduce((a, b) => a + b, 0) / scores.length : 0;
@@ -843,7 +843,7 @@ export default function GroupDashboard({ session, onBack, onViewMember }: GroupD
                   <td className="px-3 py-2.5 text-center">
                     {(() => {
                       const allScores = session.members.flatMap((m) =>
-                        session.competencies.map((c) => c.memberScores[m.id]?.overallScore || 0)
+                        session.competencies.map((c) => c.memberScores?.[m.id]?.overallScore || 0)
                       ).filter((s) => s > 0);
                       const totalAvg = allScores.length > 0 ? Math.round((allScores.reduce((a, b) => a + b, 0) / allScores.length) * 10) / 10 : 0;
                       return (
