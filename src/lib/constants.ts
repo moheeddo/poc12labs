@@ -1,10 +1,19 @@
 import type { LeadershipCompetencyKey, JobLevel, LeadershipCompetencyDef, ServiceTab } from "./types";
 
 // TwelveLabs 인덱스 ID (API는 이름이 아닌 UUID ID를 요구)
+// ⚠️ 하드코딩 UUID는 계정이 바뀌면 실재하지 않는 ID로 드리프트해 업로드/분석이
+//    "resource_not_exists(404)"로 매번 실패한다(느린 업로드 뒤 같은 오류). 따라서
+//    프로덕션 계정에 실재하는 인덱스 ID를 기본값으로 두고, 환경변수로 재정의 가능하게 한다.
+//    (클라이언트에서 참조하므로 NEXT_PUBLIC_ 접두어 env만 주입된다.)
+// 실재 인덱스: 693fd1cfecc91a3546633cde "My Index (Default)"
+//   models = marengo3.0(visual+audio) + pegasus1.2(visual+audio) — 리더십 멀티모달 요건 충족.
+const REAL_TL_INDEX = "693fd1cfecc91a3546633cde";
 export const TWELVELABS_INDEXES = {
-  leadership: "69ccf4b781e81bcd08ca5487",
-  pov: "69ccf4b881e81bcd08ca5488",
-  lecture: "placeholder-lecture-index",
+  leadership:
+    process.env.NEXT_PUBLIC_TWELVELABS_LEADERSHIP_INDEX_ID || REAL_TL_INDEX,
+  pov: process.env.NEXT_PUBLIC_TWELVELABS_POV_INDEX_ID || REAL_TL_INDEX,
+  lecture:
+    process.env.NEXT_PUBLIC_TWELVELABS_LECTURE_INDEX_ID || REAL_TL_INDEX,
 } as const;
 
 // 서비스 탭 정의

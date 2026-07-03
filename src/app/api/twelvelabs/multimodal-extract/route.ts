@@ -10,7 +10,10 @@ export const maxDuration = 300;
 
 const log = createLogger("API:multimodal-extract");
 
-const LEADERSHIP_INDEX_ID = process.env.TWELVELABS_LEADERSHIP_INDEX_ID || "69ccf4b781e81bcd08ca5487";
+// 기본값은 프로덕션 계정에 실재하는 인덱스(693fd1cfecc91a3546633cde). 죽은 UUID로
+// 드리프트하면 리더십 행동추출이 매번 resource_not_exists(404)로 실패하므로 실재 ID를 fallback.
+const LEADERSHIP_INDEX_ID =
+  process.env.TWELVELABS_LEADERSHIP_INDEX_ID || "693fd1cfecc91a3546633cde";
 
 // =============================================
 // 멀티모달 행동 신호 추출 API (역량별 · 루브릭 데이터 구동) v1.0

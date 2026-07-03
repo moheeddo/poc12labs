@@ -11,7 +11,8 @@ export const maxDuration = 300; // Vercel 타임아웃 5분
 
 const API_KEY = () => process.env.TWELVELABS_API_KEY;
 const API_URL = () => process.env.TWELVELABS_API_URL || 'https://api.twelvelabs.io/v1.3';
-const POV_INDEX_ID = () => process.env.TWELVELABS_POV_INDEX_ID || '69ccf4b881e81bcd08ca5488';
+// 죽은 하드코딩 UUID → 실재 인덱스(693fd1cfecc91a3546633cde)로 fallback (resource_not_exists 방지)
+const POV_INDEX_ID = () => process.env.TWELVELABS_POV_INDEX_ID || '693fd1cfecc91a3546633cde';
 
 // ── TwelveLabs 영상 업로드 (URL 방식) ────────────
 async function uploadVideoUrl(videoUrl: string): Promise<string> {
